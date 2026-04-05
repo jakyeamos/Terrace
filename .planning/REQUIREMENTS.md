@@ -101,23 +101,53 @@
 
 ## Traceability
 
-*(Populated during roadmap creation)*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TMPL-01 through TMPL-08 | TBD | Pending |
-| CLI-01 through CLI-07 | TBD | Pending |
-| ENF-01 through ENF-04 | TBD | Pending |
-| WKFL-01 through WKFL-08 | TBD | Pending |
-| AGNT-01 through AGNT-05 | TBD | Pending |
-| SESS-01 through SESS-03 | TBD | Pending |
-| INST-01 through INST-04 | TBD | Pending |
+| TMPL-01 | Phase 1: Foundation | Pending |
+| TMPL-02 | Phase 1: Foundation | Pending |
+| TMPL-03 | Phase 1: Foundation | Pending |
+| TMPL-04 | Phase 1: Foundation | Pending |
+| TMPL-05 | Phase 1: Foundation | Pending |
+| TMPL-06 | Phase 1: Foundation | Pending |
+| TMPL-07 | Phase 1: Foundation | Pending |
+| TMPL-08 | Phase 1: Foundation | Pending |
+| CLI-07 | Phase 1: Foundation | Pending |
+| ENF-02 | Phase 1: Foundation | Pending |
+| ENF-03 | Phase 1: Foundation | Pending |
+| ENF-04 | Phase 1: Foundation | Pending |
+| INST-01 | Phase 1: Foundation | Pending |
+| INST-02 | Phase 1: Foundation | Pending |
+| INST-03 | Phase 1: Foundation | Pending |
+| INST-04 | Phase 1: Foundation | Pending |
+| WKFL-01 | Phase 2: Governance Workflows | Pending |
+| WKFL-02 | Phase 2: Governance Workflows | Pending |
+| WKFL-03 | Phase 2: Governance Workflows | Pending |
+| WKFL-04 | Phase 2: Governance Workflows | Pending |
+| AGNT-01 | Phase 2: Governance Workflows | Pending |
+| AGNT-02 | Phase 2: Governance Workflows | Pending |
+| AGNT-03 | Phase 2: Governance Workflows | Pending |
+| WKFL-05 | Phase 3: Baseline Protection | Pending |
+| AGNT-04 | Phase 3: Baseline Protection | Pending |
+| CLI-03 | Phase 3: Baseline Protection | Pending |
+| CLI-04 | Phase 3: Baseline Protection | Pending |
+| ENF-01 | Phase 3: Baseline Protection | Pending |
+| CLI-05 | Phase 4: Decision Log Enforcement | Pending |
+| CLI-06 | Phase 4: Decision Log Enforcement | Pending |
+| CLI-01 | Phase 5: Session Protocol | Pending |
+| CLI-02 | Phase 5: Session Protocol | Pending |
+| SESS-01 | Phase 5: Session Protocol | Pending |
+| SESS-02 | Phase 5: Session Protocol | Pending |
+| SESS-03 | Phase 5: Session Protocol | Pending |
+| WKFL-06 | Phase 6: Post-Build Governance | Pending |
+| WKFL-07 | Phase 6: Post-Build Governance | Pending |
+| WKFL-08 | Phase 6: Post-Build Governance | Pending |
+| AGNT-05 | Phase 6: Post-Build Governance | Pending |
 
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 35 ⚠️
+- v1 requirements: 39 total (TMPL ×8, CLI ×7, ENF ×4, WKFL ×8, AGNT ×5, SESS ×3, INST ×4)
+- Mapped to phases: 39
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-05*
-*Last updated: 2026-04-05 after initial definition*
+*Last updated: 2026-04-05 after roadmap creation — traceability table populated*
