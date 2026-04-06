@@ -54,15 +54,14 @@ created: 2026-04-06
 
 ## Wave 0 Requirements
 
-- [ ] `src/__tests__/templates.test.ts` — stubs for TMPL-01–13 template structure
-- [ ] `src/__tests__/init.test.ts` — stubs for INST-01–08 idempotent init
-- [ ] `src/__tests__/gsd-integration.test.ts` — stubs for GSD-01–07 modification policy
-- [ ] `src/__tests__/security.test.ts` — stubs for SEC-01–07 trust model
-- [ ] `src/__tests__/validate.test.ts` — stubs for VAL-01–05 spec validation
-- [ ] `src/__tests__/cli.test.ts` — stubs for CLI-07,10,12–15 flag parsing
-- [ ] `src/__tests__/lifecycle.test.ts` — stubs for LIFE-01–06 phase transitions
-- [ ] `src/__tests__/presets.test.ts` — stubs for PRST-01–07,12–14 preset registry
-- [ ] `src/__tests__/doctor.test.ts` — stubs for OPS-08–14 diagnostics
+- [ ] `tests/templates.test.ts` — stubs for TMPL-01–13 template structure
+- [ ] `tests/schemas.test.ts` — stubs for GSD-01–07 modification policy and schema validation
+- [ ] `tests/init.test.ts` — stubs for INST-01–08 idempotent init
+- [ ] `tests/validate.test.ts` — stubs for VAL-01–05 spec validation
+- [ ] `tests/lifecycle.test.ts` — stubs for LIFE-01–06 phase transitions
+- [ ] `tests/preset.test.ts` — stubs for PRST-01–07,12–14 preset registry
+- [ ] `tests/doctor.test.ts` — stubs for OPS-08–14 diagnostics
+- [ ] `tests/json-mode.test.ts` — stubs for CLI-07,10,12–15 flag parsing and JSON output
 - [ ] `vitest.config.ts` — framework config
 - [ ] `package.json` — vitest dependency and test script
 
