@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Terrace Project State",
+  "type": "object",
+  "required": ["phase", "spec_hash", "active_slice", "last_session", "policy_mode"],
+  "properties": {
+    "phase": {
+      "type": "string",
+      "enum": [
+        "intake",
+        "interrogation",
+        "spec-compilation",
+        "test-architecture",
+        "baseline-protection",
+        "implementation",
+        "adversarial-review",
+        "regression-capture",
+        "handoff"
+      ]
+    },
+    "spec_hash": {
+      "type": ["string", "null"]
+    },
+    "active_slice": {
+      "type": ["string", "null"]
+    },
+    "last_session": {
+      "type": ["string", "null"]
+    },
+    "policy_mode": {
+      "type": "string",
+      "enum": ["strict", "standard", "lightweight"]
+    }
+  }
+}
