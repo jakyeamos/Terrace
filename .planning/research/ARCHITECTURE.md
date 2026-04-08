@@ -8,7 +8,7 @@
 
 ## How GSD Is Actually Structured (Ground Truth)
 
-This document derives from reading the live GSD source — not from inference. The architecture described below is what GSD does, which Terrace must extend.
+This document derives from reading the live GSD source — not from inference. The architecture described below is what GSD does, which Terrace must extend with an automatic effort router, delta-based context loading, and usage intelligence.
 
 ### GSD Layer Map
 
@@ -82,9 +82,26 @@ Updates PROJECT.md, ROADMAP.md, STATE.md
 
 ## Recommended Architecture for Terrace
 
-### The Five Layers
+### Automatic Effort Routing
+
+Terrace should route before it reasons deeply.
+
+- Local classifier first: command type, changed-file count, artifact categories, protected tests, spec artifacts, active slice, ambiguity, and safety-critical domain determine the default effort band.
+- Deterministic preprocessors first: diffing, registry checks, requirement mapping, freshness checks, session reconstruction, and protected-artifact impact detection should happen locally before model escalation.
+- Delta-context packet second: load only the steering file, route summary, spec hash, and impacted artifacts unless a trigger justifies more.
+- AI escalator second: model-heavy work is reserved for ambiguity, tradeoffs, spec changes, and adversarial reasoning.
+- Usage intelligence: `terrace-usage` reports overfiring workflows and `terrace-why` explains why a route was selected and what deeper steps were skipped.
+- Trigger-based governance: full spec compilation, full test architecture regeneration, and adversarial review fire only when signals say they are worth the tokens.
+
+### The Six Layers
 
 ```
+Layer 6: Effort Router & Usage Intelligence (NEW — Terrace-specific)
+  .terrace/routing-log.json   — Route decisions and skipped-step summaries
+  .terrace/usage-log.json     — Compact usage telemetry
+  Diagnostics: terrace usage, terrace why
+  Responsibilities: classify, cap effort, explain route, detect waste
+
 Layer 5: Governance Layer (NEW — Terrace-specific)
   docs/prd/         — PRD artifacts
   docs/spec/        — Compiled specs
@@ -126,6 +143,9 @@ Layer 1: Template Layer (scaffold files)
 
 | Component | Owns | Reads | Writes | Calls |
 |-----------|------|-------|--------|-------|
+| Effort router | Effort class selection | command class signals, diff summary, freshness signals | routing log, route summary | terrace-tools.cjs, local preprocessors |
+| Usage reporter | Waste detection and explanation | routing log, usage log, session artifacts | usage summary, route explanation | terrace-tools.cjs |
+| Delta packet builder | Compact context selection | steering.md, spec hash, impacted artifacts | delta-context packet | local preprocessors |
 | Governance workflow | Session protocol | docs/prd/, docs/spec/, .planning/ | docs/decisions/, docs/testing/ | terrace-tools.cjs, spec subagents |
 | Spec Interrogator agent | Ambiguity surface | PRD input, docs/spec/ | docs/spec/INTERROGATION.md | nothing |
 | Spec Compiler agent | Spec truth | INTERROGATION.md, PRD | docs/spec/COMPILED-SPEC.md | nothing |
@@ -141,10 +161,17 @@ Layer 1: Template Layer (scaffold files)
 ### Data Flow — Full Terrace Lifecycle
 
 ```
-GOVERNANCE PHASES (pre-build)
+ROUTING PRE-PASS
 ──────────────────────────────────────────────────────
 
-[User provides PRD or raw idea]
+[User provides command or PRD]
+         │
+         ▼
+Effort router
+  → local classifier
+  → deterministic preprocessors
+  → delta-context packet
+  → route decision
          │
          ▼
 Intake workflow
@@ -187,16 +214,16 @@ GSD EXECUTION PHASES (mid-build, inherited)
   → /gsd:execute-phase N  (planners, executors, verifiers)
   → [Regression gate runs — baseline tests must not regress]
 
-POST-BUILD PHASES (Terrace-specific)
+TRIGGERED PHASES (Terrace-specific)
 ──────────────────────────────────────────────────────
 
-  → Adversarial Review workflow
+  → Adversarial Review workflow (triggered by drift / ambiguity / safety signals)
   → Spawns terrace-verifier-adversary
   → Reads COMPILED-SPEC.md + VERIFICATION.md + actual codebase
   → Writes docs/decisions/ADVERSARIAL-REVIEW-[phase].md
   → Any discovered gaps → decision log entry required before closure
 
-  → Regression Capture workflow
+  → Regression Capture workflow (targeted additions preferred)
   → New test patterns from adversarial review added to TEST-ARCH.md
   → terrace-tools.cjs baseline protect <new files>
   → Baseline registry updated
@@ -282,11 +309,12 @@ Sessions are repo artifacts (committed). The AIOS hooks the user already has can
 Dependencies drive this ordering. Nothing can be built that depends on something not yet stable.
 
 ### Phase 1 — Foundation (Templates + CLI skeleton)
-**Must exist before anything else.** Templates define file contracts. CLI skeleton establishes the write-path boundary.
+**Must exist before anything else.** Templates define file contracts. CLI skeleton establishes the write-path boundary, and the router scaffolds the cheap-default path.
 
 - Template layer: PRD.md, SPEC.md, TEST-ARCH.md, DECISION-LOG.md, SESSION.md
 - terrace-tools.cjs scaffold: commands exist but may return stubs
 - .terrace/ directory structure and baseline-registry.json schema
+- routing and usage-log scaffolds
 
 Why first: Every subsequent phase writes files whose format is defined here. If formats change later, all agents break.
 
@@ -297,6 +325,7 @@ Why first: Every subsequent phase writes files whose format is defined here. If 
 - Interrogation workflow + terrace-spec-interrogator agent
 - Spec Compilation workflow + terrace-spec-compiler agent
 - Test Architecture workflow + terrace-test-architect agent
+- route-trigger wiring for escalation
 
 Why before baseline: You cannot write the Protected Baseline workflow until you know what COMPILED-SPEC.md and TEST-ARCH.md look like in practice.
 
@@ -316,6 +345,7 @@ Why after governance: The baseline builder consumes TEST-ARCH.md output. The pre
 - terrace-tools.cjs `decision log` command and DECISION-LOG.md format
 - Pre-commit hook extension: checks decision log when protected file changes
 - Decision log enforcement workflow reference
+- usage-report aggregation and waste visibility
 
 Why after baseline: The decision log is only valuable once there is something worth protecting. Building the enforcement mechanism before the protected artifacts exist produces a gate with nothing to guard.
 
@@ -325,6 +355,7 @@ Why after baseline: The decision log is only valuable once there is something wo
 - terrace-tools.cjs `session start` and `session end`
 - SESSION.md template (already in Phase 1, now exercised)
 - Integration with AIOS stop hook (optional, personal infra)
+- delta-based reload before full reload
 
 Why fifth: Sessions need to know what to capture (spec hash, phase, decision log). Those artifacts must exist before sessions can reference them meaningfully.
 
@@ -335,6 +366,7 @@ Why fifth: Sessions need to know what to capture (spec hash, phase, decision log
 - Adversarial Review workflow
 - Regression Capture workflow
 - Integration point: after GSD's verify-phase-goal step
+- trigger-based escalation only
 
 Why last: Adversarial review compares implementation against spec. Both the spec and the implementation must exist. The regression capture pattern requires the baseline protection mechanism to be operational so new tests can be added to the registry.
 
@@ -359,8 +391,12 @@ Why last: Adversarial review compares implementation against spec. Both the spec
 **Instead:** Protected tests are identified by spec_ref (SPEC-01) in addition to path. The pre-commit hook looks for the spec_ref in the baseline registry; if the file moves, the registry entry requires manual update via terrace-tools.cjs (which makes the move visible and intentional).
 
 ### Anti-Pattern 5: Governance Phases That Block Each Other Unnecessarily
-**What goes wrong:** Requiring full human sign-off at every governance transition slows the framework to a crawl for small projects.
-**Instead:** Human gates are configurable in `.terrace/policy.json`. Large projects set `require_approval: true` for each phase. Personal use can set `require_approval: false` for Interrogation/Compilation while keeping it for Protected Baseline. The workflow checks policy before pausing.
+**What goes wrong:** Requiring full human sign-off at every governance transition slows the framework to a crawl for small projects, and treating every command like a deep governance pass burns tokens.
+**Instead:** Human gates are configurable in `.terrace/policy.json`, but the router defaults to the cheapest safe path. Large projects set `require_approval: true` for each phase. Personal use can set `require_approval: false` for Interrogation/Compilation while keeping it for Protected Baseline. The workflow checks policy before pausing, and low-effort commands stay low-effort even under strict governance.
+
+### Anti-Pattern 6: Manual Effort Selection as the Primary UX
+**What goes wrong:** Users must choose lite / standard / deep for ordinary commands, so the framework spends more time asking for effort than doing work.
+**Instead:** The router infers effort from signals, exposes the route on demand, and reserves explicit escalation for the rare cases where the local classifier cannot settle the question.
 
 ---
 

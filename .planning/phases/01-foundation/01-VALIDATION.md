@@ -31,6 +31,8 @@ created: 2026-04-06
 - **After every plan wave:** Run `npx vitest run --coverage`
 - **Before `/gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 15 seconds
+- **Routing rule:** validate the smallest deterministic slice first; full coverage is reserved for impacted or ambiguous work
+- **TDD rule for this phase:** RED is measured on the Phase 1 delta test slice first; Phase 0 baseline tests should remain GREEN unless a planned spec delta requires changes
 
 ---
 
@@ -74,6 +76,7 @@ created: 2026-04-06
 | `terrace init` in clean repo completes without error | INST-01 | Requires real filesystem and subprocess | Run `mkdir /tmp/test-repo && cd /tmp/test-repo && git init && terrace init` and confirm exit 0 and expected files |
 | `terrace init` in repo with existing GSD config reports changes | INST-04 | Requires real GSD config presence | Create a GSD .planning dir, run `terrace init`, confirm output lists what was created/changed without modifying GSD files |
 | `terrace steering` opens/creates steering.md | PRST-07 | Requires $EDITOR or file open | Run `terrace steering` and confirm `.terrace/steering.md` exists with constitution template |
+| `terrace-usage` and `terrace-why` stay diagnostic, cheap, and read-only | ROUTE-01, EFF-01, USG-01, USG-02 | These are product-behavior checks rather than file-scheme checks | Confirm route explanations stay short and do not trigger deep governance or full reloads |
 
 ---
 

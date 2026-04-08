@@ -21,6 +21,8 @@ Features users expect from any serious AI-assisted development framework. Their 
 - **Session continuity** — Next session can resume from where the last one ended without relying on conversational memory
 - **Context reconstruction** — Framework can derive current state from repo artifacts (not chat history)
 - **Progress visibility** — User can see what's done, what's in progress, what's next at a glance
+- **Automatic effort routing** — Classify tasks locally, cap effort by command class, and escalate only when signals justify it
+- **Usage intelligence** — Track where tokens go, surface repeated waste, and make expensive workflows visible over time
 
 ### Planning Artifacts
 - **Structured project document** — Single source of truth for what the project is and why (PROJECT.md equivalent)
@@ -61,6 +63,12 @@ Features that separate high-quality frameworks from adequate ones. Present in th
 - **Spec delta requirement** — Changing a protected test requires a matching spec update
 - **Silent behavior change prevention** — Framework detects when implementation drifts from spec without a logged decision
 
+### Effort Routing & Usage Intelligence
+- **Local analyzer first** — Deterministic preprocessing handles diffing, registry checks, requirement mapping, freshness, and session reconstruction before model work
+- **AI escalator second** — Model effort is reserved for ambiguity, tradeoffs, spec changes, risk, and adversarial reasoning
+- **Cheap diagnostics** — `/terrace-usage` and `/terrace-why` are read-only, low-effort surfaces that explain cost without triggering deep governance
+- **Trigger-based depth** — Deep governance is a conditional response to signals, not a default workflow step
+
 ### Cross-Session Alignment
 - **Session start protocol** — Every session begins by reading spec artifacts, not relying on memory
 - **Session end protocol** — Every session ends by recording what changed, what remains uncertain, and what the next slice is
@@ -85,6 +93,7 @@ Things Terrace should deliberately NOT build. Doing so would hurt quality or sco
 |--------------|---------|
 | **Test runner** | Not Terrace's job. Terrace governs what tests exist; pytest/jest/vitest runs them. Adding a test runner couples Terrace to language-specific tooling and balloons scope. |
 | **Code generator** | Terrace does not write code without spec + test anchors. "Generate a CRUD API" without a spec is exactly what Terrace exists to prevent. |
+| **Manual effort-mode selection as primary UX** | Users should not have to choose lite / standard / deep during normal use; Terrace routes effort automatically. |
 | **Project management / tickets** | Not a sprint tracker. Terrace tracks phases and requirements; Jira/Linear/GitHub Issues handle team coordination. |
 | **CI/CD pipeline management** | Terrace defines which tests belong in which CI gate; it does not manage the pipeline itself. |
 | **Visual dashboard** | A web UI for viewing specs/tests/decisions would be a separate project. v1 is file-based; the repo IS the dashboard. |
@@ -99,6 +108,7 @@ Things Terrace should deliberately NOT build. Doing so would hurt quality or sco
 |---------|------------|------------------|
 | Templates (PRD, SPEC, TEST-ARCH, DECISION-LOG, SESSION) | Low | Phase 1 — everything depends on these |
 | terrace-tools.cjs CLI scaffold | Low-Medium | Phase 1 |
+| Automatic effort routing / usage-log scaffold | Low-Medium | Phase 1 |
 | Intake workflow | Low | Phase 2 |
 | Interrogation workflow + agent | Medium | Phase 2 |
 | Spec Compilation workflow + agent | Medium | Phase 2 |
@@ -106,6 +116,7 @@ Things Terrace should deliberately NOT build. Doing so would hurt quality or sco
 | Baseline registry (JSON schema + CLI commands) | Low | Phase 3 |
 | Protected Baseline workflow + agent | Medium | Phase 3 |
 | Pre-commit hook | Low | Phase 3 |
+| `/terrace-usage` and `/terrace-why` diagnostics | Low | Phase 4-5 |
 | Decision log enforcement (CLI + hook extension) | Medium | Phase 4 |
 | Session start/end protocol | Low | Phase 5 |
 | Adversarial Review workflow + agent | Medium-High | Phase 6 |
@@ -143,3 +154,5 @@ terrace-tools.cjs scaffold ──────────────── ▼
 ```
 
 GSD execution layer (plan/execute/verify) is inherited and runs in parallel with mid-build phases. It does not depend on governance phases but is constrained by their outputs (spec, test architecture, protected baseline).
+
+Routing and usage intelligence sit in front of that execution layer. They decide whether a workflow should stay cheap and local or justify a deeper governance pass before the execution layer spends model effort.

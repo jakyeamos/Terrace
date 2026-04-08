@@ -56,12 +56,24 @@ The full installable skeleton exists on top of Phase 0's proven walking skeleton
 - **D-20:** Vitest for all Terrace unit and integration tests. Dev dependency only — not shipped in the framework itself.
 - **D-21:** TDD mandate is non-negotiable: every plan in Phase 1 writes failing tests first. No production code committed without a prior failing test. Phase 0's test suite stays GREEN throughout.
 
+### Skill Command Stubs
+- **D-22:** Phase 1 creates stub skill files for all 27 Terrace commands (SKIL-01 through SKIL-27) — scaffold only, no workflow logic. Stubs follow GSD's skill file format (YAML frontmatter + purpose + trigger). Real workflow logic is built in Phases 2, 5, and 6 per the phase assignment table in REQUIREMENTS.md §13a.
+- **D-23:** Stubs for Tier 2 commands (SKIL-12–20) explicitly declare their GSD reference command in frontmatter and the governance upgrade they will add — preventing future phases from treating them as simple ports.
+
+### Automatic Effort Routing
+- **D-24:** Explore / inspect / understand commands are hard-capped at low effort by default; escalation requires an explicit trigger, not a preference.
+- **D-25:** `/terrace-usage` and `/terrace-why` are read-only diagnostics. They summarize routing, expose waste, and explain skipped steps, but they never trigger deep governance on their own.
+- **D-26:** Deterministic preprocessing handles diffing, registry checks, requirement mapping, artifact freshness, session reconstruction, and impacted-artifact detection before any model work is considered.
+- **D-27:** Full spec compilation, full test-architecture regeneration, and full adversarial review are trigger-based passes, not default passes.
+- **D-28:** Route logs and usage logs must stay compact, append-only, and reconstructable from repo artifacts.
+
 ### Claude's Discretion
 - Exact YAML frontmatter field names for each template (follow REQUIREMENTS.md schema where specified)
 - Vitest configuration (coverage thresholds, reporter format)
 - File layout within `.terrace/` beyond what REQUIREMENTS.md specifies
 - `terrace doctor` output format and remediation message wording
 - Command registry implementation details within the single-file constraint
+- Route-log field names beyond the minimum needed to explain effort selection and waste detection
 
 </decisions>
 

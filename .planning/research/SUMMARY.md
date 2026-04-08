@@ -11,7 +11,7 @@
 
 ### Stack
 
-Terrace inherits GSD's full execution stack without modification: markdown + XML-tagged workflows as orchestrators, `~/.claude/agents/*.md` subagent definitions, `.planning/` file-as-message-bus state management, and `gsd-tools.cjs` as the only structured write path. These are constraints, not choices.
+Terrace inherits GSD's full execution stack without modification: markdown + XML-tagged workflows as orchestrators, `~/.claude/agents/*.md` subagent definitions, `.planning/` file-as-message-bus state management, and `gsd-tools.cjs` as the only structured write path. These are constraints, not choices. Terrace adds an automatic effort router on top so inspect/classify/report paths stay cheap and deep governance only fires when the signals justify it.
 
 New stack decisions are deliberate and minimal: `terrace-tools.cjs` (Node.js CommonJS, no external deps), a POSIX shell pre-commit hook, markdown + YAML frontmatter for all governance artifacts, and `.terrace/baseline-registry.json` (plain JSON). Distribution mirrors GSD's git-clone + `terrace init` pattern. Multi-platform adapters are explicitly deferred to v2.
 
@@ -27,6 +27,7 @@ New stack decisions are deliberate and minimal: `terrace-tools.cjs` (Node.js Com
 Must-have for v1 (absence causes abandonment or the framework has no purpose):
 
 - Spec governance pipeline: PRD → interrogation → compiled spec → test architecture → protected baseline
+- Automatic effort routing: local classifier, effort ceilings, delta-context packets, and usage reporting
 - Session continuity via repo artifacts (STATE.md + spec hash), not conversational memory
 - Protected test policy with actual enforcement (pre-commit hook, not convention)
 - Decision log enforcement tied to behavioral changes touching protected files
@@ -38,6 +39,7 @@ Differentiators (what separates Terrace from adequate alternatives):
 - Interrogation loop that surfaces edge cases, permissions, state transitions, failure modes before implementation
 - Acceptance criteria as durable artifacts, not implied from a prompt
 - Behavioral coverage over line coverage — spec IDs link specs to tests to decision log entries
+- Automatic effort routing that keeps routine inspect/report commands low-effort by default
 - Session start/end protocol writing SESSION.md artifacts that capture spec hash and open risks
 - Adversarial review as a hard gate (blocking gaps must close before phase completes)
 
@@ -55,6 +57,7 @@ Defer to v2+:
 3. **Decision log as documentation theater** — the log is maintained but the hook was never installed, so nothing enforces it. Prevention: pre-commit hook installation is mandatory in `terrace init`, not optional; `terrace-tools.cjs decision log` is a one-liner with the relevant `spec_ref` pre-filled; blank entries don't pass the hook. Address in Phase 4.
 
 4. **GSD fork divergence** — modifying GSD core files to accommodate Terrace governance means upstream improvements can't be applied. Prevention: Terrace adds new files only; no changes to existing GSD files in v1; GSD is treated as a read-only reference layer. Establish this constraint in Phase 1 before any GSD files are touched.
+5. **Manual effort selection becomes the UX** — if users must choose lite / standard / deep for normal work, the router has failed. Prevention: keep command-class ceilings automatic and expose the route only when asked.
 
 ---
 
@@ -69,6 +72,7 @@ Defer to v2+:
 4. **Pre-commit hook is the only hard runtime gate.** Everything else in Terrace is workflow convention. The hook is the single enforcement point where "convention" becomes "blocked commit." It is a thin POSIX shell script that reads two files; it delegates to `terrace-tools.cjs` when Node is available and falls back to grep + jq otherwise.
 
 5. **Governance-before-execution ordering is non-negotiable.** Governance phases (Intake through Protected Baseline) produce artifacts that constrain the GSD execution layer. The spec is written before the planner runs. The test architecture is approved before any code exists. This is the core of what Terrace adds over raw GSD — it cannot be reordered without destroying the value proposition.
+6. **Effort routing precedes deep governance.** Route signals, delta packets, and usage logs decide whether the system needs deep governance at all. Max-effort passes are triggers, not defaults.
 
 ---
 
@@ -92,15 +96,15 @@ Delivers: `terrace-baseline-builder` agent; `terrace-tools.cjs baseline protect`
 
 **Phase 4 — Decision Log Enforcement**
 Depends on Phase 3. The decision log is only valuable once there is something worth protecting — building the gate before the protected artifacts exist is premature.
-Delivers: `terrace-tools.cjs decision log` command with pre-filled `spec_ref` template; pre-commit hook extension that checks decision log entries; decision log enforcement workflow reference; hook installation wired into `terrace init` (mandatory, not optional).
+Delivers: `terrace-tools.cjs decision log` command with pre-filled `spec_ref` template; pre-commit hook extension that checks decision log entries; decision log enforcement workflow reference; hook installation wired into `terrace init` (mandatory, not optional); usage-report aggregation.
 
 **Phase 5 — Session Protocol**
 Depends on Phase 1 (templates), Phase 3 (spec hash to capture), Phase 4 (last decision log entry to surface). Sessions reference these artifacts — they must exist before sessions can capture them meaningfully.
-Delivers: `terrace-tools.cjs session start` and `session end`; SESSION.md artifacts written to `.planning/sessions/`; spec hash comparison alerting on mismatch; AIOS stop hook integration.
+Delivers: `terrace-tools.cjs session start` and `session end`; SESSION.md artifacts written to `.planning/sessions/`; spec hash comparison alerting on mismatch; AIOS stop hook integration; delta-based reload before full reload.
 
 **Phase 6 — Post-Build Governance (Adversarial Review + Regression Capture)**
 Depends on GSD execution layer (inherited), Phase 3 (baseline must be operational to register new protected tests), Phase 4 (gaps produce decision log entries).
-Delivers: `terrace-verifier-adversary` agent; Adversarial Review workflow with blocking/non-blocking gap severity; Regression Capture workflow; gap resolution as a hard phase completion gate (not a suggestion).
+Delivers: `terrace-verifier-adversary` agent; Adversarial Review workflow with blocking/non-blocking gap severity; Regression Capture workflow; gap resolution as a hard phase completion gate (not a suggestion); trigger-based escalation only.
 
 ---
 

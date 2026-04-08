@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Walking skeleton: minimal governance loop (init → intake → validate → baseline → session) proven end-to-end on four fixture repos. Phase 0 validates the value proposition — it does not build the full product surface.
+Walking skeleton: minimal governance loop (init → intake → validate → baseline → session) proven end-to-end on four fixture repos. Phase 0 validates the value proposition — it does not build the full product surface. The skeleton still has to behave like a cheap local router: inspect/classify/report commands stay low-effort, and model work only happens after deterministic signals say it is justified.
 
 **Hard dependency:** Phase 0 is the prerequisite for all subsequent phases. Phase 1 treats Phase 0 deliverables as the guaranteed starting state.
 
@@ -43,6 +43,9 @@ Walking skeleton: minimal governance loop (init → intake → validate → base
 - **D-10:** Minimal `terrace spec validate`: validates presence and required sections of source artifacts only (the five templates). Not full validation — that is Phase 4.
 - **D-11:** Minimal `terrace baseline protect <file> --spec-ref <ID>`: writes entry to `baseline-registry.json`, refuses to register without valid spec_ref.
 - **D-12:** Minimal `terrace session start` / `terrace session end`: writes and appends SESSION.md. Must record: current phase, active slice, files changed, next steps.
+- **D-13:** Routing in Phase 0 is deterministic and local-first — command class, changed-file signals, and artifact freshness are enough to decide whether a command stays low-effort or needs escalation.
+- **D-14:** `terrace usage` and `terrace why` are diagnostics, not workflow triggers. They never initiate deep governance; they only explain or summarize routing decisions.
+- **D-15:** Session start is delta-based by default: steering, spec hash, phase, active slice, and route summary load first; full reload is reserved for stale or ambiguous state.
 
 ### Claude's Discretion
 - Exact YAML frontmatter fields for minimal-spec templates (follow REQUIREMENTS.md schema where specified; minimally: required sections only)
@@ -50,6 +53,7 @@ Walking skeleton: minimal governance loop (init → intake → validate → base
 - Exact content of each fixture repo beyond what's needed to exercise the CLI commands
 - Internal structure of `terrace-tools.cjs` (simple switch/case acceptable in Phase 0 — Phase 1 refactors to command registry)
 - `.terrace/` skeleton structure beyond what success criteria require
+- Route-log and usage-log field names beyond the minimal low-effort/default routing contract
 
 </decisions>
 

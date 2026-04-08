@@ -31,6 +31,7 @@ created: 2026-04-07
 - **After every plan wave:** Run `npx vitest run`
 - **Before `/gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 15 seconds
+- **Routing rule:** validate the smallest deterministic slice first; full-suite validation only happens when the changed artifacts or route summary justify it
 
 ---
 
@@ -77,6 +78,7 @@ created: 2026-04-07
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
 | End-to-end run completes on ts-monorepo within MET-ERG-02 time budget | OPS-08 | Time budget validation requires human observation | Run `terrace init && terrace spec validate && terrace baseline protect docs/COMPILED-SPEC.md --spec-ref CS-001 && terrace session start && terrace session end` in fixtures/ts-monorepo and record elapsed time |
+| Inspect / classify / usage commands stay low-effort by default | ROUTE-01, EFF-01, EFF-02, USG-01, USG-02 | This is a product-behavior check, not a unit assertion | Confirm diagnostics return concise routing summaries without triggering deep governance passes |
 
 ---
 

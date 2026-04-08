@@ -12,6 +12,20 @@
     "milestone_branch_template": "gsd/{milestone}-{slug}",
     "quick_branch_template": null
   },
+  "routing": {
+    "local_first": true,
+    "default_effort": "low",
+    "explore_ceiling": "low",
+    "inspect_ceiling": "low",
+    "usage_ceiling": "low",
+    "trigger_based_deep_governance": true,
+    "delta_context_default": true
+  },
+  "usage": {
+    "reporting": true,
+    "why_explanations": true,
+    "detect_repeated_expensive_workflows": true
+  },
   "workflow": {
     "research": true,
     "plan_check": true,
@@ -23,7 +37,7 @@
     "ui_phase": true,
     "ui_safety_gate": true,
     "text_mode": false,
-    "research_before_questions": false,
+    "research_before_questions": true,
     "discuss_mode": "discuss",
     "skip_discuss": false
   },

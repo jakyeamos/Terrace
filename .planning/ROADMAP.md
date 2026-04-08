@@ -2,11 +2,11 @@
 
 ## Overview
 
-Terrace builds a spec-driven, test-governed AI development framework on top of a GSD fork. Seven phases progress from a proven walking skeleton (Phase 0) through a complete installation and template infrastructure (Phase 1), four pre-build governance workflows (Phase 2), baseline protection and enforcement (Phase 3), decision logging and CI gates (Phase 4), session continuity with lifecycle control (Phase 5), and post-build adversarial review with self-test hardening (Phase 6).
+Terrace builds an automatic effort router with built-in usage intelligence on top of a GSD fork. Seven phases progress from a proven walking skeleton (Phase 0) through a complete installation and template infrastructure (Phase 1), route-aware governance workflows (Phase 2), baseline protection and local enforcement (Phase 3), decision logging and usage reporting (Phase 4), delta-based session continuity (Phase 5), and trigger-based adversarial review with self-test hardening (Phase 6).
 
-**Sequencing principle:** prove the core governance loop before building the full surface area. Phase 0 runs Terrace end-to-end on four real fixture repos with minimal implementations. Only then does Phase 1 build the full infrastructure on top of the proven skeleton. Each subsequent phase produces artifacts consumed by the next. No phase begins until its dependencies are on disk and working.
+**Sequencing principle:** prove the core governance loop before building the full surface area, but keep the default path cheap. Phase 0 runs Terrace end-to-end on four real fixture repos with minimal implementations. Only then does Phase 1 build the full infrastructure on top of the proven skeleton. Each subsequent phase produces artifacts consumed by the next. No phase begins until its dependencies are on disk and working.
 
-**Anti-bureaucracy principle:** Terrace blocks silent drift, not legitimate progress. Every enforcement gate has an explicitly logged override path. Policy modes adapt to repo maturity and task type. The framework exists to make governance possible and visible, not to create ritual for its own sake.
+**Anti-bureaucracy principle:** Terrace blocks silent drift, not legitimate progress. Every enforcement gate has an explicitly logged override path, but routine work should stay on the low-effort path by default. Policy modes are internal safety rails; the user-facing experience is automatic routing to the cheapest safe effort.
 
 ---
 
@@ -19,12 +19,12 @@ Terrace builds a spec-driven, test-governed AI development framework on top of a
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 0: Bootstrap MVP** — Walking skeleton: minimal governance loop proven end-to-end on four fixture repos
-- [ ] **Phase 1: Foundation** — Full template set, CLI scaffold, install infrastructure, lifecycle schema, GSD integration policy, and security model
-- [ ] **Phase 2: Governance Workflows** — Intake through test architecture workflows, agents, and tiered knowledge fragment system
-- [ ] **Phase 3: Baseline Protection & Enforcement** — Baseline builder agent, protect/status CLI, pre-commit hook, policy modes, and local enforcement
-- [ ] **Phase 4: Decision Log, Audit & CI** — Decision log CLI, full spec validate, audit command, and CI enforcement gates
-- [ ] **Phase 5: Session Protocol & Lifecycle** — Session start/end CLI, SESSION.md artifacts, spec hash alerting, and phase transitions
-- [ ] **Phase 6: Post-Build Governance & Self-Test** — Adversarial review, regression capture, Terrace self-tests, schema versioning, and advanced presets
+- [ ] **Phase 1: Foundation** — Full template set, CLI scaffold, install infrastructure, lifecycle schema, routing policy, usage intelligence, GSD integration policy, and security model
+- [ ] **Phase 2: Governance Workflows** — Intake through test architecture workflows, agents, tiered knowledge fragment system, and route-aware escalation
+- [ ] **Phase 3: Baseline Protection & Enforcement** — Baseline builder agent, protect/status CLI, pre-commit hook, trigger-based enforcement, and local enforcement
+- [ ] **Phase 4: Decision Log, Audit & CI** — Decision log CLI, usage reporting, full spec validate, audit command, and CI enforcement gates
+- [ ] **Phase 5: Session Protocol & Lifecycle** — Session start/end CLI, SESSION.md artifacts, delta-based reconstruction, spec hash alerting, and phase transitions
+- [ ] **Phase 6: Post-Build Governance & Self-Test** — Triggered adversarial review, regression capture, Terrace self-tests, schema versioning, and advanced presets
 
 ---
 
@@ -35,13 +35,14 @@ Terrace is built test-first. Every plan in every phase writes tests before writi
 **In practice:**
 - Each plan begins with test stubs or acceptance tests derived from the phase success criteria
 - Implementation proceeds only after a failing test exists for the behavior being built
+- In multi-phase execution, RED is measured on the phase-delta test slice; prior-phase baseline tests are expected to stay GREEN unless intentionally changed
 - A plan is not complete until all tests pass and no implementation exists without a corresponding test
 
 ---
 
 ## Policy Modes
 
-Terrace enforces governance without blocking legitimate work. Four modes adapt enforcement intensity to repo maturity and task type. Mode is set in `.terrace/policy.json` and recorded in `project-state.json`.
+Terrace enforces governance without blocking legitimate work. Four modes adapt enforcement intensity to repo maturity and task type, but they are internal policy states rather than the primary UX. Mode is set in `.terrace/policy.json` and recorded in `project-state.json`.
 
 | Mode | Enforcement | Override | Use case |
 |------|-------------|----------|----------|
@@ -61,6 +62,7 @@ Terrace enforces governance without blocking legitimate work. Four modes adapt e
 - False-positive rate is a first-class metric (see Operator-Cost Metrics); enforcement that blocks work it shouldn't blocks is a bug
 - Override, deferral, and escape-hatch paths must be at least as visible as the block itself
 - `recovery` mode exists precisely so that Terrace never forces users to corrupt state or bypass version control to get work done in messy situations
+- Routine commands should remain low-effort even when enforcement is strict; escalation is signal-driven, not mood-driven
 
 ---
 
@@ -80,7 +82,7 @@ Terrace governs responsibly. The governance model is not designed to prevent ove
 
 5. **Critical protections cannot be silently disabled.** Policy modes can weaken enforcement, but the fact that protections are weakened must be visible in both the policy file and session output.
 
-6. **Governance exists to reduce drift, not to enforce process.** If Terrace is blocking work that should be allowed, the right fix is usually policy configuration or a REQUIREMENTS.md amendment — not a workaround.
+6. **Governance exists to reduce drift, not to enforce process.** If Terrace is blocking work that should be allowed, the right fix is usually policy configuration, a routing rule update, or a REQUIREMENTS.md amendment — not a workaround.
 
 ---
 
@@ -144,8 +146,10 @@ Behavioral correctness alone is not enough. These metrics are treated as product
 | MET-ERG-05 | Cold-start reconstruction: agent resumes work from SESSION.md without user providing context | 100% success rate on fixture repos |
 | MET-ERG-06 | Agent context per governance workflow step (with fragment system active) | < 15 000 tokens |
 | MET-ERG-07 | Fragment conditional loading: context reduction vs loading all fragments | ≥ 40% reduction (FRAG-04) |
+| MET-ERG-08 | Explore / inspect / usage commands run at low effort by default | 100% of the time unless explicitly escalated |
+| MET-ERG-09 | `terrace usage` identifies repeated expensive workflows and overfiring deep passes | Top 3 waste sources surfaced |
 
-> **REQUIREMENTS.md note:** MET-ERG-01 through MET-ERG-07 are not yet in REQUIREMENTS.md. These metrics should be added to §3 (Success Metrics) before Phase 2 planning begins.
+> **REQUIREMENTS.md note:** MET-ERG-01 through MET-ERG-09 are not yet in REQUIREMENTS.md. These metrics should be added to §3 (Success Metrics) before Phase 2 planning begins.
 
 ---
 
@@ -192,7 +196,7 @@ Behavioral correctness alone is not enough. These metrics are treated as product
 **Plans**: 4 plans
 
 Plans:
-- [ ] 00-01-PLAN.md — RED test stubs for all Phase 0 requirements and fixture repo scaffolds (TDD wave 1)
+- [ ] 00-01-PLAN.md — RED test stubs for all Phase 0 requirements and fixture repo scaffolds (phase-delta RED, TDD wave 1)
 - [ ] 00-02-PLAN.md — Minimal `terrace-tools.cjs` bootstrap + five source artifact templates + minimal `terrace init` (TDD wave 2)
 - [ ] 00-03-PLAN.md — Minimal intake workflow, `terrace spec validate` (source artifacts), `terrace baseline protect`, `terrace session start/end` (TDD wave 2)
 - [ ] 00-04-PLAN.md — End-to-end loop validation on all four fixture repos + GREEN full Phase 0 suite (TDD wave 3)
@@ -201,7 +205,7 @@ Plans:
 
 ### Phase 1: Foundation
 
-**Goal**: The full installable skeleton exists — all 13 governance artifact templates defined (including `steering.md` and all derived templates), the complete CLI scaffold runs, the preset registry infrastructure is in place, the lifecycle schema is machine-readable with transition validation, the GSD modification policy is established, the security trust model is documented, and `terrace init` completes cleanly in all four fixture repos.
+**Goal**: The full installable skeleton exists — all 13 governance artifact templates defined (including `steering.md` and all derived templates), the complete CLI scaffold runs, the preset registry infrastructure is in place, the lifecycle schema is machine-readable with transition validation, the routing policy and usage-intelligence surfaces exist, the GSD modification policy is established, the security trust model is documented, and `terrace init` completes cleanly in all four fixture repos.
 
 **Depends on**: Phase 0
 
@@ -223,7 +227,7 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold and RED test stubs for all Phase 1 requirements (Wave 1, TDD)
+- [ ] 01-01-PLAN.md — Project scaffold and RED test stubs for all Phase 1 requirements (phase-delta RED, Wave 1, TDD)
 - [ ] 01-02-PLAN.md — All 12 Markdown governance artifact templates and 2 JSON schemas (Wave 2)
 - [ ] 01-03-PLAN.md — CLI entry point, shared core utilities, and terrace init implementation (Wave 2)
 - [ ] 01-04-PLAN.md — GSD pattern documentation, security model, and terrace doctor diagnostics (Wave 2)
@@ -234,7 +238,7 @@ Plans:
 
 ### Phase 2: Governance Workflows
 
-**Goal**: The four pre-build governance workflows are operational — intake, interrogation, spec compilation, and test architecture — each using tri-modal architecture (Create/Edit/Validate) with step-file chaining, backed by dedicated agents that load tiered knowledge fragments and can run end-to-end on a real feature request; unresolved assumptions and fast-mode paths are explicitly handled; all three agents (spec-interrogator, spec-compiler, test-architect) are fully defined with fragment indexes.
+**Goal**: The four pre-build governance workflows are operational — intake, interrogation, spec compilation, and test architecture — each using tri-modal architecture (Create/Edit/Validate) with step-file chaining, backed by dedicated agents that load tiered knowledge fragments and can run end-to-end on a real feature request; unresolved assumptions and fast-mode paths are explicitly handled; routing signals keep deep passes trigger-based instead of default; all three agents (spec-interrogator, spec-compiler, test-architect) are fully defined with fragment indexes.
 
 **Depends on**: Phase 1
 
@@ -258,7 +262,7 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — RED test stubs for all Phase 2 requirements; fragment-index.json schema and AGNT-07 contract tests (TDD wave 1)
+- [ ] 02-01-PLAN.md — RED test stubs for all Phase 2 requirements; fragment-index.json schema and AGNT-07 contract tests (phase-delta RED, TDD wave 1)
 - [ ] 02-02-PLAN.md — Agent definition framework: AGNT-07/08 base contract, steering.md loader, fragment-index.json schema and runtime loader; `core` tier loads unconditionally (TDD wave 2)
 - [ ] 02-03-PLAN.md — `terrace-spec-interrogator` agent: fragment set (FRAG-06), tri-modal Interrogation workflow with step-file chaining, fast-mode path, unresolved-assumptions logging (WKFL-02, 02a/b/c, WKFL-03) (TDD wave 2)
 - [ ] 02-04-PLAN.md — `terrace-spec-compiler` agent: fragment set (FRAG-07), Spec Compilation workflow with tri-modal architecture, derived artifact updates (WKFL-04/05), spec hash computation excluding non-semantic changes (OPS-03/04) (TDD wave 2)
@@ -291,7 +295,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — RED test stubs for all Phase 3 requirements; policy mode test matrix setup (TDD wave 1)
+- [ ] 03-01-PLAN.md — RED test stubs for all Phase 3 requirements; policy mode test matrix setup (phase-delta RED, TDD wave 1)
 - [ ] 03-02-PLAN.md — `terrace-baseline-builder` agent (AGNT-04): purpose, allowed outputs, forbidden actions, handoff; WKFL-07 Protected Baseline workflow producing foundational test registrations (TDD wave 2)
 - [ ] 03-03-PLAN.md — `terrace baseline protect` (CLI-03) + `terrace baseline status` (CLI-04); `baseline-registry.json` schema; ENF-01–05 pre-commit hook with explicit error messages (TDD wave 2)
 - [ ] 03-04-PLAN.md — All four policy modes in `policy.json` (ENF-03, ENF-06); recovery mode expiry, revert, and session-log behavior; SEC-05/07 policy mode documentation; OPS-05/06/07 rename/delete/conflict handling (TDD wave 2)
@@ -301,7 +305,7 @@ Plans:
 
 ### Phase 4: Decision Log, Audit & CI
 
-**Goal**: Behavioral changes to protected files require a logged decision entry with explicit rationale; `terrace audit` generates a governance health report; CI enforcement gates run independently of local hook presence; all success metrics (MET-01–12) and ergonomics metrics (MET-ERG-01–07) are tracked.
+**Goal**: Behavioral changes to protected files require a logged decision entry with explicit rationale; `terrace audit` generates a governance health report; `terrace usage` surfaces repeated expensive workflows and overfiring passes; CI enforcement gates run independently of local hook presence; all success metrics (MET-01–12) and ergonomics metrics (MET-ERG-01–07) are tracked.
 
 **Depends on**: Phase 3
 
@@ -321,7 +325,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — RED test stubs for all Phase 4 requirements; metrics tracking scaffold (TDD wave 1)
+- [ ] 04-01-PLAN.md — RED test stubs for all Phase 4 requirements; metrics tracking scaffold (phase-delta RED, TDD wave 1)
 - [ ] 04-02-PLAN.md — `terrace decision log` CLI (CLI-05): DECISION-LOG.md integration, spec_ref pre-fill, ENF-08–10 protected-test link enforcement (TDD wave 2)
 - [ ] 04-03-PLAN.md — `terrace spec validate` full implementation (CLI-06): all 13 artifacts, drift detection, freshness checking; `terrace audit` (CLI-08): coverage report, severity classification (TDD wave 2)
 - [ ] 04-04-PLAN.md — CI enforcement gate (ENF-11–14): standalone CI mode, artifact integrity check; MET-ERG baseline validation; full Phase 4 GREEN suite (TDD wave 3)
@@ -330,7 +334,7 @@ Plans:
 
 ### Phase 5: Session Protocol & Lifecycle
 
-**Goal**: Every session starts with a full context snapshot from repo artifacts and ends with a recorded handoff; phase transitions are validated and recorded; Terrace can reconstruct project state from repo artifacts with no prior chat history — demonstrated against all four fixture repos.
+**Goal**: Every session starts with a cheap, delta-based context snapshot from repo artifacts and ends with a recorded handoff; phase transitions are validated and recorded; Terrace can reconstruct project state from repo artifacts with no prior chat history — demonstrated against all four fixture repos.
 
 **Depends on**: Phase 1, Phase 3, Phase 4
 
@@ -349,7 +353,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — RED test stubs for all Phase 5 requirements; cold-start reconstruction test harness against all four fixture repos (TDD wave 1)
+- [ ] 05-01-PLAN.md — RED test stubs for all Phase 5 requirements; cold-start reconstruction test harness against all four fixture repos (phase-delta RED, TDD wave 1)
 - [ ] 05-02-PLAN.md — `terrace session start` (CLI-01): reads spec hash, phase, slice, policy mode, last decision-log entry; writes SESSION.md; hash-drift alert (SESS-01, SESS-02) (TDD wave 2)
 - [ ] 05-03-PLAN.md — `terrace session end` (CLI-02): SESSION.md append with full SESS-03/06 fields; `terrace phase set` (CLI-09): transition validation, session recording (TDD wave 2)
 - [ ] 05-04-PLAN.md — Cold-start reconstruction validation: repo-only context rebuild on all four fixture repos (SESS-05, TERR-11); MET-ERG-05 verification; full Phase 5 GREEN suite (TDD wave 3)
@@ -358,7 +362,7 @@ Plans:
 
 ### Phase 6: Post-Build Governance & Self-Test
 
-**Goal**: After each implementation phase, the adversarial verifier runs as a hard gate; regressions are captured into the baseline; Terrace is tested as a framework against all four fixture repos; artifact schemas are versioned and migratable; four built-in presets are installable and working.
+**Goal**: After each implementation phase, the adversarial verifier runs as a trigger-based hard gate; regressions are captured into the baseline; Terrace is tested as a framework against all four fixture repos; artifact schemas are versioned and migratable; four built-in presets are installable and working.
 
 **Depends on**: Phase 3, Phase 4, Phase 5
 
@@ -380,7 +384,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — RED test stubs for all Phase 6 requirements; full self-test harness scaffold across all four fixture repos (TDD wave 1)
+- [ ] 06-01-PLAN.md — RED test stubs for all Phase 6 requirements; full self-test harness scaffold across all four fixture repos (phase-delta RED, TDD wave 1)
 - [ ] 06-02-PLAN.md — `terrace-verifier-adversary` agent (AGNT-05): fragment set (FRAG-09), Adversarial Review workflow (WKFL-09/10), gap severity classification, blocking-gap phase-gate (TDD wave 2)
 - [ ] 06-03-PLAN.md — Regression Capture workflow (WKFL-11/12/13): baseline registration from adversarial findings; `terrace-maintainer-curator` agent (AGNT-06): decision-log, regression, and session-memory updates (TDD wave 2)
 - [ ] 06-04-PLAN.md — `terrace migrate` schema versioning (CLI-11, VER-01–07); full Terrace self-test suite against all four fixture repos (TERR-01–15); governance quality validation (TERR-13–15) (TDD wave 2)

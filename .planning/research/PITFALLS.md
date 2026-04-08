@@ -18,8 +18,10 @@
 **Prevention:**
 - Policy file (`~/.terrace/policy.json` or `.terrace/policy.json`) controls which gates are active per project. Personal use can disable interrogation approval gates; large team projects enable all gates.
 - "Fast path" for unambiguous small changes: if the change touches no protected artifacts and no spec-sensitive behavior, no governance required.
+- Automatic effort routing caps inspect / classify / usage commands at low effort by default so routine work does not trigger expensive passes.
 - Session start protocol reads at most 2-3 files. Not 10. Keep STATE.md + the most recently modified spec artifact.
 - The interrogation loop has an exit condition: "stop when ambiguity is low enough that another strong engineer could build it." Not "stop when all possible edge cases are surfaced."
+- `/terrace-usage` exposes repeated expensive workflows so overfiring becomes visible instead of normalized.
 
 **Phase to address this:** Phase 1 (policy.json schema defines what's skippable) + Phase 3 (protected test policy must have a "fast path" exemption rule).
 
@@ -192,3 +194,19 @@
 - Keep agent system prompts focused and under 200 lines. Longer prompts drift more across model versions.
 
 **Phase to address this:** Phase 2 (governance workflow definitions) — build quality gates into agent definitions from the start.
+
+---
+
+## Pitfall 11: Automatic Routing Becomes an Opaque Policy Layer
+
+**What it is:** Terrace routes effort automatically, but users cannot see why a command was kept cheap or escalated. The system feels arbitrary instead of intelligent.
+
+**Warning signs:**
+- `/terrace-why` explains the current effort level without naming the signals that triggered it
+- `/terrace-usage` shows totals but not repeated expensive workflows or token sinks
+- local signals are not logged, so route decisions cannot be reconstructed from repo artifacts
+
+**Prevention:**
+- `/terrace-why` always reports the triggering signals and the deeper steps that were skipped
+- `/terrace-usage` always surfaces repeated expensive workflows and concrete optimization opportunities
+- deterministic preprocessing writes compact route records so route decisions stay explainable and auditable
