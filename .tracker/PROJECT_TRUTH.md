@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Spec-driven AI development framework in active Phase 0 scaffold — toolkit compiles, 88 tests pass, but no phases are completed and implementation is pre-MVP.
-healthScore: 62
+summary: Spec-driven AI development framework in active Phase 0 scaffold with a clean working tree and 88 passing tests, but no phases executed yet and no lint/typecheck gate wired.
+healthScore: 65
 statusLabel: needs_attention
-nextStep: Execute Phase 0 plans to prove the governance loop end-to-end on the four fixture repos.
+nextStep: Add explicit lint and typecheck commands so Terrace meets the full quality ladder, then execute Phase 0 plans on the four fixture repos.
 blockers: []
-lastUpdated: 2026-04-09
+lastUpdated: 2026-04-12
 tags: [framework, ai-tooling, governance, spec-driven]
 areas: [cli, validation, lifecycle, presets, templates]
 goals:
@@ -14,7 +14,7 @@ goals:
   - Build full CLI scaffold and install infrastructure (Phase 1)
   - Deliver automated effort routing with usage intelligence
 repoType: library
-sourceOfTruth: inferred
+sourceOfTruth: mixed
 primaryLanguage: TypeScript
 activeBranch: main
 lastCommitDate: "2026-04-08"
@@ -38,7 +38,7 @@ agentExpectationsVersion: 1
 
 Phase 0 of 6 scaffold is complete but execution has not started. The toolkit (`terrace-tools.cjs`) exists with implementations for core, doctor, init, lifecycle, preset, and validate modules. 88 tests pass across 8 test files. Two JSON schemas (project-state, preset-registry) are in place. Planning directory is populated with phases, roadmap, requirements, and research. Progress counter reads 0 completed phases / 0 completed plans.
 
-No lint or typecheck commands are wired in `package.json`. The project depends on a sibling `eslint-plugin-anti-slop` package via file reference — that plugin must exist at `../eslint-plugin-anti-slop` for install to succeed.
+Repo hygiene is now clean again. The parent repo and the nested `terrace-research` gitlinks no longer have local package drift, so the tree reflects committed state. The remaining standard gap is structural: no lint or typecheck commands are wired in `package.json`, so the quality ladder is only partially enforceable.
 
 ## Why This Matters / Intended Outcome
 
@@ -55,30 +55,29 @@ Terrace is the governance backbone for AI-assisted development across projects. 
 
 - `package.json` has no `lint` or `typecheck` script — quality ladder is partially broken
 - 0% plan execution: all phases are planned but none started
-- `eslint-plugin-anti-slop` is a file-local dependency from a sibling directory — fragile, undocumented as a prerequisite
-- `package-lock.json` and `package.json` show uncommitted modifications (working tree dirty)
-- Terrace-research submodule directories have mode changes pending
+- Dead-code auditing is not configured
+- The framework has strong planning/test scaffolding but still lacks proof that the governance loop works end-to-end on fixture repos
 
 ## Next Concrete Steps
 
 1. Add `lint` and `typecheck` scripts to `package.json` (closes quality ladder gap)
-2. Commit working tree changes (package.json, package-lock.json, submodule mode fixes)
-3. Execute Phase 0 plans — prove the governance loop on the four fixture repos in `fixtures/`
-4. Record Phase 0 completion in `.planning/STATE.md`
+2. Execute Phase 0 plans — prove the governance loop on the four fixture repos in `fixtures/`
+3. Record Phase 0 completion in `.planning/STATE.md`
+4. Decide whether dead-code scanning should be wired for the framework itself
 
 ## Risks / Blockers
 
-- Sibling dependency (`eslint-plugin-anti-slop`) creates install-order coupling — a fresh clone will fail without it
 - Heavy planning investment without execution creates risk of plan-reality drift if implementation reveals design flaws
 - No typecheck command means TypeScript errors are not surfaced at the quality gate
+- Missing lint command means style/structural regressions can accumulate silently even though tests are healthy
 
 ## Quality Ladder Notes
 
 - **Lint:** no script configured — cannot run
 - **Types:** no typecheck script configured — cannot run
-- **Tests:** `npm test` → 88 passed, 0 failed (vitest, 685ms) — PASS
+- **Tests:** `npm test` → 88 passed, 0 failed on 2026-04-12 — PASS
 - **Dead code:** not configured
-- **Structure:** src and tests properly organized, schemas present — PASS
+- **Structure:** src and tests properly organized, schemas present, working tree clean — PASS
 
 ## Agent Notes
 
