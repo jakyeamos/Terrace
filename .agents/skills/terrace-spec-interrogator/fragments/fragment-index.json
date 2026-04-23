@@ -1,0 +1,19 @@
+{
+  "agent": "terrace-spec-interrogator",
+  "fragments": [
+    {
+      "id": "FRG-INT-01",
+      "name": "Question Round Structure",
+      "tags": ["interrogation", "question-rounds"],
+      "tier": "core",
+      "file": "frg-int-01-question-rounds.md"
+    },
+    {
+      "id": "FRG-INT-02",
+      "name": "Assumption Logging",
+      "tags": ["assumptions", "clarifications"],
+      "tier": "core",
+      "file": "frg-int-02-assumption-logging.md"
+    }
+  ]
+}

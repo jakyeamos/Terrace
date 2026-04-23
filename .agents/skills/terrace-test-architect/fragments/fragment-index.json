@@ -1,0 +1,19 @@
+{
+  "agent": "terrace-test-architect",
+  "fragments": [
+    {
+      "id": "FRG-TST-01",
+      "name": "Test Layer Selection",
+      "tags": ["test-layers", "unit", "integration", "e2e"],
+      "tier": "core",
+      "file": "frg-tst-01-test-layers.md"
+    },
+    {
+      "id": "FRG-TST-02",
+      "name": "Risk Scoring Rubric",
+      "tags": ["risk", "p0", "p1", "p2", "p3"],
+      "tier": "core",
+      "file": "frg-tst-02-risk-scoring.md"
+    }
+  ]
+}

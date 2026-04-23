@@ -1,0 +1,19 @@
+{
+  "agent": "terrace-spec-compiler",
+  "fragments": [
+    {
+      "id": "FRG-CMP-01",
+      "name": "Spec Frontmatter Patterns",
+      "tags": ["spec", "frontmatter", "yaml"],
+      "tier": "core",
+      "file": "frg-cmp-01-spec-frontmatter.md"
+    },
+    {
+      "id": "FRG-CMP-02",
+      "name": "Invariant Patterns",
+      "tags": ["invariants", "constraints"],
+      "tier": "core",
+      "file": "frg-cmp-02-invariant-patterns.md"
+    }
+  ]
+}
