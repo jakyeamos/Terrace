@@ -13,8 +13,15 @@ function loadFragments(agentDir, options) {
   const indexPath = path.resolve(agentDir, 'fragments', 'fragment-index.json');
   const index = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
 
+  const tierSets = {
+    core: new Set(['core']),
+    extended: new Set(['core', 'extended']),
+    specialized: new Set(['core', 'extended', 'specialized']),
+    all: new Set(['core', 'extended', 'specialized'])
+  };
+  const allowedTiers = tierSets[tier] || tierSets.core;
   const entries = index.fragments.filter(function (e) {
-    return tier === 'all' ? true : e.tier === tier;
+    return allowedTiers.has(e.tier);
   });
 
   let totalChars = 0;

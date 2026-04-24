@@ -15,18 +15,9 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('loadAgentDefinition throws MODULE_NOT_FOUND because fragment-loader.cjs does not exist yet (RED)', () => {
-    let threwExpectedError = false;
-    try {
-      // This module does not exist yet — require will throw MODULE_NOT_FOUND
-      require('../src/lib/fragment-loader.cjs');
-    } catch (err: unknown) {
-      const nodeErr = err as NodeJS.ErrnoException;
-      if (nodeErr.code === 'MODULE_NOT_FOUND') {
-        threwExpectedError = true;
-      }
-    }
-    expect(threwExpectedError).toBe(true);
+  it('loadFragments is available from fragment-loader.cjs (AGNT-07)', () => {
+    const { loadFragments } = require('../src/lib/fragment-loader.cjs') as { loadFragments: unknown };
+    expect(typeof loadFragments).toBe('function');
   });
 
   it('terrace-spec-interrogator agent directory exists at .agents/skills/terrace-spec-interrogator/ (AGNT-01)', () => {

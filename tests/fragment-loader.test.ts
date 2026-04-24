@@ -68,17 +68,9 @@ describe('fragment loader runtime behavior (FRAG-02, FRAG-03, FRAG-04)', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('loadFragments is callable from src/lib/fragment-loader.cjs (RED — module does not exist yet)', () => {
-    let threwExpectedError = false;
-    try {
-      require('../src/lib/fragment-loader.cjs');
-    } catch (err: unknown) {
-      const nodeErr = err as NodeJS.ErrnoException;
-      if (nodeErr.code === 'MODULE_NOT_FOUND') {
-        threwExpectedError = true;
-      }
-    }
-    expect(threwExpectedError).toBe(true);
+  it('loadFragments is callable from src/lib/fragment-loader.cjs', () => {
+    const { loadFragments } = require('../src/lib/fragment-loader.cjs') as { loadFragments: unknown };
+    expect(typeof loadFragments).toBe('function');
   });
 
   it('loadFragments(agentDir, {tier: core}) returns only core-tier fragment contents (FRAG-02)', () => {
@@ -127,4 +119,77 @@ describe('fragment loader runtime behavior (FRAG-02, FRAG-03, FRAG-04)', () => {
       `Context reduction ratio ${savedRatio.toFixed(2)} is less than required 0.40 (40%) (FRAG-04)`
     ).toBeGreaterThanOrEqual(0.40);
   });
+});
+
+describe('cumulative tier semantics (FRAG-02)', () => {
+  const interrogatorDir = path.resolve(process.cwd(), '.agents/skills/terrace-spec-interrogator');
+
+  it('extended tier includes core and extended fragments (FRAG-02)', () => {
+    if (!fs.existsSync(path.join(interrogatorDir, 'fragments', 'fragment-index.json'))) return;
+    const { loadFragments } = require('../src/lib/fragment-loader.cjs') as {
+      loadFragments: (agentDir: string, opts: { tier: string }) => { contents: string[]; tokenCount: number };
+    };
+    const result = loadFragments(interrogatorDir, { tier: 'extended' });
+    const combined = result.contents.join('\n');
+    expect(combined).toContain('Question Round Templates');
+    expect(combined).toContain('Edge Case Probing Patterns');
+    expect(combined).not.toContain('Fast-Mode Path');
+  });
+
+  it('core tier excludes extended and specialized fragments (FRAG-02)', () => {
+    if (!fs.existsSync(path.join(interrogatorDir, 'fragments', 'fragment-index.json'))) return;
+    const { loadFragments } = require('../src/lib/fragment-loader.cjs') as {
+      loadFragments: (agentDir: string, opts: { tier: string }) => { contents: string[]; tokenCount: number };
+    };
+    const result = loadFragments(interrogatorDir, { tier: 'core' });
+    const combined = result.contents.join('\n');
+    expect(combined).toContain('Question Round Templates');
+    expect(combined).not.toContain('Edge Case Probing Patterns');
+    expect(combined).not.toContain('Fast-Mode Path');
+  });
+});
+
+describe('MET-ERG-07: >=40% context reduction from core-only loading (FRAG-04)', () => {
+  const fixtureDir = path.resolve(process.cwd(), 'fixtures/ts-monorepo');
+  const agents = [
+    '.agents/skills/terrace-spec-interrogator',
+    '.agents/skills/terrace-spec-compiler',
+    '.agents/skills/terrace-test-architect',
+  ];
+
+  for (const agentRelPath of agents) {
+    it(`core-only load is >=40% smaller than all-tier for ${agentRelPath} (FRAG-04, MET-ERG-07)`, () => {
+      expect(fs.existsSync(fixtureDir), 'ts-monorepo fixture must exist for MET-ERG-07 reference coverage').toBe(true);
+      const agentDir = path.resolve(process.cwd(), agentRelPath);
+      if (!fs.existsSync(path.join(agentDir, 'fragments', 'fragment-index.json'))) return;
+      const { loadFragments } = require('../src/lib/fragment-loader.cjs') as {
+        loadFragments: (agentDir: string, opts: { tier: string }) => { contents: string[]; tokenCount: number };
+      };
+      const coreResult = loadFragments(agentDir, { tier: 'core' });
+      const allResult = loadFragments(agentDir, { tier: 'all' });
+      if (allResult.tokenCount === 0) return;
+      const ratio = coreResult.tokenCount / allResult.tokenCount;
+      expect(ratio).toBeLessThan(0.60);
+    });
+  }
+});
+
+describe('MET-ERG-06: per-step core context < 15000 tokens', () => {
+  const agents = [
+    '.agents/skills/terrace-spec-interrogator',
+    '.agents/skills/terrace-spec-compiler',
+    '.agents/skills/terrace-test-architect',
+  ];
+
+  for (const agentRelPath of agents) {
+    it(`core-only token count < 15000 for ${agentRelPath} (MET-ERG-06)`, () => {
+      const agentDir = path.resolve(process.cwd(), agentRelPath);
+      if (!fs.existsSync(path.join(agentDir, 'fragments', 'fragment-index.json'))) return;
+      const { loadFragments } = require('../src/lib/fragment-loader.cjs') as {
+        loadFragments: (agentDir: string, opts: { tier: string }) => { contents: string[]; tokenCount: number };
+      };
+      const result = loadFragments(agentDir, { tier: 'core' });
+      expect(result.tokenCount).toBeLessThan(15000);
+    });
+  }
 });

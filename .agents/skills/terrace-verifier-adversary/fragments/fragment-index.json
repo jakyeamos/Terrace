@@ -1,0 +1,20 @@
+{
+  "agent": "terrace-verifier-adversary",
+  "stub_note": "Phase 6 stub — full fragment set implemented in Phase 6",
+  "fragments": [
+    {
+      "id": "FRG-ADV-01",
+      "name": "Spec Drift Detection Patterns",
+      "tags": ["spec-drift", "verification"],
+      "tier": "core",
+      "file": "frg-adv-01-spec-drift.md"
+    },
+    {
+      "id": "FRG-ADV-02",
+      "name": "Gap Severity and Regression Requirements",
+      "tags": ["gap-severity", "regression-tests"],
+      "tier": "core",
+      "file": "frg-adv-02-gap-severity.md"
+    }
+  ]
+}
