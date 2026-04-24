@@ -14,6 +14,20 @@
       "tags": ["assumptions", "clarifications"],
       "tier": "core",
       "file": "frg-int-02-assumption-logging.md"
+    },
+    {
+      "id": "FRG-INT-03",
+      "name": "Edge Case Probing",
+      "tags": ["edge-cases", "boundaries", "failure-modes"],
+      "tier": "extended",
+      "file": "frg-int-03-edge-case-probing.md"
+    },
+    {
+      "id": "FRG-INT-04",
+      "name": "Fast-Mode Path",
+      "tags": ["fast-mode", "assumptions", "clarifications"],
+      "tier": "specialized",
+      "file": "frg-int-04-fast-mode.md"
     }
   ]
 }

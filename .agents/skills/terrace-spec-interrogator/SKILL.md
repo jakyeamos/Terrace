@@ -29,8 +29,8 @@ fragment_index_ref: "fragments/fragment-index.json"
 Read `.terrace/steering.md` before any other step.
 
 Determine entry point based on existing artifacts:
-- If no prior interrogation output exists: read `step-01-create.md`
-- If interrogation output exists and refinement is needed: read `step-02-edit.md`
+- If no `docs/prd/CLARIFICATIONS.md` exists -> read `step-01-create.md`
+- If `docs/prd/CLARIFICATIONS.md` exists -> read `step-02-edit.md`
 - If validate mode is requested: read `step-03-validate.md`
 
-Step files will be added in Plans 02-03 through 02-05.
+If no CLARIFICATIONS.md exists -> read step-01-create.md. If CLARIFICATIONS.md exists -> read step-02-edit.md. If validate mode explicitly requested -> read step-03-validate.md.
