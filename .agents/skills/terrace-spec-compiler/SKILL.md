@@ -39,4 +39,4 @@ Determine entry point based on existing artifacts:
 - If compiled spec exists and spec update is needed: read `step-02-edit.md`
 - If validate mode is requested: read `step-03-validate.md`
 
-Step files will be added in Plans 02-03 through 02-05.
+If no COMPILED-SPEC.md exists -> read step-01-create.md. If COMPILED-SPEC.md exists -> read step-02-edit.md. If validate mode explicitly requested -> read step-03-validate.md.

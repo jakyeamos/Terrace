@@ -19,17 +19,9 @@ describe('spec hash computation (OPS-03, OPS-04)', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('computeSpecHash is callable from src/lib/spec-hash.cjs (RED — module does not exist yet)', () => {
-    let threwExpectedError = false;
-    try {
-      require('../src/lib/spec-hash.cjs');
-    } catch (err: unknown) {
-      const nodeErr = err as NodeJS.ErrnoException;
-      if (nodeErr.code === 'MODULE_NOT_FOUND') {
-        threwExpectedError = true;
-      }
-    }
-    expect(threwExpectedError).toBe(true);
+  it('computeSpecHash is callable from src/lib/spec-hash.cjs', () => {
+    const { computeSpecHash } = require('../src/lib/spec-hash.cjs') as { computeSpecHash: unknown };
+    expect(typeof computeSpecHash).toBe('function');
   });
 
   it('computeSpecHash strips blank lines before hashing (OPS-03, D-18)', () => {
@@ -120,5 +112,17 @@ describe('spec hash computation (OPS-03, OPS-04)', () => {
       cliRecognized = !isUnknown;
     }
     expect(cliRecognized, 'terrace spec hash --file must be a recognized CLI command (OPS-04)').toBe(true);
+  });
+
+  it('terrace spec hash --file <path> prints a 64-character hash', () => {
+    const specFile = path.join(tmpDir, 'COMPILED-SPEC.md');
+    fs.writeFileSync(specFile, '---\nspec_version: 1.0\nlast_updated: 2026-01-01\n---\n# Spec\nContent.', 'utf-8');
+
+    const output = execFileSync(NODE_BIN, [TERRACE_CLI, 'spec', 'hash', '--file', specFile], {
+      encoding: 'utf-8',
+      cwd: tmpDir,
+    }).trim();
+
+    expect(output).toMatch(/^[a-f0-9]{64}$/);
   });
 });

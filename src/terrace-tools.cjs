@@ -9,6 +9,7 @@ const { runDoctor } = require('./lib/doctor.cjs');
 const { installPreset, listPresets } = require('./lib/preset.cjs');
 const { setPhase } = require('./lib/lifecycle.cjs');
 const { validateArtifacts } = require('./lib/validate.cjs');
+const { computeSpecHash } = require('./lib/spec-hash.cjs');
 
 function ensureState(cwd) {
   const statePath = path.resolve(cwd, '.terrace', 'project-state.json');
@@ -100,8 +101,21 @@ async function main() {
     }
     case 'spec': {
       const sub = args[1];
+      if (sub === 'hash') {
+        const fileIdx = args.indexOf('--file');
+        if (fileIdx === -1 || !args[fileIdx + 1]) {
+          fail('Usage: terrace spec hash --file <path>', { json });
+        }
+        try {
+          const hash = computeSpecHash(args[fileIdx + 1]);
+          output(json ? { hash } : hash, { json });
+        } catch (error) {
+          fail(error && error.message ? error.message : String(error), { json });
+        }
+        return;
+      }
       if (sub !== 'validate') {
-        fail('Unknown spec subcommand: ' + sub + '. Use: validate', { json });
+        fail('Unknown spec subcommand: ' + sub + '. Use: validate, hash', { json });
       }
       const result = validateArtifacts(cwd, loadConfig(cwd));
       output(result, { json });

@@ -14,6 +14,20 @@
       "tags": ["invariants", "constraints"],
       "tier": "core",
       "file": "frg-cmp-02-invariant-patterns.md"
+    },
+    {
+      "id": "FRG-CMP-03",
+      "name": "Permissions Matrix Format",
+      "tags": ["permissions", "matrix", "actors"],
+      "tier": "extended",
+      "file": "frg-cmp-03-permissions-matrix.md"
+    },
+    {
+      "id": "FRG-CMP-04",
+      "name": "State Machine Format",
+      "tags": ["state-machine", "lifecycle", "transitions"],
+      "tier": "specialized",
+      "file": "frg-cmp-04-state-machine.md"
     }
   ]
 }
