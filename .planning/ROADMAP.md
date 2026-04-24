@@ -262,12 +262,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — RED test stubs for all Phase 2 requirements; fragment-index.json schema and AGNT-07 contract tests (phase-delta RED, TDD wave 1)
-- [ ] 02-02-PLAN.md — Agent definition framework: AGNT-07/08 base contract, steering.md loader, fragment-index.json schema and runtime loader; `core` tier loads unconditionally (TDD wave 2)
-- [ ] 02-03-PLAN.md — `terrace-spec-interrogator` agent: fragment set (FRAG-06), tri-modal Interrogation workflow with step-file chaining, fast-mode path, unresolved-assumptions logging (WKFL-02, 02a/b/c, WKFL-03) (TDD wave 2)
-- [ ] 02-04-PLAN.md — `terrace-spec-compiler` agent: fragment set (FRAG-07), Spec Compilation workflow with tri-modal architecture, derived artifact updates (WKFL-04/05), spec hash computation excluding non-semantic changes (OPS-03/04) (TDD wave 2)
-- [ ] 02-05-PLAN.md — Intake workflow (WKFL-01, OPS-01) + `terrace-test-architect` agent: fragment set (FRAG-08), Test Architecture workflow (WKFL-06) with P0–P3 risk scoring and CI tier assignment (TDD wave 2)
-- [ ] 02-06-PLAN.md — Fragment conditional loading (extended/specialized tiers), MET-ERG-06/07 validation, full Phase 2 GREEN suite on ts-monorepo fixture (TDD wave 3)
+- [x] 02-01-PLAN.md — RED test stubs for all Phase 2 requirements; fragment-index.json schema and AGNT-07 contract tests (phase-delta RED, TDD wave 1)
+- [x] 02-02-PLAN.md — Agent definition framework: AGNT-07/08 base contract, steering.md loader, fragment-index.json schema and runtime loader; `core` tier loads unconditionally (TDD wave 2)
+- [x] 02-03-PLAN.md — `terrace-spec-interrogator` agent: fragment set (FRAG-06), tri-modal Interrogation workflow with step-file chaining, fast-mode path, unresolved-assumptions logging (WKFL-02, 02a/b/c, WKFL-03) (TDD wave 2)
+- [x] 02-04-PLAN.md — `terrace-spec-compiler` agent: fragment set (FRAG-07), Spec Compilation workflow with tri-modal architecture, derived artifact updates (WKFL-04/05), spec hash computation excluding non-semantic changes (OPS-03/04) (TDD wave 2)
+- [x] 02-05-PLAN.md — Intake workflow (WKFL-01, OPS-01) + `terrace-test-architect` agent: fragment set (FRAG-08), Test Architecture workflow (WKFL-06) with P0–P3 risk scoring and CI tier assignment (TDD wave 2)
+- [x] 02-06-PLAN.md — Fragment conditional loading (extended/specialized tiers), MET-ERG-06/07 validation, full Phase 2 GREEN suite on ts-monorepo fixture (TDD wave 3)
 
 ---
 

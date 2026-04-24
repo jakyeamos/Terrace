@@ -262,18 +262,18 @@ Governance agents use a tiered knowledge fragment system to load context selecti
 
 ### Fragment Index
 
-- [ ] **FRAG-01**: each governance agent has a `fragments/` directory and a `fragment-index.json` (or `.csv`) listing available fragments with: `id`, `name`, `tags`, `tier` (`core` | `extended` | `specialized`), `file`
-- [ ] **FRAG-02**: `core` fragments are always loaded into agent context; `extended` fragments load on-demand based on phase or config; `specialized` fragments load only when specific flags or stack types are detected
-- [ ] **FRAG-03**: step-01 of each multi-step governance workflow reads the fragment index and loads the appropriate tier before proceeding
-- [ ] **FRAG-04**: fragment conditional loading reduces agent context size by at least 40% compared to loading all fragments (measured against a reference project)
-- [ ] **FRAG-05**: fragment content is markdown — readable by humans, loadable by agents, diffable in git
+- [x] **FRAG-01**: each governance agent has a `fragments/` directory and a `fragment-index.json` (or `.csv`) listing available fragments with: `id`, `name`, `tags`, `tier` (`core` | `extended` | `specialized`), `file`
+- [x] **FRAG-02**: `core` fragments are always loaded into agent context; `extended` fragments load on-demand based on phase or config; `specialized` fragments load only when specific flags or stack types are detected
+- [x] **FRAG-03**: step-01 of each multi-step governance workflow reads the fragment index and loads the appropriate tier before proceeding
+- [x] **FRAG-04**: fragment conditional loading reduces agent context size by at least 40% compared to loading all fragments (measured against a reference project)
+- [x] **FRAG-05**: fragment content is markdown — readable by humans, loadable by agents, diffable in git
 
 ### Required Fragment Sets (v1)
 
-- [ ] **FRAG-06**: `terrace-spec-interrogator` agent has fragments covering: question-round templates, assumption-logging patterns, edge-case probing patterns, fast-mode path
-- [ ] **FRAG-07**: `terrace-spec-compiler` agent has fragments covering: spec YAML frontmatter schema, invariant catalog patterns, permissions matrix format, state machine format
-- [ ] **FRAG-08**: `terrace-test-architect` agent has fragments covering: test layer selection criteria, risk scoring (P0-P3), fixture architecture, mock policy, CI tier assignment
-- [ ] **FRAG-09**: `terrace-verifier-adversary` agent has fragments covering: spec drift detection patterns, gap severity classification, regression test requirements
+- [x] **FRAG-06**: `terrace-spec-interrogator` agent has fragments covering: question-round templates, assumption-logging patterns, edge-case probing patterns, fast-mode path
+- [x] **FRAG-07**: `terrace-spec-compiler` agent has fragments covering: spec YAML frontmatter schema, invariant catalog patterns, permissions matrix format, state machine format
+- [x] **FRAG-08**: `terrace-test-architect` agent has fragments covering: test layer selection criteria, risk scoring (P0-P3), fixture architecture, mock policy, CI tier assignment
+- [x] **FRAG-09**: `terrace-verifier-adversary` agent has fragments covering: spec drift detection patterns, gap severity classification, regression test requirements
 
 ---
 
@@ -332,15 +332,15 @@ Terrace classifies work locally first, then escalates only when the task class o
 
 ## 9. Pre-Build Governance Workflows
 
-- [ ] **WKFL-01**: Intake workflow ingests PRD/request, normalizes understanding, creates `docs/prd/PRD.md`, and creates `.terrace/steering.md` (project constitution) if it does not exist, after local route classification
-- [ ] **WKFL-02**: Interrogation workflow uses tri-modal architecture (Create / Edit / Validate modes) with step-file chaining — spawns `terrace-spec-interrogator` via sequential step files, each file naming the next, enabling resume from any interrupted step when escalation is justified
-- [ ] **WKFL-02a**: interrogation Create mode runs structured question rounds targeting goals, permissions, state transitions, edge cases, and failure modes — loads knowledge fragments by tier before each round and stops early when ambiguity is already low enough
-- [ ] **WKFL-02b**: interrogation Edit mode revises existing interrogation output without restarting from scratch
-- [ ] **WKFL-02c**: interrogation Validate mode evaluates existing output against a completion checklist and produces a pass/fail report
-- [ ] **WKFL-03**: interrogation output records unresolved assumptions explicitly
-- [ ] **WKFL-04**: Spec Compilation workflow uses tri-modal architecture (Create / Edit / Validate) with step-file chaining — spawns `terrace-spec-compiler` to produce `docs/spec/COMPILED-SPEC.md` only when the spec artifact is stale or impacted
-- [ ] **WKFL-05**: Spec Compilation workflow updates invariants, permissions matrix, and state-machine artifacts when relevant, preferably as section-level or requirement-level deltas
-- [ ] **WKFL-06**: Test Architecture workflow uses tri-modal architecture (Create / Edit / Validate) — spawns `terrace-test-architect` to produce `docs/testing/TEST-ARCH.md` mapping each requirement to a test layer with P0-P3 risk score and CI tier assignment, defaulting to the smallest safe slice
+- [x] **WKFL-01**: Intake workflow ingests PRD/request, normalizes understanding, creates `docs/prd/PRD.md`, and creates `.terrace/steering.md` (project constitution) if it does not exist, after local route classification
+- [x] **WKFL-02**: Interrogation workflow uses tri-modal architecture (Create / Edit / Validate modes) with step-file chaining — spawns `terrace-spec-interrogator` via sequential step files, each file naming the next, enabling resume from any interrupted step when escalation is justified
+- [x] **WKFL-02a**: interrogation Create mode runs structured question rounds targeting goals, permissions, state transitions, edge cases, and failure modes — loads knowledge fragments by tier before each round and stops early when ambiguity is already low enough
+- [x] **WKFL-02b**: interrogation Edit mode revises existing interrogation output without restarting from scratch
+- [x] **WKFL-02c**: interrogation Validate mode evaluates existing output against a completion checklist and produces a pass/fail report
+- [x] **WKFL-03**: interrogation output records unresolved assumptions explicitly
+- [x] **WKFL-04**: Spec Compilation workflow uses tri-modal architecture (Create / Edit / Validate) with step-file chaining — spawns `terrace-spec-compiler` to produce `docs/spec/COMPILED-SPEC.md` only when the spec artifact is stale or impacted
+- [x] **WKFL-05**: Spec Compilation workflow updates invariants, permissions matrix, and state-machine artifacts when relevant, preferably as section-level or requirement-level deltas
+- [x] **WKFL-06**: Test Architecture workflow uses tri-modal architecture (Create / Edit / Validate) — spawns `terrace-test-architect` to produce `docs/testing/TEST-ARCH.md` mapping each requirement to a test layer with P0-P3 risk score and CI tier assignment, defaulting to the smallest safe slice
 - [ ] **WKFL-07**: Protected Baseline workflow spawns `terrace-baseline-builder` to create foundational tests and register them
 - [ ] **WKFL-08**: a project cannot enter `implementation` phase unless required baseline artifacts exist or an explicit exception is logged
 
@@ -358,13 +358,13 @@ Terrace classifies work locally first, then escalates only when the task class o
 
 ## 11. Agent Definitions
 
-- [ ] **AGNT-01**: `terrace-spec-interrogator` reduces ambiguity through structured question rounds
-- [ ] **AGNT-02**: `terrace-spec-compiler` converts interrogation output + PRD into compiled spec artifacts
-- [ ] **AGNT-03**: `terrace-test-architect` designs test matrix and assigns behaviors to test layers
+- [x] **AGNT-01**: `terrace-spec-interrogator` reduces ambiguity through structured question rounds
+- [x] **AGNT-02**: `terrace-spec-compiler` converts interrogation output + PRD into compiled spec artifacts
+- [x] **AGNT-03**: `terrace-test-architect` designs test matrix and assigns behaviors to test layers
 - [ ] **AGNT-04**: `terrace-baseline-builder` creates foundational acceptance, invariant, contract, and regression tests
 - [ ] **AGNT-05**: `terrace-verifier-adversary` attacks assumptions, finds gaps, and detects spec drift
 - [ ] **AGNT-06**: `terrace-maintainer-curator` updates decision logs, regressions, session memory artifacts, and usage logs
-- [ ] **AGNT-07**: each agent definition includes:
+- [x] **AGNT-07**: each agent definition includes:
   - purpose
   - allowed outputs
   - forbidden actions
@@ -372,7 +372,7 @@ Terrace classifies work locally first, then escalates only when the task class o
   - handoff behavior
   - artifact ownership
   - fragment index reference (path to `fragment-index.json`)
-- [ ] **AGNT-08**: each agent loads `.terrace/steering.md` as the first context item before any workflow step executes
+- [x] **AGNT-08**: each agent loads `.terrace/steering.md` as the first context item before any workflow step executes
 - [ ] **AGNT-09**: route-aware commands expose a compact routing summary to the user; `terrace-usage` and `terrace-why` are read-only diagnostics and never trigger deep governance on their own
 
 ---
@@ -479,10 +479,10 @@ Terrace is a fork and evolution of GSD — not a wrapper. GSD commands serve as 
 
 ### Spec / Session Edge Cases
 
-- [ ] **OPS-01**: if no PRD exists, Terrace can start from user request and create a provisional PRD
-- [ ] **OPS-02**: if user declines interrogation, Terrace must support a logged fast-mode assumption path
-- [ ] **OPS-03**: formatting-only spec changes should not be treated as behavioral drift
-- [ ] **OPS-04**: spec hash computation must exclude configured non-semantic changes where possible
+- [x] **OPS-01**: if no PRD exists, Terrace can start from user request and create a provisional PRD
+- [x] **OPS-02**: if user declines interrogation, Terrace must support a logged fast-mode assumption path
+- [x] **OPS-03**: formatting-only spec changes should not be treated as behavioral drift
+- [x] **OPS-04**: spec hash computation must exclude configured non-semantic changes where possible
 
 ### Protected Artifact Edge Cases
 
@@ -744,35 +744,35 @@ Terrace must be tested as a governance framework, not only described as one.
 | DEV-02 | All phases | Pending |
 | DEV-03 | All phases | Pending |
 | DEV-04 | All phases | Pending |
-| WKFL-01 | Phase 2: Governance Workflows | Pending |
-| WKFL-02 | Phase 2: Governance Workflows | Pending |
-| WKFL-03 | Phase 2: Governance Workflows | Pending |
-| WKFL-04 | Phase 2: Governance Workflows | Pending |
-| WKFL-05 | Phase 2: Governance Workflows | Pending |
-| AGNT-01 | Phase 2: Governance Workflows | Pending |
-| AGNT-02 | Phase 2: Governance Workflows | Pending |
-| AGNT-07 | Phase 2: Governance Workflows | Pending |
-| AGNT-08 | Phase 2: Governance Workflows | Pending |
-| WKFL-02a | Phase 2: Governance Workflows | Pending |
-| WKFL-02b | Phase 2: Governance Workflows | Pending |
-| WKFL-02c | Phase 2: Governance Workflows | Pending |
-| FRAG-01 | Phase 2: Governance Workflows | Pending |
-| FRAG-02 | Phase 2: Governance Workflows | Pending |
-| FRAG-03 | Phase 2: Governance Workflows | Pending |
-| FRAG-04 | Phase 2: Governance Workflows | Pending |
-| FRAG-05 | Phase 2: Governance Workflows | Pending |
-| FRAG-06 | Phase 2: Governance Workflows | Pending |
-| FRAG-07 | Phase 2: Governance Workflows | Pending |
-| FRAG-08 | Phase 2: Governance Workflows | Pending |
-| FRAG-09 | Phase 2: Governance Workflows | Pending |
-| OPS-01 | Phase 2: Governance Workflows | Pending |
-| OPS-02 | Phase 2: Governance Workflows | Pending |
-| OPS-03 | Phase 2: Governance Workflows | Pending |
-| OPS-04 | Phase 2: Governance Workflows | Pending |
-| WKFL-06 | Phase 3: Baseline Protection & Enforcement | Pending |
+| WKFL-01 | Phase 2: Governance Workflows | Complete |
+| WKFL-02 | Phase 2: Governance Workflows | Complete |
+| WKFL-03 | Phase 2: Governance Workflows | Complete |
+| WKFL-04 | Phase 2: Governance Workflows | Complete |
+| WKFL-05 | Phase 2: Governance Workflows | Complete |
+| AGNT-01 | Phase 2: Governance Workflows | Complete |
+| AGNT-02 | Phase 2: Governance Workflows | Complete |
+| AGNT-07 | Phase 2: Governance Workflows | Complete |
+| AGNT-08 | Phase 2: Governance Workflows | Complete |
+| WKFL-02a | Phase 2: Governance Workflows | Complete |
+| WKFL-02b | Phase 2: Governance Workflows | Complete |
+| WKFL-02c | Phase 2: Governance Workflows | Complete |
+| FRAG-01 | Phase 2: Governance Workflows | Complete |
+| FRAG-02 | Phase 2: Governance Workflows | Complete |
+| FRAG-03 | Phase 2: Governance Workflows | Complete |
+| FRAG-04 | Phase 2: Governance Workflows | Complete |
+| FRAG-05 | Phase 2: Governance Workflows | Complete |
+| FRAG-06 | Phase 2: Governance Workflows | Complete |
+| FRAG-07 | Phase 2: Governance Workflows | Complete |
+| FRAG-08 | Phase 2: Governance Workflows | Complete |
+| FRAG-09 | Phase 2: Governance Workflows | Complete |
+| OPS-01 | Phase 2: Governance Workflows | Complete |
+| OPS-02 | Phase 2: Governance Workflows | Complete |
+| OPS-03 | Phase 2: Governance Workflows | Complete |
+| OPS-04 | Phase 2: Governance Workflows | Complete |
+| WKFL-06 | Phase 2: Governance Workflows | Complete |
 | WKFL-07 | Phase 3: Baseline Protection & Enforcement | Pending |
 | WKFL-08 | Phase 3: Baseline Protection & Enforcement | Pending |
-| AGNT-03 | Phase 3: Baseline Protection & Enforcement | Pending |
+| AGNT-03 | Phase 2: Governance Workflows | Complete |
 | AGNT-04 | Phase 3: Baseline Protection & Enforcement | Pending |
 | CLI-03 | Phase 3: Baseline Protection & Enforcement | Pending |
 | CLI-04 | Phase 3: Baseline Protection & Enforcement | Pending |
