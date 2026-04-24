@@ -35,4 +35,4 @@ Determine entry point based on existing artifacts:
 - If test architecture exists and update is needed: read `step-02-edit.md`
 - If validate mode is requested: read `step-03-validate.md`
 
-Step files will be added in Plans 02-03 through 02-05.
+If no TEST-ARCH.md exists -> read step-01-create.md. If TEST-ARCH.md exists -> read step-02-edit.md. If validate mode explicitly requested -> read step-03-validate.md.
