@@ -18,7 +18,20 @@ const DEFAULT_RULES = {
       override: { requires_decision_log: false }
     }
   ],
-  security: [],
+  security: [
+    {
+      id: 'SEC-CRITICAL',
+      title: 'Security-critical findings cannot be bypassed by low-effort mode',
+      domain: 'security',
+      scope: 'finding',
+      blocking: true,
+      evaluation_method: 'deterministic',
+      policy_modes: ['strict', 'standard', 'low_effort'],
+      required_evidence: ['resolution_or_decision_log_override'],
+      warnings: [],
+      override: { requires_decision_log: true, requires_expiry: true }
+    }
+  ],
   architecture: [],
   pentest: [],
   maintainability: []
@@ -36,8 +49,55 @@ function writeDefaultRules(cwd) {
   }
 }
 
+function loadRules(cwd) {
+  const rulesDir = path.resolve(cwd, '.terrace', 'rules');
+  const result = {};
+  for (const domain of Object.keys(DEFAULT_RULES)) {
+    const filePath = path.join(rulesDir, domain + '.json');
+    result[domain] = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf8')).rules : [];
+  }
+  return result;
+}
+
+function explainRule(cwd, ruleId) {
+  const rules = loadRules(cwd);
+  for (const domainRules of Object.values(rules)) {
+    const found = domainRules.find((rule) => rule.id === ruleId);
+    if (found) {
+      return found;
+    }
+  }
+  throw new Error('Unknown rule: ' + ruleId);
+}
+
+function checkRules(cwd, input) {
+  const mode = input.mode || 'strict';
+  const findings = input.findings || [];
+  const blocking = [];
+  const warnings = [];
+
+  for (const finding of findings) {
+    if (finding.domain === 'security' && finding.severity === 'critical') {
+      blocking.push({
+        code: 'SECURITY_CRITICAL_LOW_EFFORT_BLOCK',
+        domain: finding.domain,
+        rule_id: finding.rule_id,
+        message: finding.message,
+        mode
+      });
+      continue;
+    }
+    warnings.push(finding);
+  }
+
+  return { blocking, warnings, passed: blocking.length === 0 };
+}
+
 module.exports = {
   DEFAULT_RULES,
   defaultRuleFiles,
-  writeDefaultRules
+  writeDefaultRules,
+  loadRules,
+  explainRule,
+  checkRules
 };
