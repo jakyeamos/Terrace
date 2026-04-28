@@ -4,30 +4,30 @@ version: "0.1"
 last_updated: ""
 ---
 
-## Problem
+## problem
 
 <!-- Required: describe the problem being solved -->
 
-## Actors
+## actors
 
 <!-- Required: who interacts with this system -->
 
-## Desired Outcomes
+## desired_outcomes
 
 <!-- Required: what success looks like for each actor -->
 
-## Non-Goals
+## non_goals
 
 <!-- Required: what this product explicitly does not do -->
 
-## Constraints
+## constraints
 
 <!-- Required: technical, regulatory, or resource constraints -->
 
-## Success Criteria
+## success_criteria
 
 <!-- Required: measurable outcomes -->
 
-## Open Questions
+## open_questions
 
 <!-- Required: unresolved issues -->

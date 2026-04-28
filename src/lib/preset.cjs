@@ -60,6 +60,7 @@ function installPreset(cwd, manifest, options) {
     workflows: manifest.workflows || [],
     fragments: manifest.fragments || [],
     flags: manifest.flags || [],
+    commands: manifest.commands || [],
     installed_at: new Date().toISOString(),
     conflicts: []
   };

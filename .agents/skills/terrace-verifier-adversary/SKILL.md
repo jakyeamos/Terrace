@@ -1,8 +1,8 @@
 ---
 agent: terrace-verifier-adversary
-version: "0.1"
+version: "1.0"
 phase: governance
-purpose: "Phase 6 stub for adversarial review: compare implementation against compiled spec, classify gaps, and identify regression-test needs."
+purpose: "Run trigger-based adversarial review by comparing implementation against compiled spec, classifying gaps, and identifying regression-test needs."
 allowed_outputs:
   - "docs/verification/GAPS.md"
   - "docs/verification/REGRESSION-TESTS.md"
@@ -28,6 +28,4 @@ fragment_index_ref: "fragments/fragment-index.json"
 
 ## Workflow
 
-# Phase 6 stub — full implementation in terrace-verifier-adversary Phase 6 plan
-
-Read `.terrace/steering.md` before any other step. For Phase 2, this agent exists only to reserve the AGNT-07 contract and FRAG-09 fragment catalog. Do not perform full adversarial review until the Phase 6 plan implements the workflow.
+Read `.terrace/steering.md` before any other step. Then run `step-01-create.md`, `step-02-edit.md`, and `step-03-validate.md` in order. Blocking gaps must name the violated SPEC requirement, evidence, and the regression test required before phase completion.
