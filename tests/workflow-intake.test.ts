@@ -25,14 +25,14 @@ describe('intake workflow provisional PRD and fast-mode path (WKFL-01, OPS-01, O
     // The PRD.md template must exist and contain [PROVISIONAL] markers
     // In Phase 2, the intake workflow writes a provisional PRD from steering.md + user request
     // This test verifies the template has the [PROVISIONAL] marker pattern
-    const prdTemplate = path.resolve(process.cwd(), 'src/templates/PRD.md');
+    const prdTemplate = path.resolve(process.cwd(), 'packages/terrace-core/templates/PRD.md');
     expect(fs.existsSync(prdTemplate), 'PRD.md template must exist').toBe(true);
     const content = fs.readFileSync(prdTemplate, 'utf-8');
     expect(content, 'PRD.md template must contain [PROVISIONAL] marker for intake workflow (OPS-01)').toContain('[PROVISIONAL');
   });
 
   it('provisional PRD reads from .terrace/steering.md — steering.md template has intent, non_negotiables, scope_boundaries fields (D-14)', () => {
-    const steeringTemplate = path.resolve(process.cwd(), 'src/templates/steering.md');
+    const steeringTemplate = path.resolve(process.cwd(), 'packages/terrace-core/templates/steering.md');
     expect(fs.existsSync(steeringTemplate), 'steering.md template must exist').toBe(true);
     const content = fs.readFileSync(steeringTemplate, 'utf-8');
     expect(content, 'steering.md must contain intent field').toContain('intent');

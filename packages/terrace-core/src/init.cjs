@@ -31,6 +31,11 @@ function initCore(cwd, options) {
   });
   created.push('.terrace/config.json');
 
+  const presetRegistryPath = path.resolve(cwd, '.terrace', 'presets', 'registry.json');
+  fs.mkdirSync(path.dirname(presetRegistryPath), { recursive: true });
+  fs.writeFileSync(presetRegistryPath, JSON.stringify({ version: '1.0', presets: [] }, null, 2) + '\n', 'utf8');
+  created.push('.terrace/presets/registry.json');
+
   ensureDir(cwd, 'docs/prd', created);
   ensureDir(cwd, 'docs/spec', created);
   ensureDir(cwd, 'docs/testing', created);

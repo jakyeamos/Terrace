@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Terrace Strict Core State",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "project",
+    "workflow",
+    "roadmap",
+    "active_slice",
+    "red_gate",
+    "green_gate",
+    "protected_tests",
+    "decisions",
+    "sessions"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "project": {
+      "type": "object",
+      "required": ["name", "created_at"],
+      "properties": {
+        "name": { "type": "string" },
+        "created_at": { "type": "string" }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "required": ["status", "mode", "active_feature"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "initialized",
+            "intake_recorded",
+            "interrogated",
+            "spec_compiled",
+            "roadmap_ready",
+            "slice_planned",
+            "red_required",
+            "implementation_allowed",
+            "green_required",
+            "protected",
+            "handoff_ready"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["strict", "standard", "low_effort", "recovery"]
+        },
+        "active_feature": { "type": ["string", "null"] }
+      }
+    },
+    "roadmap": {
+      "type": "object",
+      "required": ["phases"],
+      "properties": {
+        "phases": { "type": "array" }
+      }
+    },
+    "active_slice": { "type": ["object", "null"] },
+    "red_gate": { "type": "object" },
+    "green_gate": { "type": "object" },
+    "protected_tests": { "type": "array" },
+    "decisions": { "type": "array" },
+    "sessions": { "type": "array" }
+  },
+  "additionalProperties": true
+}

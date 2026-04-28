@@ -15,8 +15,8 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('loadFragments is available from fragment-loader.cjs (AGNT-07)', () => {
-    const { loadFragments } = require('../src/lib/fragment-loader.cjs') as { loadFragments: unknown };
+  it('loadFragments is available from terrace-core (AGNT-07)', () => {
+    const { loadFragments } = require('../packages/terrace-core/src/index.cjs') as { loadFragments: unknown };
     expect(typeof loadFragments).toBe('function');
   });
 

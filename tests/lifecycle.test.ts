@@ -1,62 +1,59 @@
 import { describe, it, expect } from 'vitest';
 
-const { isLegalTransition, setPhase } = require('../src/lib/lifecycle.cjs');
+const { LEGAL_TRANSITIONS, assertLegalTransition, transitionState } = require('../packages/terrace-core/src/index.cjs');
 
-type ProjectState = {
-  phase: string;
-  spec_hash: null;
-  active_slice: null;
-  last_session: null;
-  policy_mode: string;
-};
+describe('Strict core workflow transitions', () => {
+  const baseState = {
+    workflow: { status: 'initialized', mode: 'strict', active_feature: null },
+    project: { name: 'test' },
+    roadmap: { phases: [] },
+    active_slice: null,
+    red_gate: { status: 'not_started', evidence: [] },
+    green_gate: { status: 'not_started', evidence: [] },
+    protected_tests: [],
+    decisions: [],
+    sessions: []
+  };
 
-describe('Phase lifecycle transitions (LIFE-01 through LIFE-06, CLI-09)', () => {
-  const baseState: ProjectState = { phase: 'intake', spec_hash: null, active_slice: null, last_session: null, policy_mode: 'standard' };
-
-  it('allows legal transition: intake -> interrogation', () => {
-    expect(isLegalTransition('intake', 'interrogation')).toBe(true);
+  it('allows legal transition: initialized -> intake_recorded', () => {
+    expect(LEGAL_TRANSITIONS.initialized).toContain('intake_recorded');
   });
 
-  it('allows legal transition: interrogation -> spec-compilation', () => {
-    expect(isLegalTransition('interrogation', 'spec-compilation')).toBe(true);
+  it('allows legal transition: intake_recorded -> interrogated', () => {
+    expect(LEGAL_TRANSITIONS.intake_recorded).toContain('interrogated');
   });
 
-  it('allows legal backward transition: interrogation -> intake', () => {
-    expect(isLegalTransition('interrogation', 'intake')).toBe(true);
+  it('allows legal transition: interrogated -> spec_compiled', () => {
+    expect(LEGAL_TRANSITIONS.interrogated).toContain('spec_compiled');
   });
 
-  it('allows legal transition: spec-compilation -> test-architecture', () => {
-    expect(isLegalTransition('spec-compilation', 'test-architecture')).toBe(true);
+  it('allows legal transition: spec_compiled -> roadmap_ready', () => {
+    expect(LEGAL_TRANSITIONS.spec_compiled).toContain('roadmap_ready');
   });
 
-  it('allows legal transition: handoff -> intake', () => {
-    expect(isLegalTransition('handoff', 'intake')).toBe(true);
+  it('allows legal transition: handoff_ready -> roadmap_ready', () => {
+    expect(LEGAL_TRANSITIONS.handoff_ready).toContain('roadmap_ready');
   });
 
-  it('blocks illegal transition: intake -> implementation', () => {
-    expect(isLegalTransition('intake', 'implementation')).toBe(false);
+  it('blocks illegal transition: initialized -> implementation_allowed', () => {
+    expect(() => assertLegalTransition('initialized', 'implementation_allowed')).toThrow('initialized');
   });
 
-  it('blocks illegal transition: handoff -> adversarial-review', () => {
-    expect(isLegalTransition('handoff', 'adversarial-review')).toBe(false);
+  it('blocks illegal transition: handoff_ready -> green_required', () => {
+    expect(() => assertLegalTransition('handoff_ready', 'green_required')).toThrow('handoff_ready');
   });
 
-  it('blocks illegal transition: intake -> intake (no self-transition)', () => {
-    expect(isLegalTransition('intake', 'intake')).toBe(false);
+  it('blocks illegal transition: initialized -> initialized (no self-transition)', () => {
+    expect(() => assertLegalTransition('initialized', 'initialized')).toThrow('initialized');
   });
 
-  it('setPhase throws on illegal transition with a message containing from and to phase names', () => {
-    expect(() => setPhase({ ...baseState, phase: 'intake' }, 'implementation')).toThrow('intake');
+  it('transitionState returns updated state with new workflow status', () => {
+    const next = transitionState(baseState, 'intake_recorded');
+    expect(next.workflow.status).toBe('intake_recorded');
   });
 
-  it('setPhase returns updated state with new phase on legal transition', () => {
-    const next = setPhase({ ...baseState, phase: 'intake' }, 'interrogation');
-    expect(next.phase).toBe('interrogation');
-  });
-
-  it('setPhase preserves all other state fields when updating phase', () => {
-    const state = { ...baseState, phase: 'intake', spec_hash: null, policy_mode: 'strict' } as ProjectState;
-    const next = setPhase(state, 'interrogation');
-    expect(next.policy_mode).toBe('strict');
+  it('transitionState preserves workflow mode when updating status', () => {
+    const next = transitionState(baseState, 'intake_recorded');
+    expect(next.workflow.mode).toBe('strict');
   });
 });

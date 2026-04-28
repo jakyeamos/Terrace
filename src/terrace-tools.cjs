@@ -3,37 +3,81 @@
 
 const fs = require('fs');
 const path = require('path');
-const { hasFlag, stripFlags, output, fail, readJson, writeJson, loadConfig, readTemplate } = require('./lib/core.cjs');
-const { cmdInit } = require('./lib/init.cjs');
-const { runDoctor } = require('./lib/doctor.cjs');
-const { installPreset, listPresets } = require('./lib/preset.cjs');
-const { installBuiltInPreset } = require('./lib/built-in-presets.cjs');
-const { setPhase } = require('./lib/lifecycle.cjs');
-const { validateArtifacts } = require('./lib/validate.cjs');
-const { computeSpecHash } = require('./lib/spec-hash.cjs');
-const { protectBaseline, baselineStatus, enforceProtectedChanges } = require('./lib/baseline.cjs');
-const { evaluatePolicy } = require('./lib/policy.cjs');
-const { addDecision } = require('./lib/decision-log.cjs');
-const { runAudit } = require('./lib/audit.cjs');
-const { runCiCheck } = require('./lib/ci.cjs');
-const { startSession, endSession, reconstructSession } = require('./lib/session.cjs');
-const { migrateArtifacts } = require('./lib/migrate.cjs');
-const { initCore, explainRule, loadRules, executeRoadmapItem, portGsdDryRun } = require('../packages/terrace-core/src/index.cjs');
+const {
+  initCore,
+  runDoctor,
+  installPreset,
+  listPresets,
+  installBuiltInPreset,
+  loadState,
+  saveState,
+  transitionState,
+  validateArtifacts,
+  computeSpecHash,
+  protectBaseline,
+  baselineStatus,
+  evaluatePolicy,
+  addDecision,
+  runAudit,
+  runCiCheck,
+  startSession,
+  endSession,
+  reconstructSession,
+  migrateArtifacts,
+  explainRule,
+  loadRules,
+  executeRoadmapItem,
+  portGsdDryRun
+} = require('../packages/terrace-core/src/index.cjs');
 
-function ensureState(cwd) {
-  const statePath = path.resolve(cwd, '.terrace', 'project-state.json');
-  const state = readJson(statePath, null);
-  if (!state) {
-    throw new Error('Missing .terrace/project-state.json. Run `terrace init` first.');
+function hasFlag(args, flag) {
+  return args.includes(flag);
+}
+
+function stripFlags(args, flags) {
+  return args.filter((arg) => !flags.includes(arg));
+}
+
+function output(data, options) {
+  const opts = options || {};
+  if (opts.json) {
+    process.stdout.write(JSON.stringify(data, null, 2) + '\n');
+    return;
   }
-  return { statePath, state };
+  if (typeof data === 'string') {
+    process.stdout.write(data + '\n');
+    return;
+  }
+  process.stdout.write(JSON.stringify(data, null, 2) + '\n');
+}
+
+function fail(message, options) {
+  const opts = options || {};
+  if (opts.json) {
+    output({ error: message, details: opts.details || null }, { json: true });
+  } else {
+    process.stderr.write('ERROR: ' + message + '\n');
+  }
+  process.exit(typeof opts.code === 'number' ? opts.code : 1);
 }
 
 function ensureSteering(cwd) {
   const steeringPath = path.resolve(cwd, '.terrace', 'steering.md');
   if (!fs.existsSync(steeringPath)) {
     fs.mkdirSync(path.dirname(steeringPath), { recursive: true });
-    fs.writeFileSync(steeringPath, readTemplate('steering.md'), 'utf8');
+    fs.writeFileSync(steeringPath, [
+      '---',
+      'version: "1.0"',
+      'project: "{{PROJECT_NAME}}"',
+      'phase: "{{CURRENT_PHASE}}"',
+      'policy_mode: "strict"',
+      '---',
+      '',
+      'intent: Keep spec-driven work bounded and testable.',
+      'non_negotiables: Do not bypass protected behavior without a decision.',
+      'scope_boundaries: Use Terrace-owned files for workflow state.',
+      ''
+    ].join('\n'), 'utf8');
   }
   return { path: steeringPath };
 }
@@ -124,7 +168,7 @@ async function main() {
       return;
     }
     case 'init': {
-      output(cmdInit(cwd, { force, yes }), { json });
+      output(initCore(cwd, { projectName: path.basename(cwd), force, yes }), { json });
       return;
     }
     case 'doctor': {
@@ -157,13 +201,12 @@ async function main() {
       if (sub !== 'set') {
         fail('Unknown phase subcommand: ' + sub + '. Use: set', { json });
       }
-      const nextPhase = args[2];
-      if (!nextPhase) {
-        fail('Usage: terrace phase set <phase>', { json });
+      const nextStatus = args[2];
+      if (!nextStatus) {
+        fail('Usage: terrace phase set <workflow-status>', { json });
       }
-      const { statePath, state } = ensureState(cwd);
-      const updated = setPhase(state, nextPhase);
-      writeJson(statePath, updated);
+      const updated = transitionState(loadState(cwd), nextStatus);
+      saveState(cwd, updated);
       output(updated, { json });
       return;
     }
@@ -202,7 +245,7 @@ async function main() {
       return;
     }
     case 'audit': {
-      output(runAudit(cwd), { json });
+      output(runAudit(cwd, {}), { json });
       return;
     }
     case 'ci': {
@@ -258,7 +301,7 @@ async function main() {
           fail('Usage: terrace spec hash --file <path>', { json });
         }
         try {
-          const hash = computeSpecHash(args[fileIdx + 1]);
+          const hash = computeSpecHash(args[fileIdx + 1], { cwd });
           output(json ? { hash } : hash, { json });
         } catch (error) {
           fail(error && error.message ? error.message : String(error), { json });
@@ -268,7 +311,7 @@ async function main() {
       if (sub !== 'validate') {
         fail('Unknown spec subcommand: ' + sub + '. Use: validate, hash', { json });
       }
-      const result = validateArtifacts(cwd, loadConfig(cwd));
+      const result = validateArtifacts(cwd, {});
       output(result, { json });
       if (result.blocking.length > 0) {
         process.exitCode = 1;
