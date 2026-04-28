@@ -14,6 +14,7 @@ Every implementation slice should be recoverable from repo state, tied to spec i
 - [x] The CLI delegates runtime behavior to `terrace-core`.
 - [x] Useful legacy behavior was extracted out of `src/lib`.
 - [x] Legacy GSD-era planning artifacts were removed after extraction.
+- [x] GitNexus generated instructions and local index artifacts were removed.
 
 ## Active
 
@@ -29,6 +30,7 @@ Every implementation slice should be recoverable from repo state, tied to spec i
 | Strict core is the source of truth | Avoid split-brain state between `.planning`, `project-state.json`, and runtime code | — Active |
 | Keep only minimal project truth files | Historical phase plans were useful during development but are not product runtime | — Active |
 | Legacy behavior must be re-hosted, not wrapped | Wrappers preserve old architecture; extraction makes the product standalone | — Active |
+| GitNexus is not part of Terrace core | Broken generated integration instructions created workflow friction and are not needed for the standalone core | — Active |
 
 ---
-*Last updated: 2026-04-28 after legacy extraction into terrace-core*
+*Last updated: 2026-04-28 after removing GitNexus integration artifacts*
