@@ -137,6 +137,60 @@ function planIdFromFile(fileName) {
   return match ? match[1] : null;
 }
 
+function quickTaskIdFromFile(fileName) {
+  const match = fileName.match(/^(\d{6}-[a-z0-9]+)-(?:PLAN|SUMMARY)\.md$/i);
+  return match ? match[1] : null;
+}
+
+function quickTaskIdFromDir(dirName) {
+  const match = dirName.match(/^(\d{6}-[a-z0-9]+)/i);
+  return match ? match[1] : slugify(dirName);
+}
+
+function extractFrontmatterValue(content, key) {
+  const lines = content.split(/\r?\n/);
+  if (lines[0] !== '---') {
+    return null;
+  }
+  for (let i = 1; i < lines.length; i += 1) {
+    if (lines[i] === '---') {
+      return null;
+    }
+    const match = lines[i].match(new RegExp('^' + key + ':\\s*(.+?)\\s*$'));
+    if (match) {
+      return match[1].replace(/^["']|["']$/g, '');
+    }
+  }
+  return null;
+}
+
+function extractIndentedListUnderKey(content, key) {
+  const lines = content.split(/\r?\n/);
+  const items = [];
+  let active = false;
+  for (const line of lines) {
+    if (line.match(new RegExp('^' + key + ':\\s*$'))) {
+      active = true;
+      continue;
+    }
+    if (!active) {
+      continue;
+    }
+    if (/^[a-zA-Z0-9_-]+:/.test(line)) {
+      break;
+    }
+    const item = line.match(/^\s+-\s+(.+?)\s*$/);
+    if (item) {
+      items.push(item[1]);
+    }
+  }
+  return items;
+}
+
+function extractCommits(content) {
+  return [...new Set((content.match(/\b[0-9a-f]{7,12}\b/gi) || []).map((commit) => commit.toLowerCase()))];
+}
+
 function extractBulletsUnderHeading(content, headingPattern) {
   const lines = content.split(/\r?\n/);
   const items = [];
@@ -359,6 +413,75 @@ function migratePhaseArtifact(cwd, artifact, force, writes, skipped, converted, 
   return true;
 }
 
+function ensureQuickTask(state, task) {
+  if (!Array.isArray(state.quick_tasks)) {
+    state.quick_tasks = [];
+  }
+  const existing = state.quick_tasks.find((item) => item.id === task.id);
+  if (!existing) {
+    state.quick_tasks.push(task);
+    return task;
+  }
+  Object.assign(existing, {
+    ...task,
+    title: task.title || existing.title,
+    status: task.status || existing.status,
+    plan_ref: task.plan_ref || existing.plan_ref,
+    summary_ref: task.summary_ref || existing.summary_ref,
+    subsystem: task.subsystem || existing.subsystem,
+    files_modified: [...new Set([...(existing.files_modified || []), ...(task.files_modified || [])])],
+    commits: [...new Set([...(existing.commits || []), ...(task.commits || [])])]
+  });
+  return existing;
+}
+
+function migrateQuickArtifact(cwd, artifact, force, writes, skipped, converted, state) {
+  const match = artifact.match(/^\.planning\/quick\/([^/]+)\/([^/]+)$/);
+  if (!match) {
+    if (artifact === '.planning/quick/.continue-here.md') {
+      migrateRawArtifact(cwd, artifact, 'docs/terrace-migration/quick/.continue-here.md', force, writes, skipped, converted, 'quick_handoff');
+      return true;
+    }
+    return false;
+  }
+  const quickDir = match[1];
+  const fileName = match[2];
+  const sourcePath = path.resolve(cwd, artifact);
+  const content = fs.readFileSync(sourcePath, 'utf8');
+  const isQuickArtifact = /-(?:PLAN|SUMMARY)\.md$/i.test(fileName);
+  if (!isQuickArtifact) {
+    skipped.push(skippedArtifact(artifact, 'unsupported_artifact'));
+    return true;
+  }
+
+  const target = 'docs/terrace-migration/quick/' + quickDir + '/' + fileName;
+  if (writeIfAllowed(cwd, target, content, force, writes, skipped, artifact)) {
+    converted.push({ artifact, target, type: 'quick_task_artifact' });
+  }
+
+  const id = quickTaskIdFromFile(fileName) || quickTaskIdFromDir(quickDir);
+  const isPlan = /-PLAN\.md$/i.test(fileName);
+  const isSummary = /-SUMMARY\.md$/i.test(fileName);
+  const task = ensureQuickTask(state, {
+    id,
+    title: firstHeading(content, quickDir),
+    status: isSummary ? 'completed' : 'planned',
+    source_dir: '.planning/quick/' + quickDir,
+    plan_ref: isPlan ? artifact : null,
+    summary_ref: isSummary ? artifact : null,
+    subsystem: extractFrontmatterValue(content, 'subsystem'),
+    files_modified: extractIndentedListUnderKey(content, 'files_modified').concat(extractIndentedListUnderKey(content, 'modified')),
+    commits: extractCommits(content)
+  });
+  state.sessions.push({
+    source: 'gsd_quick',
+    task_id: task.id,
+    status: task.status,
+    source_ref: artifact
+  });
+  return true;
+}
+
 function applyStateContent(state, cwd) {
   const legacyStatePath = path.resolve(cwd, '.planning', 'STATE.md');
   if (!fs.existsSync(legacyStatePath)) {
@@ -515,6 +638,11 @@ function portGsd(cwd, options) {
     const isKnown = Object.prototype.hasOwnProperty.call(SUPPORTED_ARTIFACTS, artifact);
     if (!isKnown && migratePhaseArtifact(cwd, artifact, opts.force, writes, skipped, converted, state)) {
       continue;
+    }
+    if (!isKnown && artifact.startsWith('.planning/quick/')) {
+      if (migrateQuickArtifact(cwd, artifact, opts.force, writes, skipped, converted, state)) {
+        continue;
+      }
     }
     if (!isKnown && artifact.startsWith('.planning/debug/')) {
       const target = 'docs/terrace-migration/' + artifact.replace(/^\.planning\//, '');

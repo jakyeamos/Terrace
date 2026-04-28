@@ -90,6 +90,8 @@ describe('strict core CLI delegation', () => {
     }));
     const added = runTerrace(tmpDir, ['backlog', 'add', 'Confirm beta email copy', '--json']);
     expect(added.item.title).toBe('Confirm beta email copy');
+    fs.mkdirSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login', '260101-abc-SUMMARY.md'), '# Quick Fix 260101-abc: Fix Login Redirect\n', 'utf-8');
     const ship = runTerraceResult(tmpDir, ['ship', 'check', '--json']);
     expect(ship.status).toBe(1);
     expect(ship.json).toMatchObject({
@@ -97,4 +99,28 @@ describe('strict core CLI delegation', () => {
       categories: expect.any(Array)
     });
   }, 15000);
+
+  it('supports migrated quick-task history commands', () => {
+    fs.mkdirSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'PROJECT.md'), '# Project\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'REQUIREMENTS.md'), '# Requirements\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), '# State\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login', '260101-abc-SUMMARY.md'), [
+      '---',
+      'phase: quick',
+      'plan: 260101-abc',
+      '---',
+      '',
+      '# Quick Fix 260101-abc: Fix Login Redirect'
+    ].join('\n'), 'utf-8');
+    runTerrace(tmpDir, ['port', 'gsd', '--json']);
+
+    expect(runTerrace(tmpDir, ['quick', 'list', '--json']).items).toContainEqual(expect.objectContaining({
+      id: '260101-abc',
+      title: 'Quick Fix 260101-abc: Fix Login Redirect'
+    }));
+    expect(runTerrace(tmpDir, ['quick', 'show', '260101-abc', '--json']).item).toMatchObject({
+      source_dir: '.planning/quick/260101-abc-fix-login'
+    });
+  });
 });

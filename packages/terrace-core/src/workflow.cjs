@@ -86,6 +86,21 @@ function backlogAdd(cwd, title) {
   return { item, items: backlog.items };
 }
 
+function quickList(cwd) {
+  const state = loadState(cwd);
+  return {
+    items: Array.isArray(state.quick_tasks) ? state.quick_tasks : []
+  };
+}
+
+function quickShow(cwd, itemId) {
+  const item = quickList(cwd).items.find((candidate) => candidate.id === itemId);
+  if (!item) {
+    throw new Error('Unknown quick task: ' + itemId);
+  }
+  return { item };
+}
+
 function commandCheck(cwd, command, category) {
   try {
     execFileSync(command[0], command.slice(1), { cwd, stdio: 'ignore' });
@@ -129,5 +144,7 @@ module.exports = {
   nextWorkflow,
   backlogList,
   backlogAdd,
+  quickList,
+  quickShow,
   shipCheck
 };

@@ -12,6 +12,8 @@ const {
   nextWorkflow,
   backlogList,
   backlogAdd,
+  quickList,
+  quickShow,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -37,6 +39,13 @@ describe('workflow parity core helpers', () => {
     state.sessions = [{ source: 'gsd_handoff', status: 'paused' }];
     state.blocked_actions = [{ description: 'Apply migration 034_prime_notes.sql', blocking: true, source_ref: '.planning/HANDOFF.json' }];
     state.backlog = { items: [{ id: 'sms-fallback', title: 'Add SMS fallback.', status: 'open', source_ref: '.planning/STATE.md' }] };
+    state.quick_tasks = [{
+      id: '260101-abc',
+      title: 'Quick Fix 260101-abc: Fix Login Redirect',
+      status: 'completed',
+      source_dir: '.planning/quick/260101-abc-fix-login',
+      commits: ['deadbee']
+    }];
     saveState(tmpDir, state);
   });
 
@@ -65,6 +74,18 @@ describe('workflow parity core helpers', () => {
     });
     expect(() => backlogAdd(tmpDir, '')).toThrow(/Usage:/);
     expect(() => phaseShow(tmpDir, 'missing-phase')).toThrow(/Unknown phase/);
+  });
+
+  it('lists and shows migrated quick-task history', () => {
+    expect(quickList(tmpDir).items).toContainEqual(expect.objectContaining({
+      id: '260101-abc',
+      title: 'Quick Fix 260101-abc: Fix Login Redirect'
+    }));
+    expect(quickShow(tmpDir, '260101-abc').item).toMatchObject({
+      status: 'completed',
+      commits: ['deadbee']
+    });
+    expect(() => quickShow(tmpDir, 'missing-quick-task')).toThrow(/Unknown quick task/);
   });
 
   it('reports failed ship checks as structured categories', () => {

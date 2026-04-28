@@ -76,6 +76,7 @@ describe('terrace port gsd migration', () => {
   });
 
   it('migrates rich GSD workflow artifacts into state, docs, and actionable reports', () => {
+    fs.mkdirSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, '.planning', 'HANDOFF.json'), JSON.stringify({
       status: 'paused',
       phase: 'Phase 11: Notifications',
@@ -102,6 +103,35 @@ describe('terrace port gsd migration', () => {
     fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '01-demo', '01-01-SUMMARY.md'), '# Summary A\n\nDone.\n', 'utf8');
     fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '01-demo', '01-VALIDATION.md'), '# Validation\n\nManual check.\n', 'utf8');
     fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '01-demo', '01-UAT.md'), '# UAT\n\nUser accepted.\n', 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login', '260101-abc-PLAN.md'), [
+      '---',
+      'phase: quick',
+      'plan: 260101-abc',
+      'type: execute',
+      'files_modified:',
+      '  - src/login.ts',
+      '---',
+      '',
+      '# Quick Fix Plan',
+      '',
+      '<objective>Fix login redirect.</objective>'
+    ].join('\n'), 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login', '260101-abc-SUMMARY.md'), [
+      '---',
+      'phase: quick',
+      'plan: 260101-abc',
+      'subsystem: auth',
+      'tags: [bug-fix]',
+      '---',
+      '',
+      '# Quick Fix 260101-abc: Fix Login Redirect',
+      '',
+      '**One-liner:** Login now redirects to dashboard.',
+      '',
+      '| Task | Description | Commit |',
+      '|------|-------------|--------|',
+      '| 1 | Fix redirect | deadbee |'
+    ].join('\n'), 'utf8');
 
     const result = portGsd(tmpDir, { force: false });
     const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
@@ -124,6 +154,21 @@ describe('terrace port gsd migration', () => {
       title: 'Add SMS fallback.',
       source_ref: '.planning/STATE.md'
     }));
+    expect(state.quick_tasks).toContainEqual(expect.objectContaining({
+      id: '260101-abc',
+      title: 'Quick Fix 260101-abc: Fix Login Redirect',
+      status: 'completed',
+      source_dir: '.planning/quick/260101-abc-fix-login',
+      plan_ref: '.planning/quick/260101-abc-fix-login/260101-abc-PLAN.md',
+      summary_ref: '.planning/quick/260101-abc-fix-login/260101-abc-SUMMARY.md',
+      files_modified: ['src/login.ts'],
+      commits: ['deadbee']
+    }));
+    expect(state.sessions).toContainEqual(expect.objectContaining({
+      source: 'gsd_quick',
+      task_id: '260101-abc',
+      status: 'completed'
+    }));
     expect(state.roadmap.phases[0].plans).toContainEqual(expect.objectContaining({
       id: '01-01',
       title: 'Plan A',
@@ -134,6 +179,14 @@ describe('terrace port gsd migration', () => {
       artifact: '.planning/phases/01-demo/01-VALIDATION.md',
       target: 'docs/testing/gsd/01-demo/01-VALIDATION.md',
       type: 'testing_artifact'
+    }));
+    expect(result.converted).toContainEqual(expect.objectContaining({
+      artifact: '.planning/quick/260101-abc-fix-login/260101-abc-SUMMARY.md',
+      target: 'docs/terrace-migration/quick/260101-abc-fix-login/260101-abc-SUMMARY.md',
+      type: 'quick_task_artifact'
+    }));
+    expect(result.skipped).not.toContainEqual(expect.objectContaining({
+      artifact: '.planning/quick/260101-abc-fix-login/260101-abc-PLAN.md'
     }));
     expect(result.skipped).toContainEqual(expect.objectContaining({
       artifact: '.planning/phases/01-demo/PLAN.md',

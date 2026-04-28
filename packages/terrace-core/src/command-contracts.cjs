@@ -26,6 +26,18 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Show one canonical Terrace roadmap phase and its migrated plans.'
   },
   {
+    command: 'terrace quick list',
+    category: 'quick-history',
+    json: true,
+    purpose: 'List migrated GSD quick-task history.'
+  },
+  {
+    command: 'terrace quick show <id>',
+    category: 'quick-history',
+    json: true,
+    purpose: 'Show one migrated GSD quick task.'
+  },
+  {
     command: 'terrace backlog list',
     category: 'backlog',
     json: true,

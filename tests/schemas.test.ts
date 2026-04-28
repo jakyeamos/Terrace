@@ -55,6 +55,7 @@ describe('JSON Schema: state.schema.json', () => {
     expect(properties).toHaveProperty('handoff');
     expect(properties).toHaveProperty('backlog');
     expect(properties).toHaveProperty('blocked_actions');
+    expect(properties).toHaveProperty('quick_tasks');
   });
 
   it('rejects invalid workflow mode value', () => {

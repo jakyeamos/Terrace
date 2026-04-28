@@ -1,8 +1,8 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace now has a publishable CLI foundation and a substantially stronger GSD switch path with rich migration, workflow parity commands, recovery state, and real-project smoke coverage.
-healthScore: 92
+summary: Terrace now has a publishable CLI foundation and a substantially stronger GSD switch path with rich migration, quick-task history migration, workflow parity commands, recovery state, and real-project smoke coverage.
+healthScore: 94
 statusLabel: gsd_switch_mitigation_ready
 nextStep: Add installed-package e2e coverage that runs the packed CLI from a temporary consumer project.
 blockers: []
@@ -45,9 +45,9 @@ agentExpectationsVersion: 2
 
 The first tier-one product gate is implemented. Terrace exposes a publishable npm CLI surface, documented install/quickstart/commands/troubleshooting, hard local CI, GitHub CI, release dry-run workflow, support docs, and an allowlisted package payload. The repo now dogfoods Terrace through `.terrace/state.json`; `terrace doctor` and `terrace audit` are healthy.
 
-The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick tasks, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
+The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
-Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace phase list`, `terrace phase show <id>`, `terrace backlog list`, `terrace backlog add <title>`, and `terrace ship check`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
+Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace phase list`, `terrace phase show <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace backlog list`, `terrace backlog add <title>`, and `terrace ship check`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
@@ -63,6 +63,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 28: Expanded rule domains and added guarded non-dry-run `terrace port gsd` migration.
 - April 28: Expanded `terrace port gsd` to convert core GSD artifacts, emit converted/skipped details, and produce an audit-healthy migrated fixture.
 - April 28: Expanded `terrace port gsd` for richer GSD workflow artifacts, added workflow parity commands, exported command contracts, and added `amos-saas` temp-copy smoke coverage.
+- April 28: Added GSD quick-task PLAN/SUMMARY migration plus `terrace quick list/show`; `amos-saas` skipped artifacts dropped from 170 to 3 placeholder `.gitkeep` files.
 
 ## Open Problems
 
@@ -74,7 +75,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS, 198 tests
+- **Tests:** `npm test` PASS, 200 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds
 - **Package:** `npm run package:dry-run` PASS, 47 allowlisted files
 - **Audit:** `npm audit --audit-level=high` PASS, one moderate advisory remains
@@ -82,6 +83,6 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 ## Next Concrete Steps
 
 1. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
-2. Add packed CLI migration smoke tests for the richer GSD workflow commands.
+2. Add packed CLI migration smoke tests for the richer GSD workflow and quick-task commands.
 3. Add schema validation for user-editable rule and config files.
 4. Decide whether to address the moderate PostCSS advisory now or track it as acceptable dev-dependency risk.

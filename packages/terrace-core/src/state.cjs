@@ -51,7 +51,8 @@ function createDefaultState(options) {
     backlog: {
       items: []
     },
-    blocked_actions: []
+    blocked_actions: [],
+    quick_tasks: []
   };
 }
 

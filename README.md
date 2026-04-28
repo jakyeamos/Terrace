@@ -39,6 +39,8 @@ npx terrace audit
 - `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
 - `terrace phase list` lists canonical roadmap phases.
 - `terrace phase show <id>` shows one roadmap phase and its migrated plans.
+- `terrace quick list` lists migrated GSD quick-task history.
+- `terrace quick show <id>` shows one migrated quick task.
 - `terrace backlog list` lists backlog items.
 - `terrace backlog add <title>` appends a backlog item.
 - `terrace ship check` runs release-readiness checks and exits nonzero when a quality gate fails.
@@ -49,7 +51,7 @@ npx terrace audit
 
 `terrace port gsd` preserves the source `.planning/` tree and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.
 
-Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
+Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Quick-task PLAN/SUMMARY files are archived under `docs/terrace-migration/quick/` and exposed through `terrace quick list` / `terrace quick show <id>`. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
 
 ## Workflow Example
 

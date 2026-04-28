@@ -35,6 +35,8 @@ const {
   nextWorkflow,
   backlogList,
   backlogAdd,
+  quickList,
+  quickShow,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -55,6 +57,8 @@ const HELP_TEXT = [
   '  terrace resume               Reconstruct paused workflow context',
   '  terrace phase list           List roadmap phases',
   '  terrace phase show <id>      Show a roadmap phase',
+  '  terrace quick list           List migrated quick-task history',
+  '  terrace quick show <id>      Show one migrated quick task',
   '  terrace backlog list         List backlog items',
   '  terrace backlog add <title>  Add a backlog item',
   '  terrace ship check           Run release readiness checks',
@@ -186,9 +190,22 @@ async function main() {
       return;
     }
     case 'quick': {
-      const itemId = args[1];
+      const sub = args[1];
+      if (sub === 'list') {
+        output(quickList(cwd), { json });
+        return;
+      }
+      if (sub === 'show') {
+        const quickId = args[2];
+        if (!quickId) {
+          fail('Usage: terrace quick show <quick-task-id>', { json });
+        }
+        output(quickShow(cwd, quickId), { json });
+        return;
+      }
+      const itemId = sub;
       if (!itemId) {
-        fail('Usage: terrace quick <roadmap-item-id>', { json });
+        fail('Usage: terrace quick <roadmap-item-id> or terrace quick list', { json });
       }
       output(executeRoadmapItem(cwd, itemId), { json });
       return;

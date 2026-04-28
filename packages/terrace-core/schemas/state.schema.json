@@ -76,7 +76,8 @@
       },
       "additionalProperties": true
     },
-    "blocked_actions": { "type": "array" }
+    "blocked_actions": { "type": "array" },
+    "quick_tasks": { "type": "array" }
   },
   "additionalProperties": true
 }
