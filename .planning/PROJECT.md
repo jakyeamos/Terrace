@@ -70,6 +70,7 @@ Every session leaves the repo more legible and less fragile than before, while s
 | Multi-platform strategy deferred to v2 | Platform adapter architecture is unknown; shipping v1 in Claude Code first reduces speculative complexity | — Pending |
 | TDD for all Terrace development | Terrace enforces test-first governance on target repos — it must hold itself to the same standard; eat your own dog food | — Active |
 | Phases 3-6 completed as compact readiness slice | The remaining roadmap needed a usable local framework surface more than historical per-plan ceremony | — Active |
+| Standalone strict core direction approved | Terrace will keep GSD workflow strengths but move truth and gates into a deterministic `.terrace/state.json` kernel with a first-class `terrace port gsd` layer | — Active |
 
 ## Evolution
 
