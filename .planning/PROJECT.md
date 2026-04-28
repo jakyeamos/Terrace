@@ -16,10 +16,11 @@ Every implementation slice should be recoverable from repo state, tied to spec i
 - [x] The repo dogfoods Terrace via `.terrace/state.json`; `terrace doctor` and `terrace audit` are healthy.
 - [x] npm packaging is allowlisted and excludes local planning, tests, tracker, agent settings, and stale integration artifacts.
 - [x] `npm run ci` passes locally with typecheck, lint, tests, coverage, and package dry-run.
+- [x] `terrace port gsd` converts core GSD artifacts into Terrace docs/state and reports unsupported files for review.
 
 ## Active
 
-- [ ] Expand GSD migration beyond state/report creation into richer artifact conversion.
+- [ ] Expand GSD migration beyond core artifact conversion into per-phase plans, decision history, and session history.
 - [ ] Replace remaining prose-heavy agent instructions with core-backed command contracts.
 - [ ] Decide how to handle the moderate PostCSS advisory in the dev dependency tree.
 - [ ] Add deeper fixture e2e coverage for installed packed CLI workflows.
@@ -35,4 +36,4 @@ Every implementation slice should be recoverable from repo state, tied to spec i
 | Hard product gates define readiness | Tier-one progress should be blocked by quality, packaging, and docs gates | Implemented via `npm run ci` |
 
 ---
-*Last updated: 2026-04-28 after implementing tier-one product gates*
+*Last updated: 2026-04-28 after mitigating the core GSD port coding gap*
