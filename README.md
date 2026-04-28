@@ -35,8 +35,21 @@ npx terrace audit
 - `terrace ci check [files...]` runs audit and protected-change enforcement.
 - `terrace port gsd --dry-run` inventories legacy GSD artifacts.
 - `terrace port gsd` migrates supported legacy GSD artifacts into Terrace state.
+- `terrace next` reports the next workflow action from state, handoff data, and blockers.
+- `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
+- `terrace phase list` lists canonical roadmap phases.
+- `terrace phase show <id>` shows one roadmap phase and its migrated plans.
+- `terrace backlog list` lists backlog items.
+- `terrace backlog add <title>` appends a backlog item.
+- `terrace ship check` runs release-readiness checks and exits nonzero when a quality gate fails.
 - `terrace rule list` and `terrace rule explain <id>` inspect rule packs.
 - `terrace preset list` and `terrace preset install <id>` manage presets.
+
+## GSD Migration
+
+`terrace port gsd` preserves the source `.planning/` tree and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.
+
+Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
 
 ## Workflow Example
 
@@ -51,6 +64,8 @@ npx terrace audit
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
 - `Protected file changed without DECISION-LOG.md`: add a spec-linked decision before committing.
 - `terrace port gsd` refuses to overwrite state: re-run with `--force` only after preserving existing `.terrace/state.json`.
+- `terrace next` reports a blocked action after migration: complete or clear the migrated human action before treating the project as ready.
+- `terrace ship check` exits nonzero: inspect the failed category and run the listed command directly for detailed output.
 - Typecheck errors from package dependencies usually mean the repo is not using the supported `Bundler` module resolution settings in `tsconfig.json`.
 
 ## Development

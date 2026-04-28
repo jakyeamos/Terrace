@@ -14,6 +14,8 @@ module.exports = {
   ...require('./baseline.cjs'),
   ...require('./policy.cjs'),
   ...require('./session.cjs'),
+  ...require('./workflow.cjs'),
+  ...require('./command-contracts.cjs'),
   ...require('./validate.cjs'),
   ...require('./presets.cjs'),
   ...require('./migrate.cjs'),

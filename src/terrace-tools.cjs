@@ -28,7 +28,14 @@ const {
   loadRules,
   executeRoadmapItem,
   portGsdDryRun,
-  portGsd
+  portGsd,
+  phaseList,
+  phaseShow,
+  resumeWorkflow,
+  nextWorkflow,
+  backlogList,
+  backlogAdd,
+  shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
 const packageJson = require('../package.json');
@@ -44,6 +51,13 @@ const HELP_TEXT = [
   '  terrace audit                Run governance audit checks',
   '  terrace ci check [files...]  Run audit plus protected-change checks',
   '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
+  '  terrace next                 Show the next workflow action',
+  '  terrace resume               Reconstruct paused workflow context',
+  '  terrace phase list           List roadmap phases',
+  '  terrace phase show <id>      Show a roadmap phase',
+  '  terrace backlog list         List backlog items',
+  '  terrace backlog add <title>  Add a backlog item',
+  '  terrace ship check           Run release readiness checks',
   '  terrace rule list            List installed rule packs',
   '  terrace rule explain <id>    Explain a rule',
   '  terrace preset list          List installed presets',
@@ -204,6 +218,14 @@ async function main() {
       fail('Unknown port subcommand: ' + sub + '. Use: gsd', { json });
       return;
     }
+    case 'next': {
+      output(nextWorkflow(cwd), { json });
+      return;
+    }
+    case 'resume': {
+      output(resumeWorkflow(cwd), { json });
+      return;
+    }
     case 'init': {
       output(initCore(cwd, { projectName: path.basename(cwd), force, yes }), { json });
       return;
@@ -235,8 +257,20 @@ async function main() {
     }
     case 'phase': {
       const sub = args[1];
+      if (sub === 'list') {
+        output(phaseList(cwd), { json });
+        return;
+      }
+      if (sub === 'show') {
+        const phaseId = args[2];
+        if (!phaseId) {
+          fail('Usage: terrace phase show <phase-id>', { json });
+        }
+        output(phaseShow(cwd, phaseId), { json });
+        return;
+      }
       if (sub !== 'set') {
-        fail('Unknown phase subcommand: ' + sub + '. Use: set', { json });
+        fail('Unknown phase subcommand: ' + sub + '. Use: list, show, set', { json });
       }
       const nextStatus = args[2];
       if (!nextStatus) {
@@ -245,6 +279,31 @@ async function main() {
       const updated = transitionState(loadState(cwd), nextStatus);
       saveState(cwd, updated);
       output(updated, { json });
+      return;
+    }
+    case 'backlog': {
+      const sub = args[1];
+      if (sub === 'list') {
+        output(backlogList(cwd), { json });
+        return;
+      }
+      if (sub === 'add') {
+        output(backlogAdd(cwd, args.slice(2).join(' ')), { json });
+        return;
+      }
+      fail('Unknown backlog subcommand: ' + sub + '. Use: list, add', { json });
+      return;
+    }
+    case 'ship': {
+      const sub = args[1];
+      if (sub !== 'check') {
+        fail('Unknown ship subcommand: ' + sub + '. Use: check', { json });
+      }
+      const result = shipCheck(cwd);
+      output(result, { json });
+      if (!result.passed) {
+        process.exitCode = 1;
+      }
       return;
     }
     case 'steering': {

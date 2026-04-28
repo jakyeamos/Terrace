@@ -45,7 +45,13 @@ function createDefaultState(options) {
     },
     protected_tests: [],
     decisions: [],
-    sessions: []
+    sessions: [],
+    migration: null,
+    handoff: null,
+    backlog: {
+      items: []
+    },
+    blocked_actions: []
   };
 }
 

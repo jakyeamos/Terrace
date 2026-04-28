@@ -37,9 +37,24 @@ describe('JSON Schema: state.schema.json', () => {
       green_gate: {},
       protected_tests: [],
       decisions: [],
-      sessions: []
+      sessions: [],
+      migration: { source: 'gsd', converted: [] },
+      handoff: null,
+      backlog: { items: [] },
+      blocked_actions: []
     });
     expect(valid).toBe(true);
+  });
+
+  it('schema declares migrated GSD compatibility fields', () => {
+    const required = (schema as { required?: string[] }).required ?? [];
+    const properties = (schema as { properties?: Record<string, unknown> }).properties ?? {};
+
+    expect(required).toEqual(expect.arrayContaining(['backlog', 'blocked_actions']));
+    expect(properties).toHaveProperty('migration');
+    expect(properties).toHaveProperty('handoff');
+    expect(properties).toHaveProperty('backlog');
+    expect(properties).toHaveProperty('blocked_actions');
   });
 
   it('rejects invalid workflow mode value', () => {
@@ -54,7 +69,9 @@ describe('JSON Schema: state.schema.json', () => {
       green_gate: {},
       protected_tests: [],
       decisions: [],
-      sessions: []
+      sessions: [],
+      backlog: { items: [] },
+      blocked_actions: []
     });
     expect(valid).toBe(false);
   });
@@ -71,7 +88,9 @@ describe('JSON Schema: state.schema.json', () => {
       green_gate: {},
       protected_tests: [],
       decisions: [],
-      sessions: []
+      sessions: [],
+      backlog: { items: [] },
+      blocked_actions: []
     });
     expect(valid).toBe(false);
   });
@@ -88,7 +107,9 @@ describe('JSON Schema: state.schema.json', () => {
       green_gate: {},
       protected_tests: [],
       decisions: [],
-      sessions: []
+      sessions: [],
+      backlog: { items: [] },
+      blocked_actions: []
     });
     expect(valid).toBe(true);
   });
@@ -106,6 +127,8 @@ describe('JSON Schema: state.schema.json', () => {
       protected_tests: [],
       decisions: [],
       sessions: [],
+      backlog: { items: [] },
+      blocked_actions: [],
       extra_field: 'value'
     });
     expect(valid).toBe(true);

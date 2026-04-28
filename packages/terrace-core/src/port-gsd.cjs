@@ -13,7 +13,12 @@ const COMMAND_STRATEGIES = {
 const SUPPORTED_ARTIFACTS = {
   '.planning/PROJECT.md': 'docs/prd/PRD.md',
   '.planning/REQUIREMENTS.md': 'docs/spec/COMPILED-SPEC.md',
-  '.planning/STATE.md': 'docs/terrace-migration/GSD-STATE.md'
+  '.planning/STATE.md': 'docs/terrace-migration/GSD-STATE.md',
+  '.planning/ROADMAP.md': 'docs/terrace-migration/GSD-ROADMAP.md',
+  '.planning/HANDOFF.json': 'docs/terrace-migration/GSD-HANDOFF.json',
+  '.planning/config.json': 'docs/terrace-migration/GSD-config.json',
+  '.planning/MILESTONES.md': 'docs/terrace-migration/GSD-MILESTONES.md',
+  '.planning/RETROSPECTIVE.md': 'docs/terrace-migration/GSD-RETROSPECTIVE.md'
 };
 
 function classifyGsdCommand(command) {
@@ -82,8 +87,101 @@ function extractRoadmapPhases(cwd) {
     id: slugify(title),
     title,
     status: 'migrated',
-    source_ref: '.planning/ROADMAP.md'
+    source_ref: '.planning/ROADMAP.md',
+    plans: []
   }));
+}
+
+function firstHeading(content, fallback) {
+  const heading = content.split(/\r?\n/).map((line) => line.match(/^#\s+(.+?)\s*$/)).find(Boolean);
+  return heading ? heading[1] : fallback;
+}
+
+function phaseNumberFromTitle(title) {
+  const match = String(title).match(/phase\s+(\d+(?:\.\d+)?)/i);
+  return match ? match[1] : null;
+}
+
+function phaseNumberFromDir(dirName) {
+  const match = String(dirName).match(/^(\d+(?:\.\d+)?)/);
+  if (!match) {
+    return null;
+  }
+  return String(Number(match[1])) === 'NaN' ? match[1] : String(Number(match[1]));
+}
+
+function ensurePhaseForDir(state, phaseDir) {
+  const dirNumber = phaseNumberFromDir(phaseDir);
+  let phase = state.roadmap.phases.find((candidate) => {
+    const titleNumber = phaseNumberFromTitle(candidate.title);
+    return titleNumber && dirNumber && Number(titleNumber) === Number(dirNumber);
+  });
+  if (!phase) {
+    phase = {
+      id: slugify(phaseDir),
+      title: phaseDir,
+      status: 'migrated',
+      source_ref: '.planning/phases/' + phaseDir,
+      plans: []
+    };
+    state.roadmap.phases.push(phase);
+  }
+  if (!Array.isArray(phase.plans)) {
+    phase.plans = [];
+  }
+  return phase;
+}
+
+function planIdFromFile(fileName) {
+  const match = fileName.match(/^(\d+(?:\.\d+)?-\d+)-PLAN\.md$/);
+  return match ? match[1] : null;
+}
+
+function extractBulletsUnderHeading(content, headingPattern) {
+  const lines = content.split(/\r?\n/);
+  const items = [];
+  let active = false;
+
+  for (const line of lines) {
+    if (/^#{2,}\s+/.test(line)) {
+      active = headingPattern.test(line);
+      continue;
+    }
+    if (!active) {
+      continue;
+    }
+    const bullet = line.match(/^\s*[-*]\s+(.+?)\s*$/);
+    if (bullet) {
+      items.push(bullet[1]);
+    }
+  }
+
+  return items;
+}
+
+function readJsonIfExists(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch (error) {
+    return {
+      parse_error: error && error.message ? error.message : String(error)
+    };
+  }
+}
+
+function skippedArtifact(artifact, reason, target) {
+  const item = {
+    artifact,
+    reason,
+    suggested_action: 'Review manually and move any still-relevant content into Terrace state or docs.'
+  };
+  if (target) {
+    item.target = target;
+  }
+  return item;
 }
 
 function buildPrd(projectContent) {
@@ -147,10 +245,21 @@ function buildStateArchive(stateContent) {
   ].join('\n');
 }
 
+function buildMarkdownArchive(source, content) {
+  return [
+    '# Migrated GSD Artifact',
+    '',
+    'Source: `' + source + '`',
+    '',
+    content.trim(),
+    ''
+  ].join('\n');
+}
+
 function writeIfAllowed(cwd, relTarget, content, force, writes, skipped, artifact) {
   const targetPath = path.resolve(cwd, relTarget);
   if (fs.existsSync(targetPath) && !force) {
-    skipped.push({ artifact, target: relTarget, reason: 'target_exists' });
+    skipped.push(skippedArtifact(artifact, 'target_exists', relTarget));
     return false;
   }
 
@@ -161,19 +270,198 @@ function writeIfAllowed(cwd, relTarget, content, force, writes, skipped, artifac
 }
 
 function portGsdDryRun(cwd) {
-  const artifacts = [];
-
-  collectArtifact(cwd, '.planning/ROADMAP.md', artifacts);
-  collectArtifact(cwd, '.planning/STATE.md', artifacts);
-  collectArtifact(cwd, '.planning/PROJECT.md', artifacts);
-  collectArtifact(cwd, '.planning/REQUIREMENTS.md', artifacts);
+  const artifacts = listPlanningFiles(cwd);
+  for (const artifact of Object.keys(SUPPORTED_ARTIFACTS)) {
+    collectArtifact(cwd, artifact, artifacts);
+  }
 
   return {
     mode: 'dry-run',
-    artifacts,
+    artifacts: [...new Set(artifacts)].sort(),
     command_strategies: COMMAND_STRATEGIES,
-    writes: []
+    converted: [],
+    skipped: [],
+    writes: [],
+    blockers: [],
+    warnings: [],
+    readiness: { status: 'review_required', score: 0 },
+    next_command: null,
+    review_checklist: [],
+    validation_commands: ['terrace doctor', 'terrace audit']
   };
+}
+
+function migrateSimpleArtifact(cwd, artifact, target, force, writes, skipped, converted, type) {
+  const sourcePath = path.resolve(cwd, artifact);
+  if (!fs.existsSync(sourcePath)) {
+    return;
+  }
+  const content = fs.readFileSync(sourcePath, 'utf8');
+  if (writeIfAllowed(cwd, target, buildMarkdownArchive(artifact, content), force, writes, skipped, artifact)) {
+    converted.push({ artifact, target, type });
+  }
+}
+
+function migrateRawArtifact(cwd, artifact, target, force, writes, skipped, converted, type) {
+  const sourcePath = path.resolve(cwd, artifact);
+  if (!fs.existsSync(sourcePath)) {
+    return;
+  }
+  if (writeIfAllowed(cwd, target, fs.readFileSync(sourcePath, 'utf8'), force, writes, skipped, artifact)) {
+    converted.push({ artifact, target, type });
+  }
+}
+
+function migratePhaseArtifact(cwd, artifact, force, writes, skipped, converted, state) {
+  const match = artifact.match(/^\.planning\/phases\/([^/]+)\/([^/]+)$/);
+  if (!match) {
+    return false;
+  }
+  const phaseDir = match[1];
+  const fileName = match[2];
+  if (fileName === '.gitkeep') {
+    skipped.push(skippedArtifact(artifact, 'unsupported_artifact'));
+    return true;
+  }
+  const sourcePath = path.resolve(cwd, artifact);
+  const content = fs.readFileSync(sourcePath, 'utf8');
+  const isTestingArtifact = /(?:^|-)UAT\.md$|(?:^|-)HUMAN-UAT\.md$|(?:^|-)VALIDATION\.md$|(?:^|-)VERIFICATION\.md$|(?:^|-)REVIEWS\.md$|(?:^|-)UI-REVIEW\.md$/i.test(fileName);
+  const isArchiveArtifact = /-PLAN\.md$|-SUMMARY\.md$|(?:^|-)CONTEXT\.md$|(?:^|-)DISCUSSION-LOG\.md$|(?:^|-)RESEARCH\.md$|(?:^|-)UI-SPEC\.md$/i.test(fileName);
+  const target = isTestingArtifact
+    ? 'docs/testing/gsd/' + phaseDir + '/' + fileName
+    : 'docs/terrace-migration/phases/' + phaseDir + '/' + fileName;
+
+  if (!isTestingArtifact && !isArchiveArtifact) {
+    skipped.push(skippedArtifact(artifact, 'unsupported_artifact'));
+    return true;
+  }
+
+  if (writeIfAllowed(cwd, target, content, force, writes, skipped, artifact)) {
+    converted.push({
+      artifact,
+      target,
+      type: isTestingArtifact ? 'testing_artifact' : 'phase_artifact'
+    });
+  }
+
+  const planId = planIdFromFile(fileName);
+  if (planId) {
+    const phase = ensurePhaseForDir(state, phaseDir);
+    if (!phase.plans.some((plan) => plan.source_ref === artifact)) {
+      phase.plans.push({
+        id: planId,
+        title: firstHeading(content, planId),
+        status: 'migrated',
+        source_ref: artifact
+      });
+    }
+  }
+  return true;
+}
+
+function applyStateContent(state, cwd) {
+  const legacyStatePath = path.resolve(cwd, '.planning', 'STATE.md');
+  if (!fs.existsSync(legacyStatePath)) {
+    return;
+  }
+  const content = fs.readFileSync(legacyStatePath, 'utf8');
+  for (const decision of extractBulletsUnderHeading(content, /decisions/i)) {
+    state.decisions.push({
+      text: decision,
+      source_ref: '.planning/STATE.md'
+    });
+  }
+  for (const item of extractBulletsUnderHeading(content, /parking lot|backlog|todos/i)) {
+    state.backlog.items.push({
+      id: slugify(item),
+      title: item,
+      status: 'open',
+      source_ref: '.planning/STATE.md'
+    });
+  }
+  state.migration.quick_tasks = extractBulletsUnderHeading(content, /quick tasks/i).map((task) => ({
+    title: task,
+    source_ref: '.planning/STATE.md'
+  }));
+}
+
+function applyHandoff(state, cwd) {
+  const handoff = readJsonIfExists(path.resolve(cwd, '.planning', 'HANDOFF.json'));
+  if (!handoff) {
+    return [];
+  }
+  state.handoff = {
+    status: handoff.status || null,
+    phase: handoff.phase || handoff.phase_name || null,
+    next_action: handoff.next_action || null,
+    source_ref: '.planning/HANDOFF.json'
+  };
+  const handoffPhase = handoff.phase || handoff.phase_name;
+  if (handoffPhase && !state.roadmap.phases.some((phase) => phase.id === slugify(handoffPhase))) {
+    state.roadmap.phases.push({
+      id: slugify(handoffPhase),
+      title: handoffPhase,
+      status: 'migrated',
+      source_ref: '.planning/HANDOFF.json',
+      plans: []
+    });
+  }
+  state.sessions.push({
+    source: 'gsd_handoff',
+    status: handoff.status || 'unknown',
+    phase: handoffPhase || null,
+    next_action: handoff.next_action || null,
+    source_ref: '.planning/HANDOFF.json'
+  });
+  if (Array.isArray(handoff.decisions)) {
+    for (const decision of handoff.decisions) {
+      state.decisions.push({
+        text: typeof decision === 'string' ? decision : String(decision.decision || JSON.stringify(decision)),
+        source_ref: '.planning/HANDOFF.json'
+      });
+    }
+  }
+  const blockers = [];
+  const pendingActions = [];
+  if (handoff.human_action_pending) {
+    pendingActions.push(handoff.human_action_pending);
+  }
+  if (Array.isArray(handoff.human_actions_pending)) {
+    pendingActions.push(...handoff.human_actions_pending);
+  }
+  for (const pending of pendingActions) {
+    const blockedAction = {
+      description: pending.description || pending.action || String(pending),
+      context: pending.context || null,
+      blocking: Boolean(pending.blocking),
+      source_ref: '.planning/HANDOFF.json'
+    };
+    state.blocked_actions.push(blockedAction);
+    if (blockedAction.blocking) {
+      blockers.push({
+        code: 'GSD_HANDOFF_BLOCKED_ACTION',
+        message: blockedAction.description,
+        remediation: 'Complete or clear the migrated human action before treating the project as ready.'
+      });
+    }
+  }
+  return blockers;
+}
+
+function nextCommandForState(state) {
+  const action = state.handoff && state.handoff.next_action ? state.handoff.next_action : '';
+  const phaseMatch = action.match(/phase\s+(\d+(?:\.\d+)?)/i);
+  if (phaseMatch) {
+    const phase = state.roadmap.phases.find((candidate) => {
+      const titleNumber = phaseNumberFromTitle(candidate.title);
+      return titleNumber && Number(titleNumber) === Number(phaseMatch[1]);
+    });
+    if (phase) {
+      return 'terrace phase show ' + phase.id;
+    }
+  }
+  const nextPhase = state.roadmap.phases.find((phase) => phase.status !== 'complete' && phase.status !== 'completed') || state.roadmap.phases[0];
+  return nextPhase ? 'terrace phase show ' + nextPhase.id : 'terrace doctor';
 }
 
 function portGsd(cwd, options) {
@@ -195,7 +483,8 @@ function portGsd(cwd, options) {
     source: 'gsd',
     migrated_at: new Date().toISOString(),
     artifacts,
-    converted: []
+    converted: [],
+    quick_tasks: []
   };
 
   const projectPath = path.resolve(cwd, '.planning', 'PROJECT.md');
@@ -212,17 +501,49 @@ function portGsd(cwd, options) {
   if (fs.existsSync(legacyStatePath) && writeIfAllowed(cwd, SUPPORTED_ARTIFACTS['.planning/STATE.md'], buildStateArchive(fs.readFileSync(legacyStatePath, 'utf8')), opts.force, writes, skipped, '.planning/STATE.md')) {
     converted.push({ artifact: '.planning/STATE.md', target: SUPPORTED_ARTIFACTS['.planning/STATE.md'], type: 'state_archive' });
   }
+  applyStateContent(state, cwd);
+
+  migrateSimpleArtifact(cwd, '.planning/ROADMAP.md', SUPPORTED_ARTIFACTS['.planning/ROADMAP.md'], opts.force, writes, skipped, converted, 'roadmap_archive');
+  migrateRawArtifact(cwd, '.planning/HANDOFF.json', SUPPORTED_ARTIFACTS['.planning/HANDOFF.json'], opts.force, writes, skipped, converted, 'handoff');
+  migrateRawArtifact(cwd, '.planning/config.json', SUPPORTED_ARTIFACTS['.planning/config.json'], opts.force, writes, skipped, converted, 'config');
+  migrateSimpleArtifact(cwd, '.planning/MILESTONES.md', SUPPORTED_ARTIFACTS['.planning/MILESTONES.md'], opts.force, writes, skipped, converted, 'milestones');
+  migrateSimpleArtifact(cwd, '.planning/RETROSPECTIVE.md', SUPPORTED_ARTIFACTS['.planning/RETROSPECTIVE.md'], opts.force, writes, skipped, converted, 'retrospective');
+
+  const blockers = applyHandoff(state, cwd);
 
   for (const artifact of listPlanningFiles(cwd)) {
-    const isKnown = Object.prototype.hasOwnProperty.call(SUPPORTED_ARTIFACTS, artifact) || artifact === '.planning/ROADMAP.md';
+    const isKnown = Object.prototype.hasOwnProperty.call(SUPPORTED_ARTIFACTS, artifact);
+    if (!isKnown && migratePhaseArtifact(cwd, artifact, opts.force, writes, skipped, converted, state)) {
+      continue;
+    }
+    if (!isKnown && artifact.startsWith('.planning/debug/')) {
+      const target = 'docs/terrace-migration/' + artifact.replace(/^\.planning\//, '');
+      migrateRawArtifact(cwd, artifact, target, opts.force, writes, skipped, converted, 'debug_artifact');
+      continue;
+    }
+    if (!isKnown && artifact.startsWith('.planning/milestones/')) {
+      const target = 'docs/terrace-migration/' + artifact.replace(/^\.planning\//, '');
+      migrateRawArtifact(cwd, artifact, target, opts.force, writes, skipped, converted, 'milestone_archive');
+      continue;
+    }
     if (!isKnown) {
-      skipped.push({ artifact, reason: 'unsupported_artifact' });
+      skipped.push(skippedArtifact(artifact, 'unsupported_artifact'));
     }
   }
 
   state.migration.converted = converted;
   saveState(cwd, state);
   writes.unshift('.terrace/state.json');
+  const nextCommand = nextCommandForState(state);
+  state.migration.next_command = nextCommand;
+  saveState(cwd, state);
+  const warnings = skipped.map((item) => ({
+    code: item.reason === 'target_exists' ? 'GSD_TARGET_EXISTS' : 'GSD_UNSUPPORTED_ARTIFACT',
+    message: item.artifact + ' was not converted automatically.',
+    artifact: item.artifact,
+    remediation: item.suggested_action
+  }));
+  const readinessStatus = blockers.length > 0 ? 'blocked' : (warnings.length > 0 ? 'review_required' : 'ready');
 
   const report = {
     mode: 'migration',
@@ -230,11 +551,19 @@ function portGsd(cwd, options) {
     converted,
     skipped,
     writes: [...writes, '.terrace/migration/gsd-port-report.json'],
+    blockers,
+    warnings,
+    readiness: {
+      status: readinessStatus,
+      score: readinessStatus === 'ready' ? 100 : readinessStatus === 'review_required' ? 75 : 50
+    },
+    next_command: nextCommand,
     review_checklist: [
       'Review docs/prd/PRD.md against the original .planning/PROJECT.md.',
       'Review docs/spec/COMPILED-SPEC.md against the original .planning/REQUIREMENTS.md.',
       'Review docs/terrace-migration/GSD-STATE.md for legacy state that should become Terrace decisions or sessions.',
-      'Run terrace doctor and terrace audit after reviewing migrated artifacts.'
+      'Run terrace doctor and terrace audit after reviewing migrated artifacts.',
+      'Run ' + nextCommand + ' to resume the migrated workflow.'
     ],
     validation_commands: ['terrace doctor', 'terrace audit']
   };

@@ -31,10 +31,10 @@ describe('terrace port gsd migration', () => {
     expect(result.writes).toContain('docs/prd/PRD.md');
     expect(result.writes).toContain('docs/spec/COMPILED-SPEC.md');
     expect(result.writes).toContain('docs/terrace-migration/GSD-STATE.md');
-    expect(result.skipped).toContainEqual({
+    expect(result.skipped).toContainEqual(expect.objectContaining({
       artifact: '.planning/phases/01-demo/PLAN.md',
       reason: 'unsupported_artifact'
-    });
+    }));
     expect(fs.existsSync(path.join(tmpDir, '.planning', 'PROJECT.md'))).toBe(true);
 
     const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
@@ -42,8 +42,8 @@ describe('terrace port gsd migration', () => {
     expect(state.migration.source).toBe('gsd');
     expect(state.migration.artifacts).toContain('.planning/PROJECT.md');
     expect(state.roadmap.phases).toEqual([
-      { id: 'phase-1-bootstrap', title: 'Phase 1: Bootstrap', status: 'migrated', source_ref: '.planning/ROADMAP.md' },
-      { id: 'phase-2-release', title: 'Phase 2: Release', status: 'migrated', source_ref: '.planning/ROADMAP.md' }
+      { id: 'phase-1-bootstrap', title: 'Phase 1: Bootstrap', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] },
+      { id: 'phase-2-release', title: 'Phase 2: Release', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] }
     ]);
 
     const prd = fs.readFileSync(path.join(tmpDir, 'docs', 'prd', 'PRD.md'), 'utf8');
@@ -68,10 +68,84 @@ describe('terrace port gsd migration', () => {
     const result = portGsd(tmpDir, { force: false });
 
     expect(fs.readFileSync(path.join(tmpDir, 'docs', 'prd', 'PRD.md'), 'utf8')).toBe('existing prd\n');
-    expect(result.skipped).toContainEqual({
+    expect(result.skipped).toContainEqual(expect.objectContaining({
       artifact: '.planning/PROJECT.md',
       target: 'docs/prd/PRD.md',
       reason: 'target_exists'
-    });
+    }));
+  });
+
+  it('migrates rich GSD workflow artifacts into state, docs, and actionable reports', () => {
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'HANDOFF.json'), JSON.stringify({
+      status: 'paused',
+      phase: 'Phase 11: Notifications',
+      next_action: 'Plan Phase 11 via /gsd:plan-phase',
+      human_action_pending: {
+        description: 'Apply migration 034_prime_notes.sql to Supabase',
+        blocking: true
+      },
+      decisions: ['Keep beta onboarding manual until notification work lands.']
+    }, null, 2), 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), [
+      '# Legacy State',
+      '',
+      '## Decisions',
+      '- Use server actions for mutations.',
+      '',
+      '## Quick Tasks Completed',
+      '- QT-001: tighten dashboard copy (commit abc123)',
+      '',
+      '## Parking Lot',
+      '- Add SMS fallback.'
+    ].join('\n'), 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '01-demo', '01-01-PLAN.md'), '# Plan A\n\nDo setup.\n', 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '01-demo', '01-01-SUMMARY.md'), '# Summary A\n\nDone.\n', 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '01-demo', '01-VALIDATION.md'), '# Validation\n\nManual check.\n', 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '01-demo', '01-UAT.md'), '# UAT\n\nUser accepted.\n', 'utf8');
+
+    const result = portGsd(tmpDir, { force: false });
+    const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
+
+    expect(state.handoff.next_action).toBe('Plan Phase 11 via /gsd:plan-phase');
+    expect(state.blocked_actions).toContainEqual(expect.objectContaining({
+      description: 'Apply migration 034_prime_notes.sql to Supabase',
+      blocking: true,
+      source_ref: '.planning/HANDOFF.json'
+    }));
+    expect(state.sessions).toContainEqual(expect.objectContaining({
+      source: 'gsd_handoff',
+      status: 'paused'
+    }));
+    expect(state.decisions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ text: 'Use server actions for mutations.', source_ref: '.planning/STATE.md' }),
+      expect.objectContaining({ text: 'Keep beta onboarding manual until notification work lands.', source_ref: '.planning/HANDOFF.json' })
+    ]));
+    expect(state.backlog.items).toContainEqual(expect.objectContaining({
+      title: 'Add SMS fallback.',
+      source_ref: '.planning/STATE.md'
+    }));
+    expect(state.roadmap.phases[0].plans).toContainEqual(expect.objectContaining({
+      id: '01-01',
+      title: 'Plan A',
+      status: 'migrated',
+      source_ref: '.planning/phases/01-demo/01-01-PLAN.md'
+    }));
+    expect(result.converted).toContainEqual(expect.objectContaining({
+      artifact: '.planning/phases/01-demo/01-VALIDATION.md',
+      target: 'docs/testing/gsd/01-demo/01-VALIDATION.md',
+      type: 'testing_artifact'
+    }));
+    expect(result.skipped).toContainEqual(expect.objectContaining({
+      artifact: '.planning/phases/01-demo/PLAN.md',
+      reason: 'unsupported_artifact',
+      suggested_action: expect.stringContaining('Review manually')
+    }));
+    expect(result.next_command).toBe('terrace phase show phase-11-notifications');
+    expect(result.readiness.status).toBe('blocked');
+    expect(result.blockers).toContainEqual(expect.objectContaining({
+      code: 'GSD_HANDOFF_BLOCKED_ACTION'
+    }));
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace-migration', 'phases', '01-demo', '01-01-PLAN.md'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'testing', 'gsd', '01-demo', '01-UAT.md'))).toBe(true);
   });
 });

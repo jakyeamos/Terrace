@@ -12,7 +12,9 @@
     "green_gate",
     "protected_tests",
     "decisions",
-    "sessions"
+    "sessions",
+    "backlog",
+    "blocked_actions"
   ],
   "properties": {
     "schema_version": { "type": "string" },
@@ -63,7 +65,18 @@
     "green_gate": { "type": "object" },
     "protected_tests": { "type": "array" },
     "decisions": { "type": "array" },
-    "sessions": { "type": "array" }
+    "sessions": { "type": "array" },
+    "migration": { "type": ["object", "null"] },
+    "handoff": { "type": ["object", "null"] },
+    "backlog": {
+      "type": "object",
+      "required": ["items"],
+      "properties": {
+        "items": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "blocked_actions": { "type": "array" }
   },
   "additionalProperties": true
 }
