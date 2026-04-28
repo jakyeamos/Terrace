@@ -14,6 +14,12 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Reconstruct paused workflow context from Terrace sessions and migrated handoff data.'
   },
   {
+    command: 'terrace history',
+    category: 'workflow',
+    json: true,
+    purpose: 'Summarize migrated operational history across phases, sessions, decisions, and quick tasks.'
+  },
+  {
     command: 'terrace phase list',
     category: 'roadmap',
     json: true,
@@ -24,6 +30,18 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     category: 'roadmap',
     json: true,
     purpose: 'Show one canonical Terrace roadmap phase and its migrated plans.'
+  },
+  {
+    command: 'terrace phase plan <id>',
+    category: 'roadmap',
+    json: true,
+    purpose: 'Prepare one roadmap phase as the active slice.'
+  },
+  {
+    command: 'terrace phase execute <id>',
+    category: 'roadmap',
+    json: true,
+    purpose: 'Enter RED-gate execution for one phase after blockers are clear.'
   },
   {
     command: 'terrace quick list',

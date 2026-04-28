@@ -508,6 +508,15 @@ function applyStateContent(state, cwd) {
   }));
 }
 
+function addBacklogItem(state, item) {
+  if (!state.backlog || !Array.isArray(state.backlog.items)) {
+    state.backlog = { items: [] };
+  }
+  if (!state.backlog.items.some((existing) => existing.id === item.id && existing.source_ref === item.source_ref)) {
+    state.backlog.items.push(item);
+  }
+}
+
 function applyHandoff(state, cwd) {
   const handoff = readJsonIfExists(path.resolve(cwd, '.planning', 'HANDOFF.json'));
   if (!handoff) {
@@ -544,6 +553,17 @@ function applyHandoff(state, cwd) {
       });
     }
   }
+  if (Array.isArray(handoff.remaining_tasks)) {
+    for (const remaining of handoff.remaining_tasks) {
+      const title = typeof remaining === 'string' ? remaining : String(remaining.name || remaining.title || remaining.id || 'Remaining GSD task');
+      addBacklogItem(state, {
+        id: typeof remaining === 'object' && remaining.id ? String(remaining.id) : slugify(title),
+        title,
+        status: typeof remaining === 'object' && remaining.status ? String(remaining.status) : 'open',
+        source_ref: '.planning/HANDOFF.json'
+      });
+    }
+  }
   const blockers = [];
   const pendingActions = [];
   if (handoff.human_action_pending) {
@@ -560,6 +580,12 @@ function applyHandoff(state, cwd) {
       source_ref: '.planning/HANDOFF.json'
     };
     state.blocked_actions.push(blockedAction);
+    addBacklogItem(state, {
+      id: slugify(blockedAction.description),
+      title: blockedAction.description,
+      status: blockedAction.blocking ? 'blocked' : 'open',
+      source_ref: '.planning/HANDOFF.json'
+    });
     if (blockedAction.blocking) {
       blockers.push({
         code: 'GSD_HANDOFF_BLOCKED_ACTION',

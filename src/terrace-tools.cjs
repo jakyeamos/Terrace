@@ -31,8 +31,11 @@ const {
   portGsd,
   phaseList,
   phaseShow,
+  phasePlan,
+  phaseExecute,
   resumeWorkflow,
   nextWorkflow,
+  historySummary,
   backlogList,
   backlogAdd,
   quickList,
@@ -55,8 +58,11 @@ const HELP_TEXT = [
   '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
+  '  terrace history              Summarize migrated operational history',
   '  terrace phase list           List roadmap phases',
   '  terrace phase show <id>      Show a roadmap phase',
+  '  terrace phase plan <id>      Prepare a phase for execution',
+  '  terrace phase execute <id>   Enter RED-gate execution for a phase',
   '  terrace quick list           List migrated quick-task history',
   '  terrace quick show <id>      Show one migrated quick task',
   '  terrace backlog list         List backlog items',
@@ -243,6 +249,10 @@ async function main() {
       output(resumeWorkflow(cwd), { json });
       return;
     }
+    case 'history': {
+      output(historySummary(cwd), { json });
+      return;
+    }
     case 'init': {
       output(initCore(cwd, { projectName: path.basename(cwd), force, yes }), { json });
       return;
@@ -286,8 +296,24 @@ async function main() {
         output(phaseShow(cwd, phaseId), { json });
         return;
       }
+      if (sub === 'plan') {
+        const phaseId = args[2];
+        if (!phaseId) {
+          fail('Usage: terrace phase plan <phase-id>', { json });
+        }
+        output(phasePlan(cwd, phaseId), { json });
+        return;
+      }
+      if (sub === 'execute') {
+        const phaseId = args[2];
+        if (!phaseId) {
+          fail('Usage: terrace phase execute <phase-id>', { json });
+        }
+        output(phaseExecute(cwd, phaseId), { json });
+        return;
+      }
       if (sub !== 'set') {
-        fail('Unknown phase subcommand: ' + sub + '. Use: list, show, set', { json });
+        fail('Unknown phase subcommand: ' + sub + '. Use: list, show, plan, execute, set', { json });
       }
       const nextStatus = args[2];
       if (!nextStatus) {

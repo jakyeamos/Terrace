@@ -37,8 +37,11 @@ npx terrace audit
 - `terrace port gsd` migrates supported legacy GSD artifacts into Terrace state.
 - `terrace next` reports the next workflow action from state, handoff data, and blockers.
 - `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
+- `terrace history` summarizes migrated phases, sessions, decisions, and quick tasks.
 - `terrace phase list` lists canonical roadmap phases.
 - `terrace phase show <id>` shows one roadmap phase and its migrated plans.
+- `terrace phase plan <id>` prepares a migrated phase as the active slice.
+- `terrace phase execute <id>` enters RED-gate execution for a phase after blockers are clear.
 - `terrace quick list` lists migrated GSD quick-task history.
 - `terrace quick show <id>` shows one migrated quick task.
 - `terrace backlog list` lists backlog items.
@@ -51,7 +54,7 @@ npx terrace audit
 
 `terrace port gsd` preserves the source `.planning/` tree and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.
 
-Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Quick-task PLAN/SUMMARY files are archived under `docs/terrace-migration/quick/` and exposed through `terrace quick list` / `terrace quick show <id>`. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
+Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Quick-task PLAN/SUMMARY files are archived under `docs/terrace-migration/quick/` and exposed through `terrace quick list` / `terrace quick show <id>`. Handoff remaining tasks and blocking human actions become backlog items so post-migration work is visible. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
 
 ## Workflow Example
 

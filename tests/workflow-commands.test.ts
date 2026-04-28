@@ -8,8 +8,11 @@ const {
   createDefaultState,
   phaseList,
   phaseShow,
+  phasePlan,
+  phaseExecute,
   resumeWorkflow,
   nextWorkflow,
+  historySummary,
   backlogList,
   backlogAdd,
   quickList,
@@ -66,6 +69,34 @@ describe('workflow parity core helpers', () => {
     });
   });
 
+  it('summarizes accumulated GSD history for operational continuity', () => {
+    const result = historySummary(tmpDir);
+
+    expect(result).toMatchObject({
+      quick_tasks: { total: 1, completed: 1 },
+      sessions: { total: 1 },
+      decisions: { total: 0 },
+      phases: { total: 1 }
+    });
+    expect(result.recent_quick_tasks).toContainEqual(expect.objectContaining({
+      id: '260101-abc'
+    }));
+  });
+
+  it('plans and executes migrated phases with hard blocker awareness', () => {
+    const planned = phasePlan(tmpDir, 'phase-11-notifications');
+
+    expect(planned).toMatchObject({
+      phase_id: 'phase-11-notifications',
+      status: 'slice_planned',
+      next_command: 'terrace phase execute phase-11-notifications'
+    });
+    expect(phaseExecute(tmpDir, 'phase-11-notifications')).toMatchObject({
+      allowed: false,
+      blockers: [expect.objectContaining({ description: 'Apply migration 034_prime_notes.sql' })]
+    });
+  });
+
   it('manages backlog items and rejects missing phase ids', () => {
     expect(backlogList(tmpDir).items).toContainEqual(expect.objectContaining({ title: 'Add SMS fallback.' }));
     expect(backlogAdd(tmpDir, 'Confirm beta email copy').item).toMatchObject({
@@ -93,6 +124,9 @@ describe('workflow parity core helpers', () => {
 
     expect(result.passed).toBe(false);
     expect(result.categories.map((category: { category: string }) => category.category)).toEqual([
+      'doctor',
+      'audit',
+      'migration_readiness',
       'typecheck',
       'lint',
       'test',

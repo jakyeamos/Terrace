@@ -85,6 +85,15 @@ describe('strict core CLI delegation', () => {
     expect(runTerrace(tmpDir, ['phase', 'show', 'phase-11-notifications', '--json']).phase.plans).toContainEqual(expect.objectContaining({
       title: 'Notification Plan'
     }));
+    expect(runTerrace(tmpDir, ['history', '--json']).quick_tasks.total).toBe(0);
+    expect(runTerrace(tmpDir, ['phase', 'plan', 'phase-11-notifications', '--json'])).toMatchObject({
+      phase_id: 'phase-11-notifications',
+      next_command: 'terrace phase execute phase-11-notifications'
+    });
+    expect(runTerrace(tmpDir, ['phase', 'execute', 'phase-11-notifications', '--json'])).toMatchObject({
+      allowed: false,
+      blockers: expect.any(Array)
+    });
     expect(runTerrace(tmpDir, ['backlog', 'list', '--json']).items).toContainEqual(expect.objectContaining({
       title: 'Add SMS fallback.'
     }));

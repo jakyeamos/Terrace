@@ -85,6 +85,9 @@ describe('terrace port gsd migration', () => {
         description: 'Apply migration 034_prime_notes.sql to Supabase',
         blocking: true
       },
+      remaining_tasks: [
+        { id: 'notify-plan', name: 'Plan Phase 11 notifications', status: 'todo' }
+      ],
       decisions: ['Keep beta onboarding manual until notification work lands.']
     }, null, 2), 'utf8');
     fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), [
@@ -153,6 +156,17 @@ describe('terrace port gsd migration', () => {
     expect(state.backlog.items).toContainEqual(expect.objectContaining({
       title: 'Add SMS fallback.',
       source_ref: '.planning/STATE.md'
+    }));
+    expect(state.backlog.items).toContainEqual(expect.objectContaining({
+      id: 'notify-plan',
+      title: 'Plan Phase 11 notifications',
+      status: 'todo',
+      source_ref: '.planning/HANDOFF.json'
+    }));
+    expect(state.backlog.items).toContainEqual(expect.objectContaining({
+      title: 'Apply migration 034_prime_notes.sql to Supabase',
+      status: 'blocked',
+      source_ref: '.planning/HANDOFF.json'
     }));
     expect(state.quick_tasks).toContainEqual(expect.objectContaining({
       id: '260101-abc',
