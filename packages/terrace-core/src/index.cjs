@@ -7,5 +7,6 @@ module.exports = {
   ...require('./rules.cjs'),
   ...require('./init.cjs'),
   ...require('./gates.cjs'),
-  ...require('./roadmap.cjs')
+  ...require('./roadmap.cjs'),
+  ...require('./port-gsd.cjs')
 };
