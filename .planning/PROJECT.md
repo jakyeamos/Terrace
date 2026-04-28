@@ -75,6 +75,7 @@ Every session leaves the repo more legible and less fragile than before, while s
 | Standalone strict core direction approved | Terrace will keep GSD workflow strengths but move truth and gates into a deterministic `.terrace/state.json` kernel with a first-class `terrace port gsd` layer | — Active |
 | Low-effort mode is a product feature, not a bypass | Terrace should execute bounded roadmap work quickly when deterministic state, rule domains, and risk tags make full phase planning unnecessary | — Active |
 | Security, architecture, pentesting, and maintainability are first-class domains | These rule families need command surfaces and policy integration alongside testing trust rather than living as prose-only guidance | — Active |
+| Strict core scaffold implemented | `packages/terrace-core` now owns deterministic state, events, rules, gates, low-effort roadmap execution, and GSD port dry-run classification | — Active |
 
 ## Evolution
 
@@ -94,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after roadmap readiness implementation*
+*Last updated: 2026-04-28 after strict core scaffold implementation*
