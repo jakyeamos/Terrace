@@ -18,6 +18,7 @@ const { runAudit } = require('./lib/audit.cjs');
 const { runCiCheck } = require('./lib/ci.cjs');
 const { startSession, endSession, reconstructSession } = require('./lib/session.cjs');
 const { migrateArtifacts } = require('./lib/migrate.cjs');
+const { initCore, explainRule, loadRules, executeRoadmapItem, portGsdDryRun } = require('../packages/terrace-core/src/index.cjs');
 
 function ensureState(cwd) {
   const statePath = path.resolve(cwd, '.terrace', 'project-state.json');
@@ -57,12 +58,71 @@ async function main() {
   const json = hasFlag(rawArgs, '--json');
   const force = hasFlag(rawArgs, '--force');
   const yes = hasFlag(rawArgs, '--yes');
-  const args = stripFlags(rawArgs, ['--json', '--force', '--yes']);
+  const dryRun = hasFlag(rawArgs, '--dry-run');
+  const args = stripFlags(rawArgs, ['--json', '--force', '--yes', '--dry-run']);
 
   const command = args[0];
   const cwd = process.cwd();
 
   switch (command) {
+    case 'core': {
+      const sub = args[1];
+      if (sub === 'init') {
+        output(initCore(cwd, { projectName: path.basename(cwd) }), { json });
+        return;
+      }
+      fail('Unknown core subcommand: ' + sub + '. Use: init', { json });
+      return;
+    }
+    case 'rule': {
+      const sub = args[1];
+      if (sub === 'explain') {
+        const ruleId = args[2];
+        if (!ruleId) {
+          fail('Usage: terrace rule explain <rule-id>', { json });
+        }
+        output(explainRule(cwd, ruleId), { json });
+        return;
+      }
+      if (sub === 'list') {
+        output(loadRules(cwd), { json });
+        return;
+      }
+      fail('Unknown rule subcommand: ' + sub + '. Use: explain, list', { json });
+      return;
+    }
+    case 'quick': {
+      const itemId = args[1];
+      if (!itemId) {
+        fail('Usage: terrace quick <roadmap-item-id>', { json });
+      }
+      output(executeRoadmapItem(cwd, itemId), { json });
+      return;
+    }
+    case 'roadmap': {
+      const sub = args[1];
+      if (sub !== 'execute') {
+        fail('Unknown roadmap subcommand: ' + sub + '. Use: execute', { json });
+      }
+      const itemId = args[2];
+      if (!itemId) {
+        fail('Usage: terrace roadmap execute <roadmap-item-id>', { json });
+      }
+      output(executeRoadmapItem(cwd, itemId), { json });
+      return;
+    }
+    case 'port': {
+      const sub = args[1];
+      if (sub === 'gsd') {
+        if (!dryRun) {
+          fail('Usage: terrace port gsd --dry-run', { json });
+        }
+        output(portGsdDryRun(cwd), { json });
+        return;
+      }
+      fail('Unknown port subcommand: ' + sub + '. Use: gsd', { json });
+      return;
+    }
     case 'init': {
       output(cmdInit(cwd, { force, yes }), { json });
       return;
