@@ -12,21 +12,22 @@ Every session leaves the repo more legible and less fragile than before, while s
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Durable artifact set: `docs/prd/`, `docs/spec/`, `docs/testing/`, `.terrace/`, and `.planning/sessions/` are created and validated by the CLI
+- [x] Spec governance workflow scaffold: intake, interrogation, spec compilation, test architecture, protected baseline, adversarial review, regression capture, and handoff roles exist
+- [x] Protected test policy: baseline tests require a linked `spec_ref` and a matching decision-log entry before protected changes are allowed
+- [x] Decision log enforcement: behavioral changes can be recorded with `terrace decision log --spec-ref <SPEC-ID>`
+- [x] Session start/end protocol: context can be reconstructed from repo artifacts through `terrace session reconstruct`
+- [x] Built-in preset registry: `terrace-tea`, `terrace-mutation`, `terrace-ui`, and `terrace-security` install through the preset registry
 
 ### Active
 
 - [ ] Automatic task classification: Terrace routes each command to the cheapest safe effort band by default
 - [ ] Local analyzer first: deterministic preprocessing handles diffing, registry checks, freshness, and impacted-artifact detection before model escalation
-- [ ] Spec governance workflow: intake → interrogation → spec compilation → test architecture → protected baseline → vertical-slice implementation → trigger-based adversarial review → regression capture
+- [ ] Full fixture matrix hardening for every governance command across all four fixture repos
 - [ ] Deep governance passes are trigger-based, not default
 - [ ] Explore / inspect / understand commands are hard-capped at low effort unless explicitly escalated
 - [ ] `/terrace-usage` and `/terrace-why` expose routing cost and rationale on demand
-- [ ] Durable artifact set: docs/prd/, docs/spec/, docs/testing/ directory structure with defined file contracts
-- [ ] Protected test policy: baseline tests cannot be casually changed — require linked spec delta + decision log entry
-- [ ] Decision log enforcement: behavioral changes require logged rationale
-- [ ] Session start/end protocol: reconstruct context from repo artifacts, not conversational memory, using delta-based loading by default
-- [ ] Agent mode system: explicit switching between Spec Interrogator, Spec Compiler, Test Architect, Baseline Test Builder, Builder, Verifier/Adversary, Maintainer roles
+- [ ] Agent mode system hardening: explicit runtime switching between Spec Interrogator, Spec Compiler, Test Architect, Baseline Test Builder, Builder, Verifier/Adversary, Maintainer roles
 - [ ] Multi-platform portability: core workflow designed to be AI-tool-agnostic (platform strategy TBD, v2+)
 - [ ] Installable as a framework: can be added to a Claude Code setup the way GSD is installed
 
@@ -68,6 +69,7 @@ Every session leaves the repo more legible and less fragile than before, while s
 | Pre-build + post-build governance passes are trigger-based | "Both" structure still exists, but deep passes only fire when signals justify them | — Pending |
 | Multi-platform strategy deferred to v2 | Platform adapter architecture is unknown; shipping v1 in Claude Code first reduces speculative complexity | — Pending |
 | TDD for all Terrace development | Terrace enforces test-first governance on target repos — it must hold itself to the same standard; eat your own dog food | — Active |
+| Phases 3-6 completed as compact readiness slice | The remaining roadmap needed a usable local framework surface more than historical per-plan ceremony | — Active |
 
 ## Evolution
 
@@ -87,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after initialization*
+*Last updated: 2026-04-28 after roadmap readiness implementation*

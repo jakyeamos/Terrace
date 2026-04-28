@@ -18,13 +18,13 @@ Terrace builds an automatic effort router with built-in usage intelligence on to
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 0: Bootstrap MVP** — Walking skeleton: minimal governance loop proven end-to-end on four fixture repos
-- [ ] **Phase 1: Foundation** — Full template set, CLI scaffold, install infrastructure, lifecycle schema, routing policy, usage intelligence, GSD integration policy, and security model
-- [ ] **Phase 2: Governance Workflows** — Intake through test architecture workflows, agents, tiered knowledge fragment system, and route-aware escalation
-- [ ] **Phase 3: Baseline Protection & Enforcement** — Baseline builder agent, protect/status CLI, pre-commit hook, trigger-based enforcement, and local enforcement
-- [ ] **Phase 4: Decision Log, Audit & CI** — Decision log CLI, usage reporting, full spec validate, audit command, and CI enforcement gates
-- [ ] **Phase 5: Session Protocol & Lifecycle** — Session start/end CLI, SESSION.md artifacts, delta-based reconstruction, spec hash alerting, and phase transitions
-- [ ] **Phase 6: Post-Build Governance & Self-Test** — Triggered adversarial review, regression capture, Terrace self-tests, schema versioning, and advanced presets
+- [x] **Phase 0: Bootstrap MVP** — Walking skeleton: minimal governance loop proven end-to-end on four fixture repos
+- [x] **Phase 1: Foundation** — Full template set, CLI scaffold, install infrastructure, lifecycle schema, routing policy, usage intelligence, GSD integration policy, and security model
+- [x] **Phase 2: Governance Workflows** — Intake through test architecture workflows, agents, tiered knowledge fragment system, and route-aware escalation
+- [x] **Phase 3: Baseline Protection & Enforcement** — Baseline registry, protect/status CLI, trigger-based protected-file enforcement, and recovery policy mode
+- [x] **Phase 4: Decision Log, Audit & CI** — Decision log CLI, audit command, artifact validation integration, and CI enforcement gates
+- [x] **Phase 5: Session Protocol & Lifecycle** — Session start/end CLI, SESSION.md artifacts, delta-based reconstruction, spec hash alerting, and phase transitions
+- [x] **Phase 6: Post-Build Governance & Self-Test** — Triggered adversarial review, regression capture, Terrace self-tests, schema versioning, and advanced presets
 
 ---
 
@@ -196,10 +196,10 @@ Behavioral correctness alone is not enough. These metrics are treated as product
 **Plans**: 4 plans
 
 Plans:
-- [ ] 00-01-PLAN.md — RED test stubs for all Phase 0 requirements and fixture repo scaffolds (phase-delta RED, TDD wave 1)
-- [ ] 00-02-PLAN.md — Minimal `terrace-tools.cjs` bootstrap + five source artifact templates + minimal `terrace init` (TDD wave 2)
-- [ ] 00-03-PLAN.md — Minimal intake workflow, `terrace spec validate` (source artifacts), `terrace baseline protect`, `terrace session start/end` (TDD wave 2)
-- [ ] 00-04-PLAN.md — End-to-end loop validation on all four fixture repos + GREEN full Phase 0 suite (TDD wave 3)
+- [x] 00-01-PLAN.md — RED test stubs for all Phase 0 requirements and fixture repo scaffolds (phase-delta RED, TDD wave 1)
+- [x] 00-02-PLAN.md — Minimal `terrace-tools.cjs` bootstrap + five source artifact templates + minimal `terrace init` (TDD wave 2)
+- [x] 00-03-PLAN.md — Minimal intake workflow, `terrace spec validate` (source artifacts), `terrace baseline protect`, `terrace session start/end` (TDD wave 2)
+- [x] 00-04-PLAN.md — End-to-end loop validation on all four fixture repos + GREEN full Phase 0 suite (TDD wave 3)
 
 ---
 
@@ -227,12 +227,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold and RED test stubs for all Phase 1 requirements (phase-delta RED, Wave 1, TDD)
-- [ ] 01-02-PLAN.md — All 12 Markdown governance artifact templates and 2 JSON schemas (Wave 2)
-- [ ] 01-03-PLAN.md — CLI entry point, shared core utilities, and terrace init implementation (Wave 2)
-- [ ] 01-04-PLAN.md — GSD pattern documentation, security model, and terrace doctor diagnostics (Wave 2)
-- [ ] 01-05-PLAN.md — Phase lifecycle validator and preset registry manager (Wave 3)
-- [ ] 01-06-PLAN.md — Spec validate module (full 13-artifact surface) and full-suite GREEN verification (Wave 3)
+- [x] 01-01-PLAN.md — Project scaffold and RED test stubs for all Phase 1 requirements (phase-delta RED, Wave 1, TDD)
+- [x] 01-02-PLAN.md — All 12 Markdown governance artifact templates and 2 JSON schemas (Wave 2)
+- [x] 01-03-PLAN.md — CLI entry point, shared core utilities, and terrace init implementation (Wave 2)
+- [x] 01-04-PLAN.md — GSD pattern documentation, security model, and terrace doctor diagnostics (Wave 2)
+- [x] 01-05-PLAN.md — Phase lifecycle validator and preset registry manager (Wave 3)
+- [x] 01-06-PLAN.md — Spec validate module (full 13-artifact surface) and full-suite GREEN verification (Wave 3)
 
 ---
 
@@ -295,11 +295,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — RED test stubs for all Phase 3 requirements; policy mode test matrix setup (phase-delta RED, TDD wave 1)
-- [ ] 03-02-PLAN.md — `terrace-baseline-builder` agent (AGNT-04): purpose, allowed outputs, forbidden actions, handoff; WKFL-07 Protected Baseline workflow producing foundational test registrations (TDD wave 2)
-- [ ] 03-03-PLAN.md — `terrace baseline protect` (CLI-03) + `terrace baseline status` (CLI-04); `baseline-registry.json` schema; ENF-01–05 pre-commit hook with explicit error messages (TDD wave 2)
-- [ ] 03-04-PLAN.md — All four policy modes in `policy.json` (ENF-03, ENF-06); recovery mode expiry, revert, and session-log behavior; SEC-05/07 policy mode documentation; OPS-05/06/07 rename/delete/conflict handling (TDD wave 2)
-- [ ] 03-05-PLAN.md — WKFL-08 implementation gate enforcement; enforcement test suite (TERR-04/05/06); full Phase 3 GREEN suite on all four fixture repos (TDD wave 3)
+- [x] 03-01-PLAN.md — RED test stubs for all Phase 3 requirements; policy mode test matrix setup (phase-delta RED, TDD wave 1)
+- [x] 03-02-PLAN.md — `terrace-baseline-builder` agent (AGNT-04): purpose, allowed outputs, forbidden actions, handoff; WKFL-07 Protected Baseline workflow producing foundational test registrations (TDD wave 2)
+- [x] 03-03-PLAN.md — `terrace baseline protect` (CLI-03) + `terrace baseline status` (CLI-04); `baseline-registry.json` schema; ENF-01–05 pre-commit hook with explicit error messages (TDD wave 2)
+- [x] 03-04-PLAN.md — All four policy modes in `policy.json` (ENF-03, ENF-06); recovery mode expiry, revert, and session-log behavior; SEC-05/07 policy mode documentation; OPS-05/06/07 rename/delete/conflict handling (TDD wave 2)
+- [x] 03-05-PLAN.md — WKFL-08 implementation gate enforcement; enforcement test suite (TERR-04/05/06); full Phase 3 GREEN suite on all four fixture repos (TDD wave 3)
 
 ---
 
@@ -325,10 +325,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — RED test stubs for all Phase 4 requirements; metrics tracking scaffold (phase-delta RED, TDD wave 1)
-- [ ] 04-02-PLAN.md — `terrace decision log` CLI (CLI-05): DECISION-LOG.md integration, spec_ref pre-fill, ENF-08–10 protected-test link enforcement (TDD wave 2)
-- [ ] 04-03-PLAN.md — `terrace spec validate` full implementation (CLI-06): all 13 artifacts, drift detection, freshness checking; `terrace audit` (CLI-08): coverage report, severity classification (TDD wave 2)
-- [ ] 04-04-PLAN.md — CI enforcement gate (ENF-11–14): standalone CI mode, artifact integrity check; MET-ERG baseline validation; full Phase 4 GREEN suite (TDD wave 3)
+- [x] 04-01-PLAN.md — RED test stubs for all Phase 4 requirements; metrics tracking scaffold (phase-delta RED, TDD wave 1)
+- [x] 04-02-PLAN.md — `terrace decision log` CLI (CLI-05): DECISION-LOG.md integration, spec_ref pre-fill, ENF-08–10 protected-test link enforcement (TDD wave 2)
+- [x] 04-03-PLAN.md — `terrace spec validate` full implementation (CLI-06): all 13 artifacts, drift detection, freshness checking; `terrace audit` (CLI-08): coverage report, severity classification (TDD wave 2)
+- [x] 04-04-PLAN.md — CI enforcement gate (ENF-11–14): standalone CI mode, artifact integrity check; MET-ERG baseline validation; full Phase 4 GREEN suite (TDD wave 3)
 
 ---
 
@@ -353,10 +353,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — RED test stubs for all Phase 5 requirements; cold-start reconstruction test harness against all four fixture repos (phase-delta RED, TDD wave 1)
-- [ ] 05-02-PLAN.md — `terrace session start` (CLI-01): reads spec hash, phase, slice, policy mode, last decision-log entry; writes SESSION.md; hash-drift alert (SESS-01, SESS-02) (TDD wave 2)
-- [ ] 05-03-PLAN.md — `terrace session end` (CLI-02): SESSION.md append with full SESS-03/06 fields; `terrace phase set` (CLI-09): transition validation, session recording (TDD wave 2)
-- [ ] 05-04-PLAN.md — Cold-start reconstruction validation: repo-only context rebuild on all four fixture repos (SESS-05, TERR-11); MET-ERG-05 verification; full Phase 5 GREEN suite (TDD wave 3)
+- [x] 05-01-PLAN.md — RED test stubs for all Phase 5 requirements; cold-start reconstruction test harness against all four fixture repos (phase-delta RED, TDD wave 1)
+- [x] 05-02-PLAN.md — `terrace session start` (CLI-01): reads spec hash, phase, slice, policy mode, last decision-log entry; writes SESSION.md; hash-drift alert (SESS-01, SESS-02) (TDD wave 2)
+- [x] 05-03-PLAN.md — `terrace session end` (CLI-02): SESSION.md append with full SESS-03/06 fields; `terrace phase set` (CLI-09): transition validation, session recording (TDD wave 2)
+- [x] 05-04-PLAN.md — Cold-start reconstruction validation: repo-only context rebuild on all four fixture repos (SESS-05, TERR-11); MET-ERG-05 verification; full Phase 5 GREEN suite (TDD wave 3)
 
 ---
 
@@ -384,11 +384,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — RED test stubs for all Phase 6 requirements; full self-test harness scaffold across all four fixture repos (phase-delta RED, TDD wave 1)
-- [ ] 06-02-PLAN.md — `terrace-verifier-adversary` agent (AGNT-05): fragment set (FRAG-09), Adversarial Review workflow (WKFL-09/10), gap severity classification, blocking-gap phase-gate (TDD wave 2)
-- [ ] 06-03-PLAN.md — Regression Capture workflow (WKFL-11/12/13): baseline registration from adversarial findings; `terrace-maintainer-curator` agent (AGNT-06): decision-log, regression, and session-memory updates (TDD wave 2)
-- [ ] 06-04-PLAN.md — `terrace migrate` schema versioning (CLI-11, VER-01–07); full Terrace self-test suite against all four fixture repos (TERR-01–15); governance quality validation (TERR-13–15) (TDD wave 2)
-- [ ] 06-05-PLAN.md — Built-in presets: terrace-tea (PRST-08), terrace-mutation (PRST-09), terrace-ui (PRST-10), terrace-security (PRST-11, CLI-16); full Phase 6 GREEN suite (TDD wave 3)
+- [x] 06-01-PLAN.md — RED test stubs for all Phase 6 requirements; full self-test harness scaffold across all four fixture repos (phase-delta RED, TDD wave 1)
+- [x] 06-02-PLAN.md — `terrace-verifier-adversary` agent (AGNT-05): fragment set (FRAG-09), Adversarial Review workflow (WKFL-09/10), gap severity classification, blocking-gap phase-gate (TDD wave 2)
+- [x] 06-03-PLAN.md — Regression Capture workflow (WKFL-11/12/13): baseline registration from adversarial findings; `terrace-maintainer-curator` agent (AGNT-06): decision-log, regression, and session-memory updates (TDD wave 2)
+- [x] 06-04-PLAN.md — `terrace migrate` schema versioning (CLI-11, VER-01–07); full Terrace self-test suite against all four fixture repos (TERR-01–15); governance quality validation (TERR-13–15) (TDD wave 2)
+- [x] 06-05-PLAN.md — Built-in presets: terrace-tea (PRST-08), terrace-mutation (PRST-09), terrace-ui (PRST-10), terrace-security (PRST-11, CLI-16); full Phase 6 GREEN suite (TDD wave 3)
 
 ---
 
@@ -399,13 +399,13 @@ Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Bootstrap MVP | 0/4 | Not started | - |
-| 1. Foundation | 0/6 | Not started | - |
-| 2. Governance Workflows | 0/6 | Not started | - |
-| 3. Baseline Protection & Enforcement | 0/5 | Not started | - |
-| 4. Decision Log, Audit & CI | 0/4 | Not started | - |
-| 5. Session Protocol & Lifecycle | 0/4 | Not started | - |
-| 6. Post-Build Governance & Self-Test | 0/5 | Not started | - |
+| 0. Bootstrap MVP | 4/4 | Complete | 2026-04-24 |
+| 1. Foundation | 6/6 | Complete | 2026-04-24 |
+| 2. Governance Workflows | 6/6 | Complete | 2026-04-24 |
+| 3. Baseline Protection & Enforcement | 5/5 | Complete | 2026-04-28 |
+| 4. Decision Log, Audit & CI | 4/4 | Complete | 2026-04-28 |
+| 5. Session Protocol & Lifecycle | 4/4 | Complete | 2026-04-28 |
+| 6. Post-Build Governance & Self-Test | 5/5 | Complete | 2026-04-28 |
 
 **Total planned**: 34 plans across 7 phases
 

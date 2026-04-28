@@ -1,0 +1,12 @@
+{
+  "agent": "terrace-maintainer-curator",
+  "fragments": [
+    {
+      "id": "FRG-CUR-01",
+      "name": "Regression Capture Handoff",
+      "tags": ["regression-capture", "session-memory"],
+      "tier": "core",
+      "file": "frg-cur-01-regression-capture.md"
+    }
+  ]
+}
