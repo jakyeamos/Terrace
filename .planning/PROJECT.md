@@ -25,6 +25,8 @@ Every session leaves the repo more legible and less fragile than before, while s
 - [ ] Local analyzer first: deterministic preprocessing handles diffing, registry checks, freshness, and impacted-artifact detection before model escalation
 - [ ] Full fixture matrix hardening for every governance command across all four fixture repos
 - [ ] Deep governance passes are trigger-based, not default
+- [ ] Low-effort roadmap execution: `terrace quick` and `terrace roadmap execute` can run bounded roadmap items without full plan documents when deterministic standards make that safe
+- [ ] First-class security, architecture, pentesting, and maintainability rule domains with CLI commands, policy integration, and evidence requirements
 - [ ] Explore / inspect / understand commands are hard-capped at low effort unless explicitly escalated
 - [ ] `/terrace-usage` and `/terrace-why` expose routing cost and rationale on demand
 - [ ] Agent mode system hardening: explicit runtime switching between Spec Interrogator, Spec Compiler, Test Architect, Baseline Test Builder, Builder, Verifier/Adversary, Maintainer roles
@@ -71,6 +73,8 @@ Every session leaves the repo more legible and less fragile than before, while s
 | TDD for all Terrace development | Terrace enforces test-first governance on target repos — it must hold itself to the same standard; eat your own dog food | — Active |
 | Phases 3-6 completed as compact readiness slice | The remaining roadmap needed a usable local framework surface more than historical per-plan ceremony | — Active |
 | Standalone strict core direction approved | Terrace will keep GSD workflow strengths but move truth and gates into a deterministic `.terrace/state.json` kernel with a first-class `terrace port gsd` layer | — Active |
+| Low-effort mode is a product feature, not a bypass | Terrace should execute bounded roadmap work quickly when deterministic state, rule domains, and risk tags make full phase planning unnecessary | — Active |
+| Security, architecture, pentesting, and maintainability are first-class domains | These rule families need command surfaces and policy integration alongside testing trust rather than living as prose-only guidance | — Active |
 
 ## Evolution
 

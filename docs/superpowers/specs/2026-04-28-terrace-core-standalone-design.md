@@ -79,6 +79,61 @@ The v1 flow:
 
 The initial process creates a project-level spec and coarse roadmap. Detailed implementation plans are generated just in time. Only one executable slice is active at a time.
 
+## Execution Modes
+
+Terrace v1 supports strict execution and low-effort execution. Both modes remain deterministic; the difference is which gates are required before progress.
+
+Strict mode is the default for spec-sensitive work:
+
+- full state-machine enforcement
+- hard RED gate
+- GREEN verification
+- protected-test registration
+- decision-log requirement for behavioral drift
+- security, architecture, and maintainability gates when those domains are active
+
+Low-effort mode is for fast iteration, exploration, spikes, trivial changes, and roadmap execution where Terrace already has enough deterministic standards to keep the agent bounded:
+
+- no deep interrogation unless uncertainty triggers it
+- no full plan document required when the roadmap slice is small and well-formed
+- lightweight RED evidence can be accepted for non-critical work if config permits it
+- GREEN verification still runs configured commands
+- all skipped gates are recorded in `.terrace/events.jsonl`
+- low-effort mode cannot bypass protected-test changes, security-critical findings, or explicit strict-mode requirements
+
+The user-facing intent is: Terrace should not force a full phase-plan ceremony when the roadmap already provides enough structure and the risk profile is low.
+
+Primary low-effort command:
+
+```bash
+terrace quick <roadmap-item-or-request>
+```
+
+`terrace quick` is the Terrace-native successor to `gsd quick`. It creates or selects a small slice, applies the cheapest safe gate set, emits exact agent instructions, and records why deeper planning was skipped.
+
+## Roadmap Execution
+
+Terrace should be able to execute directly from a coarse roadmap when the roadmap item is sufficiently bounded.
+
+Primary command:
+
+```bash
+terrace roadmap execute <phase-or-item>
+```
+
+Behavior:
+
+- reads `.terrace/state.json` and roadmap records
+- checks that the target item has clear goal, success criteria, risk tags, and dependencies
+- classifies required effort as `low`, `standard`, or `strict`
+- creates an active slice without requiring a separate full plan document when low-effort criteria pass
+- emits deterministic test intent and agent instructions
+- records the route decision and skipped gates
+
+If the item is ambiguous, high-risk, security-sensitive, architecture-sensitive, or touches protected behavior, Terrace refuses direct execution and requires `terrace plan next`.
+
+This is where Terrace can improve on GSD: roadmap execution is safe because typed state, policy, risk tags, and domain rules make the skip decision explicit and reviewable.
+
 ## State Machine
 
 The strict core manages legal transitions:
@@ -163,6 +218,95 @@ For each active slice, Terrace derives:
 
 The agent writes the actual tests using the project’s test framework. Terrace validates that the tests and RED evidence map back to the active test intent.
 
+## First-Class Rule Domains
+
+Terrace v1 treats security, architecture, pentesting, and maintainability as first-class rule domains, not optional prose in a planning document.
+
+Each domain has:
+
+- machine-readable rules
+- CLI commands
+- policy mode integration
+- evidence requirements
+- override path with decision-log entry
+- event log output
+- agent contract injection
+
+Domain rules live under:
+
+```text
+.terrace/rules/
+  security.json
+  architecture.json
+  pentest.json
+  maintainability.json
+  testing-trust.json
+```
+
+Rules are deterministic where possible and heuristic where necessary. Heuristic rules do not silently block by default unless policy marks them blocking.
+
+### Security Domain
+
+Primary commands:
+
+```bash
+terrace security check
+terrace security rules
+terrace security explain <rule-id>
+```
+
+Security covers dependency risk, secret exposure, unsafe configuration, dangerous auth/session changes, permissions drift, and protected-data handling. The security preset can wire external scanners such as Semgrep, Trivy, OSV, and Scorecard, but the strict core owns rule results, policy, and evidence.
+
+Security-critical findings cannot be bypassed by low-effort mode. They require resolution or an explicit decision-log override with scope and expiry.
+
+### Architecture Domain
+
+Primary commands:
+
+```bash
+terrace architecture check
+terrace architecture rules
+terrace architecture explain <rule-id>
+```
+
+Architecture covers module boundaries, layering, dependency direction, public API stability, state ownership, side-effect boundaries, and cross-cutting complexity. Architecture rules should be project-specific enough to avoid generic design theater.
+
+Architecture rules are generated from interrogation, steering, spec, and observed codebase shape. They are enforced during roadmap execution when a slice crosses module boundaries or changes shared contracts.
+
+### Pentesting Domain
+
+Primary commands:
+
+```bash
+terrace pentest plan
+terrace pentest run
+terrace pentest report
+```
+
+Pentesting is a controlled capability, not an uncontrolled exploit runner. v1 focuses on local, authorized project checks:
+
+- auth and authorization abuse cases
+- input validation probes
+- insecure direct object reference checks
+- SSRF/path traversal pattern checks where applicable
+- dependency and container exposure checks through configured tools
+
+Pentest commands require explicit project authorization in `.terrace/config.json`. Findings become regression/security test intent where possible.
+
+### Maintainability Domain
+
+Primary commands:
+
+```bash
+terrace maintainability check
+terrace maintainability rules
+terrace maintainability explain <rule-id>
+```
+
+Maintainability covers code complexity, duplication pressure, oversized files, unstable abstractions, low-signal tests, poor naming, unclear ownership, and missing observability around risky behavior.
+
+Maintainability findings are usually advisory in low-effort mode and blocking in strict mode only when the rule is tied to active slice success criteria or protected architecture rules.
+
 ## Port Layer
 
 Terrace should not discard the useful GSD-shaped workflow catalog. It should re-host it on the strict core.
@@ -225,6 +369,9 @@ packages/
     src/mutation/
     src/ui/
     src/security/
+    src/architecture/
+    src/pentest/
+    src/maintainability/
     tests/
 
   terrace-agent/
@@ -254,10 +401,12 @@ Substantial existing Terrace work should be migrated, not abandoned:
 - adversarial verifier
 - maintainer curator
 - TEA, mutation, UI, and security preset strategy
+- first-class security, architecture, pentesting, and maintainability rule domains
 - source donor audit
 - anti-slop ESLint design
 - usage/why routing concept
 - GSD command port taxonomy
+- `gsd quick` as the source pattern for `terrace quick`
 
 The migration rule: keep concepts and tests when they fit the strict kernel; rewrite implementation where current code assumes Markdown or process artifacts own truth.
 
@@ -270,6 +419,7 @@ The migration rule: keep concepts and tests when they fit the strict kernel; rew
 - broad platform adapter matrix
 - automatic product code generation by Terrace itself
 - comprehensive GSD parity before the strict kernel is proven
+- remote or third-party pentesting against systems the user does not own or control
 
 ## Success Criteria
 
@@ -281,7 +431,9 @@ Terrace v1 strict core is ready for personal use when:
 4. GREEN cannot pass unless configured project commands pass.
 5. Agent-written tests are evaluated against `testing-trust`, not volume or coverage alone.
 6. `terrace port gsd` can classify and migrate existing GSD-shaped artifacts without losing user-authored context.
-7. The full core test suite runs without an LLM.
+7. `terrace quick` can execute low-risk roadmap work without a full plan document while recording skipped gates and route rationale.
+8. Security, architecture, pentesting, and maintainability domains have rule files, command surfaces, and policy integration.
+9. The full core test suite runs without an LLM.
 
 ## Implementation Defaults
 
@@ -290,3 +442,5 @@ Terrace v1 strict core is ready for personal use when:
 - Initial stack detectors cover Node/package.json, Python/pyproject.toml, Rust/Cargo.toml, and generic shell repos.
 - `.terrace/events.jsonl` records one JSON object per command with `event_id`, `timestamp`, `command`, `from_state`, `to_state`, `result`, and `evidence_refs`.
 - The first `terrace port gsd` milestone includes command classification, artifact inventory, state migration preview, and a dry-run report before any write.
+- Low-effort mode is represented in state as an execution policy with skipped-gate evidence, not as an informal agent instruction.
+- First-class rule domains use a shared rule schema: `id`, `title`, `domain`, `scope`, `blocking`, `evaluation_method`, `policy_modes`, `required_evidence`, `warnings`, and `override`.
