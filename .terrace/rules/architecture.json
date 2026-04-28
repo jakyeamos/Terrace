@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "domain": "architecture",
+  "rules": [
+    {
+      "id": "ARCH-PUBLIC-CONTRACT",
+      "title": "Public contracts require compatibility notes",
+      "domain": "architecture",
+      "scope": "public-interface",
+      "blocking": false,
+      "evaluation_method": "heuristic",
+      "policy_modes": [
+        "strict",
+        "standard"
+      ],
+      "required_evidence": [
+        "compatibility_notes",
+        "migration_notes"
+      ],
+      "warnings": [
+        "public CLI/API change without docs or migration note"
+      ],
+      "override": {
+        "requires_decision_log": true
+      }
+    }
+  ]
+}

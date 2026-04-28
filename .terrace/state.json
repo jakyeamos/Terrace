@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "project": {
+    "name": "Terrace",
+    "created_at": "2026-04-28T23:10:07.559Z"
+  },
+  "workflow": {
+    "status": "initialized",
+    "mode": "strict",
+    "active_feature": null
+  },
+  "roadmap": {
+    "phases": []
+  },
+  "active_slice": null,
+  "red_gate": {
+    "status": "not_started",
+    "evidence": []
+  },
+  "green_gate": {
+    "status": "not_started",
+    "evidence": []
+  },
+  "protected_tests": [],
+  "decisions": [],
+  "sessions": []
+}

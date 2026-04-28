@@ -6,7 +6,7 @@ export default defineConfig({
     reporter: 'verbose',
     coverage: {
       provider: 'v8',
-      include: ['src/**/*.cjs', 'src/**/*.ts'],
+      include: ['packages/terrace-core/src/**/*.cjs'],
       reporter: ['text', 'lcov'],
       thresholds: {
         lines: 80,

@@ -27,8 +27,33 @@ const {
   explainRule,
   loadRules,
   executeRoadmapItem,
-  portGsdDryRun
+  portGsdDryRun,
+  portGsd
 } = require('../packages/terrace-core/src/index.cjs');
+
+const packageJson = require('../package.json');
+
+const HELP_TEXT = [
+  'Usage: terrace <command> [options]',
+  '',
+  'Commands:',
+  '  terrace init                 Initialize Terrace state in this repo',
+  '  terrace doctor               Diagnose Terrace installation health',
+  '  terrace spec validate        Validate governance artifacts',
+  '  terrace spec hash --file <path>',
+  '  terrace audit                Run governance audit checks',
+  '  terrace ci check [files...]  Run audit plus protected-change checks',
+  '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
+  '  terrace rule list            List installed rule packs',
+  '  terrace rule explain <id>    Explain a rule',
+  '  terrace preset list          List installed presets',
+  '  terrace preset install <id>  Install a preset',
+  '',
+  'Global options:',
+  '  --help, -h       Show this help',
+  '  --version, -v    Print Terrace version',
+  '  --json           Print machine-readable JSON where supported'
+].join('\n');
 
 function hasFlag(args, flag) {
   return args.includes(flag);
@@ -103,7 +128,18 @@ async function main() {
   const force = hasFlag(rawArgs, '--force');
   const yes = hasFlag(rawArgs, '--yes');
   const dryRun = hasFlag(rawArgs, '--dry-run');
-  const args = stripFlags(rawArgs, ['--json', '--force', '--yes', '--dry-run']);
+  const help = hasFlag(rawArgs, '--help') || hasFlag(rawArgs, '-h') || rawArgs[0] === 'help';
+  const version = hasFlag(rawArgs, '--version') || hasFlag(rawArgs, '-v');
+  const args = stripFlags(rawArgs, ['--json', '--force', '--yes', '--dry-run', '--help', '-h', '--version', '-v']);
+
+  if (version) {
+    output(packageJson.version, { json });
+    return;
+  }
+  if (help || rawArgs.length === 0) {
+    output(HELP_TEXT, { json: false });
+    return;
+  }
 
   const command = args[0];
   const cwd = process.cwd();
@@ -159,7 +195,8 @@ async function main() {
       const sub = args[1];
       if (sub === 'gsd') {
         if (!dryRun) {
-          fail('Usage: terrace port gsd --dry-run', { json });
+          output(portGsd(cwd, { force }), { json });
+          return;
         }
         output(portGsdDryRun(cwd), { json });
         return;

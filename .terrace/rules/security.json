@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "domain": "security",
+  "rules": [
+    {
+      "id": "SEC-CRITICAL",
+      "title": "Security-critical findings cannot be bypassed by low-effort mode",
+      "domain": "security",
+      "scope": "finding",
+      "blocking": true,
+      "evaluation_method": "deterministic",
+      "policy_modes": [
+        "strict",
+        "standard",
+        "low_effort"
+      ],
+      "required_evidence": [
+        "resolution_or_decision_log_override"
+      ],
+      "warnings": [],
+      "override": {
+        "requires_decision_log": true,
+        "requires_expiry": true
+      }
+    }
+  ]
+}

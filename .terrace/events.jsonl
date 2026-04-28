@@ -1,0 +1,1 @@
+{"event_id":"evt_1777417807587_5bf42636eb6ec","timestamp":"2026-04-28T23:10:07.587Z","command":"terrace init","from_state":"uninitialized","to_state":"initialized","result":"ok","evidence_refs":[".terrace/state.json",".terrace/config.json"]}

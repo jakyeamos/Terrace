@@ -26,7 +26,7 @@ hook_conflict_rules:
 - do not auto-delete unknown hooks
 
 policy_mode_transparency:
-- expose active mode in project-state.json
+- expose active mode in state.json
 - keep mode transitions explicit and auditable
 
 trust_model:

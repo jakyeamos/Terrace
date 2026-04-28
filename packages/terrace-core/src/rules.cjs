@@ -32,9 +32,48 @@ const DEFAULT_RULES = {
       override: { requires_decision_log: true, requires_expiry: true }
     }
   ],
-  architecture: [],
-  pentest: [],
-  maintainability: []
+  architecture: [
+    {
+      id: 'ARCH-PUBLIC-CONTRACT',
+      title: 'Public contracts require compatibility notes',
+      domain: 'architecture',
+      scope: 'public-interface',
+      blocking: false,
+      evaluation_method: 'heuristic',
+      policy_modes: ['strict', 'standard'],
+      required_evidence: ['compatibility_notes', 'migration_notes'],
+      warnings: ['public CLI/API change without docs or migration note'],
+      override: { requires_decision_log: true }
+    }
+  ],
+  pentest: [
+    {
+      id: 'PENTEST-AUTHORIZED-SCOPE',
+      title: 'Pentest activity requires explicit authorized scope',
+      domain: 'pentest',
+      scope: 'security-test',
+      blocking: true,
+      evaluation_method: 'deterministic',
+      policy_modes: ['strict', 'standard', 'low_effort'],
+      required_evidence: ['authorized_target', 'scope_boundary'],
+      warnings: [],
+      override: { requires_decision_log: true, requires_expiry: true }
+    }
+  ],
+  maintainability: [
+    {
+      id: 'MAINT-QUALITY-LADDER',
+      title: 'Quality ladder must stay executable',
+      domain: 'maintainability',
+      scope: 'repository',
+      blocking: false,
+      evaluation_method: 'heuristic',
+      policy_modes: ['strict', 'standard'],
+      required_evidence: ['lint', 'typecheck', 'tests'],
+      warnings: ['missing canonical quality command'],
+      override: { requires_decision_log: false }
+    }
+  ]
 };
 
 function defaultRuleFiles() {
@@ -83,6 +122,16 @@ function checkRules(cwd, input) {
         domain: finding.domain,
         rule_id: finding.rule_id,
         message: finding.message,
+        mode
+      });
+      continue;
+    }
+    if (finding.domain === 'pentest' && !finding.authorized_scope) {
+      blocking.push({
+        code: 'PENTEST_WITHOUT_AUTHORIZED_SCOPE',
+        domain: finding.domain,
+        rule_id: finding.rule_id || 'PENTEST-AUTHORIZED-SCOPE',
+        message: finding.message || 'Pentest finding requires authorized_scope evidence',
         mode
       });
       continue;

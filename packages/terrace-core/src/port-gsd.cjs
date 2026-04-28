@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { createDefaultState, saveState } = require('./state.cjs');
 
 const COMMAND_STRATEGIES = {
   improved: ['gsd-new-project', 'gsd-discuss-phase', 'gsd-plan-phase', 'gsd-execute-phase', 'gsd-quick'],
@@ -41,8 +42,40 @@ function portGsdDryRun(cwd) {
   };
 }
 
+function portGsd(cwd, options) {
+  const opts = options || {};
+  const artifacts = portGsdDryRun(cwd).artifacts;
+  const statePath = path.resolve(cwd, '.terrace', 'state.json');
+
+  if (fs.existsSync(statePath) && !opts.force) {
+    throw new Error('.terrace/state.json already exists. Re-run with --force to overwrite migration state.');
+  }
+
+  const state = createDefaultState({ projectName: path.basename(cwd) });
+  state.workflow.status = 'intake_recorded';
+  state.migration = {
+    source: 'gsd',
+    migrated_at: new Date().toISOString(),
+    artifacts
+  };
+  saveState(cwd, state);
+
+  const report = {
+    mode: 'migration',
+    artifacts,
+    skipped: [],
+    writes: ['.terrace/state.json', '.terrace/migration/gsd-port-report.json']
+  };
+  const reportPath = path.resolve(cwd, '.terrace', 'migration', 'gsd-port-report.json');
+  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n', 'utf8');
+
+  return report;
+}
+
 module.exports = {
   COMMAND_STRATEGIES,
   classifyGsdCommand,
-  portGsdDryRun
+  portGsdDryRun,
+  portGsd
 };
