@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run ci; npm run typecheck; npm run lint; npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; npm test -- tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts
-lastVerifiedAt: "2026-04-29T15:39:17-04:00"
+lastVerifiedCommand: npm run ci; npm run typecheck; npm run lint; npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; npm test -- tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts; npm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts
+lastVerifiedAt: "2026-04-29T15:52:02-04:00"
 ---
 
 ## Current State
@@ -89,6 +89,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Implemented deterministic placeholder-command analysis with bundled `fast-glob`, `ignore`, and `yaml`; added repo/security/artifact helper modules; wired `terrace security check`; normalized static/imported AI reviews; replaced TODO-heavy lifecycle, docs, codebase, backfill, workstream, design-source, and UI drafts with repo-derived content.
 - April 29: Stabilized the full lifecycle ship-category test under the complete CI chain and reran all public npm v0.1 release gates successfully.
 - April 29: Added adoption-risk mitigations for ship-check modes/timings, ceremony evidence density, GSD migration compare/parity verification, rule effectiveness, explicit waivers, and GSD shadow test branches.
+- April 29: Hardened timeout budgets for CLI-heavy and package/ship tests after nested ship checks proved sensitive to loaded developer machines.
 
 ## Open Problems
 
@@ -111,6 +112,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Report:** `terrace report --json` PASS, score 100, status `tier_one_ready`
 - **Ship:** `terrace ship check --json` PASS, zero blockers and zero warnings
 - **Focused adoption-risk tests:** `npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts` PASS; final focused rerun for GSD compare and ship modes PASS
+- **CLI-heavy timeout hardening tests:** `npm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts` PASS, 50 tests
 - **Git status:** clean on `codex/tier-one-external-product` after implementation commit and before this truth-file update
 
 ## Next Concrete Steps
