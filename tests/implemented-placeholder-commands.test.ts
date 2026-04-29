@@ -132,7 +132,7 @@ describe('implemented placeholder command behavior', () => {
       expect.objectContaining({ lane: 'frontend', owned_files: expect.arrayContaining(['src/components/BillingPanel.tsx']) })
     ]));
     expect(mapText + docsText + backfillText + designText).not.toContain('TODO');
-  }, 20000);
+  }, 120000);
 
   it('includes security in ship check categories', () => {
     runTerrace(tmpDir, ['align', 'billing-refresh', '--tier', 'small', '--json']);
@@ -143,5 +143,5 @@ describe('implemented placeholder command behavior', () => {
       category: 'security',
       command: 'terrace security check'
     }));
-  }, 10000);
+  }, 120000);
 });

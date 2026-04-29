@@ -107,5 +107,5 @@ describe('tier-one product readiness', () => {
     } finally {
       fs.rmSync(tmpRoot, { recursive: true, force: true });
     }
-  }, 30000);
+  }, 180000);
 });

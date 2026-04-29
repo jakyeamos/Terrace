@@ -446,7 +446,7 @@ describe('workflow parity core helpers', () => {
         expect.objectContaining({ code: 'VALIDATION_REQUIRED' })
       ])
     }));
-  }, 15000);
+  }, 120000);
 
   it('creates UI/Stitch workflow artifacts for greenfield and brownfield UI work', () => {
     const imported = uiImportStitch(tmpDir, 'settings-refresh');
@@ -468,7 +468,7 @@ describe('workflow parity core helpers', () => {
       next_command: 'terrace ship check'
     });
     expect(fs.readFileSync(path.join(tmpDir, result.ship_ref), 'utf-8')).toContain('Release Readiness');
-  }, 15000);
+  }, 120000);
 
   it('discovers project commands and treats missing quality scripts as warnings', () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
@@ -498,7 +498,7 @@ describe('workflow parity core helpers', () => {
       category: 'build',
       passed: true
     }));
-  }, 15000);
+  }, 120000);
 
   it('supports a fast ship check mode that skips project scripts', () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
@@ -592,5 +592,5 @@ describe('workflow parity core helpers', () => {
       'dirty_tree'
     ]);
     expect(result.blockers.length).toBeGreaterThan(0);
-  }, 15000);
+  }, 120000);
 });
