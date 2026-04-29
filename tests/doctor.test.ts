@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { runDoctor } = require('../src/lib/doctor.cjs');
+const { initCore, runDoctor } = require('../packages/terrace-core/src/index.cjs');
 
 type DoctorResult = {
   blocking: Array<{ code: string; message: string; remediation: string }>;
@@ -36,7 +36,7 @@ describe('terrace doctor diagnostics (CLI-10, OPS-08 through OPS-14)', () => {
     });
   });
 
-  it('reports MISSING_PROJECT_STATE as blocking error when .terrace/ exists but project-state.json does not', () => {
+  it('reports MISSING_PROJECT_STATE as blocking error when .terrace/ exists but state.json does not', () => {
     fs.mkdirSync(path.join(tmpDir, '.terrace'), { recursive: true });
     const result = runDoctor(tmpDir) as DoctorResult;
     const hasError = result.blocking.some((e) => e.code === 'MISSING_PROJECT_STATE');
@@ -44,11 +44,7 @@ describe('terrace doctor diagnostics (CLI-10, OPS-08 through OPS-14)', () => {
   });
 
   it('reports healthy:true and no blocking errors when minimal valid install exists', () => {
-    fs.mkdirSync(path.join(tmpDir, '.terrace', 'presets'), { recursive: true });
-    fs.writeFileSync(path.join(tmpDir, '.terrace', 'project-state.json'), JSON.stringify({
-      phase: 'intake', spec_hash: null, active_slice: null, last_session: null, policy_mode: 'standard'
-    }), 'utf-8');
-    fs.writeFileSync(path.join(tmpDir, '.terrace', 'presets', 'registry.json'), JSON.stringify({ version: '1.0', presets: [] }), 'utf-8');
+    initCore(tmpDir, { projectName: 'doctor-test' });
     const result = runDoctor(tmpDir) as DoctorResult;
     expect(result.blocking).toHaveLength(0);
     expect(result.healthy).toBe(true);

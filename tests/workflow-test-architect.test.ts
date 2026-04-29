@@ -52,7 +52,7 @@ describe('test architect workflow tri-modal step files (WKFL-06)', () => {
   });
 
   it('TEST-ARCH.md template maps requirement IDs to test layers with p0|p1|p2|p3 risk score (WKFL-06, TMPL-03)', () => {
-    const testArchTemplate = path.resolve(process.cwd(), 'src/templates/TEST-ARCH.md');
+    const testArchTemplate = path.resolve(process.cwd(), 'packages/terrace-core/templates/TEST-ARCH.md');
     expect(fs.existsSync(testArchTemplate)).toBe(true);
     const content = fs.readFileSync(testArchTemplate, 'utf-8');
     // Must contain risk score notation p0, p1, p2, or p3
@@ -61,7 +61,7 @@ describe('test architect workflow tri-modal step files (WKFL-06)', () => {
   });
 
   it('TEST-ARCH.md template has ci_tier field in requirement entries (WKFL-06)', () => {
-    const testArchTemplate = path.resolve(process.cwd(), 'src/templates/TEST-ARCH.md');
+    const testArchTemplate = path.resolve(process.cwd(), 'packages/terrace-core/templates/TEST-ARCH.md');
     expect(fs.existsSync(testArchTemplate)).toBe(true);
     const content = fs.readFileSync(testArchTemplate, 'utf-8');
     expect(content, 'TEST-ARCH.md must contain ci_tier field').toContain('ci_tier');

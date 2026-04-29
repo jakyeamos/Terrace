@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "domain": "testing-trust",
+  "rules": [
+    {
+      "id": "testing-trust",
+      "title": "Do Not Treat Test Volume as Trust",
+      "domain": "testing-trust",
+      "scope": "task-type",
+      "blocking": false,
+      "evaluation_method": "heuristic",
+      "policy_modes": [
+        "strict",
+        "standard",
+        "low_effort"
+      ],
+      "required_evidence": [
+        "protected_invariants",
+        "failure_modes"
+      ],
+      "warnings": [
+        "coverage percentage without invariant reasoning"
+      ],
+      "override": {
+        "requires_decision_log": false
+      }
+    }
+  ]
+}

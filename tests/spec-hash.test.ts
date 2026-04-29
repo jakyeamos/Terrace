@@ -7,6 +7,7 @@ import { execFileSync } from 'child_process';
 
 const TERRACE_CLI = path.resolve(process.cwd(), 'src/terrace-tools.cjs');
 const NODE_BIN = process.execPath;
+const { computeSpecHash } = require('../packages/terrace-core/src/index.cjs') as { computeSpecHash: (content: string) => string };
 
 describe('spec hash computation (OPS-03, OPS-04)', () => {
   let tmpDir: string;
@@ -19,74 +20,38 @@ describe('spec hash computation (OPS-03, OPS-04)', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('computeSpecHash is callable from src/lib/spec-hash.cjs', () => {
-    const { computeSpecHash } = require('../src/lib/spec-hash.cjs') as { computeSpecHash: unknown };
+  it('computeSpecHash is callable from terrace-core', () => {
     expect(typeof computeSpecHash).toBe('function');
   });
 
   it('computeSpecHash strips blank lines before hashing (OPS-03, D-18)', () => {
-    let computeSpecHash: ((content: string) => string) | undefined;
-    try {
-      ({ computeSpecHash } = require('../src/lib/spec-hash.cjs') as { computeSpecHash: typeof computeSpecHash });
-    } catch {
-      expect(false, 'spec-hash.cjs does not exist yet — computeSpecHash cannot be called (OPS-03)').toBe(true);
-      return;
-    }
     const withBlanks = 'line one\n\nline two\n\n\nline three';
     const withoutBlanks = 'line one\nline two\nline three';
-    expect(computeSpecHash!(withBlanks)).toBe(computeSpecHash!(withoutBlanks));
+    expect(computeSpecHash(withBlanks)).toBe(computeSpecHash(withoutBlanks));
   });
 
   it('computeSpecHash strips trailing whitespace per line (OPS-03, D-18)', () => {
-    let computeSpecHash: ((content: string) => string) | undefined;
-    try {
-      ({ computeSpecHash } = require('../src/lib/spec-hash.cjs') as { computeSpecHash: typeof computeSpecHash });
-    } catch {
-      expect(false, 'spec-hash.cjs does not exist yet — computeSpecHash cannot be called (OPS-03)').toBe(true);
-      return;
-    }
     const withTrailing = 'line one   \nline two  \nline three\t';
     const withoutTrailing = 'line one\nline two\nline three';
-    expect(computeSpecHash!(withTrailing)).toBe(computeSpecHash!(withoutTrailing));
+    expect(computeSpecHash(withTrailing)).toBe(computeSpecHash(withoutTrailing));
   });
 
   it('computeSpecHash strips comment-only lines matching /^\\s*<!--.*-->\\s*$/ (OPS-03, D-18)', () => {
-    let computeSpecHash: ((content: string) => string) | undefined;
-    try {
-      ({ computeSpecHash } = require('../src/lib/spec-hash.cjs') as { computeSpecHash: typeof computeSpecHash });
-    } catch {
-      expect(false, 'spec-hash.cjs does not exist yet — computeSpecHash cannot be called (OPS-03)').toBe(true);
-      return;
-    }
     const withComments = 'line one\n<!-- this is a comment -->\nline two\n  <!-- another comment -->  \nline three';
     const withoutComments = 'line one\nline two\nline three';
-    expect(computeSpecHash!(withComments)).toBe(computeSpecHash!(withoutComments));
+    expect(computeSpecHash(withComments)).toBe(computeSpecHash(withoutComments));
   });
 
   it('computeSpecHash excludes the last_updated YAML frontmatter field (OPS-03, D-18)', () => {
-    let computeSpecHash: ((content: string) => string) | undefined;
-    try {
-      ({ computeSpecHash } = require('../src/lib/spec-hash.cjs') as { computeSpecHash: typeof computeSpecHash });
-    } catch {
-      expect(false, 'spec-hash.cjs does not exist yet — computeSpecHash cannot be called (OPS-03)').toBe(true);
-      return;
-    }
     const withDate1 = '---\nspec_version: 1.0\nlast_updated: 2026-01-01\nproject: foo\n---\n# Content\nSame body.';
     const withDate2 = '---\nspec_version: 1.0\nlast_updated: 2026-12-31\nproject: foo\n---\n# Content\nSame body.';
-    expect(computeSpecHash!(withDate1)).toBe(computeSpecHash!(withDate2));
+    expect(computeSpecHash(withDate1)).toBe(computeSpecHash(withDate2));
   });
 
   it('two inputs differing only in whitespace produce the same hash (OPS-03)', () => {
-    let computeSpecHash: ((content: string) => string) | undefined;
-    try {
-      ({ computeSpecHash } = require('../src/lib/spec-hash.cjs') as { computeSpecHash: typeof computeSpecHash });
-    } catch {
-      expect(false, 'spec-hash.cjs does not exist yet — computeSpecHash cannot be called (OPS-03)').toBe(true);
-      return;
-    }
     const input1 = '# Title\n\nSection content here.\n\nAnother section.\n';
     const input2 = '# Title\nSection content here.\nAnother section.';
-    expect(computeSpecHash!(input1)).toBe(computeSpecHash!(input2));
+    expect(computeSpecHash(input1)).toBe(computeSpecHash(input2));
   });
 
   it('terrace spec hash --file <path> CLI command is recognized (OPS-04, D-19)', () => {

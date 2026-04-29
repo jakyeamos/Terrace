@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "domain": "maintainability",
+  "rules": [
+    {
+      "id": "MAINT-QUALITY-LADDER",
+      "title": "Quality ladder must stay executable",
+      "domain": "maintainability",
+      "scope": "repository",
+      "blocking": false,
+      "evaluation_method": "heuristic",
+      "policy_modes": [
+        "strict",
+        "standard"
+      ],
+      "required_evidence": [
+        "lint",
+        "typecheck",
+        "tests"
+      ],
+      "warnings": [
+        "missing canonical quality command"
+      ],
+      "override": {
+        "requires_decision_log": false
+      }
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { installPreset, listPresets } = require('../src/lib/preset.cjs');
+const { installPreset, listPresets } = require('../packages/terrace-core/src/index.cjs');
 
 type PresetManifest = {
   id: string;

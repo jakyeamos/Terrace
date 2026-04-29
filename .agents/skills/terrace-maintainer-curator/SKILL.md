@@ -6,8 +6,8 @@ purpose: "Curate regression capture, decision-log updates, and session-memory ha
 allowed_outputs:
   - "docs/spec/DECISION-LOG.md"
   - "docs/spec/REGRESSIONS.md"
-  - ".terrace/baseline-registry.json"
-  - ".planning/sessions/SESSION.md"
+  - ".terrace/state.json"
+  - ".terrace/sessions/SESSION.md"
 forbidden_actions:
   - "Do not change implementation code"
   - "Do not weaken policy mode"
@@ -20,13 +20,13 @@ handoff_behavior: "Record what changed, why it changed, and which regression tes
 artifact_ownership:
   owned:
     - "docs/spec/REGRESSIONS.md"
-    - ".planning/sessions/SESSION.md"
+    - ".terrace/sessions/SESSION.md"
   edits:
     - "docs/spec/DECISION-LOG.md"
-    - ".terrace/baseline-registry.json"
+    - ".terrace/state.json"
 fragment_index_ref: "fragments/fragment-index.json"
 ---
 
 ## Workflow
 
-Read `.terrace/steering.md` before any other step. For each accepted adversarial finding, update `docs/spec/REGRESSIONS.md`, register any new protected tests in `.terrace/baseline-registry.json`, and append the session handoff with remaining risks and next slice.
+Read `.terrace/steering.md` before any other step. For each accepted adversarial finding, update `docs/spec/REGRESSIONS.md`, register any new protected tests through `terrace baseline protect`, and append the session handoff with remaining risks and next slice.

@@ -53,7 +53,7 @@ describe('spec compiler workflow tri-modal step files (WKFL-04, WKFL-05)', () =>
 
   it('COMPILED-SPEC.md output has YAML frontmatter with all required fields (WKFL-04, TMPL-02)', () => {
     // The COMPILED-SPEC.md template must exist with required frontmatter fields
-    const compiledSpecTemplate = path.resolve(process.cwd(), 'src/templates/COMPILED-SPEC.md');
+    const compiledSpecTemplate = path.resolve(process.cwd(), 'packages/terrace-core/templates/COMPILED-SPEC.md');
     expect(fs.existsSync(compiledSpecTemplate)).toBe(true);
     const content = fs.readFileSync(compiledSpecTemplate, 'utf-8');
     const requiredFields = [

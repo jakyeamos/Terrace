@@ -2,97 +2,38 @@
 
 ## What This Is
 
-Terrace is an automatic effort router with built-in usage intelligence for AI-assisted projects. It is a fork and evolution of GSD, hardening GSD's planning and execution machinery with a governance layer that chooses the cheapest safe path automatically, then escalates only when drift, ambiguity, or risk justify the cost. It installs into Claude Code and is designed to eventually be usable across other AI coding environments (Codex, Cursor, Ollama, and others).
+Terrace is a standalone strict-core workflow system for single-developer, spec-driven, TDD-driven AI-assisted project work. The runtime truth lives in `packages/terrace-core`, and project state is stored in `.terrace/state.json`.
 
 ## Core Value
 
-Every session leaves the repo more legible and less fragile than before, while spending the minimum effort necessary to stay aligned — through durable specs, protected tests, selective governance, and enforced alignment between intent and implementation.
+Every implementation slice should be recoverable from repo state, tied to spec intent, protected by meaningful tests, and cheap to execute when deterministic rules make the work low risk.
 
-## Requirements
+## Validated
 
-### Validated
+- [x] `packages/terrace-core` owns state, events, rules, gates, roadmap execution, GSD migration, spec hashing, protected baselines, decisions, sessions, validation, presets, audit/CI checks, fragments, and health checks.
+- [x] The CLI delegates runtime behavior to `terrace-core` and exposes help/version output.
+- [x] GitNexus generated instructions and local index artifacts were removed.
+- [x] The repo dogfoods Terrace via `.terrace/state.json`; `terrace doctor` and `terrace audit` are healthy.
+- [x] npm packaging is allowlisted and excludes local planning, tests, tracker, agent settings, and stale integration artifacts.
+- [x] `npm run ci` passes locally with typecheck, lint, tests, coverage, and package dry-run.
+- [x] `terrace port gsd` converts core GSD artifacts into Terrace docs/state and reports unsupported files for review.
 
-- [x] Durable artifact set: `docs/prd/`, `docs/spec/`, `docs/testing/`, `.terrace/`, and `.planning/sessions/` are created and validated by the CLI
-- [x] Spec governance workflow scaffold: intake, interrogation, spec compilation, test architecture, protected baseline, adversarial review, regression capture, and handoff roles exist
-- [x] Protected test policy: baseline tests require a linked `spec_ref` and a matching decision-log entry before protected changes are allowed
-- [x] Decision log enforcement: behavioral changes can be recorded with `terrace decision log --spec-ref <SPEC-ID>`
-- [x] Session start/end protocol: context can be reconstructed from repo artifacts through `terrace session reconstruct`
-- [x] Built-in preset registry: `terrace-tea`, `terrace-mutation`, `terrace-ui`, and `terrace-security` install through the preset registry
+## Active
 
-### Active
-
-- [ ] Automatic task classification: Terrace routes each command to the cheapest safe effort band by default
-- [ ] Local analyzer first: deterministic preprocessing handles diffing, registry checks, freshness, and impacted-artifact detection before model escalation
-- [ ] Full fixture matrix hardening for every governance command across all four fixture repos
-- [ ] Deep governance passes are trigger-based, not default
-- [ ] Low-effort roadmap execution: `terrace quick` and `terrace roadmap execute` can run bounded roadmap items without full plan documents when deterministic standards make that safe
-- [ ] First-class security, architecture, pentesting, and maintainability rule domains with CLI commands, policy integration, and evidence requirements
-- [ ] Explore / inspect / understand commands are hard-capped at low effort unless explicitly escalated
-- [ ] `/terrace-usage` and `/terrace-why` expose routing cost and rationale on demand
-- [ ] Agent mode system hardening: explicit runtime switching between Spec Interrogator, Spec Compiler, Test Architect, Baseline Test Builder, Builder, Verifier/Adversary, Maintainer roles
-- [ ] Multi-platform portability: core workflow designed to be AI-tool-agnostic (platform strategy TBD, v2+)
-- [ ] Installable as a framework: can be added to a Claude Code setup the way GSD is installed
-
-### Out of Scope
-
-- Autonomous code generation without spec and test anchors — Terrace enforces governance, not raw generation
-- Running tests — that is the repo's own CI/test tooling; Terrace governs what tests must exist, not how they execute
-- Project management / ticket tracking / sprint coordination — not a team PM tool
-- Replacing GSD — Terrace merges GSD's best structural ideas rather than discarding them
-- Multi-platform adapter implementation in v1 — platform portability is a goal but the strategy is undecided; v1 targets Claude Code
-- Manual lite / standard / deep mode selection as the normal UX — routing is automatic-first
-
-## Context
-
-- Built on a GSD fork as the baseline — inherits GSD's phase/plan/execute architecture, skill system, and planning directory conventions
-- The governing PRD defines 7 phases (Intake, Interrogation, Spec Compilation, Test Architecture, Protected Baseline, Vertical Slice, Adversarial Review) and 7 explicit agent modes, but Terrace routes most work automatically before those deeper steps fire
-- Primary motivation: AI-assisted projects naturally drift across sessions; Terrace counters this with spec artifacts, protected tests, enforced change-control, and effort ceilings that avoid wasting tokens on routine work
-- Personal use first; open source release is the eventual target
-- User regularly works across Claude Code, Codex, Cursor, Ollama — multi-platform portability is a real constraint, not a nice-to-have
-
-## Constraints
-
-- **Baseline**: GSD fork — must retain compatibility with GSD's skill/workflow infrastructure where possible
-- **Platform**: v1 targets Claude Code; multi-platform is out of scope until architecture is decided
-- **Philosophy**: No meaningful implementation begins until ambiguity is reduced enough that another builder could execute without hidden context, but Terrace should spend the minimum effort required to get there
-- **TDD**: Terrace is built test-first — no production code is written without a prior failing test; for multi-phase execution this is enforced as phase-delta RED first while prior-phase baseline tests remain green unless intentionally changed
-- **Protected tests**: Cannot be weakened to get green CI — must link to spec delta and decision log
-- **TypeScript strict mode**: All TypeScript in the framework must use strict mode
-- **Routing**: Explore-class commands and inspection flows default to low effort; higher effort requires a trigger, not a preference
+- [ ] Expand GSD migration beyond core artifact conversion into per-phase plans, decision history, and session history.
+- [ ] Replace remaining prose-heavy agent instructions with core-backed command contracts.
+- [ ] Decide how to handle the moderate PostCSS advisory in the dev dependency tree.
+- [ ] Add deeper fixture e2e coverage for installed packed CLI workflows.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Fork GSD as baseline | GSD provides proven phase/plan/execute machinery; rebuilding from scratch adds no value | — Pending |
-| Merge governance into GSD, not replace it | GSD's execution strengths + Terrace's selective governance > either alone | — Pending |
-| Automatic effort routing over manual mode selection | Users should not have to think in lite / standard / deep terms; Terrace should infer the cheapest safe path | — Pending |
-| Deterministic local analysis before model escalation | Diffing, registry checks, freshness, and impacted-artifact detection should happen locally first | — Pending |
-| Pre-build + post-build governance passes are trigger-based | "Both" structure still exists, but deep passes only fire when signals justify them | — Pending |
-| Multi-platform strategy deferred to v2 | Platform adapter architecture is unknown; shipping v1 in Claude Code first reduces speculative complexity | — Pending |
-| TDD for all Terrace development | Terrace enforces test-first governance on target repos — it must hold itself to the same standard; eat your own dog food | — Active |
-| Phases 3-6 completed as compact readiness slice | The remaining roadmap needed a usable local framework surface more than historical per-plan ceremony | — Active |
-| Standalone strict core direction approved | Terrace will keep GSD workflow strengths but move truth and gates into a deterministic `.terrace/state.json` kernel with a first-class `terrace port gsd` layer | — Active |
-| Low-effort mode is a product feature, not a bypass | Terrace should execute bounded roadmap work quickly when deterministic state, rule domains, and risk tags make full phase planning unnecessary | — Active |
-| Security, architecture, pentesting, and maintainability are first-class domains | These rule families need command surfaces and policy integration alongside testing trust rather than living as prose-only guidance | — Active |
-| Strict core scaffold implemented | `packages/terrace-core` now owns deterministic state, events, rules, gates, low-effort roadmap execution, and GSD port dry-run classification | — Active |
-
-## Evolution
-
-This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd:transition` or equivalent):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
-
-**After each milestone** (via `/gsd:complete-milestone` or equivalent):
-1. Full review of all sections
-2. Core Value check — still the right priority?
-3. Audit Out of Scope — reasons still valid?
-4. Update Context with current state
+| Strict core is the source of truth | Avoid split-brain state between `.planning`, `project-state.json`, and runtime code | Implemented via `.terrace/state.json` |
+| Keep npm package allowlisted | Prevent local planning/tracker/agent files from shipping | Implemented in `package.json#files` |
+| Legacy behavior must be re-hosted, not wrapped | Wrappers preserve old architecture; extraction makes the product standalone | Active |
+| GitNexus is not part of Terrace core | Broken generated integration instructions created workflow friction and are not needed for the standalone core | Implemented |
+| Hard product gates define readiness | Tier-one progress should be blocked by quality, packaging, and docs gates | Implemented via `npm run ci` |
 
 ---
-*Last updated: 2026-04-28 after strict core scaffold implementation*
+*Last updated: 2026-04-28 after mitigating the core GSD port coding gap*

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "commands": {
+    "test_command": "npm test",
+    "typecheck_command": "npm run typecheck",
+    "lint_command": "npm run lint"
+  },
+  "pentest_authorized": false,
+  "execution_policy": {
+    "default_mode": "strict",
+    "allow_low_effort": true
+  }
+}

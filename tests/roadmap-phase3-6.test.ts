@@ -3,15 +3,21 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { cmdInit } = require('../src/lib/init.cjs');
-const { protectBaseline, baselineStatus, enforceProtectedChanges } = require('../src/lib/baseline.cjs');
-const { evaluatePolicy } = require('../src/lib/policy.cjs');
-const { addDecision } = require('../src/lib/decision-log.cjs');
-const { runAudit } = require('../src/lib/audit.cjs');
-const { runCiCheck } = require('../src/lib/ci.cjs');
-const { startSession, endSession, reconstructSession } = require('../src/lib/session.cjs');
-const { migrateArtifacts } = require('../src/lib/migrate.cjs');
-const { installBuiltInPreset } = require('../src/lib/built-in-presets.cjs');
+const {
+  initCore,
+  protectBaseline,
+  baselineStatus,
+  enforceProtectedChanges,
+  evaluatePolicy,
+  addDecision,
+  runAudit,
+  runCiCheck,
+  startSession,
+  endSession,
+  reconstructSession,
+  migrateArtifacts,
+  installBuiltInPreset
+} = require('../packages/terrace-core/src/index.cjs');
 
 function extractFrontmatter(content: string): Record<string, string> {
   const lines = content.split('\n');
@@ -34,7 +40,7 @@ describe('Phase 3 through Phase 6 roadmap readiness', () => {
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'terrace-roadmap-test-'));
-    cmdInit(tmpDir, { force: false, yes: true });
+    initCore(tmpDir, { projectName: 'roadmap-test' });
     fs.mkdirSync(path.join(tmpDir, 'tests'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, 'tests', 'protected.test.ts'), 'it("works", () => {})\n', 'utf-8');
     fs.writeFileSync(path.join(tmpDir, 'docs', 'testing', 'TEST-ARCH.md'), 'req_id: SPEC-1\nspec_ref: SPEC-1\nfile: tests/protected.test.ts\nci_tier: local\nrisk: p1\n', 'utf-8');
@@ -96,13 +102,13 @@ describe('Phase 3 through Phase 6 roadmap readiness', () => {
 
     const ended = endSession(tmpDir, {
       decisions: ['Recorded lifecycle behavior'],
-      filesChanged: ['src/lib/session.cjs'],
+      filesChanged: ['packages/terrace-core/src/session.cjs'],
       nextSlice: 'phase-6'
     });
     expect(ended.file).toBe(started.file);
 
     const reconstructed = reconstructSession(tmpDir);
-    expect(reconstructed.current_phase).toBeTruthy();
+    expect(reconstructed.workflow_status).toBeTruthy();
     expect(reconstructed.last_session).toContain('phase-6');
   });
 

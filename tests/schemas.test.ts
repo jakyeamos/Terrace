@@ -4,60 +4,140 @@ import * as path from 'path';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
-const SCHEMAS_DIR = path.resolve(process.cwd(), 'src/schemas');
+const SCHEMAS_DIR = path.resolve(process.cwd(), 'packages/terrace-core/schemas');
 
-describe('JSON Schema: project-state.schema.json (TMPL-12, LIFE-01 through LIFE-06)', () => {
+describe('JSON Schema: state.schema.json', () => {
   let schema: Record<string, unknown>;
   let ajv: Ajv;
 
   beforeAll(() => {
     ajv = new Ajv({ allErrors: true });
     addFormats(ajv);
-    schema = JSON.parse(fs.readFileSync(path.join(SCHEMAS_DIR, 'project-state.schema.json'), 'utf-8'));
+    schema = JSON.parse(fs.readFileSync(path.join(SCHEMAS_DIR, 'state.schema.json'), 'utf-8'));
   });
 
-  it('schema file exists at src/schemas/project-state.schema.json', () => {
-    expect(fs.existsSync(path.join(SCHEMAS_DIR, 'project-state.schema.json'))).toBe(true);
+  it('schema file exists at packages/terrace-core/schemas/state.schema.json', () => {
+    expect(fs.existsSync(path.join(SCHEMAS_DIR, 'state.schema.json'))).toBe(true);
   });
 
-  it('schema requires all 5 Phase 1 fields: phase, spec_hash, active_slice, last_session, policy_mode', () => {
+  it('schema requires strict-core top-level state fields', () => {
     const required = (schema as { required?: string[] }).required ?? [];
-    expect(required).toEqual(expect.arrayContaining(['phase', 'spec_hash', 'active_slice', 'last_session', 'policy_mode']));
+    expect(required).toEqual(expect.arrayContaining(['workflow', 'roadmap', 'active_slice', 'red_gate', 'green_gate', 'protected_tests']));
   });
 
-  it('validates a correct project-state object', () => {
+  it('validates a correct strict-core state object', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({ phase: 'intake', spec_hash: null, active_slice: null, last_session: null, policy_mode: 'standard' });
+    const valid = validate({
+      schema_version: '1.0',
+      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
+      workflow: { status: 'initialized', mode: 'strict', active_feature: null },
+      roadmap: { phases: [] },
+      active_slice: null,
+      red_gate: {},
+      green_gate: {},
+      protected_tests: [],
+      decisions: [],
+      sessions: [],
+      migration: { source: 'gsd', converted: [] },
+      handoff: null,
+      backlog: { items: [] },
+      blocked_actions: []
+    });
     expect(valid).toBe(true);
   });
 
-  it('rejects invalid policy_mode value', () => {
+  it('schema declares migrated GSD compatibility fields', () => {
+    const required = (schema as { required?: string[] }).required ?? [];
+    const properties = (schema as { properties?: Record<string, unknown> }).properties ?? {};
+
+    expect(required).toEqual(expect.arrayContaining(['backlog', 'blocked_actions']));
+    expect(properties).toHaveProperty('migration');
+    expect(properties).toHaveProperty('handoff');
+    expect(properties).toHaveProperty('backlog');
+    expect(properties).toHaveProperty('blocked_actions');
+    expect(properties).toHaveProperty('quick_tasks');
+  });
+
+  it('rejects invalid workflow mode value', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({ phase: 'intake', spec_hash: null, active_slice: null, last_session: null, policy_mode: 'invalid-mode' });
+    const valid = validate({
+      schema_version: '1.0',
+      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
+      workflow: { status: 'initialized', mode: 'invalid-mode', active_feature: null },
+      roadmap: { phases: [] },
+      active_slice: null,
+      red_gate: {},
+      green_gate: {},
+      protected_tests: [],
+      decisions: [],
+      sessions: [],
+      backlog: { items: [] },
+      blocked_actions: []
+    });
     expect(valid).toBe(false);
   });
 
-  it('rejects unknown phase value', () => {
+  it('rejects unknown workflow status value', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({ phase: 'nonexistent-phase', spec_hash: null, active_slice: null, last_session: null, policy_mode: 'standard' });
+    const valid = validate({
+      schema_version: '1.0',
+      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
+      workflow: { status: 'nonexistent-status', mode: 'strict', active_feature: null },
+      roadmap: { phases: [] },
+      active_slice: null,
+      red_gate: {},
+      green_gate: {},
+      protected_tests: [],
+      decisions: [],
+      sessions: [],
+      backlog: { items: [] },
+      blocked_actions: []
+    });
     expect(valid).toBe(false);
   });
 
-  it('accepts null for spec_hash, active_slice, last_session', () => {
+  it('accepts null for active_slice and active_feature', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({ phase: 'intake', spec_hash: null, active_slice: null, last_session: null, policy_mode: 'standard' });
+    const valid = validate({
+      schema_version: '1.0',
+      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
+      workflow: { status: 'initialized', mode: 'strict', active_feature: null },
+      roadmap: { phases: [] },
+      active_slice: null,
+      red_gate: {},
+      green_gate: {},
+      protected_tests: [],
+      decisions: [],
+      sessions: [],
+      backlog: { items: [] },
+      blocked_actions: []
+    });
     expect(valid).toBe(true);
   });
 
   it('allows additional properties (future extensibility for Phase 2+)', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({ phase: 'intake', spec_hash: null, active_slice: null, last_session: null, policy_mode: 'standard', extra_field: 'value' });
+    const valid = validate({
+      schema_version: '1.0',
+      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
+      workflow: { status: 'initialized', mode: 'strict', active_feature: null },
+      roadmap: { phases: [] },
+      active_slice: null,
+      red_gate: {},
+      green_gate: {},
+      protected_tests: [],
+      decisions: [],
+      sessions: [],
+      backlog: { items: [] },
+      blocked_actions: [],
+      extra_field: 'value'
+    });
     expect(valid).toBe(true);
   });
 });
 
 describe('JSON Schema: preset-registry.schema.json (PRST-01)', () => {
-  it('schema file exists at src/schemas/preset-registry.schema.json', () => {
+  it('schema file exists at packages/terrace-core/schemas/preset-registry.schema.json', () => {
     expect(fs.existsSync(path.join(SCHEMAS_DIR, 'preset-registry.schema.json'))).toBe(true);
   });
 

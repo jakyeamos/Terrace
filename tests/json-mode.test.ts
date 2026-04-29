@@ -18,12 +18,10 @@ describe('--json output mode for all CLI commands (CLI-12)', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('terrace init --json produces a parseable JSON array of manifest entries', () => {
+  it('terrace init --json produces parseable strict-core init output', () => {
     const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'init', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
     const parsed = JSON.parse(stdout);
-    expect(Array.isArray(parsed)).toBe(true);
-    expect(parsed[0]).toHaveProperty('file');
-    expect(parsed[0]).toHaveProperty('action');
+    expect(parsed.created).toContain('.terrace/state.json');
   });
 
   it('terrace doctor --json produces parseable JSON with blocking and warnings', () => {
@@ -40,11 +38,10 @@ describe('--json output mode for all CLI commands (CLI-12)', () => {
     expect(Array.isArray(parsed)).toBe(true);
   });
 
-  it('terrace phase set intake --json produces parseable JSON with updated phase', () => {
+  it('terrace phase set --json produces parseable JSON with updated workflow status', () => {
     execFileSync(NODE_BIN, [TERRACE_CLI, 'init', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
-    const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'phase', 'set', 'interrogation', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
-    const parsed = JSON.parse(stdout) as { phase: string };
-    expect(parsed).toHaveProperty('phase');
-    expect(parsed.phase).toBe('interrogation');
+    const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'phase', 'set', 'intake_recorded', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
+    const parsed = JSON.parse(stdout) as { workflow: { status: string } };
+    expect(parsed.workflow.status).toBe('intake_recorded');
   });
 });

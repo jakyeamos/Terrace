@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { validateArtifacts } = require('../src/lib/validate.cjs');
+const { validateArtifacts } = require('../packages/terrace-core/src/index.cjs');
 
 type ValidationResult = {
   blocking: Array<{ code: string; message: string; file?: string }>;
@@ -30,13 +30,11 @@ describe('terrace spec validate (VAL-01 through VAL-05)', () => {
   });
 
   it('stale last_session produces a warning, not a blocking error (VAL-04)', () => {
-    const stateFile = path.join(tmpDir, '.terrace', 'project-state.json');
+    const stateFile = path.join(tmpDir, '.terrace', 'state.json');
     fs.writeFileSync(stateFile, JSON.stringify({
-      phase: 'intake',
-      spec_hash: 'abc123',
+      workflow: { status: 'initialized', mode: 'strict' },
       active_slice: null,
-      last_session: '2000-01-01T00:00:00.000Z',
-      policy_mode: 'standard'
+      sessions: [{ started_at: '2000-01-01T00:00:00.000Z' }]
     }), 'utf-8');
     const result = validateArtifacts(tmpDir, {}) as ValidationResult;
     const hasStaleWarning = result.warnings.some((w) => w.code === 'STALE_SESSION');

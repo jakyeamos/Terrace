@@ -15,9 +15,29 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('loadFragments is available from fragment-loader.cjs (AGNT-07)', () => {
-    const { loadFragments } = require('../src/lib/fragment-loader.cjs') as { loadFragments: unknown };
+  it('loadFragments is available from terrace-core (AGNT-07)', () => {
+    const { loadFragments } = require('../packages/terrace-core/src/index.cjs') as { loadFragments: unknown };
     expect(typeof loadFragments).toBe('function');
+  });
+
+  it('workflow command contracts are available from terrace-core', () => {
+    const { listCommandContracts } = require('../packages/terrace-core/src/index.cjs') as { listCommandContracts: () => Array<{ command: string; json: boolean }> };
+    const commands = listCommandContracts();
+
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace next', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace resume', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace autonomous', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace commands discover', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace align <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace test-plan <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace observe <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace validate-prod <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace cleanup <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ui import-stitch <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ui plan-refresh <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ui diff <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace quick list', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ship check', json: true }));
   });
 
   it('terrace-spec-interrogator agent directory exists at .agents/skills/terrace-spec-interrogator/ (AGNT-01)', () => {

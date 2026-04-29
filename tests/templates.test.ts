@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const TEMPLATES_DIR = path.resolve(process.cwd(), 'src/templates');
+const TEMPLATES_DIR = path.resolve(process.cwd(), 'packages/terrace-core/templates');
 
 const REQUIRED_TEMPLATES = [
   'PRD.md',
