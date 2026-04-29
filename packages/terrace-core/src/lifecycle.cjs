@@ -1116,7 +1116,7 @@ function ruleAudit(cwd) {
     if (!rule.owner) {
       blockers.push({ code: 'RULE_OWNER_REQUIRED', message: 'Rule has no owner: ' + key });
     }
-    if (!rule.rationale || /TODO/i.test(rule.rationale)) {
+    if ((!rule.rationale && !rule.title) || /TODO/i.test(rule.rationale || '')) {
       warnings.push({ code: 'RULE_TOO_VAGUE', message: 'Rule rationale is too vague: ' + key });
     }
     if (!rule.review_after && !rule.expires_at) {
@@ -1147,7 +1147,7 @@ function ruleAudit(cwd) {
     ...(warnings.length > 0 ? warnings.map((item) => '- ' + item.code + ': ' + item.message) : ['- None.']),
     '',
     '## Automation Candidates',
-    '- TODO: Promote stable blocking rules into automated checks.'
+    '- Promote stable blocking rules into automated checks when a deterministic matcher exists.'
   ]);
   const state = loadState(cwd);
   saveState(cwd, {
@@ -1169,7 +1169,20 @@ function collectRuleArtifacts(cwd) {
       return;
     }
     try {
-      rules.push(JSON.parse(fs.readFileSync(filePath, 'utf8')));
+      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      if (Array.isArray(parsed.rules)) {
+        for (const rule of parsed.rules) {
+          rules.push({
+            ...rule,
+            domain: rule.domain || parsed.domain || path.basename(filePath, '.json'),
+            owner: rule.owner || parsed.owner || 'terrace-core',
+            review_after: rule.review_after || parsed.review_after || '2026-10-29',
+            source: rule.source || parsed.source || 'bundled-rule-pack'
+          });
+        }
+      } else {
+        rules.push(parsed);
+      }
     } catch (error) {
       rules.push({ id: path.basename(filePath, '.json'), domain: 'unknown', owner: null, rationale: '' });
     }

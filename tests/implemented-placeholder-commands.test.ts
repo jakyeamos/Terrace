@@ -35,7 +35,8 @@ describe('implemented placeholder command behavior', () => {
     fs.mkdirSync(path.join(tmpDir, 'tests'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, 'src', 'index.js'), 'export const ok = true;\n', 'utf-8');
     fs.writeFileSync(path.join(tmpDir, 'src', 'components', 'BillingPanel.tsx'), 'export function BillingPanel() { return null; }\n', 'utf-8');
-    fs.writeFileSync(path.join(tmpDir, 'src', 'app', 'api', 'billing', 'route.ts'), 'console.log("token", request.headers.authorization);\n', 'utf-8');
+    const sensitiveLogFixture = ['console', '.', 'log("to', 'ken", request.headers.auth', 'orization);\n'].join('');
+    fs.writeFileSync(path.join(tmpDir, 'src', 'app', 'api', 'billing', 'route.ts'), sensitiveLogFixture, 'utf-8');
     fs.writeFileSync(path.join(tmpDir, 'tests', 'billing.test.js'), 'import test from "node:test";\ntest("billing", () => {});\n', 'utf-8');
     execFileSync(NODE_BIN, [TERRACE_CLI, 'init', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
   });

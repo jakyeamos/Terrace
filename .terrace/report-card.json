@@ -1,0 +1,131 @@
+{
+  "updated_at": "2026-04-29T18:53:50.608Z",
+  "last_updated_command": "terrace report update",
+  "score": 100,
+  "max_score": 100,
+  "status_label": "tier_one_ready",
+  "current_feature": null,
+  "blockers": [],
+  "warnings": [],
+  "completed_sprint_outcomes": {
+    "phases": [],
+    "quick_tasks": []
+  },
+  "missing_senior_cycle_artifacts": [],
+  "quality_ladder_status": {
+    "audit": "passing",
+    "audit_blockers": 0
+  },
+  "documentation_status": "missing",
+  "test_suite_strength_status": "evaluated",
+  "debt_status": "healthy",
+  "rule_health": "audited",
+  "production_readiness": "preflight_missing",
+  "checks": [
+    {
+      "id": "senior_cycle",
+      "label": "Senior Cycle artifacts",
+      "passed": true,
+      "points": 20,
+      "earned": 20,
+      "evidence": {
+        "active_feature": null,
+        "missing_artifacts": []
+      },
+      "remediation": null
+    },
+    {
+      "id": "production_preflight",
+      "label": "Production preflight",
+      "passed": true,
+      "points": 15,
+      "earned": 15,
+      "evidence": {
+        "active_feature": null,
+        "preflight_count": 0,
+        "skipped": true
+      },
+      "remediation": null
+    },
+    {
+      "id": "debt_health",
+      "label": "Debt health",
+      "passed": true,
+      "points": 15,
+      "earned": 15,
+      "evidence": {
+        "open_debt_count": 0,
+        "blockers": []
+      },
+      "remediation": null
+    },
+    {
+      "id": "governance_audit",
+      "label": "Governance audit",
+      "passed": true,
+      "points": 15,
+      "earned": 15,
+      "evidence": {
+        "blocking_count": 0,
+        "warning_count": 0
+      },
+      "remediation": null
+    },
+    {
+      "id": "completed_outcomes",
+      "label": "Completed sprint outcomes",
+      "passed": true,
+      "points": 10,
+      "earned": 10,
+      "evidence": {
+        "completed_phases": [],
+        "completed_quick_tasks": [],
+        "skipped": true
+      },
+      "remediation": null
+    },
+    {
+      "id": "documentation",
+      "label": "Documentation status",
+      "passed": true,
+      "points": 10,
+      "earned": 10,
+      "evidence": {
+        "active_feature": null,
+        "docs_ref": null,
+        "skipped": true
+      },
+      "remediation": null
+    },
+    {
+      "id": "test_suite_strength",
+      "label": "Test-suite strength",
+      "passed": true,
+      "points": 10,
+      "earned": 10,
+      "evidence": {
+        "test_eval_ref": "docs/testing/TEST-EVAL.md",
+        "exists": true,
+        "scripts": {
+          "test": true,
+          "coverage": true
+        }
+      },
+      "remediation": null
+    },
+    {
+      "id": "rule_health",
+      "label": "Rule health",
+      "passed": true,
+      "points": 5,
+      "earned": 5,
+      "evidence": {
+        "rule_audit_count": 1
+      },
+      "remediation": null
+    }
+  ],
+  "next_three_actions": [
+    "Run terrace ship check."
+  ]
+}

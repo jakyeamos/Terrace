@@ -34,5 +34,199 @@
       "status": "active"
     }
   ],
-  "sessions": []
+  "sessions": [],
+  "test_evaluations": [
+    {
+      "id": "2026-04-29T18-53-01-912Z",
+      "feature_id": null,
+      "artifact": "docs/testing/TEST-EVAL.md",
+      "changed_only": false,
+      "created_at": "2026-04-29T18:53:01.912Z",
+      "trust_score": 100,
+      "blockers": [],
+      "recommendations": [],
+      "test_files": [
+        "tests/agent-contract.test.ts",
+        "tests/agent-production-lifecycle-full.test.ts",
+        "tests/agent-production-lifecycle.test.ts",
+        "tests/amos-saas-gsd-smoke.test.ts",
+        "tests/core-cli.test.ts",
+        "tests/core-gates.test.ts",
+        "tests/core-init.test.ts",
+        "tests/core-legacy-extraction.test.ts",
+        "tests/core-port-gsd-migration.test.ts",
+        "tests/core-port-gsd.test.ts",
+        "tests/core-roadmap.test.ts",
+        "tests/core-rules.test.ts",
+        "tests/core-state.test.ts",
+        "tests/doctor.test.ts",
+        "tests/fragment-index.test.ts",
+        "tests/fragment-loader.test.ts",
+        "tests/implemented-placeholder-commands.test.ts",
+        "tests/init.test.ts",
+        "tests/json-mode.test.ts",
+        "tests/lifecycle-coverage.test.ts",
+        "tests/lifecycle.test.ts",
+        "tests/preset.test.ts",
+        "tests/product-readiness.test.ts",
+        "tests/roadmap-phase3-6.test.ts",
+        "tests/schemas.test.ts",
+        "tests/spec-hash.test.ts",
+        "tests/templates.test.ts",
+        "tests/validate.test.ts",
+        "tests/workflow-commands.test.ts",
+        "tests/workflow-intake.test.ts",
+        "tests/workflow-interrogation.test.ts",
+        "tests/workflow-spec-compiler.test.ts",
+        "tests/workflow-test-architect.test.ts"
+      ],
+      "duplicate_test_basenames": [],
+      "snapshot_files": []
+    }
+  ],
+  "report_card": {
+    "updated_at": "2026-04-29T18:53:50.608Z",
+    "last_updated_command": "terrace report update",
+    "score": 100,
+    "max_score": 100,
+    "status_label": "tier_one_ready",
+    "current_feature": null,
+    "blockers": [],
+    "warnings": [],
+    "completed_sprint_outcomes": {
+      "phases": [],
+      "quick_tasks": []
+    },
+    "missing_senior_cycle_artifacts": [],
+    "quality_ladder_status": {
+      "audit": "passing",
+      "audit_blockers": 0
+    },
+    "documentation_status": "missing",
+    "test_suite_strength_status": "evaluated",
+    "debt_status": "healthy",
+    "rule_health": "audited",
+    "production_readiness": "preflight_missing",
+    "checks": [
+      {
+        "id": "senior_cycle",
+        "label": "Senior Cycle artifacts",
+        "passed": true,
+        "points": 20,
+        "earned": 20,
+        "evidence": {
+          "active_feature": null,
+          "missing_artifacts": []
+        },
+        "remediation": null
+      },
+      {
+        "id": "production_preflight",
+        "label": "Production preflight",
+        "passed": true,
+        "points": 15,
+        "earned": 15,
+        "evidence": {
+          "active_feature": null,
+          "preflight_count": 0,
+          "skipped": true
+        },
+        "remediation": null
+      },
+      {
+        "id": "debt_health",
+        "label": "Debt health",
+        "passed": true,
+        "points": 15,
+        "earned": 15,
+        "evidence": {
+          "open_debt_count": 0,
+          "blockers": []
+        },
+        "remediation": null
+      },
+      {
+        "id": "governance_audit",
+        "label": "Governance audit",
+        "passed": true,
+        "points": 15,
+        "earned": 15,
+        "evidence": {
+          "blocking_count": 0,
+          "warning_count": 0
+        },
+        "remediation": null
+      },
+      {
+        "id": "completed_outcomes",
+        "label": "Completed sprint outcomes",
+        "passed": true,
+        "points": 10,
+        "earned": 10,
+        "evidence": {
+          "completed_phases": [],
+          "completed_quick_tasks": [],
+          "skipped": true
+        },
+        "remediation": null
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation status",
+        "passed": true,
+        "points": 10,
+        "earned": 10,
+        "evidence": {
+          "active_feature": null,
+          "docs_ref": null,
+          "skipped": true
+        },
+        "remediation": null
+      },
+      {
+        "id": "test_suite_strength",
+        "label": "Test-suite strength",
+        "passed": true,
+        "points": 10,
+        "earned": 10,
+        "evidence": {
+          "test_eval_ref": "docs/testing/TEST-EVAL.md",
+          "exists": true,
+          "scripts": {
+            "test": true,
+            "coverage": true
+          }
+        },
+        "remediation": null
+      },
+      {
+        "id": "rule_health",
+        "label": "Rule health",
+        "passed": true,
+        "points": 5,
+        "earned": 5,
+        "evidence": {
+          "rule_audit_count": 1
+        },
+        "remediation": null
+      }
+    ],
+    "next_three_actions": [
+      "Run terrace ship check."
+    ],
+    "artifact": ".terrace/report-card.json",
+    "docs_ref": "docs/terrace/REPORT-CARD.md",
+    "latest_history_ref": "docs/terrace/report-history/2026-04-29T18-53-50-609Z.md"
+  },
+  "rule_audits": [
+    {
+      "id": "2026-04-29T18-53-35-157Z",
+      "artifact": "docs/terrace/rules/RULE-AUDIT.md",
+      "created_at": "2026-04-29T18:53:35.158Z",
+      "rule_count": 5,
+      "blockers": [],
+      "warnings": [],
+      "passed": true
+    }
+  ]
 }

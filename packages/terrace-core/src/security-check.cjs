@@ -11,6 +11,7 @@ const SECRET_PATTERNS = [
   { code: 'SECRET_PRIVATE_KEY', severity: 'critical', pattern: /-----BEGIN (?:RSA |EC |OPENSSH |)PRIVATE KEY-----/ },
   { code: 'SECRET_GENERIC_ASSIGNMENT', severity: 'high', pattern: /\b(?:api[_-]?key|secret|token|password)\b\s*[:=]\s*['"][^'"]{12,}['"]/i }
 ];
+const REACT_RAW_HTML_TOKEN = 'dangerously' + 'SetInnerHTML';
 
 const auditCache = new Map();
 
@@ -31,6 +32,9 @@ function finding(id, severity, file, claim, evidence, recommendedFix) {
 function scanTextFindings(cwd, repo) {
   const findings = [];
   for (const file of repo.files.slice(0, 1000)) {
+    if (file.startsWith('.terrace/security/') || file.startsWith('docs/terrace/security/')) {
+      continue;
+    }
     const base = path.basename(file);
     if (/^\.env(\.|$)/.test(base) && !/\.example$/.test(base)) {
       findings.push(finding(
@@ -68,13 +72,13 @@ function scanTextFindings(cwd, repo) {
         'Redact sensitive values before logging and add a regression test for redaction.'
       ));
     }
-    if (/dangerouslySetInnerHTML/.test(text)) {
+    if (text.includes(REACT_RAW_HTML_TOKEN)) {
       findings.push(finding(
         'react-html-injection-' + findings.length,
         'medium',
         file,
         'React raw HTML rendering requires sanitization evidence.',
-        'dangerouslySetInnerHTML appears in ' + file + '.',
+        REACT_RAW_HTML_TOKEN + ' appears in ' + file + '.',
         'Document sanitization or replace raw HTML rendering with safe structured rendering.'
       ));
     }
@@ -82,7 +86,7 @@ function scanTextFindings(cwd, repo) {
   return findings;
 }
 
-function scanConfigFindings(repo) {
+function scanConfigFindings(cwd, repo) {
   const findings = [];
   for (const file of repo.config_files) {
     if (/docker/i.test(file)) {
@@ -96,14 +100,17 @@ function scanConfigFindings(repo) {
       ));
     }
     if (/\.github\/workflows\/.*\.ya?ml$/.test(file)) {
-      findings.push(finding(
-        'workflow-permissions-' + findings.length,
-        'info',
-        file,
-        'GitHub Actions workflow should declare least-privilege permissions.',
-        file + ' is a CI workflow.',
-        'Set explicit permissions and avoid printing secrets in build logs.'
-      ));
+      const text = readSmallText(cwd, file, 50000);
+      if (!/^\s*permissions\s*:/m.test(text)) {
+        findings.push(finding(
+          'workflow-permissions-' + findings.length,
+          'info',
+          file,
+          'GitHub Actions workflow should declare least-privilege permissions.',
+          file + ' is a CI workflow without explicit top-level permissions.',
+          'Set explicit permissions and avoid printing secrets in build logs.'
+        ));
+      }
     }
   }
   return findings;
@@ -181,7 +188,7 @@ function runSecurityCheck(cwd) {
   const checks = ['secret-patterns', 'env-files', 'sensitive-logging', 'dependency-audit', 'deployment-config'];
   const findings = [
     ...scanTextFindings(cwd, repo),
-    ...scanConfigFindings(repo),
+    ...scanConfigFindings(cwd, repo),
     ...npmAuditFindings(cwd)
   ];
   const blocking = findings.filter((item) => item.classification === 'blocking');

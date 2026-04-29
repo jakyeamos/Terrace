@@ -21,6 +21,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "node scripts/lint.cjs",
+    "build": "npm run typecheck",
     "test": "vitest run --reporter=verbose",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
