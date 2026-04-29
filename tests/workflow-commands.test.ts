@@ -38,6 +38,7 @@ const {
   uiImportStitch,
   uiPlanRefresh,
   uiDiff,
+  reviewAi,
   seniorCycleStatus,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
@@ -110,6 +111,19 @@ describe('workflow parity core helpers', () => {
     expect(result.recent_quick_tasks).toContainEqual(expect.objectContaining({
       id: '260101-abc'
     }));
+  });
+
+  it('rejects feature ids that normalize to path traversal segments', () => {
+    expect(() => alignFeature(tmpDir, '..', { tier: 'medium' })).toThrow(/Usage: terrace/);
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'ALIGNMENT.md'))).toBe(false);
+  });
+
+  it('normalizes AI review mode before using it as an artifact path', () => {
+    const result = reviewAi(tmpDir, { feature: 'checkout', mode: '../../escape' });
+
+    expect(result.artifact).toBe('docs/terrace/reviews/checkout/escape.json');
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'reviews', 'checkout', 'escape.json'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'escape.json'))).toBe(false);
   });
 
   it('plans and executes migrated phases with hard blocker awareness', () => {

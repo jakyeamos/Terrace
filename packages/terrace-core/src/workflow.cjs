@@ -21,13 +21,22 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function safeResolve(cwd, relativeFilePath) {
+  const root = path.resolve(cwd);
+  const resolved = path.resolve(cwd, relativeFilePath);
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+    throw new Error('UNSAFE_PATH: generated artifact path is outside the project root');
+  }
+  return resolved;
+}
+
 function ensureDirFor(cwd, relativeFilePath) {
-  fs.mkdirSync(path.dirname(path.resolve(cwd, relativeFilePath)), { recursive: true });
+  fs.mkdirSync(path.dirname(safeResolve(cwd, relativeFilePath)), { recursive: true });
 }
 
 function writeMarkdown(cwd, relativeFilePath, lines) {
   ensureDirFor(cwd, relativeFilePath);
-  fs.writeFileSync(path.resolve(cwd, relativeFilePath), lines.join('\n') + '\n', 'utf8');
+  fs.writeFileSync(safeResolve(cwd, relativeFilePath), lines.join('\n') + '\n', 'utf8');
   return relativeFilePath;
 }
 
@@ -304,7 +313,7 @@ function discoverProjectCommands(cwd) {
 
 function normalizeFeatureId(feature) {
   const id = String(feature || '').trim().toLowerCase().replace(/[^a-z0-9_.-]+/g, '-').replace(/^-+|-+$/g, '');
-  if (!id) {
+  if (!id || id.split(/[.-]+/).every((part) => part === '')) {
     throw new Error('Usage: terrace <senior-cycle-command> <feature>');
   }
   return id;

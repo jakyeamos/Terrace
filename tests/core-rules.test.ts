@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { initCore, loadRules, explainRule, checkRules } = require('../packages/terrace-core/src/index.cjs');
+const { initCore, loadRules, explainRule, checkRules, ruleAdd } = require('../packages/terrace-core/src/index.cjs');
 
 describe('first-class rule domains', () => {
   let tmpDir: string;
@@ -32,6 +32,12 @@ describe('first-class rule domains', () => {
 
   it('reports unknown rules deterministically', () => {
     expect(() => explainRule(tmpDir, 'missing-rule')).toThrow(/Unknown rule: missing-rule/);
+  });
+
+  it('rejects rule path segments that normalize to traversal aliases', () => {
+    expect(() => ruleAdd(tmpDir, '..', 'escape')).toThrow(/Usage: terrace/);
+    expect(() => ruleAdd(tmpDir, 'security', '..')).toThrow(/Usage: terrace/);
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'rules', 'escape.json'))).toBe(false);
   });
 
   it('blocks security-critical findings in low-effort mode', () => {

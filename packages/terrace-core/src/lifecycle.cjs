@@ -14,13 +14,22 @@ function timestampId() {
   return nowIso().replace(/[:.]/g, '-');
 }
 
+function safeResolve(cwd, relativeFilePath) {
+  const root = path.resolve(cwd);
+  const resolved = path.resolve(cwd, relativeFilePath);
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
+    throw new Error('UNSAFE_PATH: generated artifact path is outside the project root');
+  }
+  return resolved;
+}
+
 function ensureDirFor(cwd, relativeFilePath) {
-  fs.mkdirSync(path.dirname(path.resolve(cwd, relativeFilePath)), { recursive: true });
+  fs.mkdirSync(path.dirname(safeResolve(cwd, relativeFilePath)), { recursive: true });
 }
 
 function writeText(cwd, relativeFilePath, content) {
   ensureDirFor(cwd, relativeFilePath);
-  fs.writeFileSync(path.resolve(cwd, relativeFilePath), content, 'utf8');
+  fs.writeFileSync(safeResolve(cwd, relativeFilePath), content, 'utf8');
   return relativeFilePath;
 }
 
@@ -33,7 +42,7 @@ function writeMarkdown(cwd, relativeFilePath, lines) {
 }
 
 function relativeExists(cwd, relativeFilePath) {
-  return fs.existsSync(path.resolve(cwd, relativeFilePath));
+  return fs.existsSync(safeResolve(cwd, relativeFilePath));
 }
 
 function featureRef(featureId) {
@@ -42,10 +51,18 @@ function featureRef(featureId) {
 
 function normalizeFeatureId(feature) {
   const id = String(feature || '').trim().toLowerCase().replace(/[^a-z0-9_.-]+/g, '-').replace(/^-+|-+$/g, '');
-  if (!id) {
+  if (!id || id.split(/[.-]+/).every((part) => part === '')) {
     throw new Error('Usage: terrace <command> <feature>');
   }
   return id;
+}
+
+function normalizePathToken(value, label) {
+  const token = String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!token) {
+    throw new Error('Usage: terrace ' + label);
+  }
+  return token;
 }
 
 function readJsonIfExists(cwd, relativeFilePath, fallback) {
@@ -939,7 +956,7 @@ function interrogateMode(cwd, mode, feature, options) {
 
 function reviewAi(cwd, options) {
   const opts = options || {};
-  const mode = opts.mode || 'architecture';
+  const mode = normalizePathToken(opts.mode || 'architecture', 'review ai --mode <mode>');
   const featureId = normalizeFeatureId(opts.feature || activeFeature(loadState(cwd)) || 'project');
   const dir = 'docs/terrace/reviews/' + featureId;
   const artifact = dir + '/' + mode + '.json';
