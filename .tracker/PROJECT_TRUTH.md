@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run ci; npm run typecheck; npm run lint; npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; npm test -- tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts; npm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts
-lastVerifiedAt: "2026-04-29T15:52:02-04:00"
+lastVerifiedCommand: npm run ci; npm run typecheck; npm run lint; npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; npm test -- tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts; npm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; node src/terrace-tools.cjs report --json; node src/terrace-tools.cjs ship check --json
+lastVerifiedAt: "2026-04-29T15:56:09-04:00"
 ---
 
 ## Current State
@@ -113,6 +113,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Ship:** `terrace ship check --json` PASS, zero blockers and zero warnings
 - **Focused adoption-risk tests:** `npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts` PASS; final focused rerun for GSD compare and ship modes PASS
 - **CLI-heavy timeout hardening tests:** `npm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts` PASS, 50 tests
+- **Final full ship check:** `node src/terrace-tools.cjs ship check --json` PASS in full mode, zero blockers and zero warnings
 - **Git status:** clean on `codex/tier-one-external-product` after implementation commit and before this truth-file update
 
 ## Next Concrete Steps
