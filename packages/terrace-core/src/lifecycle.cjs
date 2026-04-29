@@ -147,6 +147,34 @@ function preflightEntries(state) {
   return state.preflights && typeof state.preflights === 'object' ? state.preflights : {};
 }
 
+function documentationEntries(state) {
+  return state.documentation && typeof state.documentation === 'object' ? state.documentation : {};
+}
+
+function testEvaluationEntries(state) {
+  return Array.isArray(state.test_evaluations) ? state.test_evaluations : [];
+}
+
+function aiReviewEntries(state) {
+  return Array.isArray(state.ai_reviews) ? state.ai_reviews : [];
+}
+
+function ruleAuditEntries(state) {
+  return Array.isArray(state.rule_audits) ? state.rule_audits : [];
+}
+
+function backfillEntries(state) {
+  return Array.isArray(state.backfills) ? state.backfills : [];
+}
+
+function workstreamEntries(state) {
+  return state.workstreams && typeof state.workstreams === 'object' ? state.workstreams : {};
+}
+
+function designSourceEntries(state) {
+  return state.design_sources && typeof state.design_sources === 'object' ? state.design_sources : {};
+}
+
 function reportInputs(cwd, state) {
   const feature = activeFeatureState(state);
   const missingSeniorArtifacts = feature
@@ -670,6 +698,691 @@ function preflightFeature(cwd, feature, options) {
   };
 }
 
+function docuFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const type = options && options.type ? options.type : 'handoff';
+  const refByType = {
+    adr: featureRef(featureId) + '/ADR.md',
+    runbook: featureRef(featureId) + '/RUNBOOK.md',
+    'release-note': featureRef(featureId) + '/RELEASE-NOTES.md',
+    migration: featureRef(featureId) + '/MIGRATION-GUIDE.md',
+    api: featureRef(featureId) + '/DOCS.md',
+    'user-guide': featureRef(featureId) + '/DOCS.md',
+    handoff: featureRef(featureId) + '/DOCS.md'
+  };
+  const artifact = refByType[type] || featureRef(featureId) + '/DOCS.md';
+  const entry = {
+    feature_id: featureId,
+    type,
+    artifact,
+    created_at: nowIso(),
+    polish_adapter: 'none'
+  };
+  writeMarkdown(cwd, artifact, [
+    '# Documentation: ' + featureId,
+    '',
+    '## Executive Summary',
+    '- TODO: Summarize the change and production impact concisely.',
+    '',
+    '## Decision Context',
+    '- TODO: Link relevant alignment, design, review, and verification evidence.',
+    '',
+    '## Operational Impact',
+    '- TODO: Describe logs, metrics, support impact, migrations, and expected operator workflow.',
+    '',
+    '## Rollout And Rollback',
+    '- TODO: Record rollout owner, rollout steps, rollback command, and rollback threshold.',
+    '',
+    '## User-Visible Changes',
+    '- TODO: Describe behavior changes, UI changes, API changes, or docs-only impact.',
+    '',
+    '## Evidence Links',
+    '- Alignment: ' + featureRef(featureId) + '/ALIGNMENT.md',
+    '- Preflight: ' + featureRef(featureId) + '/PREFLIGHT.md',
+    '- Debt: ' + featureRef(featureId) + '/DEBT.md',
+    '',
+    '## Open Questions',
+    '- TODO: List unresolved questions and owners.'
+  ]);
+  const state = loadState(cwd);
+  const docs = documentationEntries(state);
+  const nextState = {
+    ...state,
+    documentation: {
+      ...docs,
+      [featureId]: entry
+    }
+  };
+  saveState(cwd, nextState);
+  reportUpdate(cwd, { command: 'terrace docu ' + featureId });
+  return {
+    feature_id: featureId,
+    type,
+    artifact,
+    next_command: 'terrace report update'
+  };
+}
+
+function testEval(cwd, options) {
+  const opts = options || {};
+  const featureId = opts.feature ? normalizeFeatureId(opts.feature) : null;
+  const artifact = 'docs/testing/TEST-EVAL.md';
+  const packageJson = readJsonIfExists(cwd, 'package.json', {});
+  const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
+  const testFiles = collectFiles(cwd, ['tests'], /\.(test|spec)\.[cm]?[jt]sx?$/).slice(0, 200);
+  const snapshotFiles = collectFiles(cwd, ['tests', 'src'], /\.snap$/).slice(0, 50);
+  const duplicateNames = duplicateBasenames(testFiles);
+  const recommendations = [];
+  if (testFiles.length === 0) {
+    recommendations.push({ code: 'NO_TEST_FILES', message: 'No test files were found.' });
+  }
+  if (!scripts.test) {
+    recommendations.push({ code: 'MISSING_TEST_SCRIPT', message: 'No package test script was found.' });
+  }
+  if (snapshotFiles.length > 5) {
+    recommendations.push({ code: 'SNAPSHOT_REVIEW', message: 'Snapshot count is high enough to review intent and brittleness.' });
+  }
+  if (duplicateNames.length > 0) {
+    recommendations.push({ code: 'DUPLICATE_TEST_NAMES', message: 'Duplicate test basenames may indicate consolidation candidates.' });
+  }
+  const blockers = scripts.test ? [] : [{
+    code: 'TEST_SCRIPT_REQUIRED',
+    message: 'No package test script was found.',
+    remediation: 'Add a deterministic test script or document why this project cannot run tests.'
+  }];
+  const entry = {
+    id: timestampId(),
+    feature_id: featureId,
+    artifact,
+    changed_only: Boolean(opts.changed),
+    created_at: nowIso(),
+    trust_score: Math.max(0, 100 - blockers.length * 40 - recommendations.length * 10),
+    blockers,
+    recommendations,
+    test_files: testFiles,
+    duplicate_test_basenames: duplicateNames,
+    snapshot_files: snapshotFiles
+  };
+  writeMarkdown(cwd, artifact, [
+    '# Test Suite Evaluation',
+    '',
+    '## Scope',
+    '- Feature: ' + (featureId || 'repository'),
+    '- Changed only: ' + String(entry.changed_only),
+    '',
+    '## Trust Score',
+    '- ' + String(entry.trust_score),
+    '',
+    '## Blockers',
+    ...(blockers.length > 0 ? blockers.map((blocker) => '- ' + blocker.code + ': ' + blocker.message) : ['- None.']),
+    '',
+    '## Recommendations',
+    ...(recommendations.length > 0 ? recommendations.map((item) => '- ' + item.code + ': ' + item.message) : ['- None.']),
+    '',
+    '## Inventory',
+    '- Test files: ' + String(testFiles.length),
+    '- Snapshot files: ' + String(snapshotFiles.length),
+    '- Duplicate basenames: ' + String(duplicateNames.length),
+    '',
+    '## Deletion And Consolidation Candidates',
+    ...(duplicateNames.length > 0 ? duplicateNames.map((name) => '- Review duplicate basename: ' + name) : ['- None detected statically.'])
+  ]);
+  const state = loadState(cwd);
+  const nextState = {
+    ...state,
+    test_evaluations: [...testEvaluationEntries(state), entry]
+  };
+  saveState(cwd, nextState);
+  reportUpdate(cwd, { command: 'terrace test eval' });
+  return entry;
+}
+
+function collectFiles(cwd, roots, pattern) {
+  const found = [];
+  for (const root of roots) {
+    const absoluteRoot = path.resolve(cwd, root);
+    if (!fs.existsSync(absoluteRoot)) {
+      continue;
+    }
+    walk(absoluteRoot, (filePath) => {
+      const relative = path.relative(cwd, filePath);
+      if (pattern.test(relative)) {
+        found.push(relative);
+      }
+    });
+  }
+  return found.sort();
+}
+
+function walk(dir, visit) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === '.git') {
+      continue;
+    }
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      walk(fullPath, visit);
+    } else if (entry.isFile()) {
+      visit(fullPath);
+    }
+  }
+}
+
+function duplicateBasenames(files) {
+  const counts = new Map();
+  for (const file of files) {
+    const base = path.basename(file);
+    counts.set(base, (counts.get(base) || 0) + 1);
+  }
+  return Array.from(counts.entries()).filter((entry) => entry[1] > 1).map((entry) => entry[0]);
+}
+
+function interrogateMode(cwd, mode, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const normalized = ['init', 'adjust', 'risk', 'milestone'].includes(mode) ? mode : 'init';
+  const artifactByMode = {
+    init: featureRef(featureId) + '/INTERROGATION.md',
+    adjust: featureRef(featureId) + '/ADJUSTMENT.md',
+    risk: featureRef(featureId) + '/RISK.md',
+    milestone: featureRef(featureId) + '/MILESTONE-INTERROGATION.md'
+  };
+  const headingByMode = {
+    init: 'Interrogation',
+    adjust: 'Adjustment Interrogation',
+    risk: 'Risk Interrogation',
+    milestone: 'Milestone Interrogation'
+  };
+  const artifact = artifactByMode[normalized];
+  writeMarkdown(cwd, artifact, [
+    '# ' + headingByMode[normalized] + ': ' + featureId,
+    '',
+    '## Mode',
+    '- ' + normalized,
+    '',
+    '## Assumptions',
+    '- TODO: Name assumptions this mode must challenge.',
+    '',
+    '## Evidence Needed',
+    '- TODO: Name missing evidence and the command or artifact that should produce it.',
+    '',
+    '## Failure Modes',
+    '- TODO: Describe how this change can fail and how the team will notice.',
+    '',
+    '## Decision Impact',
+    '- TODO: Record scope, sequence, risk, or milestone changes caused by this interrogation.'
+  ]);
+  const state = loadState(cwd);
+  const interrogations = Array.isArray(state.interrogations) ? state.interrogations : [];
+  const entry = { feature_id: featureId, mode: normalized, artifact, created_at: nowIso() };
+  saveState(cwd, {
+    ...state,
+    interrogations: [...interrogations, entry]
+  });
+  reportUpdate(cwd, { command: 'terrace interrogate ' + normalized + ' ' + featureId });
+  return {
+    ...entry,
+    tier: options && options.tier ? options.tier : 'medium',
+    next_command: normalized === 'init' ? 'terrace design ' + featureId : 'terrace report update'
+  };
+}
+
+function reviewAi(cwd, options) {
+  const opts = options || {};
+  const mode = opts.mode || 'architecture';
+  const featureId = normalizeFeatureId(opts.feature || activeFeature(loadState(cwd)) || 'project');
+  const dir = 'docs/terrace/reviews/' + featureId;
+  const artifact = dir + '/' + mode + '.json';
+  const markdown = dir + '/' + mode + '.md';
+  const finding = {
+    id: 'finding-1',
+    mode,
+    severity: 'info',
+    file_or_artifact: featureRef(featureId),
+    claim: 'Structured AI review protocol initialized.',
+    evidence: 'No automated reviewer findings were provided; this artifact establishes the stable format.',
+    recommended_fix: 'Fill findings with concrete evidence before treating review as complete.',
+    classification: 'warning'
+  };
+  const entry = {
+    feature_id: featureId,
+    mode,
+    artifact,
+    markdown,
+    created_at: nowIso(),
+    findings: [finding]
+  };
+  writeJson(cwd, artifact, entry);
+  writeMarkdown(cwd, markdown, [
+    '# AI Review: ' + mode + ' - ' + featureId,
+    '',
+    '## Findings',
+    '- ' + finding.id + ' [' + finding.classification + ']: ' + finding.claim,
+    '',
+    '## Evidence',
+    '- ' + finding.evidence,
+    '',
+    '## Recommended Fix',
+    '- ' + finding.recommended_fix
+  ]);
+  const state = loadState(cwd);
+  saveState(cwd, {
+    ...state,
+    ai_reviews: [...aiReviewEntries(state), entry]
+  });
+  reportUpdate(cwd, { command: 'terrace review ai --mode ' + mode });
+  return entry;
+}
+
+function ruleAdd(cwd, domain, ruleId) {
+  const normalizedDomain = normalizeFeatureId(domain);
+  const normalizedRule = normalizeFeatureId(ruleId);
+  const jsonRef = '.terrace/rules/' + normalizedDomain + '/' + normalizedRule + '.json';
+  const docsRef = 'docs/terrace/rules/' + normalizedDomain + '/' + normalizedRule + '.md';
+  const entry = {
+    id: normalizedRule,
+    domain: normalizedDomain,
+    rationale: 'TODO: explain why this rule exists.',
+    applies_to: [],
+    forbidden_patterns: [],
+    preferred_patterns: [],
+    examples: [],
+    enforcement_level: 'warning',
+    owner: null,
+    created_at: nowIso(),
+    review_after: null,
+    source: 'terrace rule add'
+  };
+  writeJson(cwd, jsonRef, entry);
+  writeMarkdown(cwd, docsRef, [
+    '# Rule: ' + normalizedDomain + '/' + normalizedRule,
+    '',
+    '## Rationale',
+    entry.rationale,
+    '',
+    '## Applies To',
+    '- TODO',
+    '',
+    '## Forbidden Patterns',
+    '- TODO',
+    '',
+    '## Preferred Patterns',
+    '- TODO',
+    '',
+    '## Enforcement',
+    '- ' + entry.enforcement_level,
+    '',
+    '## Owner',
+    '- missing'
+  ]);
+  return { rule: entry, artifact: jsonRef, docs_ref: docsRef, next_command: 'terrace rule audit' };
+}
+
+function ruleAudit(cwd) {
+  const rules = collectRuleArtifacts(cwd);
+  const blockers = [];
+  const warnings = [];
+  const seen = new Set();
+  for (const rule of rules) {
+    const key = rule.domain + '/' + rule.id;
+    if (seen.has(key)) {
+      warnings.push({ code: 'DUPLICATE_RULE', message: 'Duplicate rule id: ' + key });
+    }
+    seen.add(key);
+    if (!rule.owner) {
+      blockers.push({ code: 'RULE_OWNER_REQUIRED', message: 'Rule has no owner: ' + key });
+    }
+    if (!rule.rationale || /TODO/i.test(rule.rationale)) {
+      warnings.push({ code: 'RULE_TOO_VAGUE', message: 'Rule rationale is too vague: ' + key });
+    }
+    if (!rule.review_after && !rule.expires_at) {
+      warnings.push({ code: 'RULE_REVIEW_DATE_MISSING', message: 'Rule has no review_after or expires_at: ' + key });
+    }
+  }
+  const artifact = 'docs/terrace/rules/RULE-AUDIT.md';
+  const entry = {
+    id: timestampId(),
+    artifact,
+    created_at: nowIso(),
+    rule_count: rules.length,
+    blockers,
+    warnings,
+    passed: blockers.length === 0
+  };
+  writeMarkdown(cwd, artifact, [
+    '# Rule Audit',
+    '',
+    '## Summary',
+    '- Rule count: ' + String(rules.length),
+    '- Passed: ' + String(entry.passed),
+    '',
+    '## Blockers',
+    ...(blockers.length > 0 ? blockers.map((item) => '- ' + item.code + ': ' + item.message) : ['- None.']),
+    '',
+    '## Warnings',
+    ...(warnings.length > 0 ? warnings.map((item) => '- ' + item.code + ': ' + item.message) : ['- None.']),
+    '',
+    '## Automation Candidates',
+    '- TODO: Promote stable blocking rules into automated checks.'
+  ]);
+  const state = loadState(cwd);
+  saveState(cwd, {
+    ...state,
+    rule_audits: [...ruleAuditEntries(state), entry]
+  });
+  reportUpdate(cwd, { command: 'terrace rule audit' });
+  return entry;
+}
+
+function collectRuleArtifacts(cwd) {
+  const root = path.resolve(cwd, '.terrace/rules');
+  const rules = [];
+  if (!fs.existsSync(root)) {
+    return rules;
+  }
+  walk(root, (filePath) => {
+    if (!filePath.endsWith('.json')) {
+      return;
+    }
+    try {
+      rules.push(JSON.parse(fs.readFileSync(filePath, 'utf8')));
+    } catch (error) {
+      rules.push({ id: path.basename(filePath, '.json'), domain: 'unknown', owner: null, rationale: '' });
+    }
+  });
+  return rules;
+}
+
+function backfill(cwd, options) {
+  const opts = options || {};
+  const featureId = opts.feature ? normalizeFeatureId(opts.feature) : null;
+  const id = timestampId();
+  const artifact = 'docs/terrace/backfill/' + id + '-BACKFILL-SPEC.md';
+  const changed = currentChangedFiles(cwd);
+  const entry = {
+    id,
+    rule: opts.rule || null,
+    since: opts.since || null,
+    feature_id: featureId,
+    artifact,
+    created_at: nowIso(),
+    affected_files: changed,
+    mutates_code: false
+  };
+  writeMarkdown(cwd, artifact, [
+    '# Standards Backfill Spec',
+    '',
+    '## Standard Or Decision',
+    '- Rule: ' + (entry.rule || 'TODO'),
+    '- Since: ' + (entry.since || 'not specified'),
+    '',
+    '## Scope',
+    '- Feature: ' + (featureId || 'repository'),
+    '',
+    '## Affected Files',
+    ...(changed.length > 0 ? changed.map((file) => '- ' + file) : ['- TODO: identify affected files.']),
+    '',
+    '## Current Violations',
+    '- TODO: List concrete violations.',
+    '',
+    '## Migration Plan',
+    '- TODO: Write staged remediation steps.',
+    '',
+    '## Test Impact',
+    '- TODO: Name tests to add, update, delete, or consolidate.',
+    '',
+    '## Risk Level',
+    '- TODO',
+    '',
+    '## Workstream Split',
+    '- TODO',
+    '',
+    '## Verification Commands',
+    '- terrace ship check',
+    '',
+    '## Cleanup Conditions',
+    '- TODO'
+  ]);
+  const state = loadState(cwd);
+  saveState(cwd, {
+    ...state,
+    backfills: [...backfillEntries(state), entry]
+  });
+  reportUpdate(cwd, { command: 'terrace backfill' });
+  return entry;
+}
+
+function workstreamsPlan(cwd, feature) {
+  const featureId = normalizeFeatureId(feature);
+  const lanes = ['product/spec', 'tests', 'frontend', 'backend', 'data/migrations', 'observability', 'docs', 'cleanup'].map((lane) => ({
+    lane,
+    owned_files: [],
+    dependencies: [],
+    collision_risks: [],
+    verification_commands: ['terrace ship check'],
+    parallel: lane !== 'data/migrations'
+  }));
+  const coordination_points = ['shared exports', 'schemas', 'auth', 'billing', 'migrations'];
+  const artifact = featureRef(featureId) + '/WORKSTREAMS.md';
+  const jsonRef = '.terrace/workstreams/' + featureId + '.json';
+  const entry = { feature_id: featureId, artifact, json_ref: jsonRef, lanes, coordination_points, created_at: nowIso() };
+  writeJson(cwd, jsonRef, entry);
+  writeMarkdown(cwd, artifact, [
+    '# Workstreams: ' + featureId,
+    '',
+    '## Coordination Points',
+    ...coordination_points.map((item) => '- ' + item),
+    '',
+    '## Lanes',
+    ...lanes.flatMap((lane) => [
+      '### ' + lane.lane,
+      '- Parallel: ' + String(lane.parallel),
+      '- Owned files: TODO',
+      '- Dependencies: TODO',
+      '- Collision risks: TODO',
+      '- Verification: ' + lane.verification_commands.join(', ')
+    ])
+  ]);
+  const state = loadState(cwd);
+  saveState(cwd, {
+    ...state,
+    workstreams: {
+      ...workstreamEntries(state),
+      [featureId]: entry
+    }
+  });
+  return entry;
+}
+
+function designSourceImport(cwd, source, feature, ref) {
+  const featureId = normalizeFeatureId(feature);
+  const normalizedSource = ['stitch', 'v0', 'figma', 'screenshot'].includes(source) ? source : 'stitch';
+  const base = featureRef(featureId);
+  const specRef = base + '/UI-SPEC.md';
+  const assetsRef = base + '/UI-ASSETS.md';
+  const verifyRef = base + '/UI-VERIFY.md';
+  const entry = {
+    feature_id: featureId,
+    source: normalizedSource,
+    ref: ref || null,
+    artifacts: {
+      spec: specRef,
+      assets: assetsRef,
+      verify: verifyRef
+    },
+    created_at: nowIso()
+  };
+  writeMarkdown(cwd, specRef, [
+    '# UI Spec: ' + featureId,
+    '',
+    '## Source',
+    '- Type: ' + normalizedSource,
+    '- Ref: ' + (ref || 'missing'),
+    '',
+    '## Routes And Components',
+    '- TODO',
+    '',
+    '## States',
+    '- TODO: loading, empty, error, success, disabled, responsive.',
+    '',
+    '## Implementation Constraints',
+    '- TODO'
+  ]);
+  writeMarkdown(cwd, assetsRef, [
+    '# UI Assets: ' + featureId,
+    '',
+    '## Required Assets',
+    '- TODO',
+    '',
+    '## Source References',
+    '- ' + (ref || 'missing')
+  ]);
+  writeMarkdown(cwd, verifyRef, [
+    '# UI Verification: ' + featureId,
+    '',
+    '## Browser Checks',
+    '- TODO: Define viewport, route, screenshot, accessibility, and interaction checks.'
+  ]);
+  const state = loadState(cwd);
+  saveState(cwd, {
+    ...state,
+    design_sources: {
+      ...designSourceEntries(state),
+      [featureId]: entry
+    }
+  });
+  return entry;
+}
+
+function designSourceDiff(cwd, target, feature, routeOrPath) {
+  const featureId = normalizeFeatureId(feature);
+  const artifact = featureRef(featureId) + '/UI-DIFF.md';
+  const entry = {
+    feature_id: featureId,
+    target: target || 'existing-ui',
+    route_or_path: routeOrPath || null,
+    artifact,
+    created_at: nowIso()
+  };
+  writeMarkdown(cwd, artifact, [
+    '# UI Diff: ' + featureId,
+    '',
+    '## Target',
+    '- ' + entry.target,
+    '',
+    '## Route Or Path',
+    '- ' + (entry.route_or_path || 'missing'),
+    '',
+    '## Differences',
+    '- TODO: Record visual, interaction, content, accessibility, and responsive differences.',
+    '',
+    '## Verification Requirements',
+    '- TODO: Name browser and screenshot checks.'
+  ]);
+  return entry;
+}
+
+function latestForFeature(entries, featureId) {
+  return entries.slice().reverse().find((entry) => entry.feature_id === featureId) || null;
+}
+
+function documentationShipCheck(cwd) {
+  try {
+    const state = loadState(cwd);
+    const feature = activeFeatureState(state);
+    if (!feature) {
+      return { category: 'documentation', command: 'terrace docu <feature>', passed: true, skipped: true, blocking: [], warnings: [] };
+    }
+    const docs = documentationEntries(state)[feature.feature_id] || null;
+    const missing = !docs;
+    const finding = {
+      code: 'DOCUMENTATION_REQUIRED',
+      message: 'Documentation is missing for active feature: ' + feature.feature_id,
+      remediation: 'Run terrace docu ' + feature.feature_id
+    };
+    return {
+      category: 'documentation',
+      command: 'terrace docu ' + feature.feature_id,
+      passed: !missing || feature.tier === 'small',
+      documentation: docs,
+      blocking: missing && feature.tier !== 'small' ? [finding] : [],
+      warnings: missing && feature.tier === 'small' ? [finding] : []
+    };
+  } catch (error) {
+    return unavailableCheck('documentation', 'terrace docu <feature>', error);
+  }
+}
+
+function testEvalShipCheck(cwd) {
+  try {
+    const latest = testEvaluationEntries(loadState(cwd)).slice().reverse()[0] || null;
+    const missing = !latest;
+    const blockers = latest && latest.blockers ? latest.blockers : [];
+    return {
+      category: 'test_eval',
+      command: 'terrace test eval',
+      passed: blockers.length === 0,
+      test_evaluation: latest,
+      blocking: blockers,
+      warnings: missing ? [{ code: 'TEST_EVAL_MISSING', message: 'No test-suite evaluation has been recorded.' }] : latest.recommendations || []
+    };
+  } catch (error) {
+    return unavailableCheck('test_eval', 'terrace test eval', error);
+  }
+}
+
+function aiReviewShipCheck(cwd) {
+  try {
+    const state = loadState(cwd);
+    const feature = activeFeatureState(state);
+    if (!feature) {
+      return { category: 'ai_review', command: 'terrace review ai', passed: true, skipped: true, blocking: [], warnings: [] };
+    }
+    const latest = latestForFeature(aiReviewEntries(state), feature.feature_id);
+    const missing = !latest;
+    const finding = {
+      code: 'AI_REVIEW_REQUIRED',
+      message: 'AI review is missing for active feature: ' + feature.feature_id,
+      remediation: 'Run terrace review ai --mode architecture --feature ' + feature.feature_id
+    };
+    return {
+      category: 'ai_review',
+      command: 'terrace review ai --feature ' + feature.feature_id,
+      passed: !missing || feature.tier !== 'large',
+      ai_review: latest,
+      blocking: missing && feature.tier === 'large' ? [finding] : [],
+      warnings: missing && feature.tier !== 'large' ? [finding] : []
+    };
+  } catch (error) {
+    return unavailableCheck('ai_review', 'terrace review ai', error);
+  }
+}
+
+function ruleAuditShipCheck(cwd) {
+  try {
+    const latest = ruleAuditEntries(loadState(cwd)).slice().reverse()[0] || null;
+    return {
+      category: 'rule_audit',
+      command: 'terrace rule audit',
+      passed: !latest || latest.blockers.length === 0,
+      rule_audit: latest,
+      blocking: latest ? latest.blockers : [],
+      warnings: latest ? latest.warnings : [{ code: 'RULE_AUDIT_MISSING', message: 'No rule audit has been recorded.' }]
+    };
+  } catch (error) {
+    return unavailableCheck('rule_audit', 'terrace rule audit', error);
+  }
+}
+
+function unavailableCheck(category, command, error) {
+  return {
+    category,
+    command,
+    passed: false,
+    blocking: [{ code: category.toUpperCase() + '_UNAVAILABLE', message: error && error.message ? error.message : String(error) }],
+    warnings: []
+  };
+}
+
 function preflightShipCheck(cwd) {
   try {
     const state = loadState(cwd);
@@ -774,7 +1487,21 @@ module.exports = {
   auditDebt,
   resolveDebt,
   preflightFeature,
+  docuFeature,
+  testEval,
+  interrogateMode,
+  reviewAi,
+  ruleAdd,
+  ruleAudit,
+  backfill,
+  workstreamsPlan,
+  designSourceImport,
+  designSourceDiff,
   preflightShipCheck,
   debtShipCheck,
-  reportShipCheck
+  reportShipCheck,
+  documentationShipCheck,
+  testEvalShipCheck,
+  aiReviewShipCheck,
+  ruleAuditShipCheck
 };

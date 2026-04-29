@@ -6,7 +6,16 @@ const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
 const { runAudit } = require('./audit.cjs');
 const { runDoctor } = require('./health.cjs');
-const { reportUpdate, reportShipCheck, preflightShipCheck, debtShipCheck } = require('./lifecycle.cjs');
+const {
+  reportUpdate,
+  reportShipCheck,
+  preflightShipCheck,
+  debtShipCheck,
+  documentationShipCheck,
+  testEvalShipCheck,
+  aiReviewShipCheck,
+  ruleAuditShipCheck
+} = require('./lifecycle.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -1497,7 +1506,11 @@ function shipCheck(cwd) {
     migrationReadinessCheck(cwd),
     seniorCycleShipCheck(cwd),
     preflightShipCheck(cwd),
+    aiReviewShipCheck(cwd),
     debtShipCheck(cwd),
+    documentationShipCheck(cwd),
+    testEvalShipCheck(cwd),
+    ruleAuditShipCheck(cwd),
     ...discovered.checks.map((check) => scriptCheck(cwd, discovered, check)),
     commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree')
   ];
