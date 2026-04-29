@@ -61,7 +61,27 @@ const {
   uiImportStitch,
   uiPlanRefresh,
   uiDiff,
-  shipCheck
+  shipCheck,
+  reportRead,
+  reportUpdate,
+  reportOpen,
+  reportHistory,
+  createHandoff,
+  addDebt,
+  listDebt,
+  auditDebt,
+  resolveDebt,
+  preflightFeature,
+  docuFeature,
+  testEval,
+  interrogateMode,
+  reviewAi,
+  ruleAdd,
+  ruleAudit,
+  backfill,
+  workstreamsPlan,
+  designSourceImport,
+  designSourceDiff
 } = require('../packages/terrace-core/src/index.cjs');
 
 const packageJson = require('../package.json');
@@ -110,6 +130,18 @@ const HELP_TEXT = [
   '  terrace backlog add <title>  Add a backlog item',
   '  terrace ship check           Run release readiness checks',
   '  terrace ship prepare         Write PR/release readiness summary',
+  '  terrace report [update|open|history]',
+  '  terrace handoff create [--feature <id>] [--for codex|claude|generic]',
+  '  terrace debt add|list|audit|resolve',
+  '  terrace preflight <feature>  Write production failure preflight',
+  '  terrace docu <feature>       Write production documentation draft',
+  '  terrace test eval            Evaluate test-suite trust',
+  '  terrace review ai --mode <mode>',
+  '  terrace rule add <domain> <rule-id>',
+  '  terrace rule audit',
+  '  terrace backfill             Write standards backfill spec',
+  '  terrace workstreams plan <feature>',
+  '  terrace design-source import <source> <feature> <ref>',
   '  terrace plan-phase <id>      GSD-compatible alias for phase plan',
   '  terrace execute-phase <id>   GSD-compatible alias for phase execute',
   '  terrace rule list            List installed rule packs',
@@ -235,6 +267,14 @@ async function main() {
     }
     case 'rule': {
       const sub = args[1];
+      if (sub === 'add') {
+        output(ruleAdd(cwd, args[2], args[3]), { json });
+        return;
+      }
+      if (sub === 'audit') {
+        output(ruleAudit(cwd), { json });
+        return;
+      }
       if (sub === 'explain') {
         const ruleId = args[2];
         if (!ruleId) {
@@ -247,7 +287,15 @@ async function main() {
         output(loadRules(cwd), { json });
         return;
       }
-      fail('Unknown rule subcommand: ' + sub + '. Use: explain, list', { json });
+      fail('Unknown rule subcommand: ' + sub + '. Use: add, audit, explain, list', { json });
+      return;
+    }
+    case 'add': {
+      if (args[1] === 'rule') {
+        output(ruleAdd(cwd, args[2], args[3]), { json });
+        return;
+      }
+      fail('Unknown add subcommand: ' + args[1] + '. Use: rule', { json });
       return;
     }
     case 'quick': {
@@ -328,6 +376,124 @@ async function main() {
       output(historySummary(cwd), { json });
       return;
     }
+    case 'report': {
+      const sub = args[1];
+      if (!sub) {
+        output(reportRead(cwd), { json });
+        return;
+      }
+      if (sub === 'update') {
+        output(reportUpdate(cwd, { command: 'terrace report update' }), { json });
+        return;
+      }
+      if (sub === 'open') {
+        output(reportOpen(cwd), { json });
+        return;
+      }
+      if (sub === 'history') {
+        output(reportHistory(cwd), { json });
+        return;
+      }
+      fail('Unknown report subcommand: ' + sub + '. Use: update, open, history', { json });
+      return;
+    }
+    case 'handoff': {
+      const sub = args[1];
+      if (sub === 'create') {
+        output(createHandoff(cwd, {
+          feature: optionValue(rawArgs, '--feature'),
+          for: optionValue(rawArgs, '--for')
+        }), { json });
+        return;
+      }
+      fail('Unknown handoff subcommand: ' + sub + '. Use: create', { json });
+      return;
+    }
+    case 'debt': {
+      const sub = args[1];
+      if (sub === 'add') {
+        output(addDebt(cwd, {
+          feature: args[2],
+          owner: optionValue(rawArgs, '--owner'),
+          reason: optionValue(rawArgs, '--reason'),
+          expiry: optionValue(rawArgs, '--expiry'),
+          cleanup: optionValue(rawArgs, '--cleanup'),
+          replacement: optionValue(rawArgs, '--replacement'),
+          allowedToShip: hasFlag(rawArgs, '--allowed-to-ship')
+        }), { json });
+        return;
+      }
+      if (sub === 'list') {
+        output(listDebt(cwd), { json });
+        return;
+      }
+      if (sub === 'audit') {
+        output(auditDebt(cwd), { json });
+        return;
+      }
+      if (sub === 'resolve') {
+        output(resolveDebt(cwd, args[2]), { json });
+        return;
+      }
+      fail('Unknown debt subcommand: ' + sub + '. Use: add, list, audit, resolve', { json });
+      return;
+    }
+    case 'preflight': {
+      output(preflightFeature(cwd, args[1], { mode: optionValue(rawArgs, '--mode') }), { json });
+      return;
+    }
+    case 'docu': {
+      output(docuFeature(cwd, args[1], { type: optionValue(rawArgs, '--type') }), { json });
+      return;
+    }
+    case 'test': {
+      const sub = args[1];
+      if (sub === 'eval') {
+        output(testEval(cwd, { feature: optionValue(rawArgs, '--feature'), changed: hasFlag(rawArgs, '--changed') }), { json });
+        return;
+      }
+      fail('Unknown test subcommand: ' + sub + '. Use: eval', { json });
+      return;
+    }
+    case 'review': {
+      const sub = args[1];
+      if (sub === 'ai') {
+        output(reviewAi(cwd, { mode: optionValue(rawArgs, '--mode'), feature: optionValue(rawArgs, '--feature') }), { json });
+        return;
+      }
+      fail('Unknown review subcommand: ' + sub + '. Use: ai', { json });
+      return;
+    }
+    case 'backfill': {
+      output(backfill(cwd, {
+        rule: optionValue(rawArgs, '--rule'),
+        since: optionValue(rawArgs, '--since'),
+        feature: optionValue(rawArgs, '--feature')
+      }), { json });
+      return;
+    }
+    case 'workstreams': {
+      const sub = args[1];
+      if (sub === 'plan') {
+        output(workstreamsPlan(cwd, args[2]), { json });
+        return;
+      }
+      fail('Unknown workstreams subcommand: ' + sub + '. Use: plan', { json });
+      return;
+    }
+    case 'design-source': {
+      const sub = args[1];
+      if (sub === 'import') {
+        output(designSourceImport(cwd, args[2], args[3], args[4]), { json });
+        return;
+      }
+      if (sub === 'diff') {
+        output(designSourceDiff(cwd, args[2], args[3], args[4]), { json });
+        return;
+      }
+      fail('Unknown design-source subcommand: ' + sub + '. Use: import, diff', { json });
+      return;
+    }
     case 'autonomous': {
       output(autonomousWorkflow(cwd), { json });
       return;
@@ -346,6 +512,10 @@ async function main() {
       return;
     }
     case 'interrogate': {
+      if (['init', 'adjust', 'risk', 'milestone'].includes(args[1])) {
+        output(interrogateMode(cwd, args[1], args[2], seniorOptions(rawArgs)), { json });
+        return;
+      }
       output(interrogateFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
       return;
     }
@@ -590,7 +760,13 @@ async function main() {
       return;
     }
     case 'audit': {
-      output(runAudit(cwd, {}), { json });
+      const result = runAudit(cwd, {});
+      try {
+        reportUpdate(cwd, { command: 'terrace audit' });
+      } catch (error) {
+        result.report_refresh_skipped = error && error.message ? error.message : String(error);
+      }
+      output(result, { json });
       return;
     }
     case 'ci': {
