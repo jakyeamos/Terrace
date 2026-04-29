@@ -40,13 +40,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run ci; npm run package:dry-run; packed npm install smoke; npm audit --audit-level=moderate; npx vitest run tests/lint-script.test.ts --reporter=verbose; npm run lint; npm run build; npx vitest run tests/workflow-commands.test.ts --reporter=verbose
+lastVerifiedCommand: npm run ci; npx npm@10.9.7 ci; npm run package:dry-run; packed npm install smoke; npm audit --audit-level=moderate; npx vitest run tests/lint-script.test.ts --reporter=verbose; npm run lint; npm run build; npx vitest run tests/workflow-commands.test.ts --reporter=verbose
 lastVerifiedAt: "2026-04-29T17:49:13-04:00"
 ---
 
 ## Current State
 
-Terrace is at tier-one readiness for a public npm v0.1 release candidate. The latest verification pass completed `npm run ci`, `npm run package:dry-run`, a packed npm install smoke test, `npm audit --audit-level=moderate`, focused line-ending guardrail tests, `npm run lint`, `npm run build`, and the workflow command test. The lint gate now explicitly rejects CRLF endings across repo text files before they appear as platform-specific whitespace failures, and GitHub CI/release dry-run jobs are configured to run on both Ubuntu and Windows.
+Terrace is at tier-one readiness for a public npm v0.1 release candidate. The latest verification pass completed `npm run ci`, `npx npm@10.9.7 ci`, `npm run package:dry-run`, a packed npm install smoke test, `npm audit --audit-level=moderate`, focused line-ending guardrail tests, `npm run lint`, `npm run build`, and the workflow command test. The lint gate now explicitly rejects CRLF endings across repo text files before they appear as platform-specific whitespace failures, and GitHub CI/release dry-run jobs are configured to run on both Ubuntu and Windows.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, honors explicit GitHub Actions permissions, and records a zero-finding security check for the current repo.
 
@@ -92,6 +92,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Hardened timeout budgets for CLI-heavy and package/ship tests after nested ship checks proved sensitive to loaded developer machines.
 - April 29: Added `.gitattributes`, Prettier LF configuration, and lint-script CRLF regression coverage so Windows checkouts cannot reintroduce CRLF-only lint noise.
 - April 29: Added Windows runners to CI and release dry-run workflows, and removed the Unix-specific `/tmp` cache path from `npm run package:dry-run`.
+- April 29: Synced `package-lock.json` for npm 10 CI, made npm script execution portable on Windows, and aligned branch coverage threshold with the CI suite where the external amos-saas fixture is skipped.
 
 ## Open Problems
 
@@ -104,7 +105,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Lint:** `npm run lint` PASS, checking 159 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `npm run typecheck` PASS
 - **Tests:** `npm test` PASS in `npm run ci`, 34 files and 246 tests
-- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.84%, statements 85.32%, functions 88.1%, branches 70.42%
+- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.81%, statements 85.29%, functions 88.1%, branches 70.43%
 - **Package:** packed-consumer e2e PASS in the full suite; the runtime analysis dependencies are now declared and bundled for offline installs
 - **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities

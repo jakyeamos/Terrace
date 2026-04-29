@@ -1495,8 +1495,9 @@ function migrationReadinessCheck(cwd) {
 }
 
 function commandCheck(cwd, command, category) {
+  const executable = process.platform === 'win32' && command[0] === 'npm' ? 'npm.cmd' : command[0];
   try {
-    execFileSync(command[0], command.slice(1), { cwd, stdio: 'ignore' });
+    execFileSync(executable, command.slice(1), { cwd, stdio: 'ignore' });
     return { category, command: command.join(' '), passed: true, blocking: [] };
   } catch (error) {
     return {
