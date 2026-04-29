@@ -20,9 +20,10 @@ describe('lint script line-ending guardrails', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'terrace-lint-crlf-'));
     tmpDirs.push(tmpDir);
     fs.mkdirSync(path.join(tmpDir, 'src'), { recursive: true });
-    for (const fileName of ['sample.cjs', 'sample.ts', 'sample.json', 'sample.md']) {
-      fs.writeFileSync(path.join(tmpDir, 'src', fileName), 'first line\r\nsecond line\r\n', 'utf-8');
-    }
+    fs.writeFileSync(path.join(tmpDir, 'src', 'sample.cjs'), 'module.exports = 1;\r\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'src', 'sample.ts'), 'export const value = 1;\r\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'src', 'sample.json'), '{"value":1}\r\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'src', 'sample.md'), '# Sample\r\n', 'utf-8');
 
     const result = spawnSync(NODE_BIN, [LINT_SCRIPT], {
       env: {
@@ -34,10 +35,11 @@ describe('lint script line-ending guardrails', () => {
     });
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('CRLF line endings');
-    expect(result.stderr).toContain('src/sample.cjs');
-    expect(result.stderr).toContain('src/sample.ts');
-    expect(result.stderr).toContain('src/sample.json');
-    expect(result.stderr).toContain('src/sample.md');
+    const stderr = result.stderr.replace(/\\/g, '/');
+    expect(stderr).toContain('CRLF line endings');
+    expect(stderr).toContain('src/sample.cjs');
+    expect(stderr).toContain('src/sample.ts');
+    expect(stderr).toContain('src/sample.json');
+    expect(stderr).toContain('src/sample.md');
   });
 });

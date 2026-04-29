@@ -6,6 +6,15 @@ import { execFileSync, spawnSync } from 'child_process';
 
 const repoRoot = path.resolve(__dirname, '..');
 const cliPath = path.join(repoRoot, 'src', 'terrace-tools.cjs');
+const windowsShell = process.platform === 'win32';
+
+function npmExec(args: string[], options: { cwd: string; encoding: BufferEncoding; timeout?: number }) {
+  return execFileSync('npm', args, { ...options, shell: windowsShell });
+}
+
+function terraceExec(terraceBin: string, args: string[], options: { cwd: string; encoding: BufferEncoding }) {
+  return execFileSync(terraceBin, args, { ...options, shell: windowsShell });
+}
 
 describe('tier-one product readiness', () => {
   it('exposes npm metadata for a publishable CLI package', () => {
@@ -70,29 +79,29 @@ describe('tier-one product readiness', () => {
     fs.mkdirSync(consumerDir, { recursive: true });
 
     try {
-      const packOutput = execFileSync('npm', ['pack', '--pack-destination', packDir, '--cache', path.join(tmpRoot, 'npm-cache')], {
+      const packOutput = npmExec(['pack', '--pack-destination', packDir, '--cache', path.join(tmpRoot, 'npm-cache')], {
         cwd: repoRoot,
         encoding: 'utf8'
       }).trim();
       const tarballPath = path.join(packDir, packOutput.split(/\r?\n/).pop() || '');
 
       fs.writeFileSync(path.join(consumerDir, 'package.json'), JSON.stringify({ name: 'terrace-consumer', private: true }), 'utf8');
-      execFileSync('npm', ['install', '--ignore-scripts', '--prefer-offline', '--cache', path.join(tmpRoot, 'npm-cache'), tarballPath], {
+      npmExec(['install', '--ignore-scripts', '--prefer-offline', '--cache', path.join(tmpRoot, 'npm-cache'), tarballPath], {
         cwd: consumerDir,
         encoding: 'utf8',
         timeout: 60000
       });
 
       const terraceBin = path.join(consumerDir, 'node_modules', '.bin', 'terrace');
-      const help = execFileSync(terraceBin, ['--help'], { cwd: consumerDir, encoding: 'utf8' });
-      const version = execFileSync(terraceBin, ['--version'], { cwd: consumerDir, encoding: 'utf8' }).trim();
-      const init = JSON.parse(execFileSync(terraceBin, ['init', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
-      const doctor = JSON.parse(execFileSync(terraceBin, ['doctor', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
-      const audit = JSON.parse(execFileSync(terraceBin, ['audit', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
-      const report = JSON.parse(execFileSync(terraceBin, ['report', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      const help = terraceExec(terraceBin, ['--help'], { cwd: consumerDir, encoding: 'utf8' });
+      const version = terraceExec(terraceBin, ['--version'], { cwd: consumerDir, encoding: 'utf8' }).trim();
+      const init = JSON.parse(terraceExec(terraceBin, ['init', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      const doctor = JSON.parse(terraceExec(terraceBin, ['doctor', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      const audit = JSON.parse(terraceExec(terraceBin, ['audit', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      const report = JSON.parse(terraceExec(terraceBin, ['report', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const reportPath = path.join(consumerDir, '.terrace', 'report-card.json');
       const reportMtime = fs.statSync(reportPath).mtimeMs;
-      const ship = spawnSync(terraceBin, ['ship', 'check', '--json'], { cwd: consumerDir, encoding: 'utf8' });
+      const ship = spawnSync(terraceBin, ['ship', 'check', '--json'], { cwd: consumerDir, encoding: 'utf8', shell: windowsShell });
 
       expect(help).toContain('Usage: terrace <command>');
       expect(version).toBe(JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version);
