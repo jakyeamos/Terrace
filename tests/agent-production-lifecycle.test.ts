@@ -90,4 +90,14 @@ describe('agent production lifecycle phase 1 commands', () => {
     expect(parsed.categories).toContainEqual(expect.objectContaining({ category: 'debt' }));
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'report-card.json'))).toBe(true);
   }, 15000);
+
+  it('runs ship check without writing report artifacts', () => {
+    const result = spawnSync(NODE_BIN, [TERRACE_CLI, 'ship', 'check', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
+    const parsed = JSON.parse(result.stdout);
+
+    expect(parsed.categories).toContainEqual(expect.objectContaining({ category: 'tier_one_report' }));
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'report-card.json'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'REPORT-CARD.md'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'report-history'))).toBe(false);
+  }, 15000);
 });

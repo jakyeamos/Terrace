@@ -1516,7 +1516,6 @@ function shipCheck(cwd) {
   ];
   const blockers = categories.flatMap((category) => category.blocking || []);
   const warnings = categories.flatMap((category) => category.warnings || []);
-  reportUpdate(cwd, { command: 'terrace ship check' });
   return {
     passed: blockers.length === 0,
     project_commands: discovered,

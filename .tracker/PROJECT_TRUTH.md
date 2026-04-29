@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace now has a publishable CLI foundation, a substantially stronger GSD switch path, and hard Senior Cycle enforcement across next, phase execution, phase completion, ship checks, and quick-task test/verification gates.
-healthScore: 99
-statusLabel: senior_cycle_enforced
-nextStep: Review the Agent Production Lifecycle spec and choose the first implementation slice, now including the Tier One report card.
+summary: Terrace is being hardened for public npm v0.1 readiness. The first implementation slice makes `terrace ship check` read-only so release checks do not dirty a clean tree.
+healthScore: 72
+statusLabel: external_readiness_in_progress
+nextStep: Restore coverage thresholds, add packed-consumer e2e coverage, then refresh external docs and final verification.
 blockers: []
 lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -22,7 +22,7 @@ quality:
   lint: pass
   types: pass
   tests: pass
-  coverage: pass
+  coverage: fail
   package: pass
   auditHigh: pass
   deadCode: not_configured
@@ -39,11 +39,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
+lastVerifiedCommand: npm test -- tests/agent-production-lifecycle.test.ts -t "runs ship check without writing report artifacts"
+lastVerifiedAt: "2026-04-29T11:12:06-04:00"
 ---
 
 ## Current State
 
-The first tier-one product gate is implemented. Terrace exposes a publishable npm CLI surface, documented install/quickstart/commands/troubleshooting, hard local CI, GitHub CI, release dry-run workflow, support docs, and an allowlisted package payload. The repo now dogfoods Terrace through `.terrace/state.json`; `terrace doctor` and `terrace audit` are healthy.
+Terrace is in an external-readiness hardening pass for public npm v0.1. The first slice makes `terrace ship check` non-mutating; release checks now keep report-card writes behind explicit writer commands such as `terrace report update`.
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
@@ -71,9 +73,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 28: Added adaptive project command discovery, richer migrated-context phase plans, execution queue artifacts, `terrace autonomous`, broader GSD-style plain-text routing, and missing-script ship warnings.
 - April 29: Added the Senior Cycle audit/spec, adaptive senior-cycle artifact generation, tiered gate status, phase execution enforcement for opted-in senior-cycle features, no-band-aid architecture defaults for quick work, and UI/Stitch workflow artifact commands.
 - April 29: Drafted the Agent Production Lifecycle spec covering a Tier One report card, handoffs, workstreams, design-source adapters, preflight, AI review, debt tracking, documentation, test evaluation, rule audit, and standards backfill.
+- April 29: Made `terrace ship check` read-only and added a regression test proving it does not write report artifacts in a fresh initialized repo.
 
 ## Open Problems
 
+- Coverage currently fails configured global thresholds after the lifecycle command expansion.
 - Installed-package fixture e2e coverage is still thinner than the desired full product gate.
 - Feature tier selection still defaults to medium unless a feature records an explicit tier.
 - `npm audit --audit-level=high` passes, but npm reports one moderate PostCSS advisory in the dev dependency tree.
@@ -84,14 +88,13 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
 - **Tests:** `npm test` PASS, 217 tests
-- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds
+- **Coverage:** `npm run test:coverage` FAIL, global coverage below configured thresholds after lifecycle expansion
 - **Package:** `npm run package:dry-run` PASS, 48 allowlisted files
 - **Audit:** `npm audit --audit-level=high` PASS, one moderate advisory remains
 
 ## Next Concrete Steps
 
-1. Review `docs/superpowers/specs/2026-04-29-terrace-agent-production-lifecycle-design.md`.
-2. Choose the first implementation slice, recommended: Tier One report card, handoff packs, debt tracking, and production preflight.
-3. Add persisted feature tier selection and risk detection heuristics.
-4. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
-5. Decide whether to address the moderate PostCSS advisory now or track it as acceptable dev-dependency risk.
+1. Restore `npm run test:coverage` above configured thresholds without lowering the release bar.
+2. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
+3. Update external onboarding docs and release checklist around the public npm v0.1 path.
+4. Address the moderate PostCSS advisory or explicitly document the remaining dev-dependency risk.
