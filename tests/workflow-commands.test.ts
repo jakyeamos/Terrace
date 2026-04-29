@@ -25,6 +25,8 @@ const {
   quickComplete,
   shipPrepare,
   routePlainText,
+  autonomousWorkflow,
+  discoverProjectCommands,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -58,6 +60,13 @@ describe('workflow parity core helpers', () => {
       commits: ['deadbee']
     }];
     saveState(tmpDir, state);
+    fs.mkdirSync(path.join(tmpDir, '.planning', 'phases', '11'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'phases', '11', '11-01-PLAN.md'), [
+      '# Notification Plan',
+      '',
+      'Update src/app/notifications/page.tsx and src/lib/notifications.ts.',
+      'Run npm run lint before review.'
+    ].join('\n'), 'utf-8');
   });
 
   afterEach(() => {
@@ -97,10 +106,13 @@ describe('workflow parity core helpers', () => {
     expect(planned).toMatchObject({
       phase_id: 'phase-11-notifications',
       status: 'slice_planned',
-      next_command: 'terrace phase execute phase-11-notifications'
+      next_command: 'terrace phase execute phase-11-notifications',
+      source_refs: ['.planning/phases/11/11-01-PLAN.md']
     });
     expect(fs.existsSync(path.join(tmpDir, planned.plan_ref))).toBe(true);
-    expect(fs.readFileSync(path.join(tmpDir, planned.plan_ref), 'utf-8')).toContain('Phase 11: Notifications');
+    const plan = fs.readFileSync(path.join(tmpDir, planned.plan_ref), 'utf-8');
+    expect(plan).toContain('Phase 11: Notifications');
+    expect(plan).toContain('src/app/notifications/page.tsx');
     expect(phaseExecute(tmpDir, 'phase-11-notifications')).toMatchObject({
       allowed: false,
       blockers: [expect.objectContaining({ description: 'Apply migration 034_prime_notes.sql' })]
@@ -129,8 +141,11 @@ describe('workflow parity core helpers', () => {
       allowed: true,
       phase_id: 'phase-12-release',
       status: 'red_required',
-      waves: expect.any(Array)
+      waves: expect.any(Array),
+      execution_ref: 'docs/terrace/phases/phase-12-release/EXECUTION.md',
+      queue: [expect.objectContaining({ id: '12-01' })]
     });
+    expect(fs.existsSync(path.join(tmpDir, executed.execution_ref))).toBe(true);
     expect(validated.validation_ref).toBe('docs/terrace/phases/phase-12-release/VALIDATION.md');
     expect(reviewed.review_ref).toBe('docs/terrace/phases/phase-12-release/REVIEW.md');
     expect(completed.summary_ref).toBe('docs/terrace/phases/phase-12-release/SUMMARY.md');
@@ -198,14 +213,74 @@ describe('workflow parity core helpers', () => {
     expect(fs.readFileSync(path.join(tmpDir, result.ship_ref), 'utf-8')).toContain('Release Readiness');
   }, 15000);
 
+  it('discovers project commands and treats missing quality scripts as warnings', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "process.exit(0)"',
+        build: 'node -e "process.exit(0)"'
+      }
+    }, null, 2), 'utf-8');
+    const discovered = discoverProjectCommands(tmpDir);
+    const result = shipCheck(tmpDir);
+
+    expect(discovered).toMatchObject({
+      package_manager: 'npm',
+      scripts: expect.objectContaining({ lint: 'node -e "process.exit(0)"', build: 'node -e "process.exit(0)"' }),
+      checks: expect.arrayContaining([
+        expect.objectContaining({ category: 'lint', exists: true }),
+        expect.objectContaining({ category: 'build', exists: true }),
+        expect.objectContaining({ category: 'typecheck', exists: false })
+      ])
+    });
+    expect(result.categories).toContainEqual(expect.objectContaining({
+      category: 'typecheck',
+      passed: true,
+      warnings: [expect.objectContaining({ code: 'QUALITY_SCRIPT_MISSING' })]
+    }));
+    expect(result.categories).toContainEqual(expect.objectContaining({
+      category: 'build',
+      passed: true
+    }));
+  }, 15000);
+
+  it('runs an autonomous planning pass and stops at blockers', () => {
+    const result = autonomousWorkflow(tmpDir);
+
+    expect(result).toMatchObject({
+      status: 'blocked',
+      planned: { phase_id: 'phase-11-notifications' },
+      execution: {
+        allowed: false,
+        required_action: 'Resolve blocking handoff actions before execution.'
+      },
+      next_command: 'terrace phase execute phase-11-notifications'
+    });
+  });
+
   it('routes plain text to stable Terrace commands for agents', () => {
     expect(routePlainText(tmpDir, 'plan phase 11')).toMatchObject({
       command: 'terrace phase plan phase-11-notifications',
       result: { phase_id: 'phase-11-notifications' }
     });
+    expect(routePlainText(tmpDir, '/gsd:plan-phase 11')).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications'
+    });
+    expect(routePlainText(tmpDir, 'run the next phase')).toMatchObject({
+      command: 'terrace autonomous'
+    });
+    expect(routePlainText(tmpDir, 'show quick tasks')).toMatchObject({
+      command: 'terrace quick list'
+    });
     expect(routePlainText(tmpDir, 'create quick task refresh beta copy')).toMatchObject({
       command: 'terrace quick plan refresh beta copy',
       result: { item: expect.objectContaining({ title: 'refresh beta copy' }) }
+    });
+    expect(routePlainText(tmpDir, 'ship prepare')).toMatchObject({
+      command: 'terrace ship prepare',
+      result: { ship_ref: 'docs/terrace/ship/SHIP.md' }
+    });
+    expect(routePlainText(tmpDir, 'ship this')).toMatchObject({
+      command: 'terrace ship check'
     });
     expect(routePlainText(tmpDir, 'show me history')).toMatchObject({
       command: 'terrace history'
@@ -226,6 +301,7 @@ describe('workflow parity core helpers', () => {
       'test',
       'coverage',
       'package',
+      'build',
       'dirty_tree'
     ]);
     expect(result.blockers.length).toBeGreaterThan(0);

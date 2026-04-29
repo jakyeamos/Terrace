@@ -48,6 +48,8 @@ const {
   quickComplete,
   shipPrepare,
   routePlainText,
+  autonomousWorkflow,
+  discoverProjectCommands,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -68,6 +70,8 @@ const HELP_TEXT = [
   '  terrace resume               Reconstruct paused workflow context',
   '  terrace history              Summarize migrated operational history',
   '  terrace do <plain text>      Route natural language to a Terrace command',
+  '  terrace autonomous           Plan next phase and stop at blocker or handoff',
+  '  terrace commands discover    Discover project quality scripts',
   '  terrace phase list           List roadmap phases',
   '  terrace phase show <id>      Show a roadmap phase',
   '  terrace phase plan <id>      Generate a phase plan artifact',
@@ -289,6 +293,19 @@ async function main() {
     }
     case 'history': {
       output(historySummary(cwd), { json });
+      return;
+    }
+    case 'autonomous': {
+      output(autonomousWorkflow(cwd), { json });
+      return;
+    }
+    case 'commands': {
+      const sub = args[1];
+      if (sub === 'discover') {
+        output(discoverProjectCommands(cwd), { json });
+        return;
+      }
+      fail('Unknown commands subcommand: ' + sub + '. Use: discover', { json });
       return;
     }
     case 'do': {

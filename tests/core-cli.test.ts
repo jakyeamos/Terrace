@@ -103,9 +103,21 @@ describe('strict core CLI delegation', () => {
       command: 'terrace phase plan phase-11-notifications',
       result: { phase_id: 'phase-11-notifications' }
     });
+    expect(runTerrace(tmpDir, ['do', '/gsd:plan-phase 11', '--json'])).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications'
+    });
+    expect(runTerrace(tmpDir, ['autonomous', '--json'])).toMatchObject({
+      status: 'blocked',
+      planned: { phase_id: 'phase-11-notifications' },
+      execution: { allowed: false }
+    });
     expect(runTerrace(tmpDir, ['quick', 'plan', 'Refresh beta copy', '--json']).item).toMatchObject({
       title: 'Refresh beta copy',
       status: 'planned'
+    });
+    expect(runTerrace(tmpDir, ['commands', 'discover', '--json'])).toMatchObject({
+      package_manager: 'npm',
+      checks: expect.any(Array)
     });
     expect(runTerrace(tmpDir, ['backlog', 'list', '--json']).items).toContainEqual(expect.objectContaining({
       title: 'Add SMS fallback.'

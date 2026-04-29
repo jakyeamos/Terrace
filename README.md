@@ -39,10 +39,12 @@ npx terrace audit
 - `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
 - `terrace history` summarizes migrated phases, sessions, decisions, and quick tasks.
 - `terrace do <plain text>` routes natural-language agent instructions to stable Terrace commands.
+- `terrace autonomous` plans the next phase, prepares execution readiness, and stops at blockers or agent handoff.
+- `terrace commands discover` detects package manager, project scripts, and quality-gate command mapping.
 - `terrace phase list` lists canonical roadmap phases.
 - `terrace phase show <id>` shows one roadmap phase and its migrated plans.
-- `terrace phase plan <id>` writes `docs/terrace/phases/<id>/PLAN.md` and prepares the phase as the active slice.
-- `terrace phase execute <id>` enters RED-gate execution for a phase after blockers are clear and reports execution waves.
+- `terrace phase plan <id>` writes `docs/terrace/phases/<id>/PLAN.md`, pulling migrated source plans, likely files, related quick tasks, blockers, and discovered project commands into the phase plan.
+- `terrace phase execute <id>` writes `docs/terrace/phases/<id>/EXECUTION.md`, enters RED-gate readiness after blockers are clear, and reports an execution queue.
 - `terrace phase validate <id>` writes `docs/terrace/phases/<id>/VALIDATION.md`.
 - `terrace phase review <id>` writes `docs/terrace/phases/<id>/REVIEW.md`.
 - `terrace phase complete <id>` writes `docs/terrace/phases/<id>/SUMMARY.md` and marks the phase complete.
@@ -53,7 +55,7 @@ npx terrace audit
 - `terrace quick complete <id>` writes a quick-task summary and marks it complete.
 - `terrace backlog list` lists backlog items.
 - `terrace backlog add <title>` appends a backlog item.
-- `terrace ship check` runs release-readiness checks and exits nonzero when a quality gate fails.
+- `terrace ship check` runs release-readiness checks, discovers available project scripts, treats missing optional scripts as warnings, and exits nonzero when an available quality gate fails.
 - `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` from release-readiness results.
 - `terrace plan-phase <id>`, `terrace execute-phase <id>`, `terrace validate-phase <id>`, `terrace review-phase <id>`, and `terrace complete-phase <id>` are GSD-compatible aliases.
 - `terrace rule list` and `terrace rule explain <id>` inspect rule packs.
@@ -74,7 +76,7 @@ Migrated state includes roadmap phases and plans, decisions, sessions, handoff c
 5. Run `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, and `terrace phase complete <id>` to preserve execution history.
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
 
-Agents can use `terrace do "plan phase 11"`, `terrace do "execute phase 11"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have plain text instead of a structured command.
+Agents can use `terrace do "plan phase 11"`, `terrace do "/gsd:plan-phase 11"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have plain text instead of a structured command.
 
 ## Troubleshooting
 
@@ -83,6 +85,7 @@ Agents can use `terrace do "plan phase 11"`, `terrace do "execute phase 11"`, `t
 - `terrace port gsd` refuses to overwrite state: re-run with `--force` only after preserving existing `.terrace/state.json`.
 - `terrace next` reports a blocked action after migration: complete or clear the migrated human action before treating the project as ready.
 - `terrace ship check` exits nonzero: inspect the failed category and run the listed command directly for detailed output.
+- `terrace ship check` reports `QUALITY_SCRIPT_MISSING`: add the suggested package script if that gate should be enforced for this project.
 - `terrace do <plain text>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
 - Typecheck errors from package dependencies usually mean the repo is not using the supported `Bundler` module resolution settings in `tsconfig.json`.
 

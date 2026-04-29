@@ -21,6 +21,33 @@ function writeMarkdown(cwd, relativeFilePath, lines) {
   return relativeFilePath;
 }
 
+function readJsonFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function readTextIfExists(cwd, relativeFilePath) {
+  if (!relativeFilePath) {
+    return null;
+  }
+  const filePath = path.resolve(cwd, relativeFilePath);
+  if (!filePath.startsWith(path.resolve(cwd) + path.sep) || !fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    return null;
+  }
+  return fs.readFileSync(filePath, 'utf8');
+}
+
+function firstLines(text, maxLines) {
+  return String(text || '').split(/\r?\n/).slice(0, maxLines).join('\n').trim();
+}
+
+function extractLikelyFiles(text) {
+  const matches = String(text || '').match(/[A-Za-z0-9_./()[\]-]+\.(?:ts|tsx|js|jsx|cjs|mjs|json|md|sql|css|scss|yml|yaml)/g) || [];
+  return Array.from(new Set(matches)).slice(0, 12);
+}
+
 function phasesFromState(state) {
   return state.roadmap && Array.isArray(state.roadmap.phases) ? state.roadmap.phases : [];
 }
@@ -37,9 +64,41 @@ function phaseRef(phase) {
   return 'docs/terrace/phases/' + phase.id;
 }
 
-function planLinesForPhase(phase, blockers) {
+function phaseContext(cwd, state, phase) {
   const plans = Array.isArray(phase.plans) ? phase.plans : [];
+  const sourceRefs = plans
+    .map((plan) => plan.source_ref)
+    .filter((sourceRef) => typeof sourceRef === 'string' && sourceRef.length > 0);
+  const sourceSnippets = sourceRefs.map((sourceRef) => {
+    const content = readTextIfExists(cwd, sourceRef);
+    return {
+      source_ref: sourceRef,
+      found: Boolean(content),
+      snippet: content ? firstLines(content, 18) : ''
+    };
+  });
+  const phaseNumberMatch = String(phase.title || phase.id).match(/phase\s+(\d+(?:\.\d+)?)/i);
+  const phaseNumber = phaseNumberMatch ? phaseNumberMatch[1] : null;
+  const quickTasks = quickTasksFromState(state).filter((item) => {
+    const haystack = [item.title, item.source_dir, item.plan_ref, item.summary_ref].filter(Boolean).join(' ').toLowerCase();
+    return phaseNumber ? haystack.includes('phase ' + phaseNumber) || haystack.includes('phase-' + phaseNumber) : haystack.includes(String(phase.id).toLowerCase());
+  }).slice(0, 8);
+  const likelyFiles = Array.from(new Set(sourceSnippets.flatMap((item) => extractLikelyFiles(item.snippet))));
+  return {
+    plans,
+    source_refs: sourceRefs,
+    source_snippets: sourceSnippets,
+    quick_tasks: quickTasks,
+    likely_files: likelyFiles
+  };
+}
+
+function planLinesForPhase(phase, blockers, context, discovered) {
+  const ctx = context || { plans: [], source_refs: [], source_snippets: [], quick_tasks: [], likely_files: [] };
   const criteria = Array.isArray(phase.success_criteria) ? phase.success_criteria : [];
+  const commands = discovered && Array.isArray(discovered.checks)
+    ? discovered.checks.filter((check) => check.exists).map((check) => check.command)
+    : [];
   return [
     '# ' + phase.title,
     '',
@@ -48,18 +107,35 @@ function planLinesForPhase(phase, blockers) {
     '',
     '## Source',
     '- Phase source: ' + (phase.source_ref || 'Terrace roadmap'),
-    '- Existing plan count: ' + String(plans.length),
+    '- Existing plan count: ' + String(ctx.plans.length),
     '',
     '## Existing Plans',
-    ...(plans.length > 0 ? plans.map((plan) => '- ' + (plan.title || plan.id) + ' (' + (plan.source_ref || plan.id || 'no source') + ')') : ['- No migrated plans were attached.']),
+    ...(ctx.plans.length > 0 ? ctx.plans.map((plan) => '- ' + (plan.title || plan.id) + ' (' + (plan.source_ref || plan.id || 'no source') + ')') : ['- No migrated plans were attached.']),
+    '',
+    '## Migrated Context',
+    ...(ctx.source_snippets.length > 0 ? ctx.source_snippets.flatMap((item) => [
+      '### ' + item.source_ref,
+      item.found ? '```md' : '',
+      item.found ? item.snippet : 'Not found in this repo copy.',
+      item.found ? '```' : ''
+    ]) : ['- No source artifacts were attached to this phase.']),
+    '',
+    '## Likely Files',
+    ...(ctx.likely_files.length > 0 ? ctx.likely_files.map((filePath) => '- ' + filePath) : ['- No likely files detected from migrated artifacts.']),
+    '',
+    '## Related Quick Tasks',
+    ...(ctx.quick_tasks.length > 0 ? ctx.quick_tasks.map((item) => '- ' + item.id + ': ' + item.title) : ['- No related quick tasks detected.']),
     '',
     '## Execution Waves',
-    '- Wave 1: inspect touched modules, write or update RED tests, and confirm the failing evidence.',
-    '- Wave 2: implement the smallest scoped change that satisfies the active plan.',
-    '- Wave 3: run validation, review the diff, update state, and prepare completion notes.',
+    '- Wave 1: inspect migrated context, confirm assumptions, and write or update RED tests.',
+    '- Wave 2: execute attached plans in order, keeping each change tied to a source artifact.',
+    '- Wave 3: run validation commands, review the diff, update state, and prepare completion notes.',
     '',
     '## Acceptance Criteria',
     ...(criteria.length > 0 ? criteria.map((item) => '- ' + item) : ['- Typecheck, lint, tests, audit, and ship checks are deterministic.']),
+    '',
+    '## Project Commands',
+    ...(commands.length > 0 ? commands.map((command) => '- ' + command) : ['- No executable project quality scripts were discovered.']),
     '',
     '## Blockers',
     ...(blockers.length > 0 ? blockers.map((item) => '- BLOCKING: ' + item.description) : ['- None recorded.']),
@@ -80,6 +156,47 @@ function updatePhase(state, phaseId, fields) {
       phases: phasesFromState(state).map((phase) => phase.id === phaseId ? { ...phase, ...fields } : phase)
     }
   };
+}
+
+function executionQueueForPhase(phase, context, discovered) {
+  const plans = context.plans.length > 0 ? context.plans : [{ id: phase.id + '-plan', title: phase.title, source_ref: phase.plan_ref || phase.source_ref || null }];
+  const commands = discovered.checks.filter((check) => check.exists).map((check) => check.command);
+  return plans.map((plan, index) => ({
+    id: plan.id || phase.id + '-task-' + String(index + 1),
+    title: plan.title || 'Execute ' + phase.title,
+    source_ref: plan.source_ref || null,
+    status: 'ready',
+    wave: index + 1,
+    likely_files: context.likely_files,
+    validation_commands: commands,
+    agent_prompt: 'Implement ' + (plan.title || phase.title) + ' for ' + phase.id + ', then run the listed validation commands and update Terrace state.'
+  }));
+}
+
+function executionLinesForPhase(phase, queue, discovered) {
+  return [
+    '# Execution Queue: ' + phase.title,
+    '',
+    '## Mode',
+    '- Terrace prepares an execution queue and gate evidence; product-code edits remain explicit agent work.',
+    '',
+    '## Tasks',
+    ...queue.flatMap((task) => [
+      '### ' + task.id + ': ' + task.title,
+      '- Source: ' + (task.source_ref || 'Terrace generated'),
+      '- Status: ' + task.status,
+      '- Wave: ' + String(task.wave),
+      '- Agent prompt: ' + task.agent_prompt,
+      '- Likely files: ' + (task.likely_files.length > 0 ? task.likely_files.join(', ') : 'none detected'),
+      '- Validation: ' + (task.validation_commands.length > 0 ? task.validation_commands.join(' && ') : 'no project scripts discovered')
+    ]),
+    '',
+    '## Project Commands',
+    ...discovered.checks.map((check) => '- ' + check.category + ': ' + (check.exists ? check.command : 'missing; suggested ' + check.suggested)),
+    '',
+    '## Next Command',
+    '- terrace phase validate ' + phase.id
+  ];
 }
 
 function quickTasksFromState(state) {
@@ -117,7 +234,7 @@ function updateQuickTask(state, itemId, fields) {
 }
 
 function findPhaseByText(state, text) {
-  const match = text.match(/phase\s+([a-z0-9_.-]+)/i);
+  const match = text.match(/(?:phase|plan-phase|execute-phase|validate-phase|review-phase|complete-phase)\s+([a-z0-9_.-]+)/i);
   if (!match) {
     return null;
   }
@@ -129,6 +246,50 @@ function findPhaseByText(state, text) {
     const titleMatch = String(phase.title || '').match(/phase\s+(\d+(?:\.\d+)?)/i);
     return titleMatch && titleMatch[1] === token;
   }) || null;
+}
+
+function packageManagerFor(cwd) {
+  if (fs.existsSync(path.resolve(cwd, 'pnpm-lock.yaml'))) {
+    return 'pnpm';
+  }
+  if (fs.existsSync(path.resolve(cwd, 'yarn.lock'))) {
+    return 'yarn';
+  }
+  return 'npm';
+}
+
+function runCommandFor(packageManager, scriptName) {
+  if (packageManager === 'yarn') {
+    return ['yarn', scriptName];
+  }
+  return [packageManager, 'run', scriptName];
+}
+
+function discoverProjectCommands(cwd) {
+  const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
+  const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
+  const packageManager = packageManagerFor(cwd);
+  const desired = [
+    { category: 'typecheck', script: 'typecheck', required: false, suggested: 'tsc --noEmit' },
+    { category: 'lint', script: 'lint', required: true, suggested: 'eslint .' },
+    { category: 'test', script: 'test', required: false, suggested: 'vitest run or npm test equivalent' },
+    { category: 'coverage', script: 'test:coverage', required: false, suggested: 'vitest run --coverage or project equivalent' },
+    { category: 'package', script: 'package:dry-run', required: false, suggested: 'npm pack --dry-run' },
+    { category: 'build', script: 'build', required: false, suggested: 'framework build command' }
+  ];
+  const checks = desired.map((item) => {
+    const exists = Object.prototype.hasOwnProperty.call(scripts, item.script);
+    return {
+      ...item,
+      exists,
+      command: exists ? runCommandFor(packageManager, item.script).join(' ') : null
+    };
+  });
+  return {
+    package_manager: packageManager,
+    scripts,
+    checks
+  };
 }
 
 function phaseList(cwd) {
@@ -146,14 +307,18 @@ function phasePlan(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
   const blockers = (state.blocked_actions || []).filter((item) => item.blocking);
+  const context = phaseContext(cwd, state, phase);
+  const discovered = discoverProjectCommands(cwd);
   const planRef = phaseRef(phase) + '/PLAN.md';
-  writeMarkdown(cwd, planRef, planLinesForPhase(phase, blockers));
+  writeMarkdown(cwd, planRef, planLinesForPhase(phase, blockers, context, discovered));
   const plannedAt = nowIso();
   const nextState = {
     ...updatePhase(state, phase.id, {
       status: 'planned',
       plan_ref: planRef,
       planned_at: plannedAt,
+      source_refs: context.source_refs,
+      likely_files: context.likely_files,
       next_command: 'terrace phase execute ' + phase.id
     }),
     workflow: {
@@ -176,6 +341,9 @@ function phasePlan(cwd, phaseId) {
     phase_id: phase.id,
     status: 'slice_planned',
     plan_ref: planRef,
+    source_refs: context.source_refs,
+    likely_files: context.likely_files,
+    related_quick_tasks: context.quick_tasks,
     blocked: blockers.length > 0,
     blockers,
     next_command: 'terrace phase execute ' + phase.id,
@@ -187,10 +355,14 @@ function phaseExecute(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
   const blockers = (state.blocked_actions || []).filter((item) => item.blocking);
+  const context = phaseContext(cwd, state, phase);
+  const discovered = discoverProjectCommands(cwd);
+  const queue = executionQueueForPhase(phase, context, discovered);
   if (blockers.length > 0) {
     return {
       allowed: false,
       phase_id: phase.id,
+      queue,
       blockers,
       required_action: 'Resolve blocking handoff actions before execution.'
     };
@@ -201,12 +373,16 @@ function phaseExecute(cwd, phaseId) {
     { id: 'implementation', status: 'pending', command: 'terrace phase review ' + phase.id },
     { id: 'completion', status: 'pending', command: 'terrace phase complete ' + phase.id }
   ];
+  const executionRef = phaseRef(phase) + '/EXECUTION.md';
+  writeMarkdown(cwd, executionRef, executionLinesForPhase(phase, queue, discovered));
   const nextState = {
     ...updatePhase(state, phase.id, {
       status: 'executing',
       execution_started_at: startedAt,
+      execution_ref: executionRef,
       execution: {
         status: 'red_required',
+        queue,
         waves
       },
       next_command: 'terrace phase validate ' + phase.id
@@ -231,6 +407,8 @@ function phaseExecute(cwd, phaseId) {
     allowed: true,
     phase_id: phase.id,
     status: 'red_required',
+    execution_ref: executionRef,
+    queue,
     waves,
     next_action: 'Add RED evidence before implementation.'
   };
@@ -239,6 +417,8 @@ function phaseExecute(cwd, phaseId) {
 function phaseValidate(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  const discovered = discoverProjectCommands(cwd);
+  const commands = discovered.checks.filter((check) => check.exists).map((check) => check.command);
   const validationRef = phaseRef(phase) + '/VALIDATION.md';
   writeMarkdown(cwd, validationRef, [
     '# Validation: ' + phase.title,
@@ -248,10 +428,11 @@ function phaseValidate(cwd, phaseId) {
     '- Typecheck, lint, tests, and audit are run before phase completion.',
     '',
     '## Commands',
-    '- npm run typecheck',
-    '- npm run lint',
-    '- npm test',
+    ...(commands.length > 0 ? commands.map((command) => '- ' + command) : ['- No project quality scripts were discovered.']),
     '- terrace audit',
+    '',
+    '## Missing Script Recommendations',
+    ...discovered.checks.filter((check) => !check.exists).map((check) => '- ' + check.category + ': add `' + check.script + '` such as `' + check.suggested + '`.'),
     '',
     '## Next Command',
     '- terrace phase review ' + phase.id
@@ -611,22 +792,42 @@ function commandCheck(cwd, command, category) {
   }
 }
 
+function missingScriptCheck(check) {
+  return {
+    category: check.category,
+    command: check.script ? 'npm run ' + check.script : null,
+    passed: true,
+    skipped: true,
+    blocking: [],
+    warnings: [{
+      code: 'QUALITY_SCRIPT_MISSING',
+      message: 'No package script was found for ' + check.category + '.',
+      remediation: 'Add a `' + check.script + '` script such as `' + check.suggested + '` if this gate should be enforced.'
+    }]
+  };
+}
+
+function scriptCheck(cwd, discovered, check) {
+  if (!check.exists) {
+    return missingScriptCheck(check);
+  }
+  return commandCheck(cwd, runCommandFor(discovered.package_manager, check.script), check.category);
+}
+
 function shipCheck(cwd) {
+  const discovered = discoverProjectCommands(cwd);
   const categories = [
     staticCheck(runDoctor(cwd), 'doctor', 'terrace doctor'),
     staticCheck(runAudit(cwd), 'audit', 'terrace audit'),
     migrationReadinessCheck(cwd),
-    commandCheck(cwd, ['npm', 'run', 'typecheck'], 'typecheck'),
-    commandCheck(cwd, ['npm', 'run', 'lint'], 'lint'),
-    commandCheck(cwd, ['npm', 'test'], 'test'),
-    commandCheck(cwd, ['npm', 'run', 'test:coverage'], 'coverage'),
-    commandCheck(cwd, ['npm', 'run', 'package:dry-run'], 'package'),
+    ...discovered.checks.map((check) => scriptCheck(cwd, discovered, check)),
     commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree')
   ];
   const blockers = categories.flatMap((category) => category.blocking || []);
   const warnings = categories.flatMap((category) => category.warnings || []);
   return {
     passed: blockers.length === 0,
+    project_commands: discovered,
     categories,
     blockers,
     warnings
@@ -660,6 +861,33 @@ function shipPrepare(cwd) {
   };
 }
 
+function phaseIdFromCommand(command) {
+  const match = String(command || '').match(/terrace\s+phase\s+(?:show|plan|execute|validate|review|complete)\s+([^\s]+)/);
+  return match ? match[1] : null;
+}
+
+function autonomousWorkflow(cwd) {
+  const next = nextWorkflow(cwd);
+  const phaseId = phaseIdFromCommand(next.command);
+  if (!phaseId) {
+    return {
+      status: 'no_phase',
+      next,
+      next_command: next.command || 'terrace next'
+    };
+  }
+  const planned = phasePlan(cwd, phaseId);
+  const execution = phaseExecute(cwd, phaseId);
+  const status = execution.allowed ? 'ready_for_agent_execution' : 'blocked';
+  return {
+    status,
+    next,
+    planned,
+    execution,
+    next_command: execution.allowed ? 'terrace phase validate ' + phaseId : planned.next_command
+  };
+}
+
 function routePlainText(cwd, text) {
   const input = String(text || '').trim();
   if (!input) {
@@ -669,6 +897,24 @@ function routePlainText(cwd, text) {
   const state = loadState(cwd);
   const phase = findPhaseByText(state, input);
 
+  if (/\/gsd:plan-phase\s+/i.test(input) && phase) {
+    return { input, command: 'terrace phase plan ' + phase.id, result: phasePlan(cwd, phase.id) };
+  }
+  if (/\/gsd:execute-phase\s+/i.test(input) && phase) {
+    return { input, command: 'terrace phase execute ' + phase.id, result: phaseExecute(cwd, phase.id) };
+  }
+  if (/\/gsd:quick\b/i.test(input)) {
+    const title = input.replace(/^.*?\/gsd:quick\b\s*/i, '').trim();
+    if (title) {
+      return { input, command: 'terrace quick plan ' + title, result: quickPlan(cwd, title) };
+    }
+  }
+  if (/\/gsd:ship\b/i.test(input)) {
+    return { input, command: 'terrace ship prepare', result: shipPrepare(cwd) };
+  }
+  if (/\b(run|execute|start)\s+the\s+next\s+phase\b/.test(lowered) || /\bautonomous\b/.test(lowered)) {
+    return { input, command: 'terrace autonomous', result: autonomousWorkflow(cwd) };
+  }
   if (/\b(next|what next|continue)\b/.test(lowered)) {
     return { input, command: 'terrace next', result: nextWorkflow(cwd) };
   }
@@ -699,7 +945,7 @@ function routePlainText(cwd, text) {
   if (/\bquick\b/.test(lowered)) {
     const title = input
       .replace(/^.*?\bquick(?:\s+task)?\b\s*/i, '')
-      .replace(/^(plan|create|add|execute|run)\s+/i, '')
+      .replace(/^(plan|create|add|execute|run|fix)\s+/i, '')
       .trim();
     if (title) {
       return { input, command: 'terrace quick plan ' + title, result: quickPlan(cwd, title) };
@@ -734,5 +980,7 @@ module.exports = {
   quickComplete,
   shipPrepare,
   routePlainText,
+  autonomousWorkflow,
+  discoverProjectCommands,
   shipCheck
 };

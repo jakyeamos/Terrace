@@ -26,6 +26,18 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Route natural-language agent instructions to stable Terrace commands.'
   },
   {
+    command: 'terrace autonomous',
+    category: 'workflow',
+    json: true,
+    purpose: 'Run next phase planning and execution readiness until Terrace reaches a blocker or agent handoff.'
+  },
+  {
+    command: 'terrace commands discover',
+    category: 'workflow',
+    json: true,
+    purpose: 'Discover project package scripts and Terrace quality-gate command mapping.'
+  },
+  {
     command: 'terrace phase list',
     category: 'roadmap',
     json: true,
