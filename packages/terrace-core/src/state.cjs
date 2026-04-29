@@ -48,6 +48,17 @@ function createDefaultState(options) {
     sessions: [],
     migration: null,
     handoff: null,
+    handoffs: [],
+    workstreams: {},
+    design_sources: {},
+    preflights: {},
+    ai_reviews: [],
+    debt: [],
+    documentation: {},
+    test_evaluations: [],
+    rule_audits: [],
+    backfills: [],
+    report_card: {},
     backlog: {
       items: []
     },

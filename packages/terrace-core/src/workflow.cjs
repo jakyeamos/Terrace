@@ -6,6 +6,7 @@ const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
 const { runAudit } = require('./audit.cjs');
 const { runDoctor } = require('./health.cjs');
+const { reportUpdate, reportShipCheck, preflightShipCheck, debtShipCheck } = require('./lifecycle.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -1150,6 +1151,7 @@ function phaseComplete(cwd, phaseId) {
     }
   };
   saveState(cwd, nextState);
+  reportUpdate(cwd, { command: 'terrace phase complete ' + phase.id });
   return {
     allowed: true,
     phase_id: phase.id,
@@ -1370,6 +1372,7 @@ function quickComplete(cwd, itemId) {
     active_feature: itemId
   };
   saveState(cwd, nextState);
+  reportUpdate(cwd, { command: 'terrace quick complete ' + itemId });
   return {
     allowed: true,
     item: findQuickTask(nextState, itemId),
@@ -1490,13 +1493,17 @@ function shipCheck(cwd) {
   const categories = [
     staticCheck(runDoctor(cwd), 'doctor', 'terrace doctor'),
     staticCheck(runAudit(cwd), 'audit', 'terrace audit'),
+    reportShipCheck(cwd),
     migrationReadinessCheck(cwd),
     seniorCycleShipCheck(cwd),
+    preflightShipCheck(cwd),
+    debtShipCheck(cwd),
     ...discovered.checks.map((check) => scriptCheck(cwd, discovered, check)),
     commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree')
   ];
   const blockers = categories.flatMap((category) => category.blocking || []);
   const warnings = categories.flatMap((category) => category.warnings || []);
+  reportUpdate(cwd, { command: 'terrace ship check' });
   return {
     passed: blockers.length === 0,
     project_commands: discovered,

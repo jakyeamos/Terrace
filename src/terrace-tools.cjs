@@ -61,7 +61,17 @@ const {
   uiImportStitch,
   uiPlanRefresh,
   uiDiff,
-  shipCheck
+  shipCheck,
+  reportRead,
+  reportUpdate,
+  reportOpen,
+  reportHistory,
+  createHandoff,
+  addDebt,
+  listDebt,
+  auditDebt,
+  resolveDebt,
+  preflightFeature
 } = require('../packages/terrace-core/src/index.cjs');
 
 const packageJson = require('../package.json');
@@ -110,6 +120,10 @@ const HELP_TEXT = [
   '  terrace backlog add <title>  Add a backlog item',
   '  terrace ship check           Run release readiness checks',
   '  terrace ship prepare         Write PR/release readiness summary',
+  '  terrace report [update|open|history]',
+  '  terrace handoff create [--feature <id>] [--for codex|claude|generic]',
+  '  terrace debt add|list|audit|resolve',
+  '  terrace preflight <feature>  Write production failure preflight',
   '  terrace plan-phase <id>      GSD-compatible alias for phase plan',
   '  terrace execute-phase <id>   GSD-compatible alias for phase execute',
   '  terrace rule list            List installed rule packs',
@@ -326,6 +340,72 @@ async function main() {
     }
     case 'history': {
       output(historySummary(cwd), { json });
+      return;
+    }
+    case 'report': {
+      const sub = args[1];
+      if (!sub) {
+        output(reportRead(cwd), { json });
+        return;
+      }
+      if (sub === 'update') {
+        output(reportUpdate(cwd, { command: 'terrace report update' }), { json });
+        return;
+      }
+      if (sub === 'open') {
+        output(reportOpen(cwd), { json });
+        return;
+      }
+      if (sub === 'history') {
+        output(reportHistory(cwd), { json });
+        return;
+      }
+      fail('Unknown report subcommand: ' + sub + '. Use: update, open, history', { json });
+      return;
+    }
+    case 'handoff': {
+      const sub = args[1];
+      if (sub === 'create') {
+        output(createHandoff(cwd, {
+          feature: optionValue(rawArgs, '--feature'),
+          for: optionValue(rawArgs, '--for')
+        }), { json });
+        return;
+      }
+      fail('Unknown handoff subcommand: ' + sub + '. Use: create', { json });
+      return;
+    }
+    case 'debt': {
+      const sub = args[1];
+      if (sub === 'add') {
+        output(addDebt(cwd, {
+          feature: args[2],
+          owner: optionValue(rawArgs, '--owner'),
+          reason: optionValue(rawArgs, '--reason'),
+          expiry: optionValue(rawArgs, '--expiry'),
+          cleanup: optionValue(rawArgs, '--cleanup'),
+          replacement: optionValue(rawArgs, '--replacement'),
+          allowedToShip: hasFlag(rawArgs, '--allowed-to-ship')
+        }), { json });
+        return;
+      }
+      if (sub === 'list') {
+        output(listDebt(cwd), { json });
+        return;
+      }
+      if (sub === 'audit') {
+        output(auditDebt(cwd), { json });
+        return;
+      }
+      if (sub === 'resolve') {
+        output(resolveDebt(cwd, args[2]), { json });
+        return;
+      }
+      fail('Unknown debt subcommand: ' + sub + '. Use: add, list, audit, resolve', { json });
+      return;
+    }
+    case 'preflight': {
+      output(preflightFeature(cwd, args[1], { mode: optionValue(rawArgs, '--mode') }), { json });
       return;
     }
     case 'autonomous': {
@@ -590,7 +670,13 @@ async function main() {
       return;
     }
     case 'audit': {
-      output(runAudit(cwd, {}), { json });
+      const result = runAudit(cwd, {});
+      try {
+        reportUpdate(cwd, { command: 'terrace audit' });
+      } catch (error) {
+        result.report_refresh_skipped = error && error.message ? error.message : String(error);
+      }
+      output(result, { json });
       return;
     }
     case 'ci': {

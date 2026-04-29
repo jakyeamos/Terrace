@@ -15,6 +15,7 @@ module.exports = {
   ...require('./policy.cjs'),
   ...require('./session.cjs'),
   ...require('./workflow.cjs'),
+  ...require('./lifecycle.cjs'),
   ...require('./command-contracts.cjs'),
   ...require('./validate.cjs'),
   ...require('./presets.cjs'),
