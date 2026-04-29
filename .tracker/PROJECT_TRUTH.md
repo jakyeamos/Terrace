@@ -1,7 +1,7 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is credible for public npm v0.1 readiness: CI passes, ship check is clean, packed-consumer e2e passes, security/test/rule evidence is recorded, adoption-risk mitigations are implemented, and the report card is 100/100 tier-one ready.
+summary: Terrace is credible for public npm v0.1 readiness: CI passes with explicit LF line-ending guardrails, Windows CI coverage is configured, packed-consumer e2e passes, and the report card is 100/100 tier-one ready.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Run Terrace against the new GSD shadow-branch corpus, then prepare the public npm v0.1 release PR/review package.
@@ -40,13 +40,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run ci; npm run typecheck; npm run lint; npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; npm test -- tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts; npm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; node src/terrace-tools.cjs report --json; node src/terrace-tools.cjs ship check --json
-lastVerifiedAt: "2026-04-29T15:56:09-04:00"
+lastVerifiedCommand: npm run ci; npm run package:dry-run; packed npm install smoke; npm audit --audit-level=moderate; npx vitest run tests/lint-script.test.ts --reporter=verbose; npm run lint; npm run build; npx vitest run tests/workflow-commands.test.ts --reporter=verbose
+lastVerifiedAt: "2026-04-29T17:49:13-04:00"
 ---
 
 ## Current State
 
-Terrace is at tier-one readiness for a public npm v0.1 release candidate. The final verification pass completed `npm run ci`, `npm audit --audit-level=moderate`, `node src/terrace-tools.cjs security check --json`, `node src/terrace-tools.cjs test eval --json`, `node src/terrace-tools.cjs rule audit --json`, `node src/terrace-tools.cjs report --json`, and `node src/terrace-tools.cjs ship check --json`. `terrace ship check --json` passed on a clean tree with report-card score 100, `tier_one_ready` status, and no blockers or warnings.
+Terrace is at tier-one readiness for a public npm v0.1 release candidate. The latest verification pass completed `npm run ci`, `npm run package:dry-run`, a packed npm install smoke test, `npm audit --audit-level=moderate`, focused line-ending guardrail tests, `npm run lint`, `npm run build`, and the workflow command test. The lint gate now explicitly rejects CRLF endings across repo text files before they appear as platform-specific whitespace failures, and GitHub CI/release dry-run jobs are configured to run on both Ubuntu and Windows.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, honors explicit GitHub Actions permissions, and records a zero-finding security check for the current repo.
 
@@ -90,6 +90,8 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Stabilized the full lifecycle ship-category test under the complete CI chain and reran all public npm v0.1 release gates successfully.
 - April 29: Added adoption-risk mitigations for ship-check modes/timings, ceremony evidence density, GSD migration compare/parity verification, rule effectiveness, explicit waivers, and GSD shadow test branches.
 - April 29: Hardened timeout budgets for CLI-heavy and package/ship tests after nested ship checks proved sensitive to loaded developer machines.
+- April 29: Added `.gitattributes`, Prettier LF configuration, and lint-script CRLF regression coverage so Windows checkouts cannot reintroduce CRLF-only lint noise.
+- April 29: Added Windows runners to CI and release dry-run workflows, and removed the Unix-specific `/tmp` cache path from `npm run package:dry-run`.
 
 ## Open Problems
 
@@ -99,11 +101,12 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Quality Ladder Notes
 
-- **Lint:** `npm run lint` PASS
+- **Lint:** `npm run lint` PASS, checking 159 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS in `npm run ci`, 33 files and 245 tests
-- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.84%, statements 85.31%, functions 88.23%, branches 70.37%
+- **Tests:** `npm test` PASS in `npm run ci`, 34 files and 246 tests
+- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.84%, statements 85.32%, functions 88.1%, branches 70.42%
 - **Package:** packed-consumer e2e PASS in the full suite; the runtime analysis dependencies are now declared and bundled for offline installs
+- **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
 - **CI:** `npm run ci` PASS
 - **Security:** `node src/terrace-tools.cjs security check --json` PASS, zero findings

@@ -4,8 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const ROOT = path.resolve(__dirname, '..');
-const CHECK_DIRS = ['src', 'packages/terrace-core/src', 'scripts'];
+const ROOT = process.env.TERRACE_LINT_ROOT ? path.resolve(process.env.TERRACE_LINT_ROOT) : path.resolve(__dirname, '..');
+const CHECK_DIRS = process.env.TERRACE_LINT_DIRS
+  ? process.env.TERRACE_LINT_DIRS.split(',').map((dir) => dir.trim()).filter(Boolean)
+  : ['.'];
+const AUDITED_EXTENSIONS = new Set(['.cjs', '.ts', '.json', '.md']);
+const IGNORED_DIRS = new Set(['.git', 'node_modules', 'dist', 'coverage']);
 const FAILURES = [];
 
 function walk(dir, files) {
@@ -15,8 +19,11 @@ function walk(dir, files) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
+      if (IGNORED_DIRS.has(entry.name)) {
+        continue;
+      }
       walk(fullPath, files);
-    } else if (entry.isFile() && fullPath.endsWith('.cjs')) {
+    } else if (entry.isFile() && AUDITED_EXTENSIONS.has(path.extname(fullPath))) {
       files.push(fullPath);
     }
   }
@@ -28,18 +35,26 @@ for (const relDir of CHECK_DIRS) {
 }
 
 for (const filePath of files) {
-  const result = spawnSync(process.execPath, ['--check', filePath], { encoding: 'utf8' });
-  if (result.status !== 0) {
-    FAILURES.push(result.stderr || result.stdout || filePath);
+  if (filePath.endsWith('.cjs')) {
+    const result = spawnSync(process.execPath, ['--check', filePath], { encoding: 'utf8' });
+    if (result.status !== 0) {
+      FAILURES.push(result.stderr || result.stdout || filePath);
+    }
   }
 
   const content = fs.readFileSync(filePath, 'utf8');
-  const lines = content.split('\n');
-  lines.forEach((line, index) => {
-    if (/\s$/.test(line) && line.length > 0) {
-      FAILURES.push(`${path.relative(ROOT, filePath)}:${index + 1}: trailing whitespace`);
-    }
-  });
+  if (content.includes('\r\n')) {
+    FAILURES.push(`${path.relative(ROOT, filePath)}: CRLF line endings`);
+  }
+  if (filePath.endsWith('.cjs')) {
+    const lines = content.split('\n');
+    lines.forEach((line, index) => {
+      const normalizedLine = line.replace(/\r$/, '');
+      if (/\s$/.test(normalizedLine) && normalizedLine.length > 0) {
+        FAILURES.push(`${path.relative(ROOT, filePath)}:${index + 1}: trailing whitespace`);
+      }
+    });
+  }
 }
 
 if (FAILURES.length > 0) {
@@ -47,4 +62,4 @@ if (FAILURES.length > 0) {
   process.exit(1);
 }
 
-process.stdout.write(`Checked ${files.length} CommonJS files.\n`);
+process.stdout.write(`Checked ${files.length} text files.\n`);
