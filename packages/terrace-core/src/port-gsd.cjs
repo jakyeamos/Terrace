@@ -226,6 +226,42 @@ function readJsonIfExists(filePath) {
   }
 }
 
+function extractDecisionsFromState(cwd) {
+  const statePath = path.resolve(cwd, '.planning', 'STATE.md');
+  if (!fs.existsSync(statePath)) {
+    return [];
+  }
+  return extractBulletsUnderHeading(fs.readFileSync(statePath, 'utf8'), /decisions/i);
+}
+
+function extractBacklogFromState(cwd) {
+  const statePath = path.resolve(cwd, '.planning', 'STATE.md');
+  if (!fs.existsSync(statePath)) {
+    return [];
+  }
+  return extractBulletsUnderHeading(fs.readFileSync(statePath, 'utf8'), /parking lot|backlog|todos/i);
+}
+
+function extractHandoff(cwd) {
+  const handoff = readJsonIfExists(path.resolve(cwd, '.planning', 'HANDOFF.json'));
+  if (!handoff || handoff.parse_error) {
+    return { blocked_actions: [] };
+  }
+  const pendingActions = [];
+  if (handoff.human_action_pending) {
+    pendingActions.push(handoff.human_action_pending);
+  }
+  if (Array.isArray(handoff.human_actions_pending)) {
+    pendingActions.push(...handoff.human_actions_pending);
+  }
+  return {
+    blocked_actions: pendingActions.map((pending) => ({
+      description: pending.description || pending.action || String(pending),
+      blocking: Boolean(pending.blocking)
+    }))
+  };
+}
+
 function skippedArtifact(artifact, reason, target) {
   const item = {
     artifact,
@@ -342,6 +378,85 @@ function portGsdDryRun(cwd) {
     next_command: null,
     review_checklist: [],
     validation_commands: ['terrace doctor', 'terrace audit']
+  };
+}
+
+function planningConcepts(cwd) {
+  const files = listPlanningFiles(cwd);
+  return {
+    files,
+    phases: extractRoadmapPhases(cwd),
+    phase_artifacts: files.filter((file) => /^\.planning\/phases\//.test(file)),
+    quick_tasks: files.filter((file) => /^\.planning\/quick\/[^/]+\/.+(?:PLAN|SUMMARY)\.md$/.test(file)),
+    decisions: extractDecisionsFromState(cwd),
+    backlog: extractBacklogFromState(cwd),
+    sessions: fs.existsSync(path.resolve(cwd, '.planning', 'HANDOFF.json')) ? ['.planning/HANDOFF.json'] : [],
+    blockers: extractHandoff(cwd).blocked_actions || []
+  };
+}
+
+function isConvertiblePlanningArtifact(artifact) {
+  if (Object.prototype.hasOwnProperty.call(SUPPORTED_ARTIFACTS, artifact)) {
+    return true;
+  }
+  if (/^\.planning\/phases\/[^/]+\/[^/]+$/.test(artifact)) {
+    const fileName = artifact.split('/').pop();
+    return /(?:^|-)UAT\.md$|(?:^|-)HUMAN-UAT\.md$|(?:^|-)VALIDATION\.md$|(?:^|-)VERIFICATION\.md$|(?:^|-)REVIEWS\.md$|(?:^|-)UI-REVIEW\.md$|-PLAN\.md$|-SUMMARY\.md$|(?:^|-)CONTEXT\.md$|(?:^|-)DISCUSSION-LOG\.md$|(?:^|-)RESEARCH\.md$|(?:^|-)UI-SPEC\.md$/i.test(fileName);
+  }
+  if (artifact === '.planning/quick/.continue-here.md') {
+    return true;
+  }
+  if (/^\.planning\/quick\/[^/]+\/[^/]+-(?:PLAN|SUMMARY)\.md$/i.test(artifact)) {
+    return true;
+  }
+  return artifact.startsWith('.planning/debug/') || artifact.startsWith('.planning/milestones/');
+}
+
+function portGsdCompare(cwd) {
+  const dryRun = portGsdDryRun(cwd);
+  const concepts = planningConcepts(cwd);
+  const convertibleCandidates = dryRun.artifacts.filter((artifact) => isConvertiblePlanningArtifact(artifact));
+  const skippedCandidates = dryRun.artifacts.filter((artifact) => !isConvertiblePlanningArtifact(artifact));
+  const mapped = {
+    phases: concepts.phases.length,
+    phase_artifacts: concepts.phase_artifacts.length,
+    quick_tasks: concepts.quick_tasks.length,
+    decisions: concepts.decisions.length,
+    backlog: concepts.backlog.length,
+    sessions: concepts.sessions.length,
+    blockers: concepts.blockers.length
+  };
+  const missing = [];
+  if (concepts.files.includes('.planning/ROADMAP.md') && mapped.phases === 0) {
+    missing.push({ concept: 'phases', source: '.planning/ROADMAP.md' });
+  }
+  if (concepts.files.includes('.planning/STATE.md') && mapped.decisions === 0 && mapped.backlog === 0) {
+    missing.push({ concept: 'state_details', source: '.planning/STATE.md' });
+  }
+  return {
+    mode: 'compare',
+    source_files: concepts.files.length,
+    converted_candidates: convertibleCandidates.length,
+    skipped_candidates: skippedCandidates.length,
+    concepts: mapped,
+    converted: convertibleCandidates,
+    skipped: skippedCandidates,
+    missing,
+    passed: missing.length === 0,
+    next_command: missing.length === 0 ? 'terrace port gsd --dry-run' : 'Review missing migration concepts before porting.'
+  };
+}
+
+function portGsdVerifyParity(cwd) {
+  const comparison = portGsdCompare(cwd);
+  return {
+    mode: 'verify-parity',
+    passed: comparison.passed,
+    blocking: comparison.missing.map((item) => ({
+      code: 'GSD_CONCEPT_UNMAPPED',
+      message: item.concept + ' from ' + item.source + ' was not mapped.'
+    })),
+    comparison
   };
 }
 
@@ -732,5 +847,7 @@ module.exports = {
   COMMAND_STRATEGIES,
   classifyGsdCommand,
   portGsdDryRun,
-  portGsd
+  portGsd,
+  portGsdCompare,
+  portGsdVerifyParity
 };

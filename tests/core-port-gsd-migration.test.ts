@@ -3,7 +3,12 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { portGsd, runAudit } = require('../packages/terrace-core/src/index.cjs');
+const {
+  portGsd,
+  portGsdCompare,
+  portGsdVerifyParity,
+  runAudit
+} = require('../packages/terrace-core/src/index.cjs');
 
 describe('terrace port gsd migration', () => {
   let tmpDir: string;
@@ -214,5 +219,50 @@ describe('terrace port gsd migration', () => {
     }));
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace-migration', 'phases', '01-demo', '01-01-PLAN.md'))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'testing', 'gsd', '01-demo', '01-UAT.md'))).toBe(true);
+  });
+
+  it('compares GSD concepts before migration and verifies parity blockers', () => {
+    fs.mkdirSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), [
+      '# Legacy State',
+      '',
+      '## Decisions',
+      '- Keep server actions.',
+      '',
+      '## Parking Lot',
+      '- Add SMS fallback.'
+    ].join('\n'), 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'HANDOFF.json'), JSON.stringify({
+      human_action_pending: {
+        description: 'Apply migration 001',
+        blocking: true
+      }
+    }), 'utf8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login', '260101-abc-PLAN.md'), '# Quick Plan\n', 'utf8');
+
+    const comparison = portGsdCompare(tmpDir);
+    const parity = portGsdVerifyParity(tmpDir);
+
+    expect(comparison).toMatchObject({
+      mode: 'compare',
+      passed: true,
+      converted_candidates: expect.any(Number),
+      skipped_candidates: expect.any(Number),
+      concepts: expect.objectContaining({
+        phases: 2,
+        quick_tasks: 1,
+        decisions: 1,
+        backlog: 1,
+        sessions: 1,
+        blockers: 1
+      })
+    });
+    expect(comparison.converted).toContain('.planning/quick/260101-abc-fix-login/260101-abc-PLAN.md');
+    expect(comparison.skipped).toContain('.planning/phases/01-demo/PLAN.md');
+    expect(parity).toMatchObject({
+      mode: 'verify-parity',
+      passed: true,
+      blocking: []
+    });
   });
 });

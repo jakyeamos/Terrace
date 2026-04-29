@@ -29,6 +29,8 @@ const {
   executeRoadmapItem,
   portGsdDryRun,
   portGsd,
+  portGsdCompare,
+  portGsdVerifyParity,
   phaseList,
   phaseShow,
   phasePlan,
@@ -66,6 +68,7 @@ const {
   reportUpdate,
   reportOpen,
   reportHistory,
+  reportCeremony,
   createHandoff,
   addDebt,
   listDebt,
@@ -78,6 +81,7 @@ const {
   reviewAi,
   ruleAdd,
   ruleAudit,
+  addWaiver,
   backfill,
   workstreamsPlan,
   designSourceImport,
@@ -132,7 +136,7 @@ const HELP_TEXT = [
   '  terrace backlog add <title>  Add a backlog item',
   '  terrace ship check           Run release readiness checks',
   '  terrace ship prepare         Write PR/release readiness summary',
-  '  terrace report [update|open|history]',
+  '  terrace report [update|open|history|ceremony]',
   '  terrace handoff create [--feature <id>] [--for codex|claude|generic]',
   '  terrace debt add|list|audit|resolve',
   '  terrace preflight <feature>  Write production failure preflight',
@@ -141,6 +145,7 @@ const HELP_TEXT = [
   '  terrace review ai --mode <mode>',
   '  terrace rule add <domain> <rule-id>',
   '  terrace rule audit',
+  '  terrace waive <gate>         Record a reviewed temporary waiver',
   '  terrace backfill             Write standards backfill spec',
   '  terrace workstreams plan <feature>',
   '  terrace design-source import <source> <feature> <ref>',
@@ -274,7 +279,7 @@ async function main() {
         return;
       }
       if (sub === 'audit') {
-        output(ruleAudit(cwd), { json });
+        output(ruleAudit(cwd, { effectiveness: hasFlag(rawArgs, '--effectiveness') }), { json });
         return;
       }
       if (sub === 'explain') {
@@ -356,6 +361,18 @@ async function main() {
     case 'port': {
       const sub = args[1];
       if (sub === 'gsd') {
+        if (hasFlag(rawArgs, '--compare')) {
+          output(portGsdCompare(cwd), { json });
+          return;
+        }
+        if (hasFlag(rawArgs, '--verify-parity')) {
+          const result = portGsdVerifyParity(cwd);
+          output(result, { json });
+          if (!result.passed) {
+            process.exitCode = 1;
+          }
+          return;
+        }
         if (!dryRun) {
           output(portGsd(cwd, { force }), { json });
           return;
@@ -396,7 +413,23 @@ async function main() {
         output(reportHistory(cwd), { json });
         return;
       }
-      fail('Unknown report subcommand: ' + sub + '. Use: update, open, history', { json });
+      if (sub === 'ceremony') {
+        const result = reportCeremony(cwd);
+        output(result, { json });
+        if (!result.passed) {
+          process.exitCode = 1;
+        }
+        return;
+      }
+      fail('Unknown report subcommand: ' + sub + '. Use: update, open, history, ceremony', { json });
+      return;
+    }
+    case 'waive': {
+      output(addWaiver(cwd, args[1], {
+        reason: optionValue(rawArgs, '--reason'),
+        owner: optionValue(rawArgs, '--owner'),
+        expires: optionValue(rawArgs, '--expires')
+      }), { json });
       return;
     }
     case 'handoff': {
@@ -709,7 +742,10 @@ async function main() {
     case 'ship': {
       const sub = args[1];
       if (!sub || sub === 'check') {
-        const result = shipCheck(cwd);
+        const result = shipCheck(cwd, {
+          mode: optionValue(rawArgs, '--mode') ||
+            (hasFlag(rawArgs, '--fast') ? 'fast' : hasFlag(rawArgs, '--local') ? 'local' : hasFlag(rawArgs, '--full') ? 'full' : undefined)
+        });
         output(result, { json });
         if (!result.passed) {
           process.exitCode = 1;

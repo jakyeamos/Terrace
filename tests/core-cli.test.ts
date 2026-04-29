@@ -159,6 +159,22 @@ describe('strict core CLI delegation', () => {
       passed: false,
       categories: expect.any(Array)
     });
+    expect(runTerrace(tmpDir, ['port', 'gsd', '--compare', '--json'])).toMatchObject({
+      mode: 'compare',
+      passed: true
+    });
+    expect(runTerrace(tmpDir, ['port', 'gsd', '--verify-parity', '--json'])).toMatchObject({
+      mode: 'verify-parity',
+      passed: true
+    });
+    expect(runTerraceResult(tmpDir, ['report', 'ceremony', '--json']).json).toHaveProperty('artifact_count');
+    expect(runTerrace(tmpDir, ['waive', 'security-check', '--reason', 'fixture warning', '--owner', 'release-owner', '--expires', 'before public release', '--json'])).toMatchObject({
+      waiver: expect.objectContaining({ gate: 'security-check' })
+    });
+    expect(runTerraceResult(tmpDir, ['ship', 'check', '--fast', '--json']).json).toMatchObject({
+      mode: 'fast',
+      categories: expect.arrayContaining([expect.objectContaining({ category: 'waivers' })])
+    });
     const prepared = runTerraceResult(tmpDir, ['ship', 'prepare', '--json']);
     expect(prepared.status).toBe(1);
     expect(prepared.json.ship_ref).toBe('docs/terrace/ship/SHIP.md');

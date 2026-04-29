@@ -57,6 +57,7 @@ function createDefaultState(options) {
     documentation: {},
     test_evaluations: [],
     rule_audits: [],
+    waivers: [],
     backfills: [],
     report_card: {},
     backlog: {

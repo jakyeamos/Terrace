@@ -182,6 +182,10 @@ function ruleAuditEntries(state) {
   return Array.isArray(state.rule_audits) ? state.rule_audits : [];
 }
 
+function waiverEntries(state) {
+  return Array.isArray(state.waivers) ? state.waivers : [];
+}
+
 function backfillEntries(state) {
   return Array.isArray(state.backfills) ? state.backfills : [];
 }
@@ -242,6 +246,7 @@ function buildReportCard(cwd, command) {
   const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
   const hasTestScripts = Boolean(scripts.test && scripts['test:coverage']);
   const hasRuleAudit = Array.isArray(state.rule_audits) && state.rule_audits.length > 0;
+  const activeWaivers = waiverEntries(state).filter((entry) => entry.status !== 'resolved');
   const checks = [
     reportCheck('senior_cycle', 'Senior Cycle artifacts', inputs.missingSeniorArtifacts.length === 0, 20, {
       active_feature: inputs.feature ? inputs.feature.feature_id : null,
@@ -324,6 +329,7 @@ function buildReportCard(cwd, command) {
     debt_status: inputs.debtAudit.blockers.length === 0 ? 'healthy' : 'blocked',
     rule_health: hasRuleAudit ? 'audited' : 'not_audited',
     production_readiness: inputs.hasActivePreflight ? 'preflight_present' : 'preflight_missing',
+    active_waivers: activeWaivers,
     checks,
     next_three_actions: nextReportActions(inputs, hasDocs, hasTestEval, hasRuleAudit)
   };
@@ -444,6 +450,70 @@ function reportHistory(cwd) {
     ? fs.readdirSync(dir).filter((file) => file.endsWith('.md')).sort().map((file) => 'docs/terrace/report-history/' + file)
     : [];
   return { items };
+}
+
+function markdownFiles(cwd) {
+  const roots = ['docs/terrace', 'docs/testing', 'docs/prd', 'docs/spec'];
+  const files = [];
+  for (const root of roots) {
+    const absolute = path.resolve(cwd, root);
+    if (!fs.existsSync(absolute)) {
+      continue;
+    }
+    walk(absolute, (filePath) => {
+      if (filePath.endsWith('.md')) {
+        files.push(path.relative(cwd, filePath));
+      }
+    });
+  }
+  return files.sort();
+}
+
+function reportCeremony(cwd) {
+  const state = loadState(cwd);
+  const feature = activeFeatureState(state);
+  const files = markdownFiles(cwd);
+  const artifactDetails = files.map((file) => {
+    const text = fs.readFileSync(path.resolve(cwd, file), 'utf8');
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const weakSignals = [];
+    if (/TODO|TBD|fill in|not yet recorded/i.test(text)) {
+      weakSignals.push('placeholder_language');
+    }
+    if (/##\s+[^\n]+\n\s*(##|$)/.test(text)) {
+      weakSignals.push('empty_section');
+    }
+    return { file, words, weak_signals: weakSignals };
+  });
+  const tier = feature ? feature.tier : 'none';
+  const budgets = {
+    none: { max_artifacts: 8, max_words: 2500 },
+    small: { max_artifacts: 4, max_words: 1200 },
+    medium: { max_artifacts: 8, max_words: 3000 },
+    large: { max_artifacts: 14, max_words: 6000 }
+  };
+  const budget = budgets[tier] || budgets.medium;
+  const totalWords = artifactDetails.reduce((sum, item) => sum + item.words, 0);
+  const warnings = [];
+  if (artifactDetails.length > budget.max_artifacts) {
+    warnings.push({ code: 'ARTIFACT_BUDGET_EXCEEDED', message: 'Artifact count exceeds the tier budget.' });
+  }
+  if (totalWords > budget.max_words) {
+    warnings.push({ code: 'WORD_BUDGET_EXCEEDED', message: 'Generated markdown word count exceeds the tier budget.' });
+  }
+  for (const item of artifactDetails.filter((artifact) => artifact.weak_signals.length > 0)) {
+    warnings.push({ code: 'LOW_DENSITY_ARTIFACT', artifact: item.file, signals: item.weak_signals });
+  }
+  return {
+    active_feature: feature ? feature.feature_id : null,
+    tier,
+    budget,
+    artifact_count: artifactDetails.length,
+    markdown_word_count: totalWords,
+    artifacts: artifactDetails,
+    warnings,
+    passed: warnings.length === 0
+  };
 }
 
 function createHandoff(cwd, options) {
@@ -1102,13 +1172,22 @@ function ruleAdd(cwd, domain, ruleId) {
   return { rule: entry, artifact: jsonRef, docs_ref: docsRef, next_command: 'terrace rule audit' };
 }
 
-function ruleAudit(cwd) {
+function ruleAudit(cwd, options) {
+  const opts = options || {};
   const rules = collectRuleArtifacts(cwd);
   const blockers = [];
   const warnings = [];
   const seen = new Set();
+  const maturityCounts = { draft: 0, observing: 0, warning: 0, blocking: 0, unknown: 0 };
+  const weakMetadata = [];
   for (const rule of rules) {
     const key = rule.domain + '/' + rule.id;
+    const maturity = rule.maturity || rule.enforcement_level || (rule.blocking ? 'blocking' : 'warning');
+    if (Object.prototype.hasOwnProperty.call(maturityCounts, maturity)) {
+      maturityCounts[maturity] += 1;
+    } else {
+      maturityCounts.unknown += 1;
+    }
     if (seen.has(key)) {
       warnings.push({ code: 'DUPLICATE_RULE', message: 'Duplicate rule id: ' + key });
     }
@@ -1122,6 +1201,9 @@ function ruleAudit(cwd) {
     if (!rule.review_after && !rule.expires_at) {
       warnings.push({ code: 'RULE_REVIEW_DATE_MISSING', message: 'Rule has no review_after or expires_at: ' + key });
     }
+    if (!rule.owner || (!rule.rationale && !rule.title) || (!rule.review_after && !rule.expires_at)) {
+      weakMetadata.push(key);
+    }
   }
   const artifact = 'docs/terrace/rules/RULE-AUDIT.md';
   const entry = {
@@ -1129,6 +1211,8 @@ function ruleAudit(cwd) {
     artifact,
     created_at: nowIso(),
     rule_count: rules.length,
+    maturity_counts: maturityCounts,
+    weak_metadata: weakMetadata,
     blockers,
     warnings,
     passed: blockers.length === 0
@@ -1146,6 +1230,16 @@ function ruleAudit(cwd) {
     '## Warnings',
     ...(warnings.length > 0 ? warnings.map((item) => '- ' + item.code + ': ' + item.message) : ['- None.']),
     '',
+    '## Maturity',
+    '- Draft: ' + String(maturityCounts.draft),
+    '- Observing: ' + String(maturityCounts.observing),
+    '- Warning: ' + String(maturityCounts.warning),
+    '- Blocking: ' + String(maturityCounts.blocking),
+    '- Unknown: ' + String(maturityCounts.unknown),
+    '',
+    '## Weak Metadata',
+    ...(weakMetadata.length > 0 ? weakMetadata.map((item) => '- ' + item) : ['- None.']),
+    '',
     '## Automation Candidates',
     '- Promote stable blocking rules into automated checks when a deterministic matcher exists.'
   ]);
@@ -1155,7 +1249,7 @@ function ruleAudit(cwd) {
     rule_audits: [...ruleAuditEntries(state), entry]
   });
   reportUpdate(cwd, { command: 'terrace rule audit' });
-  return entry;
+  return opts.effectiveness ? { ...entry, effectiveness: { maturity_counts: maturityCounts, weak_metadata: weakMetadata } } : entry;
 }
 
 function collectRuleArtifacts(cwd) {
@@ -1177,6 +1271,7 @@ function collectRuleArtifacts(cwd) {
             domain: rule.domain || parsed.domain || path.basename(filePath, '.json'),
             owner: rule.owner || parsed.owner || 'terrace-core',
             review_after: rule.review_after || parsed.review_after || '2026-10-29',
+            maturity: rule.maturity || parsed.maturity || (rule.blocking ? 'blocking' : 'warning'),
             source: rule.source || parsed.source || 'bundled-rule-pack'
           });
         }
@@ -1188,6 +1283,54 @@ function collectRuleArtifacts(cwd) {
     }
   });
   return rules;
+}
+
+function addWaiver(cwd, gate, options) {
+  const normalizedGate = normalizePathToken(gate, 'waive <gate>');
+  const opts = options || {};
+  if (!opts.reason || !opts.owner || !opts.expires) {
+    throw new Error('Usage: terrace waive <gate> --reason <text> --owner <name> --expires <condition>');
+  }
+  const state = loadState(cwd);
+  const entries = waiverEntries(state);
+  const entry = {
+    id: 'waiver-' + String(entries.length + 1),
+    gate: normalizedGate,
+    reason: String(opts.reason),
+    owner: String(opts.owner),
+    expires: String(opts.expires),
+    status: 'active',
+    created_at: nowIso()
+  };
+  const nextState = { ...state, waivers: [...entries, entry] };
+  saveState(cwd, nextState);
+  writeMarkdown(cwd, 'docs/terrace/waivers/WAIVERS.md', [
+    '# Waivers',
+    '',
+    ...nextState.waivers.map((item) => '- ' + item.id + ': ' + item.gate + ' owned by ' + item.owner + ' until ' + item.expires + ' - ' + item.reason)
+  ]);
+  reportUpdate(cwd, { command: 'terrace waive ' + normalizedGate });
+  return { waiver: entry, artifact: 'docs/terrace/waivers/WAIVERS.md', next_command: 'terrace ship check' };
+}
+
+function waiverShipCheck(cwd) {
+  try {
+    const waivers = waiverEntries(loadState(cwd)).filter((entry) => entry.status !== 'resolved');
+    return {
+      category: 'waivers',
+      command: 'terrace waive',
+      passed: true,
+      waivers,
+      blocking: [],
+      warnings: waivers.map((entry) => ({
+        code: 'ACTIVE_WAIVER',
+        message: entry.gate + ' is waived by ' + entry.owner + ' until ' + entry.expires + '.',
+        waiver_id: entry.id
+      }))
+    };
+  } catch (error) {
+    return unavailableCheck('waivers', 'terrace waive', error);
+  }
 }
 
 function backfill(cwd, options) {
@@ -1623,6 +1766,7 @@ module.exports = {
   reportUpdate,
   reportOpen,
   reportHistory,
+  reportCeremony,
   createHandoff,
   addDebt,
   listDebt,
@@ -1635,6 +1779,7 @@ module.exports = {
   reviewAi,
   ruleAdd,
   ruleAudit,
+  addWaiver,
   backfill,
   workstreamsPlan,
   designSourceImport,
@@ -1645,5 +1790,6 @@ module.exports = {
   documentationShipCheck,
   testEvalShipCheck,
   aiReviewShipCheck,
-  ruleAuditShipCheck
+  ruleAuditShipCheck,
+  waiverShipCheck
 };

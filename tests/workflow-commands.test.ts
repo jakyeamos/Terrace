@@ -500,6 +500,26 @@ describe('workflow parity core helpers', () => {
     }));
   }, 15000);
 
+  it('supports a fast ship check mode that skips project scripts', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "process.exit(7)"',
+        test: 'node -e "process.exit(7)"'
+      }
+    }, null, 2), 'utf-8');
+
+    const result = shipCheck(tmpDir, { mode: 'fast' });
+
+    expect(result.mode).toBe('fast');
+    expect(result.timings.length).toBe(result.categories.length);
+    expect(result.categories.map((category: { category: string }) => category.category)).not.toContain('lint');
+    expect(result.categories.map((category: { category: string }) => category.category)).not.toContain('test');
+    expect(result.categories).toContainEqual(expect.objectContaining({
+      category: 'waivers',
+      elapsed_ms: expect.any(Number)
+    }));
+  });
+
   it('runs an autonomous planning pass and stops at blockers', () => {
     const result = autonomousWorkflow(tmpDir);
 
@@ -559,6 +579,7 @@ describe('workflow parity core helpers', () => {
       'production_preflight',
       'ai_review',
       'debt',
+      'waivers',
       'documentation',
       'test_eval',
       'rule_audit',

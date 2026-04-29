@@ -16,7 +16,8 @@ const {
   documentationShipCheck,
   testEvalShipCheck,
   aiReviewShipCheck,
-  ruleAuditShipCheck
+  ruleAuditShipCheck,
+  waiverShipCheck
 } = require('./lifecycle.cjs');
 
 function nowIso() {
@@ -1533,30 +1534,60 @@ function scriptCheck(cwd, discovered, check) {
   return commandCheck(cwd, runCommandFor(discovered.package_manager, check.script), check.category);
 }
 
-function shipCheck(cwd) {
+function timedCategory(factory) {
+  const started = Date.now();
+  const category = factory();
+  const elapsed = Date.now() - started;
+  return {
+    category: {
+      ...category,
+      elapsed_ms: elapsed
+    },
+    timing: {
+      category: category.category,
+      elapsed_ms: elapsed
+    }
+  };
+}
+
+function shipCheck(cwd, options) {
+  const opts = options || {};
+  const mode = ['fast', 'local', 'full'].includes(opts.mode) ? opts.mode : 'full';
   const discovered = discoverProjectCommands(cwd);
-  const categories = [
-    staticCheck(runDoctor(cwd), 'doctor', 'terrace doctor'),
-    staticCheck(runAudit(cwd), 'audit', 'terrace audit'),
-    securityShipCheck(cwd),
-    reportShipCheck(cwd),
-    migrationReadinessCheck(cwd),
-    seniorCycleShipCheck(cwd),
-    preflightShipCheck(cwd),
-    aiReviewShipCheck(cwd),
-    debtShipCheck(cwd),
-    documentationShipCheck(cwd),
-    testEvalShipCheck(cwd),
-    ruleAuditShipCheck(cwd),
-    ...discovered.checks.map((check) => scriptCheck(cwd, discovered, check)),
-    commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree')
+  const factories = [
+    () => staticCheck(runDoctor(cwd), 'doctor', 'terrace doctor'),
+    () => staticCheck(runAudit(cwd), 'audit', 'terrace audit'),
+    () => securityShipCheck(cwd),
+    () => reportShipCheck(cwd),
+    () => migrationReadinessCheck(cwd),
+    () => seniorCycleShipCheck(cwd),
+    () => preflightShipCheck(cwd),
+    () => aiReviewShipCheck(cwd),
+    () => debtShipCheck(cwd),
+    () => waiverShipCheck(cwd),
+    () => documentationShipCheck(cwd),
+    () => testEvalShipCheck(cwd),
+    () => ruleAuditShipCheck(cwd)
   ];
+  if (mode === 'full') {
+    for (const check of discovered.checks) {
+      factories.push(() => scriptCheck(cwd, discovered, check));
+    }
+  }
+  if (mode === 'local' || mode === 'full') {
+    factories.push(() => commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree'));
+  }
+  const timed = factories.map((factory) => timedCategory(factory));
+  const categories = timed.map((item) => item.category);
+  const timings = timed.map((item) => item.timing);
   const blockers = categories.flatMap((category) => category.blocking || []);
   const warnings = categories.flatMap((category) => category.warnings || []);
   return {
+    mode,
     passed: blockers.length === 0,
     project_commands: discovered,
     categories,
+    timings,
     blockers,
     warnings
   };

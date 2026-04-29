@@ -10,13 +10,16 @@ const {
   reportRead,
   reportUpdate,
   reportOpen,
+  reportCeremony,
   documentationShipCheck,
   testEvalShipCheck,
   aiReviewShipCheck,
   preflightShipCheck,
   ruleAuditShipCheck,
+  waiverShipCheck,
   debtShipCheck,
   addDebt,
+  addWaiver,
   auditDebt,
   preflightFeature,
   docuFeature,
@@ -79,6 +82,30 @@ describe('production lifecycle edge coverage', () => {
       passed: true,
       evidence: expect.objectContaining({ skipped: true })
     }));
+  });
+
+  it('checks ceremony budget and records reviewed waivers as ship warnings', () => {
+    fs.mkdirSync(path.join(tmpDir, 'docs', 'terrace'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, 'docs', 'terrace', 'ONE.md'), '# One\n\nReviewed evidence.\n', 'utf8');
+    fs.writeFileSync(path.join(tmpDir, 'docs', 'terrace', 'TWO.md'), '# Two\n\n## Empty\n', 'utf8');
+
+    const ceremony = reportCeremony(tmpDir);
+    const waiver = addWaiver(tmpDir, 'security-check', {
+      reason: 'Local fixture warning accepted until scanner fixtures move.',
+      owner: 'release-owner',
+      expires: 'before public release'
+    });
+
+    expect(ceremony).toMatchObject({
+      artifact_count: 2,
+      passed: false,
+      warnings: expect.arrayContaining([expect.objectContaining({ code: 'LOW_DENSITY_ARTIFACT' })])
+    });
+    expect(waiver.artifact).toBe('docs/terrace/waivers/WAIVERS.md');
+    expect(waiverShipCheck(tmpDir)).toMatchObject({
+      passed: true,
+      warnings: [expect.objectContaining({ code: 'ACTIVE_WAIVER', waiver_id: 'waiver-1' })]
+    });
   });
 
   it('classifies active feature ship checks by tier and recorded evidence', () => {
@@ -155,9 +182,13 @@ describe('production lifecycle edge coverage', () => {
     fs.writeFileSync(rulePath, JSON.stringify({ ...ruleJson, owner: 'platform', rationale: 'Production type safety.', review_after: '2026-12-31' }, null, 2), 'utf8');
     fs.writeFileSync(path.join(tmpDir, '.terrace', 'rules', 'broken.json'), '{ invalid', 'utf8');
 
-    const rules = ruleAudit(tmpDir);
+    const rules = ruleAudit(tmpDir, { effectiveness: true });
 
     expect(rules.rule_count).toBe(2);
+    expect(rules.effectiveness).toMatchObject({
+      maturity_counts: expect.objectContaining({ unknown: expect.any(Number) }),
+      weak_metadata: expect.arrayContaining(['unknown/broken'])
+    });
     expect(rules.blockers).toContainEqual(expect.objectContaining({ code: 'RULE_OWNER_REQUIRED' }));
     expect(ruleAuditShipCheck(tmpDir)).toMatchObject({ passed: false, blocking: [expect.objectContaining({ code: 'RULE_OWNER_REQUIRED' })] });
 

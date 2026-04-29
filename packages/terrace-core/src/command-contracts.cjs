@@ -194,10 +194,40 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Run release-readiness checks and report failed quality gates.'
   },
   {
+    command: 'terrace ship check --fast',
+    category: 'shipping',
+    json: true,
+    purpose: 'Run deterministic Terrace gates without executing project package scripts.'
+  },
+  {
     command: 'terrace ship prepare',
     category: 'shipping',
     json: true,
     purpose: 'Write a PR-ready release summary from ship check results.'
+  },
+  {
+    command: 'terrace report ceremony',
+    category: 'shipping',
+    json: true,
+    purpose: 'Check artifact count, generated word volume, and low-density documentation signals.'
+  },
+  {
+    command: 'terrace waive <gate>',
+    category: 'shipping',
+    json: true,
+    purpose: 'Record a reviewed temporary gate waiver with owner, reason, and expiry.'
+  },
+  {
+    command: 'terrace port gsd --compare',
+    category: 'migration',
+    json: true,
+    purpose: 'Compare legacy GSD concepts against Terrace migration coverage before porting.'
+  },
+  {
+    command: 'terrace port gsd --verify-parity',
+    category: 'migration',
+    json: true,
+    purpose: 'Fail when legacy GSD concepts are present but unmapped by Terrace migration.'
   },
   {
     command: 'terrace security check',
