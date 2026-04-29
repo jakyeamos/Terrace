@@ -125,6 +125,13 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - Agent handoff packs: `.terrace/handoffs/<timestamp>-<feature>.json`, `docs/terrace/handoffs/<timestamp>-<feature>.md`.
 - Production preflight: `docs/terrace/features/<id>/PREFLIGHT.md`.
 - Debt tracker: `.terrace/state.json` `debt[]`, plus `docs/terrace/features/<id>/DEBT.md`.
+- Documentation outputs: `DOCS.md`, `ADR.md`, `RUNBOOK.md`, `RELEASE-NOTES.md`, `MIGRATION-GUIDE.md`.
+- Test-suite evaluation: `docs/testing/TEST-EVAL.md`.
+- AI reviews: `docs/terrace/reviews/<feature>/<mode>.json` and `.md`.
+- Rule authoring and audit: `.terrace/rules/<domain>/<rule>.json`, `docs/terrace/rules/<domain>/<rule>.md`, `docs/terrace/rules/RULE-AUDIT.md`.
+- Standards backfill: `docs/terrace/backfill/<timestamp>-BACKFILL-SPEC.md`.
+- Design-source normalization: `UI-SPEC.md`, `UI-DIFF.md`, `UI-ASSETS.md`, `UI-VERIFY.md`.
+- Workstreams: `.terrace/workstreams/<feature>.json`, `docs/terrace/features/<feature>/WORKSTREAMS.md`.
 
 # ENFORCEMENT SYSTEM
 
@@ -138,6 +145,9 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - `terrace phase complete`, `terrace quick complete`, `terrace audit`, `terrace ship check`, `terrace preflight`, `terrace handoff create`, and debt mutations refresh the Tier One report card.
 - Ownerless debt or debt without expiry/cleanup metadata is blocking. Debt that is not marked allowed to ship is a warning until resolved or formalized.
 - Tier 2+ active feature work blocks ship when `PREFLIGHT.md` is missing. Tier 1 receives a warning.
+- Ship checks also consume AI review, documentation, test evaluation, and rule audit state. Tier 3 active features block on missing AI review; Tier 2+ active features block on missing documentation.
+- `terrace backfill` is spec-only and does not mutate application code.
+- Interrogation is mode-aware. `init` writes `INTERROGATION.md`, `adjust` writes `ADJUSTMENT.md`, `risk` writes `RISK.md`, and `milestone` writes `MILESTONE-INTERROGATION.md`.
 
 # CLI / WORKFLOW CHANGES
 
@@ -162,6 +172,17 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - `terrace debt audit`
 - `terrace debt resolve <id>`
 - `terrace preflight <feature> [--mode init|pre-ship|incident]`
+- `terrace docu <feature|change> [--type adr|runbook|release-note|migration|api|user-guide|handoff]`
+- `terrace test eval [--feature <id>] [--changed]`
+- `terrace interrogate init|adjust|risk|milestone <feature>`
+- `terrace review ai --mode security|architecture|test-trust|ux|release [--feature <id>]`
+- `terrace rule add <domain> <rule-id>`
+- `terrace add rule <domain> <rule-id>`
+- `terrace rule audit`
+- `terrace backfill [--rule <id>] [--since <ref>] [--feature <id>]`
+- `terrace design-source import stitch|v0|figma|screenshot <feature> <ref>`
+- `terrace design-source diff existing-ui <feature> <route-or-path>`
+- `terrace workstreams plan <feature>`
 
 `terrace next` now routes active feature work through `seniorCycleStatus(cwd, feature, tier)` before falling back to generic phase routing. Ship checks include Senior Cycle observability and validation blockers, phase completion requires cleanup for Tier 2+ work, and quick tasks require test-plan plus verification evidence before completion.
 
