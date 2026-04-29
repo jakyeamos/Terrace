@@ -198,6 +198,12 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     category: 'shipping',
     json: true,
     purpose: 'Write a PR-ready release summary from ship check results.'
+  },
+  {
+    command: 'terrace security check',
+    category: 'security',
+    json: true,
+    purpose: 'Run deterministic local security checks and write Terrace security evidence.'
   }
 ];
 

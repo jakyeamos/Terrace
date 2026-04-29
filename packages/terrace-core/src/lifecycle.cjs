@@ -5,6 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
 const { runAudit } = require('./audit.cjs');
+const { analyzeRepository, bulletList, groupFilesByLane, readSmallText } = require('./repo-analysis.cjs');
+const { normalizeImportedFindings, staticReviewFindings } = require('./artifact-analysis.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -431,7 +433,8 @@ function reportOpen(cwd) {
   return {
     artifact: relativeExists(cwd, 'docs/terrace/REPORT-CARD.md') ? 'docs/terrace/REPORT-CARD.md' : null,
     exists: relativeExists(cwd, 'docs/terrace/REPORT-CARD.md'),
-    command: 'terrace report update'
+    command: 'terrace report update',
+    open_command: relativeExists(cwd, 'docs/terrace/REPORT-CARD.md') ? 'cat docs/terrace/REPORT-CARD.md' : 'terrace report update'
   };
 }
 
@@ -667,10 +670,27 @@ function resolveDebt(cwd, id) {
   };
 }
 
+function featureEvidence(cwd, featureId) {
+  const base = featureRef(featureId);
+  const refs = ['ALIGNMENT.md', 'DESIGN.md', 'PREFLIGHT.md', 'OBSERVABILITY.md', 'VALIDATION.md', 'CLEANUP.md', 'DEBT.md']
+    .map((file) => base + '/' + file)
+    .filter((file) => relativeExists(cwd, file));
+  return refs;
+}
+
+function unresolvedLines(items) {
+  return items.length > 0 ? items.map((item) => '- ' + item) : ['- No unresolved evidence detected from available repository signals.'];
+}
+
 function preflightFeature(cwd, feature, options) {
   const featureId = normalizeFeatureId(feature);
   const mode = options && options.mode ? options.mode : 'pre-ship';
   const artifact = featureRef(featureId) + '/PREFLIGHT.md';
+  const repo = analyzeRepository(cwd);
+  const envFiles = repo.files.filter((file) => path.basename(file).startsWith('.env')).slice(0, 8);
+  const migrationFiles = repo.migrations.slice(0, 8);
+  const networkFiles = repo.source_files.filter((file) => /(api|client|fetch|request|route|server)/i.test(file)).slice(0, 8);
+  const observabilityFiles = repo.files.filter((file) => /(observability|telemetry|logger|logging|metrics|trace|sentry|datadog)/i.test(file)).slice(0, 8);
   const entry = {
     feature_id: featureId,
     mode,
@@ -688,7 +708,13 @@ function preflightFeature(cwd, feature, options) {
       'rate limits',
       'rollback path',
       'observability gaps'
-    ]
+    ],
+    evidence: {
+      env_files: envFiles,
+      migrations: migrationFiles,
+      network_files: networkFiles,
+      observability_files: observabilityFiles
+    }
   };
   writeMarkdown(cwd, artifact, [
     '# Production Preflight: ' + featureId,
@@ -697,13 +723,24 @@ function preflightFeature(cwd, feature, options) {
     '- ' + mode,
     '',
     '## Failure Checks',
-    ...entry.checks.map((check) => '- ' + check + ': TODO define testable or monitorable evidence.'),
+    '- bad input: validate request boundaries in ' + (networkFiles[0] || 'the primary input handling path once identified') + '.',
+    '- permission errors: review auth and role checks in ' + (networkFiles.find((file) => /auth|permission|role/i.test(file)) || 'server/API entrypoints') + '.',
+    '- slow network: verify timeout, retry, and loading behavior for API-facing paths.',
+    '- stale cache: confirm cache invalidation for changed data and route refresh behavior.',
+    '- partial deploy: check schema and runtime compatibility for ' + (migrationFiles[0] || 'deploy-time data changes') + '.',
+    '- missing environment variables: required env evidence from ' + (envFiles[0] || 'package/deployment configuration') + '.',
+    '- failed migrations: migration surface ' + (migrationFiles.length > 0 ? migrationFiles.join(', ') : 'not detected') + '.',
+    '- third-party outages: dependency surface from package.json and integration imports.',
+    '- rate limits: inspect API/client paths for retry and throttle behavior.',
+    '- rollback path: revert deploy plus disable feature entrypoints if runtime evidence fails.',
+    '- observability gaps: ' + (observabilityFiles.length > 0 ? observabilityFiles.join(', ') : 'no observability files detected') + '.',
     '',
     '## Rollback Path',
-    '- TODO: Describe rollback command, owner, and threshold.',
+    '- Roll back the deployment and revert any migration only after validating data compatibility.',
+    '- Release owner must define threshold before ship when this file is used as release evidence.',
     '',
     '## Observability Gaps',
-    '- TODO: Name missing logs, metrics, traces, alerts, or dashboards.',
+    ...(observabilityFiles.length > 0 ? observabilityFiles.map((file) => '- Review ' + file + ' for feature-specific signals.') : ['- No observability files were detected; add logs or metrics before high-risk release.']),
     '',
     '## Ship Decision',
     '- Preflight is complete when every failure mode has evidence, an owner, or a documented exemption.'
@@ -746,31 +783,44 @@ function docuFeature(cwd, feature, options) {
     created_at: nowIso(),
     polish_adapter: 'none'
   };
+  const repo = analyzeRepository(cwd);
+  const evidenceRefs = featureEvidence(cwd, featureId);
+  const changed = repo.changed_files.slice(0, 12);
+  const reviewRefs = (readJsonIfExists(cwd, '.terrace/state.json', {}).ai_reviews || []).filter((review) => review.feature_id === featureId).map((review) => review.markdown || review.artifact);
   writeMarkdown(cwd, artifact, [
     '# Documentation: ' + featureId,
     '',
     '## Executive Summary',
-    '- TODO: Summarize the change and production impact concisely.',
+    '- ' + featureId + ' documentation generated from Terrace feature evidence and repository analysis.',
+    '- Documentation type: ' + type + '.',
     '',
     '## Decision Context',
-    '- TODO: Link relevant alignment, design, review, and verification evidence.',
+    ...(evidenceRefs.length > 0 ? evidenceRefs.map((ref) => '- Evidence: ' + ref) : ['- No feature evidence artifacts were found; run senior-cycle commands before final release.']),
+    ...(reviewRefs.length > 0 ? reviewRefs.map((ref) => '- Review: ' + ref) : ['- No AI review artifact is currently linked for this feature.']),
     '',
     '## Operational Impact',
-    '- TODO: Describe logs, metrics, support impact, migrations, and expected operator workflow.',
+    '- Changed files: ' + (changed.length > 0 ? changed.join(', ') : 'no git diff files detected'),
+    '- Migration files: ' + (repo.migrations.length > 0 ? repo.migrations.slice(0, 8).join(', ') : 'none detected'),
+    '- Test files: ' + String(repo.test_files.length),
     '',
     '## Rollout And Rollback',
-    '- TODO: Record rollout owner, rollout steps, rollback command, and rollback threshold.',
+    '- Roll out after `terrace ship check` passes or documented blockers are resolved.',
+    '- Roll back by reverting the deployment and following the feature preflight rollback section.',
     '',
     '## User-Visible Changes',
-    '- TODO: Describe behavior changes, UI changes, API changes, or docs-only impact.',
+    '- UI routes/components detected: ' + (repo.route_hints.concat(repo.component_hints).slice(0, 8).join(', ') || 'none detected'),
+    '- API/backend files detected: ' + (repo.source_files.filter((file) => /(api|server|route|controller)/i.test(file)).slice(0, 8).join(', ') || 'none detected'),
     '',
     '## Evidence Links',
     '- Alignment: ' + featureRef(featureId) + '/ALIGNMENT.md',
     '- Preflight: ' + featureRef(featureId) + '/PREFLIGHT.md',
     '- Debt: ' + featureRef(featureId) + '/DEBT.md',
     '',
-    '## Open Questions',
-    '- TODO: List unresolved questions and owners.'
+    '## Unresolved Evidence',
+    ...unresolvedLines([
+      ...(evidenceRefs.length === 0 ? ['Feature evidence artifacts are missing.'] : []),
+      ...(reviewRefs.length === 0 ? ['Review artifact is missing.'] : [])
+    ])
   ]);
   const state = loadState(cwd);
   const docs = documentationEntries(state);
@@ -921,6 +971,9 @@ function interrogateMode(cwd, mode, feature, options) {
     milestone: 'Milestone Interrogation'
   };
   const artifact = artifactByMode[normalized];
+  const repo = analyzeRepository(cwd);
+  const changed = repo.changed_files.slice(0, 8);
+  const riskFiles = repo.files.filter((file) => /(auth|permission|billing|payment|migration|schema|api|route|server|cache)/i.test(file)).slice(0, 8);
   writeMarkdown(cwd, artifact, [
     '# ' + headingByMode[normalized] + ': ' + featureId,
     '',
@@ -928,16 +981,20 @@ function interrogateMode(cwd, mode, feature, options) {
     '- ' + normalized,
     '',
     '## Assumptions',
-    '- TODO: Name assumptions this mode must challenge.',
+    '- Changed files considered: ' + (changed.length > 0 ? changed.join(', ') : 'no git diff files detected'),
+    '- Risk-bearing files considered: ' + (riskFiles.length > 0 ? riskFiles.join(', ') : 'none detected from filenames'),
     '',
     '## Evidence Needed',
-    '- TODO: Name missing evidence and the command or artifact that should produce it.',
+    '- Run `terrace preflight ' + featureId + '` for production failure evidence.',
+    '- Run `terrace review ai --mode security --feature ' + featureId + '` for security review evidence.',
     '',
     '## Failure Modes',
-    '- TODO: Describe how this change can fail and how the team will notice.',
+    '- Input or permission behavior may regress in API/server paths.',
+    '- Data shape or migration behavior may fail when changed files include schemas or SQL.',
+    '- UI behavior may regress when routes or components are part of the feature surface.',
     '',
     '## Decision Impact',
-    '- TODO: Record scope, sequence, risk, or milestone changes caused by this interrogation.'
+    '- Treat detected auth, billing, migration, and shared schema files as sequencing constraints.'
   ]);
   const state = loadState(cwd);
   const interrogations = Array.isArray(state.interrogations) ? state.interrogations : [];
@@ -961,36 +1018,36 @@ function reviewAi(cwd, options) {
   const dir = 'docs/terrace/reviews/' + featureId;
   const artifact = dir + '/' + mode + '.json';
   const markdown = dir + '/' + mode + '.md';
-  const finding = {
-    id: 'finding-1',
-    mode,
-    severity: 'info',
-    file_or_artifact: featureRef(featureId),
-    claim: 'Structured AI review protocol initialized.',
-    evidence: 'No automated reviewer findings were provided; this artifact establishes the stable format.',
-    recommended_fix: 'Fill findings with concrete evidence before treating review as complete.',
-    classification: 'warning'
-  };
+  const importedPath = opts.from || null;
+  let findings;
+  if (importedPath) {
+    const resolved = safeResolve(cwd, importedPath);
+    findings = normalizeImportedFindings(JSON.parse(fs.readFileSync(resolved, 'utf8')), mode);
+  } else {
+    findings = staticReviewFindings(cwd, mode, featureId);
+  }
   const entry = {
     feature_id: featureId,
     mode,
     artifact,
     markdown,
     created_at: nowIso(),
-    findings: [finding]
+    source: importedPath ? 'import' : 'static',
+    imported_from: importedPath,
+    findings
   };
   writeJson(cwd, artifact, entry);
   writeMarkdown(cwd, markdown, [
     '# AI Review: ' + mode + ' - ' + featureId,
     '',
     '## Findings',
-    '- ' + finding.id + ' [' + finding.classification + ']: ' + finding.claim,
+    ...findings.map((finding) => '- ' + finding.id + ' [' + finding.classification + ']: ' + finding.claim),
     '',
     '## Evidence',
-    '- ' + finding.evidence,
+    ...findings.map((finding) => '- ' + finding.file_or_artifact + ': ' + finding.evidence),
     '',
     '## Recommended Fix',
-    '- ' + finding.recommended_fix
+    ...findings.map((finding) => '- ' + finding.id + ': ' + finding.recommended_fix)
   ]);
   const state = loadState(cwd);
   saveState(cwd, {
@@ -1125,7 +1182,12 @@ function backfill(cwd, options) {
   const featureId = opts.feature ? normalizeFeatureId(opts.feature) : null;
   const id = timestampId();
   const artifact = 'docs/terrace/backfill/' + id + '-BACKFILL-SPEC.md';
+  const repo = analyzeRepository(cwd);
   const changed = currentChangedFiles(cwd);
+  const affected = changed.length > 0 ? changed : repo.files.filter((file) => /\.(cjs|mjs|js|jsx|ts|tsx|json|md)$/.test(file)).slice(0, 80);
+  const rules = collectRuleArtifacts(cwd);
+  const selectedRules = opts.rule ? rules.filter((rule) => rule.id === opts.rule || rule.domain + '/' + rule.id === opts.rule) : rules;
+  const violations = evaluateRuleViolations(cwd, selectedRules, affected);
   const entry = {
     id,
     rule: opts.rule || null,
@@ -1133,42 +1195,45 @@ function backfill(cwd, options) {
     feature_id: featureId,
     artifact,
     created_at: nowIso(),
-    affected_files: changed,
-    mutates_code: false
+    affected_files: affected,
+    mutates_code: false,
+    violations
   };
   writeMarkdown(cwd, artifact, [
     '# Standards Backfill Spec',
     '',
     '## Standard Or Decision',
-    '- Rule: ' + (entry.rule || 'TODO'),
+    '- Rule: ' + (entry.rule || 'all installed rules'),
     '- Since: ' + (entry.since || 'not specified'),
     '',
     '## Scope',
     '- Feature: ' + (featureId || 'repository'),
     '',
     '## Affected Files',
-    ...(changed.length > 0 ? changed.map((file) => '- ' + file) : ['- TODO: identify affected files.']),
+    ...bulletList(affected, 'No affected files were detected from git diff or repository inventory.'),
     '',
     '## Current Violations',
-    '- TODO: List concrete violations.',
+    ...(violations.length > 0 ? violations.map((item) => '- ' + item.rule_id + ' in ' + item.file + ': ' + item.evidence) : ['- No concrete rule violations were detected by simple pattern matching.']),
     '',
     '## Migration Plan',
-    '- TODO: Write staged remediation steps.',
+    '- Fix blocking violations first, then warning-level rule drift.',
+    '- Keep this backfill spec review-only until implementation is explicitly scheduled.',
     '',
     '## Test Impact',
-    '- TODO: Name tests to add, update, delete, or consolidate.',
+    '- Add or update tests around files with detected violations.',
+    '- Run terrace test eval after remediation.',
     '',
     '## Risk Level',
-    '- TODO',
+    '- ' + (violations.length > 0 ? 'medium' : 'low'),
     '',
     '## Workstream Split',
-    '- TODO',
+    ...Object.entries(groupFilesByLane(affected)).filter((entry) => entry[1].length > 0).map((entry) => '- ' + entry[0] + ': ' + entry[1].slice(0, 6).join(', ')),
     '',
     '## Verification Commands',
     '- terrace ship check',
     '',
     '## Cleanup Conditions',
-    '- TODO'
+    '- Backfill is complete when violations are resolved or have owner-approved exemptions.'
   ]);
   const state = loadState(cwd);
   saveState(cwd, {
@@ -1181,13 +1246,15 @@ function backfill(cwd, options) {
 
 function workstreamsPlan(cwd, feature) {
   const featureId = normalizeFeatureId(feature);
+  const repo = analyzeRepository(cwd);
+  const grouped = groupFilesByLane(repo.changed_files.length > 0 ? repo.changed_files : repo.files);
   const lanes = ['product/spec', 'tests', 'frontend', 'backend', 'data/migrations', 'observability', 'docs', 'cleanup'].map((lane) => ({
     lane,
-    owned_files: [],
-    dependencies: [],
-    collision_risks: [],
-    verification_commands: ['terrace ship check'],
-    parallel: lane !== 'data/migrations'
+    owned_files: (grouped[lane] || []).slice(0, 20),
+    dependencies: lane === 'frontend' ? repo.route_hints.slice(0, 8) : lane === 'backend' ? repo.imports.slice(0, 8).map((item) => item.source) : [],
+    collision_risks: (grouped[lane] || []).filter((file) => /(schema|auth|billing|package\.json|index\.)/i.test(file)).slice(0, 8),
+    verification_commands: ['terrace ship check', lane === 'tests' ? 'npm test' : 'terrace test eval'],
+    parallel: lane !== 'data/migrations' && !(grouped[lane] || []).some((file) => /(schema|migration|package\.json)/i.test(file))
   }));
   const coordination_points = ['shared exports', 'schemas', 'auth', 'billing', 'migrations'];
   const artifact = featureRef(featureId) + '/WORKSTREAMS.md';
@@ -1204,9 +1271,9 @@ function workstreamsPlan(cwd, feature) {
     ...lanes.flatMap((lane) => [
       '### ' + lane.lane,
       '- Parallel: ' + String(lane.parallel),
-      '- Owned files: TODO',
-      '- Dependencies: TODO',
-      '- Collision risks: TODO',
+      '- Owned files: ' + (lane.owned_files.length > 0 ? lane.owned_files.join(', ') : 'none detected'),
+      '- Dependencies: ' + (lane.dependencies.length > 0 ? lane.dependencies.join(', ') : 'none detected'),
+      '- Collision risks: ' + (lane.collision_risks.length > 0 ? lane.collision_risks.join(', ') : 'none detected'),
       '- Verification: ' + lane.verification_commands.join(', ')
     ])
   ]);
@@ -1225,6 +1292,7 @@ function designSourceImport(cwd, source, feature, ref) {
   const featureId = normalizeFeatureId(feature);
   const normalizedSource = ['stitch', 'v0', 'figma', 'screenshot'].includes(source) ? source : 'stitch';
   const base = featureRef(featureId);
+  const repo = analyzeRepository(cwd);
   const specRef = base + '/UI-SPEC.md';
   const assetsRef = base + '/UI-ASSETS.md';
   const verifyRef = base + '/UI-VERIFY.md';
@@ -1247,19 +1315,21 @@ function designSourceImport(cwd, source, feature, ref) {
     '- Ref: ' + (ref || 'missing'),
     '',
     '## Routes And Components',
-    '- TODO',
+    ...bulletList(repo.route_hints.concat(repo.component_hints), 'No route or component files were detected.'),
     '',
     '## States',
-    '- TODO: loading, empty, error, success, disabled, responsive.',
+    '- loading, empty, error, success, disabled, and responsive states must be verified for the imported surface.',
     '',
     '## Implementation Constraints',
-    '- TODO'
+    '- Preserve existing route structure unless the design source explicitly requires navigation changes.',
+    '- Match assets and interaction states to the referenced ' + normalizedSource + ' source.'
   ]);
   writeMarkdown(cwd, assetsRef, [
     '# UI Assets: ' + featureId,
     '',
     '## Required Assets',
-    '- TODO',
+    '- Source reference: ' + (ref || 'missing'),
+    '- Reuse existing assets where current components already provide equivalent imagery or icons.',
     '',
     '## Source References',
     '- ' + (ref || 'missing')
@@ -1268,7 +1338,9 @@ function designSourceImport(cwd, source, feature, ref) {
     '# UI Verification: ' + featureId,
     '',
     '## Browser Checks',
-    '- TODO: Define viewport, route, screenshot, accessibility, and interaction checks.'
+    '- Verify primary routes at mobile and desktop viewport widths.',
+    '- Capture screenshot evidence for changed screens.',
+    '- Check keyboard interaction and accessible names for controls.'
   ]);
   const state = loadState(cwd);
   saveState(cwd, {
@@ -1284,6 +1356,7 @@ function designSourceImport(cwd, source, feature, ref) {
 function designSourceDiff(cwd, target, feature, routeOrPath) {
   const featureId = normalizeFeatureId(feature);
   const artifact = featureRef(featureId) + '/UI-DIFF.md';
+  const repo = analyzeRepository(cwd);
   const entry = {
     feature_id: featureId,
     target: target || 'existing-ui',
@@ -1301,12 +1374,40 @@ function designSourceDiff(cwd, target, feature, routeOrPath) {
     '- ' + (entry.route_or_path || 'missing'),
     '',
     '## Differences',
-    '- TODO: Record visual, interaction, content, accessibility, and responsive differences.',
+    '- Compare target route/path against detected UI files: ' + (repo.route_hints.concat(repo.component_hints).slice(0, 10).join(', ') || 'none detected'),
+    '- Record visual, interaction, content, accessibility, and responsive differences during browser verification.',
     '',
     '## Verification Requirements',
-    '- TODO: Name browser and screenshot checks.'
+    '- Browser route: ' + (entry.route_or_path || 'feature route to be identified from app routing'),
+    '- Required checks: desktop screenshot, mobile screenshot, keyboard interaction, accessible labels.'
   ]);
   return entry;
+}
+
+function evaluateRuleViolations(cwd, rules, files) {
+  const violations = [];
+  for (const rule of rules) {
+    const patterns = Array.isArray(rule.forbidden_patterns) ? rule.forbidden_patterns.filter(Boolean) : [];
+    if (patterns.length === 0) {
+      continue;
+    }
+    for (const file of files) {
+      const text = readSmallText(cwd, file, 120000);
+      if (!text) {
+        continue;
+      }
+      for (const pattern of patterns) {
+        if (text.includes(pattern)) {
+          violations.push({
+            rule_id: rule.domain + '/' + rule.id,
+            file,
+            evidence: 'matched forbidden pattern `' + pattern + '`'
+          });
+        }
+      }
+    }
+  }
+  return violations;
 }
 
 function latestForFeature(entries, featureId) {

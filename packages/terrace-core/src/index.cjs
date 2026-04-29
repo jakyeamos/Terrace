@@ -22,5 +22,8 @@ module.exports = {
   ...require('./migrate.cjs'),
   ...require('./audit.cjs'),
   ...require('./fragments.cjs'),
-  ...require('./health.cjs')
+  ...require('./health.cjs'),
+  ...require('./repo-analysis.cjs'),
+  ...require('./artifact-analysis.cjs'),
+  ...require('./security-check.cjs')
 };

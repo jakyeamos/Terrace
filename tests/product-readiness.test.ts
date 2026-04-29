@@ -77,9 +77,10 @@ describe('tier-one product readiness', () => {
       const tarballPath = path.join(packDir, packOutput.split(/\r?\n/).pop() || '');
 
       fs.writeFileSync(path.join(consumerDir, 'package.json'), JSON.stringify({ name: 'terrace-consumer', private: true }), 'utf8');
-      execFileSync('npm', ['install', '--ignore-scripts', '--cache', path.join(tmpRoot, 'npm-cache'), tarballPath], {
+      execFileSync('npm', ['install', '--ignore-scripts', '--prefer-offline', '--cache', path.join(tmpRoot, 'npm-cache'), tarballPath], {
         cwd: consumerDir,
-        encoding: 'utf8'
+        encoding: 'utf8',
+        timeout: 60000
       });
 
       const terraceBin = path.join(consumerDir, 'node_modules', '.bin', 'terrace');

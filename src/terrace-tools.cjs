@@ -81,7 +81,8 @@ const {
   backfill,
   workstreamsPlan,
   designSourceImport,
-  designSourceDiff
+  designSourceDiff,
+  runSecurityCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
 const packageJson = require('../package.json');
@@ -96,6 +97,7 @@ const HELP_TEXT = [
   '  terrace spec hash --file <path>',
   '  terrace audit                Run governance audit checks',
   '  terrace ci check [files...]  Run audit plus protected-change checks',
+  '  terrace security check       Run deterministic local security checks',
   '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
@@ -458,7 +460,7 @@ async function main() {
     case 'review': {
       const sub = args[1];
       if (sub === 'ai') {
-        output(reviewAi(cwd, { mode: optionValue(rawArgs, '--mode'), feature: optionValue(rawArgs, '--feature') }), { json });
+        output(reviewAi(cwd, { mode: optionValue(rawArgs, '--mode'), feature: optionValue(rawArgs, '--feature'), from: optionValue(rawArgs, '--from') }), { json });
         return;
       }
       fail('Unknown review subcommand: ' + sub + '. Use: ai', { json });
@@ -807,11 +809,11 @@ async function main() {
       if (sub !== 'check') {
         fail('Unknown security subcommand: ' + sub + '. Use: check', { json });
       }
-      output({
-        checks: ['semgrep', 'trivy', 'osv'],
-        status: 'not_configured',
-        message: 'terrace-security metadata is installed; external scanners are intentionally not invoked by the stdlib CLI.'
-      }, { json });
+      const result = runSecurityCheck(cwd);
+      output(result, { json });
+      if (result.blocking && result.blocking.length > 0) {
+        process.exitCode = 1;
+      }
       return;
     }
     case 'spec': {

@@ -552,6 +552,7 @@ describe('workflow parity core helpers', () => {
     expect(result.categories.map((category: { category: string }) => category.category)).toEqual([
       'doctor',
       'audit',
+      'security',
       'tier_one_report',
       'migration_readiness',
       'senior_cycle',
