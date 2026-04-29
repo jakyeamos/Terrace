@@ -50,6 +50,17 @@ const {
   routePlainText,
   autonomousWorkflow,
   discoverProjectCommands,
+  alignFeature,
+  interrogateFeature,
+  mapCodebase,
+  designFeature,
+  testPlanFeature,
+  observeFeature,
+  validateProdFeature,
+  cleanupFeature,
+  uiImportStitch,
+  uiPlanRefresh,
+  uiDiff,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -72,6 +83,17 @@ const HELP_TEXT = [
   '  terrace do <plain text>      Route natural language to a Terrace command',
   '  terrace autonomous           Plan next phase and stop at blocker or handoff',
   '  terrace commands discover    Discover project quality scripts',
+  '  terrace align <feature>      Write senior-cycle alignment artifact',
+  '  terrace interrogate <feature> Write edge-case and failure-mode artifact',
+  '  terrace map-codebase         Write codebase context artifacts',
+  '  terrace design <feature>     Write architecture decision artifact',
+  '  terrace test-plan <feature>  Write behavior-first test strategy',
+  '  terrace observe <feature>    Write observability plan',
+  '  terrace validate-prod <feature> Write production validation plan',
+  '  terrace cleanup <feature>    Write cleanup contract',
+  '  terrace ui import-stitch <feature> Capture Stitch design import',
+  '  terrace ui plan-refresh <feature> Plan UI refresh work',
+  '  terrace ui diff <feature>    Write UI source/target diff',
   '  terrace phase list           List roadmap phases',
   '  terrace phase show <id>      Show a roadmap phase',
   '  terrace phase plan <id>      Generate a phase plan artifact',
@@ -107,6 +129,17 @@ function hasFlag(args, flag) {
 
 function stripFlags(args, flags) {
   return args.filter((arg) => !flags.includes(arg));
+}
+
+function optionValue(rawArgs, name) {
+  const index = rawArgs.indexOf(name);
+  return index === -1 ? null : rawArgs[index + 1] || null;
+}
+
+function seniorOptions(rawArgs) {
+  return {
+    tier: optionValue(rawArgs, '--tier')
+  };
 }
 
 function output(data, options) {
@@ -306,6 +339,56 @@ async function main() {
         return;
       }
       fail('Unknown commands subcommand: ' + sub + '. Use: discover', { json });
+      return;
+    }
+    case 'align': {
+      output(alignFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
+      return;
+    }
+    case 'interrogate': {
+      output(interrogateFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
+      return;
+    }
+    case 'map-codebase': {
+      output(mapCodebase(cwd), { json });
+      return;
+    }
+    case 'design': {
+      output(designFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
+      return;
+    }
+    case 'test-plan': {
+      output(testPlanFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
+      return;
+    }
+    case 'observe': {
+      output(observeFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
+      return;
+    }
+    case 'validate-prod': {
+      output(validateProdFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
+      return;
+    }
+    case 'cleanup': {
+      output(cleanupFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
+      return;
+    }
+    case 'ui': {
+      const sub = args[1];
+      const feature = args[2];
+      if (sub === 'import-stitch') {
+        output(uiImportStitch(cwd, feature), { json });
+        return;
+      }
+      if (sub === 'plan-refresh') {
+        output(uiPlanRefresh(cwd, feature), { json });
+        return;
+      }
+      if (sub === 'diff') {
+        output(uiDiff(cwd, feature), { json });
+        return;
+      }
+      fail('Unknown ui subcommand: ' + sub + '. Use: import-stitch, plan-refresh, diff', { json });
       return;
     }
     case 'do': {

@@ -27,6 +27,18 @@ const {
   routePlainText,
   autonomousWorkflow,
   discoverProjectCommands,
+  alignFeature,
+  interrogateFeature,
+  mapCodebase,
+  designFeature,
+  testPlanFeature,
+  observeFeature,
+  validateProdFeature,
+  cleanupFeature,
+  uiImportStitch,
+  uiPlanRefresh,
+  uiDiff,
+  seniorCycleStatus,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -200,6 +212,108 @@ describe('workflow parity core helpers', () => {
       status: 'completed',
       summary_ref: 'docs/terrace/quick/terrace-quick-2/SUMMARY.md'
     });
+    expect(fs.readFileSync(path.join(tmpDir, planned.item.plan_ref), 'utf-8')).toContain('No Band-Aid Rule');
+  });
+
+  it('generates senior-cycle artifacts and enforces tiered gates', () => {
+    const featureId = 'billing-refresh';
+    const before = seniorCycleStatus(tmpDir, featureId, 'large');
+
+    expect(before.allowed.execute).toBe(false);
+    expect(before.allowed.ship).toBe(false);
+    expect(before.blockers).toContainEqual(expect.objectContaining({
+      code: 'ALIGNMENT_REQUIRED',
+      artifact: 'docs/terrace/features/billing-refresh/ALIGNMENT.md'
+    }));
+    expect(before.blockers).toContainEqual(expect.objectContaining({
+      code: 'TEST_PLAN_REQUIRED',
+      artifact: 'docs/testing/TEST-PLAN.md'
+    }));
+
+    const aligned = alignFeature(tmpDir, featureId, { tier: 'large' });
+    const interrogated = interrogateFeature(tmpDir, featureId, { tier: 'large' });
+    const mapped = mapCodebase(tmpDir);
+    const designed = designFeature(tmpDir, featureId, { tier: 'large' });
+    const tested = testPlanFeature(tmpDir, featureId, { tier: 'large' });
+    const observed = observeFeature(tmpDir, featureId, { tier: 'large' });
+    const validated = validateProdFeature(tmpDir, featureId, { tier: 'large' });
+    const cleaned = cleanupFeature(tmpDir, featureId, { tier: 'large' });
+    const after = seniorCycleStatus(tmpDir, featureId, 'large');
+
+    expect(aligned.artifact).toBe('docs/terrace/features/billing-refresh/ALIGNMENT.md');
+    expect(interrogated.artifact).toBe('docs/terrace/features/billing-refresh/INTERROGATION.md');
+    expect(mapped.artifacts).toEqual([
+      'docs/terrace/codebase/MAP.md',
+      'docs/terrace/codebase/ARCHITECTURE.md',
+      'docs/terrace/codebase/RISKS.md',
+      'docs/terrace/codebase/TESTING.md',
+      'docs/terrace/codebase/OBSERVABILITY.md'
+    ]);
+    expect(designed.artifact).toBe('docs/terrace/features/billing-refresh/DESIGN.md');
+    expect(tested.artifact).toBe('docs/testing/TEST-PLAN.md');
+    expect(observed.artifact).toBe('docs/terrace/features/billing-refresh/OBSERVABILITY.md');
+    expect(validated.artifact).toBe('docs/terrace/features/billing-refresh/VALIDATION.md');
+    expect(cleaned.artifact).toBe('docs/terrace/features/billing-refresh/CLEANUP.md');
+    expect(after.blockers).toEqual([]);
+    expect(after.allowed).toMatchObject({
+      execute: true,
+      implement: true,
+      ship: true,
+      complete: true
+    });
+    expect(fs.readFileSync(path.join(tmpDir, aligned.artifact), 'utf-8')).toContain('Feature Flag Decision');
+    expect(fs.readFileSync(path.join(tmpDir, designed.artifact), 'utf-8')).toContain('No Band-Aid Rule');
+  });
+
+  it('uses adaptive senior-cycle enforcement for small changes', () => {
+    const featureId = 'copy-polish';
+    const before = seniorCycleStatus(tmpDir, featureId, 'small');
+
+    expect(before.required_artifacts).toContain('docs/testing/TEST-PLAN.md');
+    expect(before.required_artifacts).not.toContain('docs/terrace/features/copy-polish/ALIGNMENT.md');
+    expect(before.blockers).toContainEqual(expect.objectContaining({ code: 'TEST_PLAN_REQUIRED' }));
+
+    testPlanFeature(tmpDir, featureId, { tier: 'small' });
+    expect(seniorCycleStatus(tmpDir, featureId, 'small').allowed.implement).toBe(true);
+  });
+
+  it('blocks phase execution when senior-cycle gates are missing for that feature', () => {
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    state.roadmap.phases = [{
+      id: 'billing-refresh',
+      title: 'Billing Refresh',
+      status: 'planned',
+      source_ref: 'docs/terrace/features/billing-refresh/ALIGNMENT.md',
+      plans: []
+    }];
+    saveState(tmpDir, state);
+
+    alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+    const blocked = phaseExecute(tmpDir, 'billing-refresh');
+
+    expect(blocked).toMatchObject({
+      allowed: false,
+      phase_id: 'billing-refresh',
+      required_action: 'Complete senior-cycle gates before execution.',
+      blockers: expect.arrayContaining([expect.objectContaining({ code: 'TEST_PLAN_REQUIRED' })])
+    });
+
+    testPlanFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+    expect(phaseExecute(tmpDir, 'billing-refresh')).toMatchObject({
+      allowed: true,
+      phase_id: 'billing-refresh'
+    });
+  });
+
+  it('creates UI/Stitch workflow artifacts for greenfield and brownfield UI work', () => {
+    const imported = uiImportStitch(tmpDir, 'settings-refresh');
+    const planned = uiPlanRefresh(tmpDir, 'settings-refresh');
+    const diffed = uiDiff(tmpDir, 'settings-refresh');
+
+    expect(imported.artifact).toBe('docs/terrace/features/settings-refresh/UI-STITCH.md');
+    expect(planned.artifact).toBe('docs/terrace/features/settings-refresh/UI-REFRESH.md');
+    expect(diffed.artifact).toBe('docs/terrace/features/settings-refresh/UI-DIFF.md');
+    expect(fs.readFileSync(path.join(tmpDir, planned.artifact), 'utf-8')).toContain('Brownfield Refresh Plan');
   });
 
   it('prepares a ship summary artifact from check results', () => {

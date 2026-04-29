@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace now has a publishable CLI foundation and a substantially stronger GSD switch path with rich migration, stateful phase and quick-task workflows, adaptive project command discovery, autonomous stop-on-blocker orchestration, plain-text command routing for agents, stronger shipping preparation, and real-project smoke coverage.
-healthScore: 97
-statusLabel: gsd_switch_execution_parity_improved
-nextStep: Add installed-package e2e coverage that runs the packed CLI from a temporary consumer project and exercises autonomous/plain-text routing.
+summary: Terrace now has a publishable CLI foundation, a substantially stronger GSD switch path, and a senior-cycle orchestration layer with adaptive alignment/test/observability/validation/cleanup artifacts, no-band-aid architecture defaults, and UI/Stitch workflow commands.
+healthScore: 98
+statusLabel: senior_cycle_artifacts_introduced
+nextStep: Wire seniorCycleStatus into terrace next, ship, and completion blockers once feature tier selection is persisted in state.
 blockers: []
-lastUpdated: 2026-04-28
+lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -49,6 +49,8 @@ The `terrace port gsd` coding gap is now substantially mitigated: it converts co
 
 Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace autonomous`, `terrace commands discover`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
+Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. The senior-cycle core exposes adaptive tier gates, blocks phase execution for opted-in features with missing senior-cycle gates, and defaults quick work to sustainable architecture through the no-band-aid rule.
+
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
 ## Recent Progress
@@ -67,10 +69,12 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 28: Added `terrace history`, `terrace phase plan/execute`, handoff backlog extraction, and Terrace-native doctor/audit/migration checks inside `terrace ship check`.
 - April 28: Added stateful phase plan/execute/validate/review/complete artifacts, Terrace-native quick task plan/execute/complete, `terrace ship prepare`, GSD-compatible phase aliases, and `terrace do <plain text>` routing for agents.
 - April 28: Added adaptive project command discovery, richer migrated-context phase plans, execution queue artifacts, `terrace autonomous`, broader GSD-style plain-text routing, and missing-script ship warnings.
+- April 29: Added the Senior Cycle audit/spec, adaptive senior-cycle artifact generation, tiered gate status, phase execution enforcement for opted-in senior-cycle features, no-band-aid architecture defaults for quick work, and UI/Stitch workflow artifact commands.
 
 ## Open Problems
 
 - Installed-package fixture e2e coverage is still thinner than the desired full product gate.
+- `seniorCycleStatus` is implemented in core but is not yet wired into `terrace next`, ship blockers, or completion blockers.
 - `npm audit --audit-level=high` passes, but npm reports one moderate PostCSS advisory in the dev dependency tree.
 - Dead-code scanning is not configured.
 
@@ -78,15 +82,15 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS, 208 tests
+- **Tests:** `npm test` PASS, 212 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds
-- **Package:** `npm run package:dry-run` PASS, 47 allowlisted files
+- **Package:** `npm run package:dry-run` PASS, 48 allowlisted files
 - **Audit:** `npm audit --audit-level=high` PASS, one moderate advisory remains
 
 ## Next Concrete Steps
 
-1. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
-2. Add packed CLI migration smoke tests for autonomous, project command discovery, phase execution queues, history, and quick-task commands.
-3. Expand `terrace do <plain text>` fixture coverage against real migrated GSD phrasing.
-4. Add schema validation for user-editable rule and config files.
+1. Wire `seniorCycleStatus` into `terrace next`, ship, and completion blockers.
+2. Add persisted feature tier selection and risk detection heuristics.
+3. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
+4. Expand UI/Stitch integration from artifact scaffolding to real import/diff metadata.
 5. Decide whether to address the moderate PostCSS advisory now or track it as acceptable dev-dependency risk.

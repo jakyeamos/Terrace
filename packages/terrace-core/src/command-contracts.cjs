@@ -38,6 +38,72 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Discover project package scripts and Terrace quality-gate command mapping.'
   },
   {
+    command: 'terrace align <feature>',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create the senior-cycle alignment artifact with customer, problem, metrics, risks, rollout, validation, and cleanup intent.'
+  },
+  {
+    command: 'terrace interrogate <feature>',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create edge-case, assumption-challenge, and failure-mode interrogation artifacts.'
+  },
+  {
+    command: 'terrace map-codebase',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create codebase map, architecture, risk, testing, and observability context artifacts.'
+  },
+  {
+    command: 'terrace design <feature>',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create architecture and maintainability decision artifacts with the no band-aid rule.'
+  },
+  {
+    command: 'terrace test-plan <feature>',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create the behavior-first test strategy required before implementation.'
+  },
+  {
+    command: 'terrace observe <feature>',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create the feature observability and post-launch debugging plan.'
+  },
+  {
+    command: 'terrace validate-prod <feature>',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create production validation signals, monitoring plan, and rollback conditions.'
+  },
+  {
+    command: 'terrace cleanup <feature>',
+    category: 'senior-cycle',
+    json: true,
+    purpose: 'Create the cleanup contract for flags, temporary code, and documentation.'
+  },
+  {
+    command: 'terrace ui import-stitch <feature>',
+    category: 'ui',
+    json: true,
+    purpose: 'Capture imported Stitch design intent for greenfield or brownfield UI work.'
+  },
+  {
+    command: 'terrace ui plan-refresh <feature>',
+    category: 'ui',
+    json: true,
+    purpose: 'Create a UI refresh plan from imported design context.'
+  },
+  {
+    command: 'terrace ui diff <feature>',
+    category: 'ui',
+    json: true,
+    purpose: 'Create a source-to-target UI diff for implementation and verification.'
+  },
+  {
     command: 'terrace phase list',
     category: 'roadmap',
     json: true,

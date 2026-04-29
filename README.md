@@ -41,6 +41,15 @@ npx terrace audit
 - `terrace do <plain text>` routes natural-language agent instructions to stable Terrace commands.
 - `terrace autonomous` plans the next phase, prepares execution readiness, and stops at blockers or agent handoff.
 - `terrace commands discover` detects package manager, project scripts, and quality-gate command mapping.
+- `terrace align <feature>` writes `docs/terrace/features/<feature>/ALIGNMENT.md` with customer, problem, success metrics, risks, rollout, observability, validation, and cleanup intent.
+- `terrace interrogate <feature>` writes edge-case, assumption-challenge, and failure-mode interrogation.
+- `terrace map-codebase` writes codebase map, architecture, risks, testing, and observability context under `docs/terrace/codebase/`.
+- `terrace design <feature>` records architecture decisions, tradeoffs, maintainability, and the no band-aid rule.
+- `terrace test-plan <feature>` writes the behavior-first `docs/testing/TEST-PLAN.md` required before implementation.
+- `terrace observe <feature>` writes feature observability and post-launch debugging intent.
+- `terrace validate-prod <feature>` writes production success signals, monitoring, and rollback conditions.
+- `terrace cleanup <feature>` writes the cleanup contract for flags, temporary code, and docs.
+- `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>` support design-driven greenfield and brownfield UI workflows.
 - `terrace phase list` lists canonical roadmap phases.
 - `terrace phase show <id>` shows one roadmap phase and its migrated plans.
 - `terrace phase plan <id>` writes `docs/terrace/phases/<id>/PLAN.md`, pulling migrated source plans, likely files, related quick tasks, blockers, and discovered project commands into the phase plan.
@@ -77,6 +86,16 @@ Migrated state includes roadmap phases and plans, decisions, sessions, handoff c
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
 
 Agents can use `terrace do "plan phase 11"`, `terrace do "/gsd:plan-phase 11"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have plain text instead of a structured command.
+
+## Senior Cycle
+
+Terrace now has a senior-cycle artifact layer for adaptive rigor:
+
+- Small changes: alignment-lite, test-first, execute, verify.
+- Medium features: alignment, edge cases, test strategy, execute, ship check.
+- Large/risky features: full alignment, interrogation, codebase mapping, design, TDD, observability, rollout, production validation, and cleanup.
+
+See `docs/terrace/SENIOR-CYCLE.md` for the audit report, target workflow, artifact structure, enforcement rules, and implementation milestones. The no band-aid rule is the default: even `terrace quick` should choose maintainable architecture unless a short-term choice explicitly preserves future development and has a cleanup contract.
 
 ## Troubleshooting
 

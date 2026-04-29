@@ -28,6 +28,14 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace resume', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace autonomous', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace commands discover', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace align <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace test-plan <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace observe <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace validate-prod <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace cleanup <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ui import-stitch <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ui plan-refresh <feature>', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ui diff <feature>', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace quick list', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ship check', json: true }));
   });

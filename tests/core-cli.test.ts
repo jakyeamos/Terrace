@@ -119,6 +119,33 @@ describe('strict core CLI delegation', () => {
       package_manager: 'npm',
       checks: expect.any(Array)
     });
+    expect(runTerrace(tmpDir, ['align', 'billing-refresh', '--tier', 'large', '--json'])).toMatchObject({
+      feature_id: 'billing-refresh',
+      tier: 'large',
+      artifact: 'docs/terrace/features/billing-refresh/ALIGNMENT.md'
+    });
+    expect(runTerrace(tmpDir, ['test-plan', 'billing-refresh', '--json'])).toMatchObject({
+      feature_id: 'billing-refresh',
+      artifact: 'docs/testing/TEST-PLAN.md'
+    });
+    expect(runTerrace(tmpDir, ['observe', 'billing-refresh', '--json'])).toMatchObject({
+      artifact: 'docs/terrace/features/billing-refresh/OBSERVABILITY.md'
+    });
+    expect(runTerrace(tmpDir, ['validate-prod', 'billing-refresh', '--json'])).toMatchObject({
+      artifact: 'docs/terrace/features/billing-refresh/VALIDATION.md'
+    });
+    expect(runTerrace(tmpDir, ['cleanup', 'billing-refresh', '--json'])).toMatchObject({
+      artifact: 'docs/terrace/features/billing-refresh/CLEANUP.md'
+    });
+    expect(runTerrace(tmpDir, ['ui', 'import-stitch', 'settings-refresh', '--json'])).toMatchObject({
+      artifact: 'docs/terrace/features/settings-refresh/UI-STITCH.md'
+    });
+    expect(runTerrace(tmpDir, ['ui', 'plan-refresh', 'settings-refresh', '--json'])).toMatchObject({
+      artifact: 'docs/terrace/features/settings-refresh/UI-REFRESH.md'
+    });
+    expect(runTerrace(tmpDir, ['ui', 'diff', 'settings-refresh', '--json'])).toMatchObject({
+      artifact: 'docs/terrace/features/settings-refresh/UI-DIFF.md'
+    });
     expect(runTerrace(tmpDir, ['backlog', 'list', '--json']).items).toContainEqual(expect.objectContaining({
       title: 'Add SMS fallback.'
     }));

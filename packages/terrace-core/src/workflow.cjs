@@ -292,6 +292,547 @@ function discoverProjectCommands(cwd) {
   };
 }
 
+function normalizeFeatureId(feature) {
+  const id = String(feature || '').trim().toLowerCase().replace(/[^a-z0-9_.-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!id) {
+    throw new Error('Usage: terrace <senior-cycle-command> <feature>');
+  }
+  return id;
+}
+
+function normalizeTier(tier) {
+  const normalized = String(tier || '').toLowerCase();
+  if (['small', 'medium', 'large'].includes(normalized)) {
+    return normalized;
+  }
+  return 'medium';
+}
+
+function featureRef(featureId) {
+  return 'docs/terrace/features/' + featureId;
+}
+
+function seniorArtifactRefs(featureId) {
+  const base = featureRef(featureId);
+  return {
+    alignment: base + '/ALIGNMENT.md',
+    interrogation: base + '/INTERROGATION.md',
+    design: base + '/DESIGN.md',
+    test_plan: 'docs/testing/TEST-PLAN.md',
+    observability: base + '/OBSERVABILITY.md',
+    validation: base + '/VALIDATION.md',
+    cleanup: base + '/CLEANUP.md',
+    codebase_map: 'docs/terrace/codebase/MAP.md',
+    codebase_architecture: 'docs/terrace/codebase/ARCHITECTURE.md',
+    codebase_risks: 'docs/terrace/codebase/RISKS.md',
+    codebase_testing: 'docs/terrace/codebase/TESTING.md',
+    codebase_observability: 'docs/terrace/codebase/OBSERVABILITY.md'
+  };
+}
+
+function artifactExists(cwd, relativeFilePath) {
+  return fs.existsSync(path.resolve(cwd, relativeFilePath));
+}
+
+function recordSeniorArtifact(cwd, featureId, tier, artifactKey, artifactRef) {
+  const state = loadState(cwd);
+  const seniorCycle = state.senior_cycle || { features: {} };
+  const features = seniorCycle.features || {};
+  const current = features[featureId] || { feature_id: featureId };
+  const artifacts = current.artifacts || {};
+  const nextState = {
+    ...state,
+    workflow: {
+      ...state.workflow,
+      active_feature: featureId
+    },
+    senior_cycle: {
+      ...seniorCycle,
+      active_feature: featureId,
+      features: {
+        ...features,
+        [featureId]: {
+          ...current,
+          feature_id: featureId,
+          tier,
+          architecture_default: 'sustainable',
+          no_band_aid_rule: true,
+          artifacts: {
+            ...artifacts,
+            [artifactKey]: artifactRef
+          },
+          updated_at: nowIso()
+        }
+      }
+    }
+  };
+  saveState(cwd, nextState);
+}
+
+function seniorRequirements(featureId, tier) {
+  const refs = seniorArtifactRefs(featureId);
+  const normalizedTier = normalizeTier(tier);
+  if (normalizedTier === 'small') {
+    return {
+      tier: normalizedTier,
+      execute: [refs.test_plan],
+      implement: [refs.test_plan],
+      ship: [],
+      complete: [],
+      all: [refs.test_plan]
+    };
+  }
+  if (normalizedTier === 'medium') {
+    return {
+      tier: normalizedTier,
+      execute: [refs.alignment, refs.test_plan],
+      implement: [refs.test_plan],
+      ship: [refs.observability, refs.validation],
+      complete: [refs.cleanup],
+      all: [refs.alignment, refs.test_plan, refs.observability, refs.validation, refs.cleanup]
+    };
+  }
+  return {
+    tier: normalizedTier,
+    execute: [
+      refs.alignment,
+      refs.interrogation,
+      refs.codebase_map,
+      refs.codebase_architecture,
+      refs.codebase_risks,
+      refs.design,
+      refs.test_plan
+    ],
+    implement: [refs.test_plan],
+    ship: [refs.observability, refs.validation],
+    complete: [refs.cleanup],
+    all: [
+      refs.alignment,
+      refs.interrogation,
+      refs.codebase_map,
+      refs.codebase_architecture,
+      refs.codebase_risks,
+      refs.codebase_testing,
+      refs.codebase_observability,
+      refs.design,
+      refs.test_plan,
+      refs.observability,
+      refs.validation,
+      refs.cleanup
+    ]
+  };
+}
+
+function blockerForArtifact(artifact) {
+  if (artifact.endsWith('/ALIGNMENT.md')) {
+    return { code: 'ALIGNMENT_REQUIRED', artifact, message: 'Tier 2+ work requires alignment before execution.' };
+  }
+  if (artifact.endsWith('/INTERROGATION.md')) {
+    return { code: 'INTERROGATION_REQUIRED', artifact, message: 'Large/risky work requires explicit edge-case and failure-mode interrogation.' };
+  }
+  if (artifact.includes('/codebase/')) {
+    return { code: 'CODEBASE_MAPPING_REQUIRED', artifact, message: 'Large/risky work requires codebase context before execution.' };
+  }
+  if (artifact.endsWith('/DESIGN.md')) {
+    return { code: 'DESIGN_REQUIRED', artifact, message: 'Large/risky work requires architecture and maintainability decisions before execution.' };
+  }
+  if (artifact.endsWith('/TEST-PLAN.md')) {
+    return { code: 'TEST_PLAN_REQUIRED', artifact, message: 'No implementation without a behavior-first test plan.' };
+  }
+  if (artifact.endsWith('/OBSERVABILITY.md')) {
+    return { code: 'OBSERVABILITY_REQUIRED', artifact, message: 'No ship without observability and debugging intent.' };
+  }
+  if (artifact.endsWith('/VALIDATION.md')) {
+    return { code: 'VALIDATION_REQUIRED', artifact, message: 'No ship without production validation and rollback conditions.' };
+  }
+  if (artifact.endsWith('/CLEANUP.md')) {
+    return { code: 'CLEANUP_REQUIRED', artifact, message: 'No completion without cleanup ownership.' };
+  }
+  return { code: 'SENIOR_ARTIFACT_REQUIRED', artifact, message: 'Required senior-cycle artifact is missing.' };
+}
+
+function missingArtifacts(cwd, artifacts) {
+  return artifacts.filter((artifact) => !artifactExists(cwd, artifact));
+}
+
+function seniorCycleStatus(cwd, feature, tier) {
+  const featureId = normalizeFeatureId(feature);
+  const normalizedTier = normalizeTier(tier);
+  const requirements = seniorRequirements(featureId, normalizedTier);
+  const missingExecute = missingArtifacts(cwd, requirements.execute);
+  const missingImplement = missingArtifacts(cwd, requirements.implement);
+  const missingShip = missingArtifacts(cwd, requirements.ship);
+  const missingComplete = missingArtifacts(cwd, requirements.complete);
+  const blockers = Array.from(new Set([...missingExecute, ...missingImplement, ...missingShip, ...missingComplete]))
+    .map((artifact) => blockerForArtifact(artifact));
+  return {
+    feature_id: featureId,
+    tier: normalizedTier,
+    architecture_default: 'sustainable',
+    no_band_aid_rule: true,
+    required_artifacts: requirements.all,
+    missing_artifacts: Array.from(new Set([...missingExecute, ...missingImplement, ...missingShip, ...missingComplete])),
+    allowed: {
+      execute: missingExecute.length === 0,
+      implement: missingImplement.length === 0,
+      ship: missingShip.length === 0,
+      complete: missingComplete.length === 0
+    },
+    blockers,
+    next_command: blockers.length > 0 ? commandForMissingArtifact(featureId, blockers[0].artifact) : 'terrace ship check'
+  };
+}
+
+function commandForMissingArtifact(featureId, artifact) {
+  if (artifact.endsWith('/ALIGNMENT.md')) {
+    return 'terrace align ' + featureId;
+  }
+  if (artifact.endsWith('/INTERROGATION.md')) {
+    return 'terrace interrogate ' + featureId;
+  }
+  if (artifact.includes('/codebase/')) {
+    return 'terrace map-codebase';
+  }
+  if (artifact.endsWith('/DESIGN.md')) {
+    return 'terrace design ' + featureId;
+  }
+  if (artifact.endsWith('/TEST-PLAN.md')) {
+    return 'terrace test-plan ' + featureId;
+  }
+  if (artifact.endsWith('/OBSERVABILITY.md')) {
+    return 'terrace observe ' + featureId;
+  }
+  if (artifact.endsWith('/VALIDATION.md')) {
+    return 'terrace validate-prod ' + featureId;
+  }
+  if (artifact.endsWith('/CLEANUP.md')) {
+    return 'terrace cleanup ' + featureId;
+  }
+  return 'terrace next';
+}
+
+function alignFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const tier = normalizeTier(options && options.tier);
+  const artifact = seniorArtifactRefs(featureId).alignment;
+  writeMarkdown(cwd, artifact, [
+    '# Alignment: ' + featureId,
+    '',
+    '## Customer',
+    '- TODO: Identify the customer or operator who benefits from this change.',
+    '',
+    '## Problem',
+    '- TODO: State the problem in observable terms.',
+    '',
+    '## Success Metrics',
+    '- TODO: Define big-picture success signals.',
+    '',
+    '## Non-goals',
+    '- TODO: List what this change intentionally will not solve.',
+    '',
+    '## Edge Cases',
+    '- TODO: Capture important boundaries, invalid inputs, and degraded paths.',
+    '',
+    '## Risks',
+    '- TODO: List product, technical, migration, data, security, and operations risks.',
+    '',
+    '## Feature Flag Decision',
+    '- Decision: required for risky rollout, optional only when the blast radius is clearly small.',
+    '- TODO: Record flag name, rollout owner, and cleanup trigger or explain why no flag is needed.',
+    '',
+    '## Observability Plan',
+    '- TODO: Name logs, metrics, traces, analytics, and debugging entry points.',
+    '',
+    '## Validation Plan',
+    '- TODO: Define post-deploy success signals and rollback conditions.',
+    '',
+    '## Cleanup Plan',
+    '- TODO: Name temporary code, flags, docs, and follow-up ownership.',
+    '',
+    '## No Band-Aid Rule',
+    '- Default to sustainable architecture. Do not choose a quick fix unless it explicitly preserves future development and expansion.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, tier, 'alignment', artifact);
+  return { feature_id: featureId, tier, artifact, next_command: tier === 'large' ? 'terrace interrogate ' + featureId : 'terrace test-plan ' + featureId };
+}
+
+function interrogateFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const tier = normalizeTier(options && options.tier);
+  const artifact = seniorArtifactRefs(featureId).interrogation;
+  writeMarkdown(cwd, artifact, [
+    '# Interrogation: ' + featureId,
+    '',
+    '## Assumptions To Challenge',
+    '- TODO: What are we assuming about customer behavior, data shape, timing, permissions, and dependencies?',
+    '',
+    '## How Does This Fail?',
+    '- TODO: Describe failure modes, degraded behavior, confusing states, and recovery paths.',
+    '',
+    '## Edge Case Inventory',
+    '- TODO: List boundary cases before implementation.',
+    '',
+    '## Pessimistic Review',
+    '- TODO: Identify the most likely way this becomes hard to maintain.',
+    '',
+    '## Exit Criteria',
+    '- Failure modes are explicit enough to test or consciously defer.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, tier, 'interrogation', artifact);
+  return { feature_id: featureId, tier, artifact, next_command: 'terrace design ' + featureId };
+}
+
+function mapCodebase(cwd) {
+  const discovered = discoverProjectCommands(cwd);
+  const refs = seniorArtifactRefs('codebase');
+  const artifacts = [
+    refs.codebase_map,
+    refs.codebase_architecture,
+    refs.codebase_risks,
+    refs.codebase_testing,
+    refs.codebase_observability
+  ];
+  writeMarkdown(cwd, refs.codebase_map, [
+    '# Codebase Map',
+    '',
+    '## Purpose',
+    '- Identify the major source areas, ownership boundaries, and likely change paths before feature work.',
+    '',
+    '## Source Areas',
+    '- TODO: Fill with module directories and responsibilities.',
+    '',
+    '## Commands',
+    ...discovered.checks.map((check) => '- ' + check.category + ': ' + (check.exists ? check.command : 'missing'))
+  ]);
+  writeMarkdown(cwd, refs.codebase_architecture, [
+    '# Codebase Architecture',
+    '',
+    '## Current Architecture',
+    '- TODO: Document core runtime boundaries and extension points.',
+    '',
+    '## Maintainability Constraints',
+    '- No Band-Aid Rule: default to sustainable architecture and avoid shortcuts that block future expansion.'
+  ]);
+  writeMarkdown(cwd, refs.codebase_risks, [
+    '# Codebase Risks',
+    '',
+    '## Known Risks',
+    '- TODO: Document fragile modules, migration concerns, data loss risks, and operational hazards.'
+  ]);
+  writeMarkdown(cwd, refs.codebase_testing, [
+    '# Codebase Testing',
+    '',
+    '## Test Strategy',
+    '- TODO: Document test layers, critical paths, and gaps.'
+  ]);
+  writeMarkdown(cwd, refs.codebase_observability, [
+    '# Codebase Observability',
+    '',
+    '## Debugging Surface',
+    '- TODO: Document logs, metrics, traces, dashboards, and production investigation paths.'
+  ]);
+  return { artifacts, next_command: 'terrace design <feature>' };
+}
+
+function designFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const tier = normalizeTier(options && options.tier);
+  const artifact = seniorArtifactRefs(featureId).design;
+  writeMarkdown(cwd, artifact, [
+    '# Design: ' + featureId,
+    '',
+    '## Architecture Decision',
+    '- TODO: Describe the design and how it fits existing boundaries.',
+    '',
+    '## Tradeoffs',
+    '- TODO: Record rejected alternatives and why this approach wins.',
+    '',
+    '## Maintainability',
+    '- TODO: Explain how this supports future development and expansion.',
+    '',
+    '## No Band-Aid Rule',
+    '- A quick fix is not acceptable unless it leaves a clear path to the long-term design and documents the cleanup contract.',
+    '',
+    '## Exit Criteria',
+    '- The implementation path is clear enough to test first and maintain after release.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, tier, 'design', artifact);
+  return { feature_id: featureId, tier, artifact, next_command: 'terrace test-plan ' + featureId };
+}
+
+function testPlanFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const tier = normalizeTier(options && options.tier);
+  const artifact = seniorArtifactRefs(featureId).test_plan;
+  writeMarkdown(cwd, artifact, [
+    '# Test Plan',
+    '',
+    '## Feature',
+    '- ' + featureId,
+    '',
+    '## What Is Tested',
+    '- TODO: Define behavior-first tests before implementation.',
+    '',
+    '## What Is NOT Tested',
+    '- TODO: Record consciously deferred cases and why.',
+    '',
+    '## Failure Scenarios',
+    '- TODO: List failures that must be proven by tests or manual verification.',
+    '',
+    '## Critical Paths',
+    '- TODO: Name the end-to-end paths that cannot regress.',
+    '',
+    '## TDD Gate',
+    '- RED evidence must exist before implementation is treated as allowed.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, tier, 'test_plan', artifact);
+  return { feature_id: featureId, tier, artifact, next_command: 'terrace observe ' + featureId };
+}
+
+function observeFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const tier = normalizeTier(options && options.tier);
+  const artifact = seniorArtifactRefs(featureId).observability;
+  writeMarkdown(cwd, artifact, [
+    '# Observability: ' + featureId,
+    '',
+    '## Logs',
+    '- TODO: Name structured logs and useful fields.',
+    '',
+    '## Metrics',
+    '- TODO: Name counters, rates, latency, and failure metrics.',
+    '',
+    '## Traces',
+    '- TODO: Name traced boundaries and correlation IDs.',
+    '',
+    '## User Analytics',
+    '- TODO: Name product signals that prove user-visible behavior.',
+    '',
+    '## Debugging Path',
+    '- TODO: Describe how an on-call engineer investigates post-launch issues.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, tier, 'observability', artifact);
+  return { feature_id: featureId, tier, artifact, next_command: 'terrace validate-prod ' + featureId };
+}
+
+function validateProdFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const tier = normalizeTier(options && options.tier);
+  const artifact = seniorArtifactRefs(featureId).validation;
+  writeMarkdown(cwd, artifact, [
+    '# Production Validation: ' + featureId,
+    '',
+    '## Success Signals',
+    '- TODO: Define post-deploy signals that prove the change works.',
+    '',
+    '## Monitoring Plan',
+    '- TODO: Define dashboards, alert checks, log queries, and review timing.',
+    '',
+    '## Rollback Conditions',
+    '- TODO: Define thresholds or symptoms that trigger rollback.',
+    '',
+    '## Owner',
+    '- TODO: Name who watches the launch window.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, tier, 'validation', artifact);
+  return { feature_id: featureId, tier, artifact, next_command: 'terrace cleanup ' + featureId };
+}
+
+function cleanupFeature(cwd, feature, options) {
+  const featureId = normalizeFeatureId(feature);
+  const tier = normalizeTier(options && options.tier);
+  const artifact = seniorArtifactRefs(featureId).cleanup;
+  writeMarkdown(cwd, artifact, [
+    '# Cleanup: ' + featureId,
+    '',
+    '## Flags To Remove',
+    '- TODO: List feature flags and removal trigger.',
+    '',
+    '## Temporary Code To Refactor',
+    '- TODO: List temporary choices and the intended durable shape.',
+    '',
+    '## Documentation Updates',
+    '- TODO: List docs that must change before completion.',
+    '',
+    '## Completion Gate',
+    '- Cleanup is complete when temporary rollout code, stale flags, and outdated docs are removed or intentionally tracked.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, tier, 'cleanup', artifact);
+  return { feature_id: featureId, tier, artifact, next_command: 'terrace ship check' };
+}
+
+function uiImportStitch(cwd, feature) {
+  const featureId = normalizeFeatureId(feature);
+  const artifact = featureRef(featureId) + '/UI-STITCH.md';
+  writeMarkdown(cwd, artifact, [
+    '# Stitch Import: ' + featureId,
+    '',
+    '## Purpose',
+    '- Capture imported Stitch design intent before UI implementation.',
+    '',
+    '## Source',
+    '- TODO: Record Stitch URL, export path, screenshot path, or design handoff reference.',
+    '',
+    '## Greenfield Build Notes',
+    '- TODO: Identify primary screens, components, states, responsive behavior, and assets.',
+    '',
+    '## Brownfield Constraints',
+    '- TODO: Identify existing routes, components, data contracts, and visual conventions to preserve.',
+    '',
+    '## No Band-Aid Rule',
+    '- UI implementation must fit the app architecture and remain maintainable after the design import.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, 'medium', 'ui_stitch', artifact);
+  return { feature_id: featureId, artifact, next_command: 'terrace ui plan-refresh ' + featureId };
+}
+
+function uiPlanRefresh(cwd, feature) {
+  const featureId = normalizeFeatureId(feature);
+  const artifact = featureRef(featureId) + '/UI-REFRESH.md';
+  writeMarkdown(cwd, artifact, [
+    '# UI Refresh: ' + featureId,
+    '',
+    '## Brownfield Refresh Plan',
+    '- TODO: Map current screens/components to target design changes.',
+    '',
+    '## Greenfield Plan',
+    '- TODO: Define new routes, components, states, and asset requirements when no prior UI exists.',
+    '',
+    '## Interaction States',
+    '- TODO: Cover loading, empty, error, success, disabled, and responsive states.',
+    '',
+    '## Test Strategy',
+    '- TODO: Define UI behavior tests and visual verification steps before implementation.',
+    '',
+    '## Architecture Fit',
+    '- TODO: Explain how components remain reusable, localized, and consistent with existing patterns.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, 'medium', 'ui_refresh', artifact);
+  return { feature_id: featureId, artifact, next_command: 'terrace ui diff ' + featureId };
+}
+
+function uiDiff(cwd, feature) {
+  const featureId = normalizeFeatureId(feature);
+  const artifact = featureRef(featureId) + '/UI-DIFF.md';
+  writeMarkdown(cwd, artifact, [
+    '# UI Diff: ' + featureId,
+    '',
+    '## Source vs Target',
+    '- TODO: Record visual, interaction, content, and responsive differences.',
+    '',
+    '## Reuse Plan',
+    '- TODO: Identify components to reuse, extend, or replace.',
+    '',
+    '## Risk Notes',
+    '- TODO: Identify regressions, accessibility concerns, layout risks, and design ambiguities.',
+    '',
+    '## Verification',
+    '- TODO: Capture screenshots or browser checks required before ship.'
+  ]);
+  recordSeniorArtifact(cwd, featureId, 'medium', 'ui_diff', artifact);
+  return { feature_id: featureId, artifact, next_command: 'terrace test-plan ' + featureId };
+}
+
 function phaseList(cwd) {
   const state = loadState(cwd);
   return {
@@ -366,6 +907,20 @@ function phaseExecute(cwd, phaseId) {
       blockers,
       required_action: 'Resolve blocking handoff actions before execution.'
     };
+  }
+  const seniorFeature = state.senior_cycle && state.senior_cycle.features ? state.senior_cycle.features[phase.id] : null;
+  if (seniorFeature) {
+    const seniorGate = seniorCycleStatus(cwd, phase.id, seniorFeature.tier);
+    if (!seniorGate.allowed.execute) {
+      return {
+        allowed: false,
+        phase_id: phase.id,
+        queue,
+        blockers: seniorGate.blockers,
+        senior_cycle: seniorGate,
+        required_action: 'Complete senior-cycle gates before execution.'
+      };
+    }
   }
   const startedAt = nowIso();
   const waves = [
@@ -632,6 +1187,8 @@ function quickPlan(cwd, title) {
     '## Guardrails',
     '- Keep the diff atomic.',
     '- Run the smallest relevant verification before completion.',
+    '- No Band-Aid Rule: choose the maintainable path by default, even for quick work.',
+    '- Confirm the choice enables future development and expansion before executing.',
     '',
     '## Next Command',
     '- terrace quick execute ' + itemId
@@ -982,5 +1539,17 @@ module.exports = {
   routePlainText,
   autonomousWorkflow,
   discoverProjectCommands,
+  alignFeature,
+  interrogateFeature,
+  mapCodebase,
+  designFeature,
+  testPlanFeature,
+  observeFeature,
+  validateProdFeature,
+  cleanupFeature,
+  uiImportStitch,
+  uiPlanRefresh,
+  uiDiff,
+  seniorCycleStatus,
   shipCheck
 };
