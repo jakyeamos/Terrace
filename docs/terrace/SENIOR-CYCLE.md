@@ -121,6 +121,10 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - Production validation: `docs/terrace/features/<id>/VALIDATION.md`.
 - Cleanup contract: `docs/terrace/features/<id>/CLEANUP.md`.
 - UI/Stitch workflow: `docs/terrace/features/<id>/UI-STITCH.md`, `UI-REFRESH.md`, `UI-DIFF.md`.
+- Tier One report card: `.terrace/report-card.json`, `docs/terrace/REPORT-CARD.md`, `docs/terrace/report-history/<timestamp>.md`.
+- Agent handoff packs: `.terrace/handoffs/<timestamp>-<feature>.json`, `docs/terrace/handoffs/<timestamp>-<feature>.md`.
+- Production preflight: `docs/terrace/features/<id>/PREFLIGHT.md`.
+- Debt tracker: `.terrace/state.json` `debt[]`, plus `docs/terrace/features/<id>/DEBT.md`.
 
 # ENFORCEMENT SYSTEM
 
@@ -130,6 +134,10 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - No completion without `CLEANUP.md` for Tier 2+.
 - Tier 3 additionally requires interrogation, codebase map, architecture/risk/testing/observability context, and design.
 - Every generated plan includes the no band-aid rule: choose sustainable architecture by default, even through `terrace quick`.
+- `terrace ship check` now includes Tier One report, production preflight, and debt categories in addition to Senior Cycle, migration readiness, project scripts, and dirty-tree checks.
+- `terrace phase complete`, `terrace quick complete`, `terrace audit`, `terrace ship check`, `terrace preflight`, `terrace handoff create`, and debt mutations refresh the Tier One report card.
+- Ownerless debt or debt without expiry/cleanup metadata is blocking. Debt that is not marked allowed to ship is a warning until resolved or formalized.
+- Tier 2+ active feature work blocks ship when `PREFLIGHT.md` is missing. Tier 1 receives a warning.
 
 # CLI / WORKFLOW CHANGES
 
@@ -144,6 +152,16 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - `terrace ui import-stitch <feature>`
 - `terrace ui plan-refresh <feature>`
 - `terrace ui diff <feature>`
+- `terrace report`
+- `terrace report update`
+- `terrace report open`
+- `terrace report history`
+- `terrace handoff create [--feature <id>] [--for codex|claude|generic]`
+- `terrace debt add <feature>`
+- `terrace debt list`
+- `terrace debt audit`
+- `terrace debt resolve <id>`
+- `terrace preflight <feature> [--mode init|pre-ship|incident]`
 
 `terrace next` now routes active feature work through `seniorCycleStatus(cwd, feature, tier)` before falling back to generic phase routing. Ship checks include Senior Cycle observability and validation blockers, phase completion requires cleanup for Tier 2+ work, and quick tasks require test-plan plus verification evidence before completion.
 
