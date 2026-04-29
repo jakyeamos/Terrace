@@ -4,7 +4,7 @@ projectName: Terrace
 summary: Terrace now has a publishable CLI foundation, a substantially stronger GSD switch path, and hard Senior Cycle enforcement across next, phase execution, phase completion, ship checks, and quick-task test/verification gates.
 healthScore: 99
 statusLabel: senior_cycle_enforced
-nextStep: Review the Agent Production Lifecycle spec and choose the first implementation slice.
+nextStep: Review the Agent Production Lifecycle spec and choose the first implementation slice, now including the Tier One report card.
 blockers: []
 lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -70,7 +70,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 28: Added stateful phase plan/execute/validate/review/complete artifacts, Terrace-native quick task plan/execute/complete, `terrace ship prepare`, GSD-compatible phase aliases, and `terrace do <plain text>` routing for agents.
 - April 28: Added adaptive project command discovery, richer migrated-context phase plans, execution queue artifacts, `terrace autonomous`, broader GSD-style plain-text routing, and missing-script ship warnings.
 - April 29: Added the Senior Cycle audit/spec, adaptive senior-cycle artifact generation, tiered gate status, phase execution enforcement for opted-in senior-cycle features, no-band-aid architecture defaults for quick work, and UI/Stitch workflow artifact commands.
-- April 29: Drafted the Agent Production Lifecycle spec covering handoffs, workstreams, design-source adapters, preflight, AI review, debt tracking, documentation, test evaluation, rule audit, and standards backfill.
+- April 29: Drafted the Agent Production Lifecycle spec covering a Tier One report card, handoffs, workstreams, design-source adapters, preflight, AI review, debt tracking, documentation, test evaluation, rule audit, and standards backfill.
 
 ## Open Problems
 
@@ -91,7 +91,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 ## Next Concrete Steps
 
 1. Review `docs/superpowers/specs/2026-04-29-terrace-agent-production-lifecycle-design.md`.
-2. Choose the first implementation slice, recommended: handoff packs, debt tracking, and production preflight.
+2. Choose the first implementation slice, recommended: Tier One report card, handoff packs, debt tracking, and production preflight.
 3. Add persisted feature tier selection and risk detection heuristics.
 4. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
 5. Decide whether to address the moderate PostCSS advisory now or track it as acceptable dev-dependency risk.

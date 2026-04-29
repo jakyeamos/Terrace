@@ -4,7 +4,7 @@
 
 Terrace should become a production workbench for AI-assisted development, not only a stricter project checklist. The next product layer should help an agent understand the work, split it safely, interrogate weak assumptions, write company-grade documentation, review itself against durable rules, and leave enough evidence for a human to trust the result.
 
-This spec extends the current Senior Cycle with auxiliary commands that are useful in real production teams: handoffs, workstreams, design-source ingestion, production preflight, AI review protocols, documentation generation, test-suite evaluation, rule lifecycle management, and standards backfill.
+This spec extends the current Senior Cycle with auxiliary commands that are useful in real production teams: an always-current Tier One report card, handoffs, workstreams, design-source ingestion, production preflight, AI review protocols, documentation generation, test-suite evaluation, rule lifecycle management, and standards backfill.
 
 ## Product Principles
 
@@ -15,23 +15,83 @@ This spec extends the current Senior Cycle with auxiliary commands that are usef
 - Tests should prove behavior without turning into an oversized maintenance burden.
 - Company rules should be first-class and auditable because engineering standards change.
 - Documentation should read like something a senior engineer would actually send.
+- Project health should be visible without asking an agent for a fresh audit after every sprint.
 
 ## Scope
 
-This is one roadmap theme with eight buildable slices:
+This is one roadmap theme with nine buildable slices:
 
-1. Agent handoff packs.
-2. Risk-based workstreams.
-3. Design-source adapters.
-4. Production failure preflight.
-5. AI review protocols.
-6. No-band-aid debt tracking.
-7. Documentation and test-suite quality commands.
-8. Rule audit, rule authoring, and standards backfill.
+1. Tier One report card.
+2. Agent handoff packs.
+3. Risk-based workstreams.
+4. Design-source adapters.
+5. Production failure preflight.
+6. AI review protocols.
+7. No-band-aid debt tracking.
+8. Documentation and test-suite quality commands.
+9. Rule audit, rule authoring, and standards backfill.
 
-The first implementation plan should not build all eight at once. The recommended first cut is handoff packs, debt tracking, and preflight because those improve the existing Senior Cycle immediately and establish reusable artifact patterns.
+The first implementation plan should not build all nine at once. The recommended first cut is Tier One report card, handoff packs, debt tracking, and preflight because those improve the existing Senior Cycle immediately and establish reusable artifact patterns.
 
 ## Command Surface
+
+### Tier One Report Card
+
+Commands:
+
+- `terrace report`
+- `terrace report update`
+- `terrace report open`
+- `terrace report history`
+
+Artifacts:
+
+- `.terrace/report-card.json`
+- `docs/terrace/REPORT-CARD.md`
+- `docs/terrace/report-history/<timestamp>.md`
+
+The report card should answer the question the user currently has to ask manually after every sprint: "How far are we from the Tier One goal?"
+
+It should update automatically after major Terrace commands, including:
+
+- `terrace phase complete`
+- `terrace quick complete`
+- `terrace ship check`
+- `terrace audit`
+- `terrace test eval`
+- `terrace docu`
+- `terrace rule audit`
+- `terrace backfill`
+- `terrace debt audit`
+
+The report card should include:
+
+- overall Tier One readiness score
+- status label
+- last updated command
+- current blockers
+- current warnings
+- completed sprint outcomes
+- missing Senior Cycle artifacts
+- quality ladder status
+- documentation status
+- test-suite strength status
+- debt status
+- rule health
+- production readiness
+- next three actions
+
+Scores should be explainable. Terrace should not produce a magic percentage with no evidence. Each score should list the checks that moved it up or down.
+
+Suggested score bands:
+
+- 95-100: Tier One ready.
+- 85-94: strong, with named polish or operational gaps.
+- 70-84: usable but not Tier One.
+- 50-69: foundations exist, but production confidence is incomplete.
+- below 50: planning or governance is too weak for production claims.
+
+`terrace report` should never mutate state. `terrace report update` should recompute and write the current card. Commands that auto-update the report card should use the same writer internally.
 
 ### Agent Handoff Packs
 
@@ -307,7 +367,8 @@ Recommended state additions:
   "documentation": {},
   "test_evaluations": [],
   "rule_audits": [],
-  "backfills": []
+  "backfills": [],
+  "report_card": {}
 }
 ```
 
@@ -318,6 +379,7 @@ These fields may remain optional under the permissive schema until the command c
 The target `terrace ship check` category set is:
 
 - senior_cycle
+- tier_one_report
 - migration_readiness
 - production_preflight
 - ai_review
@@ -336,15 +398,18 @@ Recommended enforcement:
 
 ## Implementation Order
 
-### Phase 1: Handoff, Debt, Preflight
+### Phase 1: Report Card, Handoff, Debt, Preflight
 
 Build:
 
+- `terrace report`
+- `terrace report update`
+- automatic report-card refresh after major workflow commands
 - `terrace handoff create`
 - `terrace debt add/list/audit/resolve`
 - `terrace preflight <feature>`
 
-Why first: these reduce agent drift immediately and add production realism without needing external integrations.
+Why first: these reduce agent drift immediately, replace manual post-sprint audits with a live project health view, and add production realism without needing external integrations.
 
 ### Phase 2: Documentation and Test Evaluation
 
@@ -394,6 +459,7 @@ Unit tests should cover:
 - state updates
 - missing-input behavior
 - ship-check category aggregation
+- report-card scoring and history snapshots
 - rule conflict detection
 - test evaluation classification
 
@@ -403,6 +469,7 @@ Fixture tests should cover:
 - a medium feature with docs and preflight
 - a large/risky feature with review, debt, docs, and cleanup
 - a standards backfill against a fake deprecated API
+- a sprint completion that refreshes the Tier One report card
 
 Installed-package tests should run a packed Terrace CLI inside a temporary consumer project and verify that generated artifacts are included in the published package.
 
@@ -413,12 +480,15 @@ Installed-package tests should run a packed Terrace CLI inside a temporary consu
 - Whether rule audit should block ship by default or only when rules are marked `enforcement_level: blocking`.
 - Whether workstreams should create multiple handoff packs automatically or only describe lanes.
 - Whether design-source adapters should stay text-only at first or support screenshots through a browser verification layer.
+- Which score weights should define Tier One readiness by default, and whether project profiles should override them.
 
 ## Acceptance Criteria
 
 - Every new command writes deterministic JSON output with `--json`.
 - Every generated artifact has a stable path and is referenced in state.
 - `terrace ship check` can consume blockers from debt, docs, preflight, AI review, rule audit, and test evaluation.
+- `terrace report update` writes a self-contained Tier One report card with score evidence and next actions.
+- Major workflow commands refresh the report card or record why refresh was skipped.
 - The documentation command can produce a useful draft without the local humanizer adapter.
 - The test evaluator can recommend deletion or consolidation without treating fewer tests as weaker by default.
 - Rule audit can identify stale, unused, conflicting, ownerless, and vague rules.
