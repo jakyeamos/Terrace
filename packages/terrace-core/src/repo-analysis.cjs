@@ -1,8 +1,11 @@
 'use strict';
 
 const { execFileSync } = require('child_process');
+const fastGlob = require('fast-glob');
 const fs = require('fs');
+const ignore = require('ignore');
 const path = require('path');
+const YAML = require('yaml');
 
 const TEXT_EXTENSIONS = new Set([
   '.cjs', '.css', '.env', '.html', '.js', '.jsx', '.json', '.md', '.mjs',
@@ -20,50 +23,41 @@ function safeReadJson(filePath, fallback) {
   }
 }
 
-function loadIgnorePatterns(cwd) {
-  const patterns = ['.git', 'node_modules', 'dist', 'coverage', '.next', '.turbo'];
+function safeReadYaml(filePath, fallback) {
+  if (!fs.existsSync(filePath)) {
+    return fallback;
+  }
+  try {
+    return YAML.parse(fs.readFileSync(filePath, 'utf8')) || fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function loadIgnoreMatcher(cwd) {
+  const matcher = ignore().add(['.git', 'node_modules', 'dist', 'coverage', '.next', '.turbo']);
   const gitignorePath = path.join(cwd, '.gitignore');
   if (fs.existsSync(gitignorePath)) {
     for (const line of fs.readFileSync(gitignorePath, 'utf8').split(/\r?\n/)) {
       const pattern = line.trim();
-      if (pattern && !pattern.startsWith('#') && !pattern.startsWith('!')) {
-        patterns.push(pattern.replace(/^\//, '').replace(/\/$/, ''));
+      if (pattern && !pattern.startsWith('#')) {
+        matcher.add(pattern);
       }
     }
   }
-  return patterns;
-}
-
-function isIgnored(relativePath, patterns) {
-  const normalized = relativePath.replace(/\\/g, '/');
-  return patterns.some((pattern) => {
-    const cleaned = pattern.replace(/\\/g, '/');
-    if (!cleaned) {
-      return false;
-    }
-    return normalized === cleaned || normalized.startsWith(cleaned + '/') || normalized.includes('/' + cleaned + '/');
-  });
-}
-
-function walkFiles(cwd, dir, patterns, files) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = path.join(dir, entry.name);
-    const relativePath = path.relative(cwd, fullPath).replace(/\\/g, '/');
-    if (isIgnored(relativePath, patterns)) {
-      continue;
-    }
-    if (entry.isDirectory()) {
-      walkFiles(cwd, fullPath, patterns, files);
-    } else if (entry.isFile()) {
-      files.push(relativePath);
-    }
-  }
+  return matcher;
 }
 
 function listProjectFiles(cwd, options) {
   const opts = options || {};
-  const files = [];
-  walkFiles(cwd, cwd, loadIgnorePatterns(cwd), files);
+  const matcher = loadIgnoreMatcher(cwd);
+  const files = fastGlob.sync('**/*', {
+    cwd,
+    absolute: false,
+    dot: true,
+    onlyFiles: true,
+    unique: true
+  }).filter((file) => !matcher.ignores(file.replace(/\\/g, '/')));
   return files.sort().slice(0, opts.limit || 5000);
 }
 
@@ -190,7 +184,7 @@ function analyzeRepository(cwd) {
     files,
     changed_files,
     package_json: packageJson,
-    workspace: fs.existsSync(path.join(cwd, 'pnpm-workspace.yaml')) ? { file: 'pnpm-workspace.yaml' } : null,
+    workspace: safeReadYaml(path.join(cwd, 'pnpm-workspace.yaml'), null),
     scripts,
     dependencies,
     source_files,

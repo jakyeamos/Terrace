@@ -27,6 +27,16 @@
     "package:dry-run": "npm pack --dry-run --cache /tmp/terrace-npm-cache",
     "ci": "npm run typecheck && npm run lint && npm test && npm run test:coverage && npm run package:dry-run"
   },
+  "dependencies": {
+    "fast-glob": "^3.3.3",
+    "ignore": "^7.0.5",
+    "yaml": "^2.8.3"
+  },
+  "bundledDependencies": [
+    "fast-glob",
+    "ignore",
+    "yaml"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jakyeamos/terrace.git"
