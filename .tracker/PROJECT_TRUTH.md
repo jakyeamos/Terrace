@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is being hardened for public npm v0.1 readiness. Ship checks are read-only and coverage now passes configured global thresholds with targeted lifecycle coverage.
-healthScore: 80
+summary: Terrace is being hardened for public npm v0.1 readiness. Ship checks are read-only, coverage passes configured thresholds, and packed-consumer e2e now proves the npm tarball runs in a fresh project.
+healthScore: 86
 statusLabel: external_readiness_in_progress
-nextStep: Add packed-consumer e2e coverage, then refresh external docs and final verification.
+nextStep: Refresh external onboarding docs and release checklist, then run final verification.
 blockers: []
 lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -39,13 +39,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run test:coverage
-lastVerifiedAt: "2026-04-29T11:17:05-04:00"
+lastVerifiedCommand: npm test -- tests/product-readiness.test.ts
+lastVerifiedAt: "2026-04-29T11:19:33-04:00"
 ---
 
 ## Current State
 
-Terrace is in an external-readiness hardening pass for public npm v0.1. `terrace ship check` is non-mutating, and targeted lifecycle tests restore coverage above the configured release thresholds.
+Terrace is in an external-readiness hardening pass for public npm v0.1. `terrace ship check` is non-mutating, targeted lifecycle tests restore coverage above the configured release thresholds, and product-readiness tests now pack and install Terrace into a fresh consumer project before running the installed CLI.
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
@@ -75,10 +75,10 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Drafted the Agent Production Lifecycle spec covering a Tier One report card, handoffs, workstreams, design-source adapters, preflight, AI review, debt tracking, documentation, test evaluation, rule audit, and standards backfill.
 - April 29: Made `terrace ship check` read-only and added a regression test proving it does not write report artifacts in a fresh initialized repo.
 - April 29: Added lifecycle/report edge coverage for report reads/updates, tiered ship-check branches, debt, test evaluation, rules, backfill, workstreams, and design-source artifacts.
+- April 29: Added packed-consumer e2e coverage for `terrace --help`, `--version`, `init`, `doctor`, `audit`, `report`, and `ship check` from the installed npm tarball.
 
 ## Open Problems
 
-- Installed-package fixture e2e coverage is still thinner than the desired full product gate.
 - Feature tier selection still defaults to medium unless a feature records an explicit tier.
 - `npm audit --audit-level=high` passes, but npm reports one moderate PostCSS advisory in the dev dependency tree.
 - Dead-code scanning is not configured.
@@ -89,11 +89,10 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Types:** `npm run typecheck` PASS
 - **Tests:** `npm test` PASS, 230 tests under coverage run
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 87.79%, statements 87.31%, functions 89.37%, branches 71.48%
-- **Package:** `npm run package:dry-run` PASS, 48 allowlisted files
+- **Package:** `npm run package:dry-run` PASS, packed-consumer e2e covers the generated tarball
 - **Audit:** `npm audit --audit-level=high` PASS, one moderate advisory remains
 
 ## Next Concrete Steps
 
-1. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
-2. Update external onboarding docs and release checklist around the public npm v0.1 path.
-3. Address the moderate PostCSS advisory or explicitly document the remaining dev-dependency risk.
+1. Update external onboarding docs and release checklist around the public npm v0.1 path.
+2. Address the moderate PostCSS advisory or explicitly document the remaining dev-dependency risk.
