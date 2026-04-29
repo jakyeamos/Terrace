@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is being hardened for public npm v0.1 readiness. Placeholder command families now run deterministic local repo, artifact, review, and security analysis without adding runtime package dependencies.
+summary: Terrace is credible for public npm v0.1 readiness: CI passes, ship check is read-only, packed-consumer e2e passes, audit is clean, and the report card is tier-one ready.
 healthScore: 95
-statusLabel: external_readiness_in_progress
-nextStep: Run final clean-tree verification across ci, audit, ship check, and git status.
+statusLabel: tier_one_ready
+nextStep: Prepare the public npm v0.1 release PR/review package.
 blockers: []
 lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -40,13 +40,15 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run typecheck; npm run lint; npm test -- tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts; npm run test:coverage
-lastVerifiedAt: "2026-04-29T11:57:44-04:00"
+lastVerifiedCommand: npm run typecheck; npm run lint; npm test; npm run test:coverage; npm run package:dry-run; npm audit --audit-level=moderate; npm run ci; node src/terrace-tools.cjs ship check --json; git status --short --branch
+lastVerifiedAt: "2026-04-29T12:02:02-04:00"
 ---
 
 ## Current State
 
-Terrace is in an external-readiness hardening pass for public npm v0.1. The latest command implementation pass added deterministic repo inventory, artifact analysis, static/imported review normalization, and stdlib-only security checks. `terrace security check` writes `.terrace/security/latest.json` and `docs/terrace/security/SECURITY-CHECK.md`, and read-only `terrace ship check` now consumes recorded security findings alongside reviews, tests, docs, rules, and lifecycle evidence.
+Terrace is at tier-one readiness for a public npm v0.1 release candidate. The final verification pass completed `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:coverage`, `npm run package:dry-run`, `npm audit --audit-level=moderate`, `npm run ci`, `node src/terrace-tools.cjs ship check --json`, and `git status --short --branch`. `terrace ship check --json` passed on a clean tree with report-card score 95 and `tier_one_ready` status.
+
+The latest command implementation pass added deterministic repo inventory, artifact analysis, static/imported review normalization, and stdlib-only security checks. `terrace security check` writes `.terrace/security/latest.json` and `docs/terrace/security/SECURITY-CHECK.md`, and read-only `terrace ship check` now consumes recorded security findings alongside reviews, tests, docs, rules, and lifecycle evidence.
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
@@ -81,6 +83,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Aligned report-card scoring with release readiness by skipping preflight, completed-outcome, and documentation penalties when no active feature is set, and by accepting configured test and coverage scripts as test-suite strength evidence.
 - April 29: Hardened generated artifact path handling in workflow and lifecycle helpers, added traversal-alias regression tests for feature/rule IDs, and normalized AI review mode artifact filenames.
 - April 29: Implemented deterministic placeholder-command analysis with stdlib-only repo walking; added repo/security/artifact helper modules; wired `terrace security check`; normalized static/imported AI reviews; replaced TODO-heavy lifecycle, docs, codebase, backfill, workstream, design-source, and UI drafts with repo-derived content.
+- April 29: Stabilized the full lifecycle ship-category test under the complete CI chain and reran all public npm v0.1 release gates successfully.
 
 ## Open Problems
 
@@ -91,14 +94,15 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
-- **Tests:** targeted packed-consumer and placeholder-command suites PASS; full coverage run executed 33 files and 242 tests
+- **Tests:** `npm test` PASS, 33 files and 242 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.29%, statements 85.60%, functions 87.20%, branches 71.05%
 - **Package:** packed-consumer e2e PASS; latest observed tarball has 54 files, package size 72.4 kB, unpacked size 290.2 kB, and no runtime dependency bundle
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
-- **Report:** `terrace ship check --json` is expected to pass on the next clean-tree verification with report-card score at least strong readiness
+- **CI:** `npm run ci` PASS
+- **Report:** `terrace ship check --json` PASS, score 95, status `tier_one_ready`
+- **Git status:** clean on `codex/tier-one-external-product` before this truth-file update
 
 ## Next Concrete Steps
 
-1. Commit this post-implementation truth-file refresh.
-2. Run the complete clean-tree public npm v0.1 verification sequence.
-3. Refresh this truth file with final verification evidence.
+1. Open the release-readiness PR for review.
+2. Publish only after review confirms the public npm v0.1 release checklist remains green.
