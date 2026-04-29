@@ -8,3 +8,6 @@ Look for two state changes happening at the same time: cancellation during appro
 
 ## Adversarial Inputs
 Check max-length strings, blank strings, unexpected markdown or HTML, path-like input, repeated submissions, permission escalation attempts, and data from another tenant or workspace. Capture any unanswered decision as an assumption instead of inventing behavior.
+
+## Operational Edges
+Ask how the system behaves during deploys, migrations, backfills, clock skew, webhook replay, deleted dependencies, and stale client sessions. For integrations, capture retry windows, idempotency keys, rate limits, and observability signals before implementation begins.
