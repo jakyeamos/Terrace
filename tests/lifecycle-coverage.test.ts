@@ -46,7 +46,7 @@ describe('production lifecycle edge coverage', () => {
     const read = reportRead(tmpDir);
 
     expect(read.artifact).toBe(null);
-    expect(read.report_card.status_label).toBe('foundations_incomplete');
+    expect(read.report_card.status_label).toBe('strong_with_gaps');
     expect(reportOpen(tmpDir)).toMatchObject({ exists: false, command: 'terrace report update' });
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'report-card.json'))).toBe(false);
 
@@ -55,6 +55,30 @@ describe('production lifecycle edge coverage', () => {
     expect(updated.report_card.last_updated_command).toBe('test command');
     expect(updated.history_ref).toMatch(/^docs\/terrace\/report-history\/.+\.md$/);
     expect(reportOpen(tmpDir)).toMatchObject({ exists: true, artifact: 'docs/terrace/REPORT-CARD.md' });
+  });
+
+  it('does not penalize feature-scoped report checks when there is no active feature', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        test: 'vitest run',
+        'test:coverage': 'vitest run --coverage'
+      }
+    }), 'utf8');
+
+    const read = reportRead(tmpDir);
+
+    expect(read.report_card.score).toBeGreaterThanOrEqual(85);
+    expect(read.report_card.status_label).toBe('tier_one_ready');
+    expect(read.report_card.checks).toContainEqual(expect.objectContaining({
+      id: 'production_preflight',
+      passed: true,
+      evidence: expect.objectContaining({ skipped: true })
+    }));
+    expect(read.report_card.checks).toContainEqual(expect.objectContaining({
+      id: 'documentation',
+      passed: true,
+      evidence: expect.objectContaining({ skipped: true })
+    }));
   });
 
   it('classifies active feature ship checks by tier and recorded evidence', () => {

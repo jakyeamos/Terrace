@@ -1,8 +1,8 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is being hardened for public npm v0.1 readiness. Ship checks are read-only, coverage passes configured thresholds, packed-consumer e2e proves the npm tarball, external docs cover the first-user path, and moderate audit is clean.
-healthScore: 92
+summary: Terrace is being hardened for public npm v0.1 readiness. Ship checks are read-only, coverage passes configured thresholds, packed-consumer e2e proves the npm tarball, external docs cover the first-user path, moderate audit is clean, and the report card no longer penalizes inactive feature gates.
+healthScore: 95
 statusLabel: external_readiness_in_progress
 nextStep: Run final verification across typecheck, lint, tests, coverage, package dry-run, audit, CI, ship check, and clean git status.
 blockers: []
@@ -40,13 +40,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm test -- tests/product-readiness.test.ts && npm audit --audit-level=moderate
-lastVerifiedAt: "2026-04-29T11:21:48-04:00"
+lastVerifiedCommand: npm test -- tests/lifecycle-coverage.test.ts tests/agent-production-lifecycle.test.ts
+lastVerifiedAt: "2026-04-29T11:26:19-04:00"
 ---
 
 ## Current State
 
-Terrace is in an external-readiness hardening pass for public npm v0.1. `terrace ship check` is non-mutating, targeted lifecycle tests restore coverage above the configured release thresholds, product-readiness tests pack and install Terrace into a fresh consumer project, external docs now lead with the public npm path, and `npm audit --audit-level=moderate` is clean.
+Terrace is in an external-readiness hardening pass for public npm v0.1. `terrace ship check` is non-mutating, targeted lifecycle tests restore coverage above the configured release thresholds, product-readiness tests pack and install Terrace into a fresh consumer project, external docs now lead with the public npm path, `npm audit --audit-level=moderate` is clean, and report-card scoring now treats feature-scoped evidence as skipped when no active feature exists.
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
@@ -78,6 +78,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Added lifecycle/report edge coverage for report reads/updates, tiered ship-check branches, debt, test evaluation, rules, backfill, workstreams, and design-source artifacts.
 - April 29: Added packed-consumer e2e coverage for `terrace --help`, `--version`, `init`, `doctor`, `audit`, `report`, and `ship check` from the installed npm tarball.
 - April 29: Reworked README and release docs around public npm v0.1 onboarding, read-only ship checks, packed-consumer e2e, and moderate audit gates; updated PostCSS through `npm audit fix`.
+- April 29: Aligned report-card scoring with release readiness by skipping preflight, completed-outcome, and documentation penalties when no active feature is set, and by accepting configured test and coverage scripts as test-suite strength evidence.
 
 ## Open Problems
 
@@ -92,6 +93,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 87.79%, statements 87.31%, functions 89.37%, branches 71.48%
 - **Package:** `npm run package:dry-run` PASS, packed-consumer e2e covers the generated tarball; latest observed tarball has 50 files
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
+- **Report:** `terrace ship check --json` PASS with report-card score now expected to be at least strong readiness on a clean inactive-feature repo
 
 ## Next Concrete Steps
 

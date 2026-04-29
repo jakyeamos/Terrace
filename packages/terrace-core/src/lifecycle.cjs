@@ -216,17 +216,22 @@ function reportInputs(cwd, state) {
 function buildReportCard(cwd, command) {
   const state = loadState(cwd);
   const inputs = reportInputs(cwd, state);
+  const hasActiveFeature = Boolean(inputs.feature);
   const hasDocs = inputs.feature ? relativeExists(cwd, featureRef(inputs.feature.feature_id) + '/DOCS.md') : false;
   const hasTestEval = relativeExists(cwd, 'docs/testing/TEST-EVAL.md');
+  const packageJson = readJsonIfExists(cwd, 'package.json', {});
+  const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
+  const hasTestScripts = Boolean(scripts.test && scripts['test:coverage']);
   const hasRuleAudit = Array.isArray(state.rule_audits) && state.rule_audits.length > 0;
   const checks = [
     reportCheck('senior_cycle', 'Senior Cycle artifacts', inputs.missingSeniorArtifacts.length === 0, 20, {
       active_feature: inputs.feature ? inputs.feature.feature_id : null,
       missing_artifacts: inputs.missingSeniorArtifacts
     }, 'Run the next senior-cycle command for the active feature.'),
-    reportCheck('production_preflight', 'Production preflight', inputs.hasActivePreflight, 15, {
+    reportCheck('production_preflight', 'Production preflight', !hasActiveFeature || inputs.hasActivePreflight, 15, {
       active_feature: inputs.feature ? inputs.feature.feature_id : null,
-      preflight_count: Object.keys(inputs.preflights).length
+      preflight_count: Object.keys(inputs.preflights).length,
+      skipped: !hasActiveFeature
     }, 'Run `terrace preflight <feature>`.'),
     reportCheck('debt_health', 'Debt health', inputs.debtAudit.blockers.length === 0, 15, {
       open_debt_count: inputs.debts.filter((entry) => entry.status !== 'resolved').length,
@@ -236,17 +241,23 @@ function buildReportCard(cwd, command) {
       blocking_count: inputs.audit.blocking.length,
       warning_count: inputs.audit.warnings.length
     }, 'Run `terrace audit` and fix blocking findings.'),
-    reportCheck('completed_outcomes', 'Completed sprint outcomes', inputs.completedPhases.length + inputs.completedQuickTasks.length > 0, 10, {
+    reportCheck('completed_outcomes', 'Completed sprint outcomes', !hasActiveFeature || inputs.completedPhases.length + inputs.completedQuickTasks.length > 0, 10, {
       completed_phases: inputs.completedPhases.map((phase) => phase.id),
-      completed_quick_tasks: inputs.completedQuickTasks.map((task) => task.id)
+      completed_quick_tasks: inputs.completedQuickTasks.map((task) => task.id),
+      skipped: !hasActiveFeature
     }, 'Complete at least one phase or quick task through Terrace.'),
-    reportCheck('documentation', 'Documentation status', hasDocs, 10, {
+    reportCheck('documentation', 'Documentation status', !hasActiveFeature || hasDocs, 10, {
       active_feature: inputs.feature ? inputs.feature.feature_id : null,
-      docs_ref: inputs.feature ? featureRef(inputs.feature.feature_id) + '/DOCS.md' : null
+      docs_ref: inputs.feature ? featureRef(inputs.feature.feature_id) + '/DOCS.md' : null,
+      skipped: !hasActiveFeature
     }, 'Run `terrace docu <feature>` when available or write feature documentation.'),
-    reportCheck('test_suite_strength', 'Test-suite strength', hasTestEval, 10, {
+    reportCheck('test_suite_strength', 'Test-suite strength', hasTestEval || hasTestScripts, 10, {
       test_eval_ref: 'docs/testing/TEST-EVAL.md',
-      exists: hasTestEval
+      exists: hasTestEval,
+      scripts: {
+        test: Boolean(scripts.test),
+        coverage: Boolean(scripts['test:coverage'])
+      }
     }, 'Run `terrace test eval` when available.'),
     reportCheck('rule_health', 'Rule health', hasRuleAudit, 5, {
       rule_audit_count: Array.isArray(state.rule_audits) ? state.rule_audits.length : 0
