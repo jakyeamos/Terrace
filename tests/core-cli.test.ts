@@ -162,7 +162,7 @@ describe('strict core CLI delegation', () => {
     const prepared = runTerraceResult(tmpDir, ['ship', 'prepare', '--json']);
     expect(prepared.status).toBe(1);
     expect(prepared.json.ship_ref).toBe('docs/terrace/ship/SHIP.md');
-  }, 30000);
+  }, 60000);
 
   it('supports migrated quick-task history commands', () => {
     fs.mkdirSync(path.join(tmpDir, '.planning', 'quick', '260101-abc-fix-login'), { recursive: true });

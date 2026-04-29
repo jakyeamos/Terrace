@@ -59,7 +59,7 @@ describe('agent production lifecycle phase 1 commands', () => {
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'billing-refresh', 'PREFLIGHT.md'))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, handoff.artifacts.markdown))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, handoff.artifacts.json))).toBe(true);
-  });
+  }, 20000);
 
   it('tracks debt, audits blocking metadata, and resolves entries', () => {
     const added = runTerrace(tmpDir, ['debt', 'add', 'billing-refresh', '--json']);

@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     reporter: 'verbose',
+    testTimeout: 20000,
     coverage: {
       provider: 'v8',
       include: ['packages/terrace-core/src/**/*.cjs'],

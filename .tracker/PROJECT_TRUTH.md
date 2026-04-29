@@ -1,8 +1,8 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is credible for public npm v0.1 readiness: CI passes, ship check is read-only, packed-consumer e2e passes, audit is clean, and the report card is tier-one ready.
-healthScore: 95
+summary: Terrace is credible for public npm v0.1 readiness: CI passes, ship check is clean, packed-consumer e2e passes, security/test/rule evidence is recorded, and the report card is 100/100 tier-one ready.
+healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Prepare the public npm v0.1 release PR/review package.
 blockers: []
@@ -40,15 +40,15 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run typecheck; npm run lint; npm audit --audit-level=moderate; npm test -- --reporter=dot; node repo-analysis smoke
-lastVerifiedAt: "2026-04-29T12:08:51-04:00"
+lastVerifiedCommand: npm run ci; npm audit --audit-level=moderate; node src/terrace-tools.cjs security check --json; node src/terrace-tools.cjs test eval --json; node src/terrace-tools.cjs rule audit --json; node src/terrace-tools.cjs report --json; node src/terrace-tools.cjs ship check --json
+lastVerifiedAt: "2026-04-29T15:03:02-04:00"
 ---
 
 ## Current State
 
-Terrace is at tier-one readiness for a public npm v0.1 release candidate. The final verification pass completed `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:coverage`, `npm run package:dry-run`, `npm audit --audit-level=moderate`, `npm run ci`, `node src/terrace-tools.cjs ship check --json`, and `git status --short --branch`. `terrace ship check --json` passed on a clean tree with report-card score 95 and `tier_one_ready` status.
+Terrace is at tier-one readiness for a public npm v0.1 release candidate. The final verification pass completed `npm run ci`, `npm audit --audit-level=moderate`, `node src/terrace-tools.cjs security check --json`, `node src/terrace-tools.cjs test eval --json`, `node src/terrace-tools.cjs rule audit --json`, `node src/terrace-tools.cjs report --json`, and `node src/terrace-tools.cjs ship check --json`. `terrace ship check --json` passed on a clean tree with report-card score 100, `tier_one_ready` status, and no blockers or warnings.
 
-The latest command implementation pass added deterministic repo inventory, artifact analysis, static/imported review normalization, and bundled security checks backed by `fast-glob`, `ignore`, and `yaml`. `terrace security check` writes `.terrace/security/latest.json` and `docs/terrace/security/SECURITY-CHECK.md`, and read-only `terrace ship check` now consumes recorded security findings alongside reviews, tests, docs, rules, and lifecycle evidence.
+The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, honors explicit GitHub Actions permissions, and records a zero-finding security check for the current repo.
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
@@ -94,12 +94,16 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS, 33 files and 242 tests
-- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.29%, statements 85.60%, functions 87.20%, branches 71.05%
+- **Tests:** `npm test -- --reporter=dot` PASS, 33 files and 242 tests
+- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.93%, statements 85.25%, functions 87.17%, branches 70.44%
 - **Package:** packed-consumer e2e PASS in the full suite; the runtime analysis dependencies are now declared and bundled for offline installs
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
 - **CI:** `npm run ci` PASS
-- **Report:** `terrace ship check --json` PASS, score 95, status `tier_one_ready`
+- **Security:** `node src/terrace-tools.cjs security check --json` PASS, zero findings
+- **Test evaluation:** `node src/terrace-tools.cjs test eval --json` PASS, trust score 100
+- **Rule audit:** `node src/terrace-tools.cjs rule audit --json` PASS, zero blockers and zero warnings
+- **Report:** `terrace report --json` PASS, score 100, status `tier_one_ready`
+- **Ship:** `terrace ship check --json` PASS, zero blockers and zero warnings
 - **Git status:** clean on `codex/tier-one-external-product` before this truth-file update
 
 ## Next Concrete Steps

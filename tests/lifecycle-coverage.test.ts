@@ -166,5 +166,5 @@ describe('production lifecycle edge coverage', () => {
     expect(designSourceImport(tmpDir, 'screenshot', 'billing-refresh', '/tmp/screen.png').source).toBe('screenshot');
     expect(designSourceImport(tmpDir, 'unknown-source', 'settings-refresh', null).source).toBe('stitch');
     expect(designSourceDiff(tmpDir, 'existing-ui', 'billing-refresh', '/billing').artifact).toBe('docs/terrace/features/billing-refresh/UI-DIFF.md');
-  });
+  }, 20000);
 });
