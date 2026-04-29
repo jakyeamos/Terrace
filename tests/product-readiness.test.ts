@@ -28,9 +28,11 @@ describe('tier-one product readiness', () => {
   it('documents install, quickstart, command reference, workflow examples, and troubleshooting', () => {
     const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
 
-    for (const heading of ['Install', 'Quickstart', 'Command Reference', 'Workflow Example', 'Troubleshooting']) {
+    for (const heading of ['Install', 'Quickstart', 'What Terrace Creates', 'Release Readiness', 'Command Reference', 'Workflow Example', 'Troubleshooting']) {
       expect(readme).toContain('## ' + heading);
     }
+    expect(readme).toContain('terrace report` is read-only');
+    expect(readme).toContain('npm audit --audit-level=moderate');
   });
 
   it('prints top-level CLI help and version without requiring a Terrace state file', () => {

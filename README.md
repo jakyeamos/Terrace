@@ -14,14 +14,45 @@ Run it with `npx terrace` or through the installed `terrace` binary.
 
 ## Quickstart
 
+Run Terrace from the root of an existing repository:
+
 ```sh
 npx terrace init
 npx terrace doctor
-npx terrace spec validate
 npx terrace audit
+npx terrace report
+npx terrace ship check --json
 ```
 
-`terrace init` creates `.terrace/state.json`, `.terrace/config.json`, default rule packs, a preset registry, and governance document directories under `docs/`.
+`terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs release-readiness checks and exits nonzero when a blocking gate fails.
+
+## What Terrace Creates
+
+`terrace init` writes only repo-local governance state and docs scaffolding:
+
+- `.terrace/state.json`
+- `.terrace/config.json`
+- `.terrace/presets/registry.json`
+- `.terrace/rules/*.json`
+- `.terrace/events.jsonl`
+- `docs/prd/`
+- `docs/spec/`
+- `docs/testing/`
+
+Report artifacts are explicit: `terrace report` is read-only, while `terrace report update` writes `.terrace/report-card.json`, `docs/terrace/REPORT-CARD.md`, and report history.
+
+## Release Readiness
+
+Use these checks before publishing protected work:
+
+```sh
+npm run ci
+npm audit --audit-level=moderate
+npm run package:dry-run
+npx terrace ship check --json
+```
+
+`terrace ship check` is read-only. Use `terrace ship prepare` when you want Terrace to write a release-readiness summary under `docs/terrace/ship/`.
 
 ## Command Reference
 
