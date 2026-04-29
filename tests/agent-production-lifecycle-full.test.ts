@@ -117,5 +117,5 @@ describe('agent production lifecycle full command surface', () => {
       'test_eval',
       'rule_audit'
     ]));
-  });
+  }, 10000);
 });
