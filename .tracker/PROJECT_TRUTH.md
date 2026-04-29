@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is credible for public npm v0.1 readiness: CI passes, ship check is clean, packed-consumer e2e passes, security/test/rule evidence is recorded, and the report card is 100/100 tier-one ready.
+summary: Terrace is credible for public npm v0.1 readiness: CI passes, ship check is clean, packed-consumer e2e passes, security/test/rule evidence is recorded, adoption-risk mitigations are implemented, and the report card is 100/100 tier-one ready.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Prepare the public npm v0.1 release PR/review package.
+nextStep: Run Terrace against the new GSD shadow-branch corpus, then prepare the public npm v0.1 release PR/review package.
 blockers: []
 lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run ci; npm audit --audit-level=moderate; node src/terrace-tools.cjs security check --json; node src/terrace-tools.cjs test eval --json; node src/terrace-tools.cjs rule audit --json; node src/terrace-tools.cjs report --json; node src/terrace-tools.cjs ship check --json
-lastVerifiedAt: "2026-04-29T15:03:02-04:00"
+lastVerifiedCommand: npm run ci; npm run typecheck; npm run lint; npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts; npm test -- tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts
+lastVerifiedAt: "2026-04-29T15:39:17-04:00"
 ---
 
 ## Current State
@@ -55,6 +55,10 @@ The `terrace port gsd` coding gap is now substantially mitigated: it converts co
 Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace autonomous`, `terrace commands discover`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
 Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. These generators now infer source areas, architecture hints, test strategy, workstream lanes, route/component hints, unresolved evidence, and concrete affected files from the repo instead of blank TODO placeholders.
+
+The latest adoption-risk mitigation pass adds `terrace ship check --fast|--local|--full` modes with per-category timings, `terrace report ceremony` for artifact-count and low-density evidence checks, `terrace port gsd --compare` and `--verify-parity` for migration confidence, `terrace rule audit --effectiveness` for rule maturity/metadata coverage, and `terrace waive <gate>` for explicit reviewed temporary overrides that remain visible in report and ship output.
+
+Shadow test branch refs named `codex/terrace-shadow-test` were created in every detected GSD-initiated project with a valid `HEAD`. `/Users/jakyeamos/projects/eslint-plugin-anti-slop` could not receive the branch because it has no valid `HEAD`. The branch creation report is recorded at `docs/terrace/shadow-branches/2026-04-29-GSD-BRANCHES.md`.
 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
@@ -84,18 +88,20 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Hardened generated artifact path handling in workflow and lifecycle helpers, added traversal-alias regression tests for feature/rule IDs, and normalized AI review mode artifact filenames.
 - April 29: Implemented deterministic placeholder-command analysis with bundled `fast-glob`, `ignore`, and `yaml`; added repo/security/artifact helper modules; wired `terrace security check`; normalized static/imported AI reviews; replaced TODO-heavy lifecycle, docs, codebase, backfill, workstream, design-source, and UI drafts with repo-derived content.
 - April 29: Stabilized the full lifecycle ship-category test under the complete CI chain and reran all public npm v0.1 release gates successfully.
+- April 29: Added adoption-risk mitigations for ship-check modes/timings, ceremony evidence density, GSD migration compare/parity verification, rule effectiveness, explicit waivers, and GSD shadow test branches.
 
 ## Open Problems
 
 - Feature tier selection still defaults to medium unless a feature records an explicit tier.
+- The shadow-branch corpus exists, but an automated `terrace corpus run` command is not implemented yet.
 - Dead-code scanning is not configured.
 
 ## Quality Ladder Notes
 
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test -- --reporter=dot` PASS, 33 files and 242 tests
-- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.93%, statements 85.25%, functions 87.17%, branches 70.44%
+- **Tests:** `npm test` PASS in `npm run ci`, 33 files and 245 tests
+- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.84%, statements 85.31%, functions 88.23%, branches 70.37%
 - **Package:** packed-consumer e2e PASS in the full suite; the runtime analysis dependencies are now declared and bundled for offline installs
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
 - **CI:** `npm run ci` PASS
@@ -104,9 +110,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Rule audit:** `node src/terrace-tools.cjs rule audit --json` PASS, zero blockers and zero warnings
 - **Report:** `terrace report --json` PASS, score 100, status `tier_one_ready`
 - **Ship:** `terrace ship check --json` PASS, zero blockers and zero warnings
-- **Git status:** clean on `codex/tier-one-external-product` before this truth-file update
+- **Focused adoption-risk tests:** `npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts` PASS; final focused rerun for GSD compare and ship modes PASS
+- **Git status:** clean on `codex/tier-one-external-product` after implementation commit and before this truth-file update
 
 ## Next Concrete Steps
 
-1. Open the release-readiness PR for review.
-2. Publish only after review confirms the public npm v0.1 release checklist remains green.
+1. Run Terrace migration/report/ship checks against the `codex/terrace-shadow-test` branch corpus.
+2. Open the release-readiness PR for review.
+3. Publish only after review confirms the public npm v0.1 release checklist remains green.
