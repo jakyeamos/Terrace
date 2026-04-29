@@ -10,6 +10,9 @@ const {
   phaseShow,
   phasePlan,
   phaseExecute,
+  phaseValidate,
+  phaseReview,
+  phaseComplete,
   resumeWorkflow,
   nextWorkflow,
   historySummary,
@@ -17,6 +20,11 @@ const {
   backlogAdd,
   quickList,
   quickShow,
+  quickPlan,
+  quickExecute,
+  quickComplete,
+  shipPrepare,
+  routePlainText,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -91,9 +99,47 @@ describe('workflow parity core helpers', () => {
       status: 'slice_planned',
       next_command: 'terrace phase execute phase-11-notifications'
     });
+    expect(fs.existsSync(path.join(tmpDir, planned.plan_ref))).toBe(true);
+    expect(fs.readFileSync(path.join(tmpDir, planned.plan_ref), 'utf-8')).toContain('Phase 11: Notifications');
     expect(phaseExecute(tmpDir, 'phase-11-notifications')).toMatchObject({
       allowed: false,
       blockers: [expect.objectContaining({ description: 'Apply migration 034_prime_notes.sql' })]
+    });
+  });
+
+  it('executes, validates, reviews, and completes a phase lifecycle', () => {
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    state.roadmap.phases = [{
+      id: 'phase-12-release',
+      title: 'Phase 12: Release',
+      status: 'planned',
+      source_ref: '.planning/ROADMAP.md',
+      plans: [{ id: '12-01', title: 'Release Plan', status: 'planned', source_ref: '.planning/phases/12/12-01-PLAN.md' }]
+    }];
+    saveState(tmpDir, state);
+
+    const planned = phasePlan(tmpDir, 'phase-12-release');
+    const executed = phaseExecute(tmpDir, 'phase-12-release');
+    const validated = phaseValidate(tmpDir, 'phase-12-release');
+    const reviewed = phaseReview(tmpDir, 'phase-12-release');
+    const completed = phaseComplete(tmpDir, 'phase-12-release');
+
+    expect(planned.plan_ref).toBe('docs/terrace/phases/phase-12-release/PLAN.md');
+    expect(executed).toMatchObject({
+      allowed: true,
+      phase_id: 'phase-12-release',
+      status: 'red_required',
+      waves: expect.any(Array)
+    });
+    expect(validated.validation_ref).toBe('docs/terrace/phases/phase-12-release/VALIDATION.md');
+    expect(reviewed.review_ref).toBe('docs/terrace/phases/phase-12-release/REVIEW.md');
+    expect(completed.summary_ref).toBe('docs/terrace/phases/phase-12-release/SUMMARY.md');
+    expect(phaseShow(tmpDir, 'phase-12-release').phase).toMatchObject({
+      status: 'completed',
+      plan_ref: 'docs/terrace/phases/phase-12-release/PLAN.md',
+      validation_ref: 'docs/terrace/phases/phase-12-release/VALIDATION.md',
+      review_ref: 'docs/terrace/phases/phase-12-release/REVIEW.md',
+      summary_ref: 'docs/terrace/phases/phase-12-release/SUMMARY.md'
     });
   });
 
@@ -117,6 +163,54 @@ describe('workflow parity core helpers', () => {
       commits: ['deadbee']
     });
     expect(() => quickShow(tmpDir, 'missing-quick-task')).toThrow(/Unknown quick task/);
+  });
+
+  it('plans, executes, and completes Terrace quick tasks', () => {
+    const planned = quickPlan(tmpDir, 'Fix login redirect');
+    const executed = quickExecute(tmpDir, planned.item.id);
+    const completed = quickComplete(tmpDir, planned.item.id);
+
+    expect(planned.item).toMatchObject({
+      id: 'terrace-quick-2',
+      title: 'Fix login redirect',
+      status: 'planned',
+      plan_ref: 'docs/terrace/quick/terrace-quick-2/PLAN.md'
+    });
+    expect(fs.existsSync(path.join(tmpDir, planned.item.plan_ref))).toBe(true);
+    expect(executed.item).toMatchObject({
+      status: 'red_required',
+      next_command: 'terrace quick complete terrace-quick-2'
+    });
+    expect(completed.item).toMatchObject({
+      status: 'completed',
+      summary_ref: 'docs/terrace/quick/terrace-quick-2/SUMMARY.md'
+    });
+  });
+
+  it('prepares a ship summary artifact from check results', () => {
+    const result = shipPrepare(tmpDir);
+
+    expect(result).toMatchObject({
+      passed: false,
+      ship_ref: 'docs/terrace/ship/SHIP.md',
+      next_command: 'terrace ship check'
+    });
+    expect(fs.readFileSync(path.join(tmpDir, result.ship_ref), 'utf-8')).toContain('Release Readiness');
+  }, 15000);
+
+  it('routes plain text to stable Terrace commands for agents', () => {
+    expect(routePlainText(tmpDir, 'plan phase 11')).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications',
+      result: { phase_id: 'phase-11-notifications' }
+    });
+    expect(routePlainText(tmpDir, 'create quick task refresh beta copy')).toMatchObject({
+      command: 'terrace quick plan refresh beta copy',
+      result: { item: expect.objectContaining({ title: 'refresh beta copy' }) }
+    });
+    expect(routePlainText(tmpDir, 'show me history')).toMatchObject({
+      command: 'terrace history'
+    });
+    expect(() => routePlainText(tmpDir, 'make the app better somehow')).toThrow(/Unsupported plain-text Terrace command/);
   });
 
   it('reports failed ship checks as structured categories', () => {

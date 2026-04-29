@@ -33,6 +33,9 @@ const {
   phaseShow,
   phasePlan,
   phaseExecute,
+  phaseValidate,
+  phaseReview,
+  phaseComplete,
   resumeWorkflow,
   nextWorkflow,
   historySummary,
@@ -40,6 +43,11 @@ const {
   backlogAdd,
   quickList,
   quickShow,
+  quickPlan,
+  quickExecute,
+  quickComplete,
+  shipPrepare,
+  routePlainText,
   shipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -59,15 +67,25 @@ const HELP_TEXT = [
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
   '  terrace history              Summarize migrated operational history',
+  '  terrace do <plain text>      Route natural language to a Terrace command',
   '  terrace phase list           List roadmap phases',
   '  terrace phase show <id>      Show a roadmap phase',
-  '  terrace phase plan <id>      Prepare a phase for execution',
+  '  terrace phase plan <id>      Generate a phase plan artifact',
   '  terrace phase execute <id>   Enter RED-gate execution for a phase',
+  '  terrace phase validate <id>  Generate validation artifact',
+  '  terrace phase review <id>    Generate review artifact',
+  '  terrace phase complete <id>  Complete a phase with summary artifact',
   '  terrace quick list           List migrated quick-task history',
   '  terrace quick show <id>      Show one migrated quick task',
+  '  terrace quick plan <title>   Create a stateful quick-task plan',
+  '  terrace quick execute <id>   Enter RED-gate execution for a quick task',
+  '  terrace quick complete <id>  Complete a quick task',
   '  terrace backlog list         List backlog items',
   '  terrace backlog add <title>  Add a backlog item',
   '  terrace ship check           Run release readiness checks',
+  '  terrace ship prepare         Write PR/release readiness summary',
+  '  terrace plan-phase <id>      GSD-compatible alias for phase plan',
+  '  terrace execute-phase <id>   GSD-compatible alias for phase execute',
   '  terrace rule list            List installed rule packs',
   '  terrace rule explain <id>    Explain a rule',
   '  terrace preset list          List installed presets',
@@ -209,9 +227,29 @@ async function main() {
         output(quickShow(cwd, quickId), { json });
         return;
       }
+      if (sub === 'plan') {
+        output(quickPlan(cwd, args.slice(2).join(' ')), { json });
+        return;
+      }
+      if (sub === 'execute') {
+        const quickId = args[2];
+        if (!quickId) {
+          fail('Usage: terrace quick execute <quick-task-id>', { json });
+        }
+        output(quickExecute(cwd, quickId), { json });
+        return;
+      }
+      if (sub === 'complete') {
+        const quickId = args[2];
+        if (!quickId) {
+          fail('Usage: terrace quick complete <quick-task-id>', { json });
+        }
+        output(quickComplete(cwd, quickId), { json });
+        return;
+      }
       const itemId = sub;
       if (!itemId) {
-        fail('Usage: terrace quick <roadmap-item-id> or terrace quick list', { json });
+        fail('Usage: terrace quick <roadmap-item-id> or terrace quick list|show|plan|execute|complete', { json });
       }
       output(executeRoadmapItem(cwd, itemId), { json });
       return;
@@ -251,6 +289,41 @@ async function main() {
     }
     case 'history': {
       output(historySummary(cwd), { json });
+      return;
+    }
+    case 'do': {
+      const text = args.slice(1).join(' ');
+      if (!text) {
+        fail('Usage: terrace do <plain text>', { json });
+      }
+      const result = routePlainText(cwd, text);
+      output(result, { json });
+      if (result.result && result.result.passed === false) {
+        process.exitCode = 1;
+      }
+      return;
+    }
+    case 'plan-phase':
+    case 'execute-phase':
+    case 'validate-phase':
+    case 'review-phase':
+    case 'complete-phase': {
+      const phaseId = args[1];
+      if (!phaseId) {
+        fail('Usage: terrace ' + command + ' <phase-id>', { json });
+      }
+      const action = command.replace('-phase', '');
+      const handlers = {
+        plan: phasePlan,
+        execute: phaseExecute,
+        validate: phaseValidate,
+        review: phaseReview,
+        complete: phaseComplete
+      };
+      output({
+        command_alias: 'terrace phase ' + action + ' ' + phaseId,
+        result: handlers[action](cwd, phaseId)
+      }, { json });
       return;
     }
     case 'init': {
@@ -312,8 +385,32 @@ async function main() {
         output(phaseExecute(cwd, phaseId), { json });
         return;
       }
+      if (sub === 'validate') {
+        const phaseId = args[2];
+        if (!phaseId) {
+          fail('Usage: terrace phase validate <phase-id>', { json });
+        }
+        output(phaseValidate(cwd, phaseId), { json });
+        return;
+      }
+      if (sub === 'review') {
+        const phaseId = args[2];
+        if (!phaseId) {
+          fail('Usage: terrace phase review <phase-id>', { json });
+        }
+        output(phaseReview(cwd, phaseId), { json });
+        return;
+      }
+      if (sub === 'complete') {
+        const phaseId = args[2];
+        if (!phaseId) {
+          fail('Usage: terrace phase complete <phase-id>', { json });
+        }
+        output(phaseComplete(cwd, phaseId), { json });
+        return;
+      }
       if (sub !== 'set') {
-        fail('Unknown phase subcommand: ' + sub + '. Use: list, show, plan, execute, set', { json });
+        fail('Unknown phase subcommand: ' + sub + '. Use: list, show, plan, execute, validate, review, complete, set', { json });
       }
       const nextStatus = args[2];
       if (!nextStatus) {
@@ -339,14 +436,23 @@ async function main() {
     }
     case 'ship': {
       const sub = args[1];
-      if (sub !== 'check') {
-        fail('Unknown ship subcommand: ' + sub + '. Use: check', { json });
+      if (!sub || sub === 'check') {
+        const result = shipCheck(cwd);
+        output(result, { json });
+        if (!result.passed) {
+          process.exitCode = 1;
+        }
+        return;
       }
-      const result = shipCheck(cwd);
-      output(result, { json });
-      if (!result.passed) {
-        process.exitCode = 1;
+      if (sub === 'prepare') {
+        const result = shipPrepare(cwd);
+        output(result, { json });
+        if (!result.passed) {
+          process.exitCode = 1;
+        }
+        return;
       }
+      fail('Unknown ship subcommand: ' + sub + '. Use: check, prepare', { json });
       return;
     }
     case 'steering': {

@@ -90,9 +90,22 @@ describe('strict core CLI delegation', () => {
       phase_id: 'phase-11-notifications',
       next_command: 'terrace phase execute phase-11-notifications'
     });
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'phases', 'phase-11-notifications', 'PLAN.md'))).toBe(true);
     expect(runTerrace(tmpDir, ['phase', 'execute', 'phase-11-notifications', '--json'])).toMatchObject({
       allowed: false,
       blockers: expect.any(Array)
+    });
+    expect(runTerrace(tmpDir, ['plan-phase', 'phase-11-notifications', '--json'])).toMatchObject({
+      command_alias: 'terrace phase plan phase-11-notifications',
+      result: { phase_id: 'phase-11-notifications' }
+    });
+    expect(runTerrace(tmpDir, ['do', 'plan phase 11', '--json'])).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications',
+      result: { phase_id: 'phase-11-notifications' }
+    });
+    expect(runTerrace(tmpDir, ['quick', 'plan', 'Refresh beta copy', '--json']).item).toMatchObject({
+      title: 'Refresh beta copy',
+      status: 'planned'
     });
     expect(runTerrace(tmpDir, ['backlog', 'list', '--json']).items).toContainEqual(expect.objectContaining({
       title: 'Add SMS fallback.'
@@ -107,6 +120,9 @@ describe('strict core CLI delegation', () => {
       passed: false,
       categories: expect.any(Array)
     });
+    const prepared = runTerraceResult(tmpDir, ['ship', 'prepare', '--json']);
+    expect(prepared.status).toBe(1);
+    expect(prepared.json.ship_ref).toBe('docs/terrace/ship/SHIP.md');
   }, 15000);
 
   it('supports migrated quick-task history commands', () => {

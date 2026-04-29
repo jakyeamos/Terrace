@@ -20,6 +20,12 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Summarize migrated operational history across phases, sessions, decisions, and quick tasks.'
   },
   {
+    command: 'terrace do <plain text>',
+    category: 'workflow',
+    json: true,
+    purpose: 'Route natural-language agent instructions to stable Terrace commands.'
+  },
+  {
     command: 'terrace phase list',
     category: 'roadmap',
     json: true,
@@ -35,13 +41,31 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     command: 'terrace phase plan <id>',
     category: 'roadmap',
     json: true,
-    purpose: 'Prepare one roadmap phase as the active slice.'
+    purpose: 'Generate a phase plan artifact and prepare one roadmap phase as the active slice.'
   },
   {
     command: 'terrace phase execute <id>',
     category: 'roadmap',
     json: true,
     purpose: 'Enter RED-gate execution for one phase after blockers are clear.'
+  },
+  {
+    command: 'terrace phase validate <id>',
+    category: 'roadmap',
+    json: true,
+    purpose: 'Generate validation instructions and move a phase to review readiness.'
+  },
+  {
+    command: 'terrace phase review <id>',
+    category: 'roadmap',
+    json: true,
+    purpose: 'Generate review checklist output for a phase.'
+  },
+  {
+    command: 'terrace phase complete <id>',
+    category: 'roadmap',
+    json: true,
+    purpose: 'Complete a phase and write a summary artifact.'
   },
   {
     command: 'terrace quick list',
@@ -54,6 +78,24 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     category: 'quick-history',
     json: true,
     purpose: 'Show one migrated GSD quick task.'
+  },
+  {
+    command: 'terrace quick plan <title>',
+    category: 'quick-task',
+    json: true,
+    purpose: 'Create a stateful Terrace quick-task plan.'
+  },
+  {
+    command: 'terrace quick execute <id>',
+    category: 'quick-task',
+    json: true,
+    purpose: 'Enter RED-gate execution for a quick task.'
+  },
+  {
+    command: 'terrace quick complete <id>',
+    category: 'quick-task',
+    json: true,
+    purpose: 'Complete a quick task and write a summary artifact.'
   },
   {
     command: 'terrace backlog list',
@@ -72,6 +114,12 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     category: 'shipping',
     json: true,
     purpose: 'Run release-readiness checks and report failed quality gates.'
+  },
+  {
+    command: 'terrace ship prepare',
+    category: 'shipping',
+    json: true,
+    purpose: 'Write a PR-ready release summary from ship check results.'
   }
 ];
 

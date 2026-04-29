@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace now has a publishable CLI foundation and a substantially stronger GSD switch path with rich migration, quick-task history migration, phase plan/execute scaffolds, operational history, improved backlog extraction, stronger shipping checks, and real-project smoke coverage.
-healthScore: 95
-statusLabel: gsd_switch_mitigation_ready
-nextStep: Add installed-package e2e coverage that runs the packed CLI from a temporary consumer project.
+summary: Terrace now has a publishable CLI foundation and a substantially stronger GSD switch path with rich migration, stateful phase and quick-task workflows, plain-text command routing for agents, operational history, stronger shipping preparation, and real-project smoke coverage.
+healthScore: 96
+statusLabel: gsd_switch_workflow_parity_improved
+nextStep: Add installed-package e2e coverage that runs the packed CLI from a temporary consumer project and exercises the plain-text router.
 blockers: []
 lastUpdated: 2026-04-28
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -47,7 +47,7 @@ The first tier-one product gate is implemented. Terrace exposes a publishable np
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
-Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace backlog list`, `terrace backlog add <title>`, and `terrace ship check`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
+Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
@@ -65,6 +65,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 28: Expanded `terrace port gsd` for richer GSD workflow artifacts, added workflow parity commands, exported command contracts, and added `amos-saas` temp-copy smoke coverage.
 - April 28: Added GSD quick-task PLAN/SUMMARY migration plus `terrace quick list/show`; `amos-saas` skipped artifacts dropped from 170 to 3 placeholder `.gitkeep` files.
 - April 28: Added `terrace history`, `terrace phase plan/execute`, handoff backlog extraction, and Terrace-native doctor/audit/migration checks inside `terrace ship check`.
+- April 28: Added stateful phase plan/execute/validate/review/complete artifacts, Terrace-native quick task plan/execute/complete, `terrace ship prepare`, GSD-compatible phase aliases, and `terrace do <plain text>` routing for agents.
 
 ## Open Problems
 
@@ -76,7 +77,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS, 202 tests
+- **Tests:** `npm test` PASS, 206 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds
 - **Package:** `npm run package:dry-run` PASS, 47 allowlisted files
 - **Audit:** `npm audit --audit-level=high` PASS, one moderate advisory remains
@@ -85,5 +86,6 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 1. Add installed-package e2e tests that run the packed CLI from a temporary consumer project.
 2. Add packed CLI migration smoke tests for the richer GSD workflow, phase, history, and quick-task commands.
-3. Add schema validation for user-editable rule and config files.
-4. Decide whether to address the moderate PostCSS advisory now or track it as acceptable dev-dependency risk.
+3. Expand `terrace do <plain text>` fixture coverage against real migrated GSD phrasing.
+4. Add schema validation for user-editable rule and config files.
+5. Decide whether to address the moderate PostCSS advisory now or track it as acceptable dev-dependency risk.
