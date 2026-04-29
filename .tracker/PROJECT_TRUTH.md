@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is being hardened for public npm v0.1 readiness. Generated artifact paths now have project-root containment checks, path-like CLI tokens are normalized before becoming filenames, targeted security regressions pass, and npm moderate audit is clean.
+summary: Terrace is being hardened for public npm v0.1 readiness. Placeholder command families now run deterministic local repo, artifact, review, and security analysis without adding runtime package dependencies.
 healthScore: 95
 statusLabel: external_readiness_in_progress
-nextStep: Run final verification across typecheck, lint, tests, coverage, package dry-run, audit, CI, ship check, and clean git status.
+nextStep: Run final clean-tree verification across ci, audit, ship check, and git status.
 blockers: []
 lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -21,7 +21,7 @@ lastCommitDate: "2026-04-29"
 quality:
   lint: pass
   types: pass
-  tests: targeted_pass_full_blocked_by_unrelated_fragment_ratio
+  tests: pass
   coverage: pass
   package: pass
   auditHigh: pass
@@ -40,19 +40,19 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run typecheck; npm run lint; npm test -- tests/workflow-commands.test.ts; npm test -- tests/core-rules.test.ts; npm audit --audit-level=moderate
-lastVerifiedAt: "2026-04-29T11:31:02-04:00"
+lastVerifiedCommand: npm run typecheck; npm run lint; npm test -- tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts; npm run test:coverage
+lastVerifiedAt: "2026-04-29T11:57:44-04:00"
 ---
 
 ## Current State
 
-Terrace is in an external-readiness hardening pass for public npm v0.1. The latest security hardening pass added project-root containment checks for generated workflow/lifecycle artifact writes, rejects feature and rule IDs that normalize to traversal aliases, and normalizes AI review mode names before using them in artifact paths. `npm audit --audit-level=moderate` is clean.
+Terrace is in an external-readiness hardening pass for public npm v0.1. The latest command implementation pass added deterministic repo inventory, artifact analysis, static/imported review normalization, and stdlib-only security checks. `terrace security check` writes `.terrace/security/latest.json` and `docs/terrace/security/SECURITY-CHECK.md`, and read-only `terrace ship check` now consumes recorded security findings alongside reviews, tests, docs, rules, and lifecycle evidence.
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
 Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace autonomous`, `terrace commands discover`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
-Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. The senior-cycle core exposes adaptive tier gates, blocks phase execution by default, routes `terrace next` through missing Senior Cycle gates, blocks phase completion without cleanup for Tier 2+ work, adds ship blockers for missing observability/validation, and blocks quick work without test-plan plus verification evidence.
+Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. These generators now infer source areas, architecture hints, test strategy, workstream lanes, route/component hints, unresolved evidence, and concrete affected files from the repo instead of blank TODO placeholders.
 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
@@ -80,24 +80,25 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Reworked README and release docs around public npm v0.1 onboarding, read-only ship checks, packed-consumer e2e, and moderate audit gates; updated PostCSS through `npm audit fix`.
 - April 29: Aligned report-card scoring with release readiness by skipping preflight, completed-outcome, and documentation penalties when no active feature is set, and by accepting configured test and coverage scripts as test-suite strength evidence.
 - April 29: Hardened generated artifact path handling in workflow and lifecycle helpers, added traversal-alias regression tests for feature/rule IDs, and normalized AI review mode artifact filenames.
+- April 29: Implemented deterministic placeholder-command analysis with stdlib-only repo walking; added repo/security/artifact helper modules; wired `terrace security check`; normalized static/imported AI reviews; replaced TODO-heavy lifecycle, docs, codebase, backfill, workstream, design-source, and UI drafts with repo-derived content.
 
 ## Open Problems
 
 - Feature tier selection still defaults to medium unless a feature records an explicit tier.
-- Full `npm test` is currently blocked by unrelated local interrogator skill edits increasing `.agents/skills/terrace-spec-interrogator` core/all fragment ratio to 0.611, above the MET-ERG-07 threshold of 0.60.
 - Dead-code scanning is not configured.
 
 ## Quality Ladder Notes
 
 - **Lint:** `npm run lint` PASS
 - **Types:** `npm run typecheck` PASS
-- **Tests:** targeted security suites PASS: `tests/workflow-commands.test.ts`, `tests/core-rules.test.ts`; full `npm test` FAILS on unrelated MET-ERG-07 fragment ratio after local interrogator skill edits
-- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 87.79%, statements 87.31%, functions 89.37%, branches 71.48%
-- **Package:** `npm run package:dry-run` PASS, packed-consumer e2e covers the generated tarball; latest observed tarball has 50 files
+- **Tests:** targeted packed-consumer and placeholder-command suites PASS; full coverage run executed 33 files and 242 tests
+- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.29%, statements 85.60%, functions 87.20%, branches 71.05%
+- **Package:** packed-consumer e2e PASS; latest observed tarball has 54 files, package size 72.4 kB, unpacked size 290.2 kB, and no runtime dependency bundle
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
-- **Report:** `terrace ship check --json` PASS with report-card score now expected to be at least strong readiness on a clean inactive-feature repo
+- **Report:** `terrace ship check --json` is expected to pass on the next clean-tree verification with report-card score at least strong readiness
 
 ## Next Concrete Steps
 
-1. Run final verification across all required public npm v0.1 gates.
-2. Refresh this truth file one final time with the complete verification result.
+1. Commit this post-implementation truth-file refresh.
+2. Run the complete clean-tree public npm v0.1 verification sequence.
+3. Refresh this truth file with final verification evidence.
