@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace now has a publishable CLI foundation, a substantially stronger GSD switch path, and a senior-cycle orchestration layer with adaptive alignment/test/observability/validation/cleanup artifacts, no-band-aid architecture defaults, and UI/Stitch workflow commands.
-healthScore: 98
-statusLabel: senior_cycle_artifacts_introduced
-nextStep: Wire seniorCycleStatus into terrace next, ship, and completion blockers once feature tier selection is persisted in state.
+summary: Terrace now has a publishable CLI foundation, a substantially stronger GSD switch path, and hard Senior Cycle enforcement across next, phase execution, phase completion, ship checks, and quick-task test/verification gates.
+healthScore: 99
+statusLabel: senior_cycle_enforced
+nextStep: Add persisted feature tier selection and risk detection heuristics so default medium enforcement can adapt automatically.
 blockers: []
 lastUpdated: 2026-04-29
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -16,8 +16,8 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: codex/extract-legacy-core
-lastCommitDate: "2026-04-28"
+activeBranch: main
+lastCommitDate: "2026-04-29"
 quality:
   lint: pass
   types: pass
@@ -49,7 +49,7 @@ The `terrace port gsd` coding gap is now substantially mitigated: it converts co
 
 Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace autonomous`, `terrace commands discover`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
-Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. The senior-cycle core exposes adaptive tier gates, blocks phase execution for opted-in features with missing senior-cycle gates, and defaults quick work to sustainable architecture through the no-band-aid rule.
+Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. The senior-cycle core exposes adaptive tier gates, blocks phase execution by default, routes `terrace next` through missing Senior Cycle gates, blocks phase completion without cleanup for Tier 2+ work, adds ship blockers for missing observability/validation, and blocks quick work without test-plan plus verification evidence.
 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
@@ -74,7 +74,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 ## Open Problems
 
 - Installed-package fixture e2e coverage is still thinner than the desired full product gate.
-- `seniorCycleStatus` is implemented in core but is not yet wired into `terrace next`, ship blockers, or completion blockers.
+- Feature tier selection still defaults to medium unless a feature records an explicit tier.
 - `npm audit --audit-level=high` passes, but npm reports one moderate PostCSS advisory in the dev dependency tree.
 - Dead-code scanning is not configured.
 

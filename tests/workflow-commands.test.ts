@@ -143,6 +143,11 @@ describe('workflow parity core helpers', () => {
     saveState(tmpDir, state);
 
     const planned = phasePlan(tmpDir, 'phase-12-release');
+    alignFeature(tmpDir, 'phase-12-release', { tier: 'medium' });
+    testPlanFeature(tmpDir, 'phase-12-release', { tier: 'medium' });
+    observeFeature(tmpDir, 'phase-12-release', { tier: 'medium' });
+    validateProdFeature(tmpDir, 'phase-12-release', { tier: 'medium' });
+    cleanupFeature(tmpDir, 'phase-12-release', { tier: 'medium' });
     const executed = phaseExecute(tmpDir, 'phase-12-release');
     const validated = phaseValidate(tmpDir, 'phase-12-release');
     const reviewed = phaseReview(tmpDir, 'phase-12-release');
@@ -194,7 +199,9 @@ describe('workflow parity core helpers', () => {
 
   it('plans, executes, and completes Terrace quick tasks', () => {
     const planned = quickPlan(tmpDir, 'Fix login redirect');
+    testPlanFeature(tmpDir, planned.item.id, { tier: 'small' });
     const executed = quickExecute(tmpDir, planned.item.id);
+    fs.writeFileSync(path.join(tmpDir, 'docs', 'terrace', 'quick', planned.item.id, 'VERIFICATION.md'), '# Verification\n\n- npm test passed.\n', 'utf-8');
     const completed = quickComplete(tmpDir, planned.item.id);
 
     expect(planned.item).toMatchObject({
@@ -305,6 +312,128 @@ describe('workflow parity core helpers', () => {
     });
   });
 
+  it('blocks phase execution by default even before senior-cycle opt-in', () => {
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    state.roadmap.phases = [{
+      id: 'unregistered-feature',
+      title: 'Unregistered Feature',
+      status: 'planned',
+      source_ref: '.planning/ROADMAP.md',
+      plans: []
+    }];
+    saveState(tmpDir, state);
+
+    const blocked = phaseExecute(tmpDir, 'unregistered-feature');
+
+    expect(blocked).toMatchObject({
+      allowed: false,
+      phase_id: 'unregistered-feature',
+      required_action: 'Complete senior-cycle gates before execution.',
+      blockers: expect.arrayContaining([
+        expect.objectContaining({ code: 'ALIGNMENT_REQUIRED' }),
+        expect.objectContaining({ code: 'TEST_PLAN_REQUIRED' })
+      ])
+    });
+  });
+
+  it('reports senior-cycle next action before generic phase routing', () => {
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    state.workflow.active_feature = 'billing-refresh';
+    state.senior_cycle = {
+      active_feature: 'billing-refresh',
+      features: {
+        'billing-refresh': { feature_id: 'billing-refresh', tier: 'medium', artifacts: {} }
+      }
+    };
+    state.roadmap.phases = [{
+      id: 'billing-refresh',
+      title: 'Billing Refresh',
+      status: 'planned',
+      source_ref: '.planning/ROADMAP.md',
+      plans: []
+    }];
+    saveState(tmpDir, state);
+
+    expect(nextWorkflow(tmpDir)).toMatchObject({
+      command: 'terrace align billing-refresh',
+      blocked: true,
+      senior_cycle: expect.objectContaining({
+        feature_id: 'billing-refresh',
+        allowed: expect.objectContaining({ execute: false })
+      })
+    });
+  });
+
+  it('blocks phase completion until cleanup exists for Tier 2+ work', () => {
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    state.roadmap.phases = [{
+      id: 'billing-refresh',
+      title: 'Billing Refresh',
+      status: 'review_ready',
+      source_ref: '.planning/ROADMAP.md',
+      plans: []
+    }];
+    saveState(tmpDir, state);
+    alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+    testPlanFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+    observeFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+    validateProdFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+
+    expect(phaseComplete(tmpDir, 'billing-refresh')).toMatchObject({
+      allowed: false,
+      phase_id: 'billing-refresh',
+      required_action: 'Complete senior-cycle cleanup before phase completion.',
+      blockers: expect.arrayContaining([expect.objectContaining({ code: 'CLEANUP_REQUIRED' })])
+    });
+
+    cleanupFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+    expect(phaseComplete(tmpDir, 'billing-refresh')).toMatchObject({
+      allowed: true,
+      phase_id: 'billing-refresh',
+      status: 'completed'
+    });
+  });
+
+  it('blocks quick execution without a test plan and completion without verification evidence', () => {
+    const planned = quickPlan(tmpDir, 'Tight copy fix');
+
+    expect(quickExecute(tmpDir, planned.item.id)).toMatchObject({
+      allowed: false,
+      item_id: planned.item.id,
+      blockers: expect.arrayContaining([expect.objectContaining({ code: 'TEST_PLAN_REQUIRED' })])
+    });
+
+    testPlanFeature(tmpDir, planned.item.id, { tier: 'small' });
+    expect(quickExecute(tmpDir, planned.item.id)).toMatchObject({
+      allowed: true,
+      item: expect.objectContaining({ status: 'red_required' })
+    });
+    expect(quickComplete(tmpDir, planned.item.id)).toMatchObject({
+      allowed: false,
+      item_id: planned.item.id,
+      blockers: expect.arrayContaining([expect.objectContaining({ code: 'VERIFICATION_REQUIRED' })])
+    });
+  });
+
+  it('includes senior-cycle ship blockers in ship check results', () => {
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    state.workflow.active_feature = 'billing-refresh';
+    saveState(tmpDir, state);
+    alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+    testPlanFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
+
+    const result = shipCheck(tmpDir);
+
+    expect(result.categories).toContainEqual(expect.objectContaining({
+      category: 'senior_cycle',
+      passed: false,
+      blocking: expect.arrayContaining([
+        expect.objectContaining({ code: 'OBSERVABILITY_REQUIRED' }),
+        expect.objectContaining({ code: 'VALIDATION_REQUIRED' })
+      ])
+    }));
+  }, 15000);
+
   it('creates UI/Stitch workflow artifacts for greenfield and brownfield UI work', () => {
     const imported = uiImportStitch(tmpDir, 'settings-refresh');
     const planned = uiPlanRefresh(tmpDir, 'settings-refresh');
@@ -410,6 +539,7 @@ describe('workflow parity core helpers', () => {
       'doctor',
       'audit',
       'migration_readiness',
+      'senior_cycle',
       'typecheck',
       'lint',
       'test',

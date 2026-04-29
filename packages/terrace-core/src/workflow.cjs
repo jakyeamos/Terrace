@@ -483,6 +483,76 @@ function seniorCycleStatus(cwd, feature, tier) {
   };
 }
 
+function seniorFeatureForState(state, featureId, fallbackTier) {
+  const seniorCycle = state.senior_cycle || {};
+  const features = seniorCycle.features || {};
+  const current = features[featureId] || {};
+  return {
+    feature_id: featureId,
+    tier: current.tier || fallbackTier || 'medium',
+    opted_in: Boolean(features[featureId])
+  };
+}
+
+function activeSeniorFeature(state) {
+  const seniorCycle = state.senior_cycle || {};
+  const activeFeature = seniorCycle.active_feature || (state.workflow && state.workflow.active_feature);
+  if (!activeFeature) {
+    return null;
+  }
+  return seniorFeatureForState(state, activeFeature, 'medium');
+}
+
+function seniorCycleShipCheck(cwd) {
+  try {
+    const state = loadState(cwd);
+    const feature = activeSeniorFeature(state);
+    if (!feature) {
+      return {
+        category: 'senior_cycle',
+        command: 'terrace senior-cycle status',
+        passed: true,
+        skipped: true,
+        blocking: [],
+        warnings: []
+      };
+    }
+    const status = seniorCycleStatus(cwd, feature.feature_id, feature.tier);
+    const blocking = status.allowed.ship ? [] : status.blockers.filter((blocker) => {
+      return blocker.code === 'OBSERVABILITY_REQUIRED' || blocker.code === 'VALIDATION_REQUIRED';
+    });
+    return {
+      category: 'senior_cycle',
+      command: 'terrace senior-cycle status ' + feature.feature_id,
+      passed: blocking.length === 0,
+      senior_cycle: status,
+      blocking,
+      warnings: []
+    };
+  } catch (error) {
+    return {
+      category: 'senior_cycle',
+      command: 'terrace senior-cycle status',
+      passed: false,
+      blocking: [{
+        code: 'SENIOR_CYCLE_UNAVAILABLE',
+        message: error && error.message ? error.message : String(error),
+        remediation: 'Run terrace init before checking senior-cycle readiness.'
+      }],
+      warnings: []
+    };
+  }
+}
+
+function verificationBlocker(artifact) {
+  return {
+    code: 'VERIFICATION_REQUIRED',
+    artifact,
+    message: 'No completion without verification evidence.',
+    remediation: 'Write verification evidence before completing this quick task.'
+  };
+}
+
 function commandForMissingArtifact(featureId, artifact) {
   if (artifact.endsWith('/ALIGNMENT.md')) {
     return 'terrace align ' + featureId;
@@ -908,19 +978,17 @@ function phaseExecute(cwd, phaseId) {
       required_action: 'Resolve blocking handoff actions before execution.'
     };
   }
-  const seniorFeature = state.senior_cycle && state.senior_cycle.features ? state.senior_cycle.features[phase.id] : null;
-  if (seniorFeature) {
-    const seniorGate = seniorCycleStatus(cwd, phase.id, seniorFeature.tier);
-    if (!seniorGate.allowed.execute) {
-      return {
-        allowed: false,
-        phase_id: phase.id,
-        queue,
-        blockers: seniorGate.blockers,
-        senior_cycle: seniorGate,
-        required_action: 'Complete senior-cycle gates before execution.'
-      };
-    }
+  const seniorFeature = seniorFeatureForState(state, phase.id, 'medium');
+  const seniorGate = seniorCycleStatus(cwd, phase.id, seniorFeature.tier);
+  if (!seniorGate.allowed.execute) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      queue,
+      blockers: seniorGate.blockers,
+      senior_cycle: seniorGate,
+      required_action: 'Complete senior-cycle gates before execution.'
+    };
   }
   const startedAt = nowIso();
   const waves = [
@@ -1041,6 +1109,17 @@ function phaseReview(cwd, phaseId) {
 function phaseComplete(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  const seniorFeature = seniorFeatureForState(state, phase.id, 'medium');
+  const seniorGate = seniorCycleStatus(cwd, phase.id, seniorFeature.tier);
+  if (!seniorGate.allowed.complete) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      blockers: seniorGate.blockers.filter((blocker) => blocker.code === 'CLEANUP_REQUIRED'),
+      senior_cycle: seniorGate,
+      required_action: 'Complete senior-cycle cleanup before phase completion.'
+    };
+  }
   const summaryRef = phaseRef(phase) + '/SUMMARY.md';
   writeMarkdown(cwd, summaryRef, [
     '# Summary: ' + phase.title,
@@ -1072,6 +1151,7 @@ function phaseComplete(cwd, phaseId) {
   };
   saveState(cwd, nextState);
   return {
+    allowed: true,
     phase_id: phase.id,
     status: 'completed',
     summary_ref: summaryRef,
@@ -1094,6 +1174,19 @@ function resumeWorkflow(cwd) {
 function nextWorkflow(cwd) {
   const state = loadState(cwd);
   const blockers = (state.blocked_actions || []).filter((item) => item.blocking);
+  const seniorFeature = activeSeniorFeature(state);
+  if (seniorFeature) {
+    const seniorGate = seniorCycleStatus(cwd, seniorFeature.feature_id, seniorFeature.tier);
+    if (seniorGate.blockers.length > 0) {
+      return {
+        command: seniorGate.next_command,
+        blocked: true,
+        blockers: [...blockers, ...seniorGate.blockers],
+        next_action: state.handoff && state.handoff.next_action ? state.handoff.next_action : null,
+        senior_cycle: seniorGate
+      };
+    }
+  }
   const nextCommand = state.migration && state.migration.next_command
     ? state.migration.next_command
     : inferNextCommand(state);
@@ -1211,6 +1304,16 @@ function quickPlan(cwd, title) {
 function quickExecute(cwd, itemId) {
   const state = loadState(cwd);
   findQuickTask(state, itemId);
+  const seniorGate = seniorCycleStatus(cwd, itemId, 'small');
+  if (!seniorGate.allowed.execute) {
+    return {
+      allowed: false,
+      item_id: itemId,
+      blockers: seniorGate.blockers,
+      senior_cycle: seniorGate,
+      required_action: 'Complete quick-task test plan before execution.'
+    };
+  }
   const nextCommand = 'terrace quick complete ' + itemId;
   const nextState = updateQuickTask(state, itemId, {
     status: 'red_required',
@@ -1224,6 +1327,7 @@ function quickExecute(cwd, itemId) {
   };
   saveState(cwd, nextState);
   return {
+    allowed: true,
     item: findQuickTask(nextState, itemId),
     next_command: nextCommand
   };
@@ -1232,6 +1336,15 @@ function quickExecute(cwd, itemId) {
 function quickComplete(cwd, itemId) {
   const state = loadState(cwd);
   const item = findQuickTask(state, itemId);
+  const verificationRef = item.verification_ref || quickTaskRef(itemId) + '/VERIFICATION.md';
+  if (!artifactExists(cwd, verificationRef)) {
+    return {
+      allowed: false,
+      item_id: itemId,
+      blockers: [verificationBlocker(verificationRef)],
+      required_action: 'Add quick-task verification evidence before completion.'
+    };
+  }
   const summaryRef = quickTaskRef(itemId) + '/SUMMARY.md';
   writeMarkdown(cwd, summaryRef, [
     '# Quick Task Summary: ' + item.title,
@@ -1258,6 +1371,7 @@ function quickComplete(cwd, itemId) {
   };
   saveState(cwd, nextState);
   return {
+    allowed: true,
     item: findQuickTask(nextState, itemId),
     next_command: 'terrace ship check'
   };
@@ -1377,6 +1491,7 @@ function shipCheck(cwd) {
     staticCheck(runDoctor(cwd), 'doctor', 'terrace doctor'),
     staticCheck(runAudit(cwd), 'audit', 'terrace audit'),
     migrationReadinessCheck(cwd),
+    seniorCycleShipCheck(cwd),
     ...discovered.checks.map((check) => scriptCheck(cwd, discovered, check)),
     commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree')
   ];
@@ -1425,7 +1540,11 @@ function phaseIdFromCommand(command) {
 
 function autonomousWorkflow(cwd) {
   const next = nextWorkflow(cwd);
-  const phaseId = phaseIdFromCommand(next.command);
+  const state = loadState(cwd);
+  const seniorPhase = next.senior_cycle
+    ? phasesFromState(state).find((phase) => phase.id === next.senior_cycle.feature_id)
+    : null;
+  const phaseId = phaseIdFromCommand(next.command) || (seniorPhase ? seniorPhase.id : null);
   if (!phaseId) {
     return {
       status: 'no_phase',

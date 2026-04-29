@@ -60,11 +60,11 @@ npx terrace audit
 - `terrace quick list` lists migrated GSD quick-task history.
 - `terrace quick show <id>` shows one migrated quick task.
 - `terrace quick plan <title>` creates a stateful quick-task plan under `docs/terrace/quick/<id>/`.
-- `terrace quick execute <id>` enters RED-gate execution for a quick task.
-- `terrace quick complete <id>` writes a quick-task summary and marks it complete.
+- `terrace quick execute <id>` enters RED-gate execution for a quick task after a behavior-first test plan exists.
+- `terrace quick complete <id>` writes a quick-task summary and marks it complete after verification evidence exists.
 - `terrace backlog list` lists backlog items.
 - `terrace backlog add <title>` appends a backlog item.
-- `terrace ship check` runs release-readiness checks, discovers available project scripts, treats missing optional scripts as warnings, and exits nonzero when an available quality gate fails.
+- `terrace ship check` runs release-readiness checks, discovers available project scripts, enforces active Senior Cycle ship gates, treats missing optional scripts as warnings, and exits nonzero when an available quality gate fails.
 - `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` from release-readiness results.
 - `terrace plan-phase <id>`, `terrace execute-phase <id>`, `terrace validate-phase <id>`, `terrace review-phase <id>`, and `terrace complete-phase <id>` are GSD-compatible aliases.
 - `terrace rule list` and `terrace rule explain <id>` inspect rule packs.

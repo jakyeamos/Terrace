@@ -145,14 +145,12 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - `terrace ui plan-refresh <feature>`
 - `terrace ui diff <feature>`
 
-`terrace next` should continue to evolve toward dynamic senior-cycle suggestions based on tier, missing artifacts, and risk. The core now exposes `seniorCycleStatus(cwd, feature, tier)` for gate evaluation.
+`terrace next` now routes active feature work through `seniorCycleStatus(cwd, feature, tier)` before falling back to generic phase routing. Ship checks include Senior Cycle observability and validation blockers, phase completion requires cleanup for Tier 2+ work, and quick tasks require test-plan plus verification evidence before completion.
 
 # STEP-BY-STEP IMPLEMENTATION PLAN
 
 1. Ship audit/spec documentation and command contracts.
 2. Expand artifact writers into richer templates as field expectations stabilize.
-3. Wire `seniorCycleStatus` into `terrace next` once active feature tier selection is available in state.
-4. Add explicit feature tier selection and risk detection heuristics.
-5. Enforce senior-cycle blockers inside phase/quick execution and ship completion paths.
-6. Add installed-package e2e coverage for the new command surface.
-7. Deepen UI/Stitch integration with real import metadata and browser verification artifacts.
+3. Add explicit feature tier selection and risk detection heuristics.
+4. Add installed-package e2e coverage for the new command surface.
+5. Deepen UI/Stitch integration with real import metadata and browser verification artifacts.
