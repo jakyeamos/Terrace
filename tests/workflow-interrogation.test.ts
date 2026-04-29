@@ -92,4 +92,17 @@ describe('interrogation workflow tri-modal step files (WKFL-02, WKFL-02a, WKFL-0
     expect(content).toContain('status: unresolved');
     expect(content).toContain('resolution: deferred');
   });
+
+  it('question rounds offer multiple-choice selections while allowing typed answers', () => {
+    const stepFile = path.join(interrogatorBase, 'step-01-create.md');
+    const fragmentFile = path.join(interrogatorBase, 'fragments', 'frg-int-01-question-rounds.md');
+    expect(fs.existsSync(stepFile)).toBe(true);
+    expect(fs.existsSync(fragmentFile)).toBe(true);
+    const stepContent = fs.readFileSync(stepFile, 'utf-8');
+    const fragmentContent = fs.readFileSync(fragmentFile, 'utf-8');
+    expect(stepContent).toContain('Multiple-Choice Response Style');
+    expect(stepContent).toContain('Always include `Type your own answer`');
+    expect(fragmentContent).toContain('## Response Style');
+    expect(fragmentContent).toContain('Always include a typed-response option');
+  });
 });

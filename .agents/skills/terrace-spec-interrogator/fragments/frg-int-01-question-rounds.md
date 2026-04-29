@@ -1,5 +1,11 @@
 # Question Round Templates
 
+## Response Style
+- Prefer multiple-choice prompts when the decision is bounded and the choices help the user move faster.
+- Offer 2-4 concrete choices with short labels and one sentence of consequence or tradeoff for each choice.
+- Always include a typed-response option, phrased as "Type your own answer", so the user can override, combine, or add context.
+- Use open-ended questions when the answer depends on unknown domain facts, examples, files, stakeholders, or narrative context.
+
 ## Goals
 - What user or operator outcome must be true after this feature works?
 - Which observable signal proves the outcome was achieved?

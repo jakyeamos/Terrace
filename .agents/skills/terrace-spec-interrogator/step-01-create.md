@@ -21,6 +21,13 @@ Run these rounds in order, unless the early-stop rule applies:
 
 After each round, write resolved answers directly into the working interrogation notes and track open assumptions separately.
 
+### Multiple-Choice Response Style
+When a question has a small set of plausible answers, present 2-4 labeled choices before asking the user to respond. Use choices for scope, risk posture, rollout style, actor permissions, state handling, validation depth, and other bounded decisions where examples reduce friction.
+
+Always include `Type your own answer` as a final option so the user can provide free-form context instead of selecting one of the proposed choices. Treat typed answers as first-class responses, and preserve any nuance from the typed answer in the interrogation notes.
+
+Do not force multiple-choice format for questions that need narrative detail, domain facts, or source material. In those cases, ask the open question directly and make it clear that typing is expected.
+
 ### Early-Stop Rule
 After each round, assess remaining open assumptions. If no high-priority ambiguities remain, skip subsequent rounds and proceed to output. Stop asking when no open assumptions remain below the threshold or when the user indicates complete.
 
