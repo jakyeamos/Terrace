@@ -20,6 +20,14 @@ function runTerraceResult(tmpDir: string, args: string[]) {
   };
 }
 
+function runTerraceWithInput(tmpDir: string, args: string[], input: string) {
+  const result = spawnSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8', input });
+  return {
+    status: result.status,
+    json: JSON.parse(result.stdout)
+  };
+}
+
 describe('strict core CLI delegation', () => {
   let tmpDir: string;
 
@@ -202,5 +210,75 @@ describe('strict core CLI delegation', () => {
     expect(runTerrace(tmpDir, ['quick', 'show', '260101-abc', '--json']).item).toMatchObject({
       source_dir: '.planning/quick/260101-abc-fix-login'
     });
+  });
+
+  it('initializes a new project from a PRD file', () => {
+    const prdPath = path.join(tmpDir, 'input-prd.md');
+    fs.writeFileSync(prdPath, [
+      '# Hoopscout PRD',
+      '',
+      '## Problem',
+      'Coaches need a faster way to evaluate players.',
+      '',
+      '## Users',
+      '- Basketball coaches',
+      '',
+      '## Requirements',
+      '- Upload player notes.',
+      '- Rank prospects by fit.',
+      '',
+      '## Success Metrics',
+      '- Coaches produce a shortlist in under 10 minutes.'
+    ].join('\n'), 'utf-8');
+
+    const result = runTerrace(tmpDir, ['new-project', 'Hoopscout', '--prd', prdPath, '--json']);
+
+    expect(result.project_id).toBe('hoopscout');
+    expect(result.artifacts).toContain('docs/prd/PRD.md');
+    expect(result.artifacts).toContain('docs/spec/COMPILED-SPEC.md');
+    expect(result.next_command).toBe('terrace interrogate hoopscout');
+    expect(fs.readFileSync(path.join(tmpDir, 'docs', 'prd', 'PRD.md'), 'utf-8')).toContain('Upload player notes.');
+  });
+
+  it('initializes a new project from pasted PRD stdin', () => {
+    const result = runTerraceWithInput(tmpDir, ['new-project', 'Paste App', '--paste-prd', '--json'], '# Paste App\n\n- Users paste PRDs.\n');
+
+    expect(result.status).toBe(0);
+    expect(result.json.project_id).toBe('paste-app');
+    expect(fs.readFileSync(path.join(tmpDir, 'docs', 'prd', 'PRD.md'), 'utf-8')).toContain('Users paste PRDs.');
+  });
+
+  it('refuses to overwrite an existing project PRD without force', () => {
+    const prdPath = path.join(tmpDir, 'input-prd.md');
+    fs.writeFileSync(prdPath, '# PRD\n\n- First requirement.\n', 'utf-8');
+    runTerrace(tmpDir, ['new-project', 'Hoopscout', '--prd', prdPath, '--json']);
+
+    const second = runTerraceResult(tmpDir, ['new-project', 'Hoopscout', '--prd', prdPath, '--json']);
+
+    expect(second.status).toBe(1);
+    expect(second.json.error).toContain('Refusing to overwrite docs/prd/PRD.md');
+  });
+
+  it('imports a feature PRD into an initialized Terrace project', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    const prdPath = path.join(tmpDir, 'feature-prd.md');
+    fs.writeFileSync(prdPath, '# Saved Search PRD\n\n- Users can save prospect filters.\n- Success: scouts reuse filters weekly.\n', 'utf-8');
+
+    const result = runTerrace(tmpDir, ['prd', 'import', 'Saved Search', '--file', prdPath, '--json']);
+
+    expect(result.feature_id).toBe('saved-search');
+    expect(result.artifacts).toContain('docs/terrace/features/saved-search/PRD.md');
+    expect(result.artifacts).toContain('docs/terrace/features/saved-search/TEST-PLAN.md');
+    expect(result.next_command).toBe('terrace interrogate saved-search');
+  });
+
+  it('requires initialization before feature PRD import', () => {
+    const prdPath = path.join(tmpDir, 'feature-prd.md');
+    fs.writeFileSync(prdPath, '# Feature PRD\n\n- Requirement.\n', 'utf-8');
+
+    const result = runTerraceResult(tmpDir, ['prd', 'import', 'Saved Search', '--file', prdPath, '--json']);
+
+    expect(result.status).toBe(1);
+    expect(result.json.error).toContain('Missing .terrace/state.json');
   });
 });

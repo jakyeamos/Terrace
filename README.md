@@ -46,6 +46,30 @@ npx @jakyeamos33/terrace ship check --json
 
 Report artifacts are explicit: `terrace report` is read-only, while `terrace report update` writes `.terrace/report-card.json`, `docs/terrace/REPORT-CARD.md`, and report history.
 
+## PRD Intake
+
+Start a new project from a PRD file:
+
+```sh
+terrace new-project hoopscout --prd docs/input/HOOPSCOUT-PRD.md
+```
+
+Start a new project from pasted PRD content:
+
+```sh
+terrace new-project hoopscout --paste-prd <<'PRD'
+# Hoopscout PRD
+
+- Coaches need a faster way to evaluate prospects.
+PRD
+```
+
+Import a later feature PRD:
+
+```sh
+terrace prd import saved-search --file docs/input/SAVED-SEARCH-PRD.md
+```
+
 ## Release Readiness
 
 Use these checks before publishing protected work:
@@ -64,6 +88,8 @@ npx @jakyeamos33/terrace ship check --json
 - `terrace --help` shows the top-level command list.
 - `terrace --version` prints the package version.
 - `terrace init` initializes Terrace state.
+- `terrace new-project <name> --prd <file>` or `--paste-prd` initializes Terrace from a source PRD and writes project artifacts.
+- `terrace prd import <feature> --file <file>` or `--paste` imports a feature PRD into an existing Terrace project.
 - `terrace doctor` checks installation health.
 - `terrace spec validate` validates governance artifacts.
 - `terrace spec hash --file <path>` computes a stable spec hash.

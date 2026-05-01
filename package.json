@@ -1,6 +1,6 @@
 {
   "name": "@jakyeamos33/terrace",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Spec-driven, test-governed AI development framework",
   "type": "commonjs",
   "main": "src/terrace-tools.cjs",

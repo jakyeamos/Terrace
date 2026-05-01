@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace remains tier-one release-ready, now scoped as `@jakyeamos33/terrace` to match npm account ownership and support direct global `terrace` usage.
+summary: Terrace remains tier-one release-ready with PRD intake commands for project initialization and feature imports, packaged as `@jakyeamos33/terrace` v0.1.1.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Publish `@jakyeamos33/terrace`, then verify fresh-project install and global CLI usage (`terrace init`) from npm.
+nextStep: Publish `@jakyeamos33/terrace@0.1.1`, then verify global CLI usage for `terrace new-project` and `terrace prd import`.
 blockers: []
 lastUpdated: 2026-05-01
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -16,7 +16,7 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: codex/tier-one-external-product
+activeBranch: main
 lastCommitDate: "2026-04-29"
 quality:
   lint: pass
@@ -40,13 +40,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run ci
-lastVerifiedAt: "2026-05-01T16:02:00-04:00"
+lastVerifiedCommand: npx vitest run tests/prd-intake.test.ts tests/core-cli.test.ts --reporter=verbose; npx vitest run tests/core-cli.test.ts --reporter=verbose; npm run typecheck; npm run lint; npm run ci; npm pack --dry-run; npm audit --audit-level=moderate; local PRD intake smoke
+lastVerifiedAt: "2026-05-01T17:58:00-04:00"
 ---
 
 ## Current State
 
-Terrace is at tier-one readiness for a public npm v0.1 release candidate. The package identity is now scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest verification pass completed `npm run ci`.
+Terrace is at tier-one readiness for a public npm v0.1 release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest pass adds deterministic PRD intake through `terrace new-project <name> --prd|--paste-prd` and `terrace prd import <feature> --file|--paste`.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, honors explicit GitHub Actions permissions, and records a zero-finding security check for the current repo.
 
@@ -55,6 +55,8 @@ The `terrace port gsd` coding gap is now substantially mitigated: it converts co
 Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace autonomous`, `terrace commands discover`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
 Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. These generators now infer source areas, architecture hints, test strategy, workstream lanes, route/component hints, unresolved evidence, and concrete affected files from the repo instead of blank TODO placeholders.
+
+Terrace now also supports PRD-first intake: `terrace new-project` preserves a source PRD, creates compiled spec, acceptance criteria, test plan, and initialization summary artifacts, and records intake state; `terrace prd import` does the same for later feature PRDs under `docs/terrace/features/<feature>/`.
 
 The latest adoption-risk mitigation pass adds `terrace ship check --fast|--local|--full` modes with per-category timings, `terrace report ceremony` for artifact-count and low-density evidence checks, `terrace port gsd --compare` and `--verify-parity` for migration confidence, `terrace rule audit --effectiveness` for rule maturity/metadata coverage, and `terrace waive <gate>` for explicit reviewed temporary overrides that remain visible in report and ship output.
 
@@ -95,6 +97,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Synced `package-lock.json` for npm 10 CI, made npm script execution portable on Windows, and aligned branch coverage threshold with the CI suite where the external amos-saas fixture is skipped.
 - May 1: Renamed the npm package to `@jakyeamos/terrace`, updated lock metadata, and updated README install/run docs including global install instructions for direct `terrace` commands.
 - May 1: Corrected npm scope to `@jakyeamos33/terrace` to match the authenticated npm username and resolve publish scope ownership errors.
+- May 1: Added deterministic PRD intake commands for new project initialization and feature PRD import, including source preservation, derived artifacts, state/events updates, CLI docs, direct core coverage, and v0.1.1 package metadata.
 
 ## Open Problems
 
@@ -104,11 +107,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Quality Ladder Notes
 
-- **Lint:** `npm run lint` PASS, checking 159 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
+- **Lint:** `npm run lint` PASS, checking 163 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS in `npm run ci`, 34 files and 246 tests
-- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 85.81%, statements 85.29%, functions 88.1%, branches 70.43%
-- **Package:** packed-consumer e2e PASS in the full suite; the runtime analysis dependencies are now declared and bundled for offline installs
+- **Tests:** `npm test` PASS in `npm run ci`, 35 files and 256 tests
+- **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.21%, statements 85.74%, functions 88.76%, branches 70.86%
+- **Package:** `npm pack --dry-run` PASS for `@jakyeamos33/terrace@0.1.1`; packed-consumer e2e PASS in the full suite
 - **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
 - **CI:** `npm run ci` PASS
@@ -120,10 +123,12 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Focused adoption-risk tests:** `npm test -- tests/lifecycle-coverage.test.ts tests/core-port-gsd-migration.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts` PASS; final focused rerun for GSD compare and ship modes PASS
 - **CLI-heavy timeout hardening tests:** `npm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts tests/workflow-commands.test.ts tests/core-cli.test.ts` PASS, 50 tests
 - **Final full ship check:** `node src/terrace-tools.cjs ship check --json` PASS in full mode, zero blockers and zero warnings
-- **Git status:** clean on `codex/tier-one-external-product` after implementation commit and before this truth-file update
+- **PRD intake focused tests:** `npx vitest run tests/prd-intake.test.ts tests/core-cli.test.ts --reporter=verbose` PASS, 15 tests
+- **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
+- **Git status:** dirty on `main` with PRD intake implementation and documentation pending commit
 
 ## Next Concrete Steps
 
-1. Run Terrace migration/report/ship checks against the `codex/terrace-shadow-test` branch corpus.
-2. Open the release-readiness PR for review.
-3. Publish only after review confirms the public npm v0.1 release checklist remains green.
+1. Commit the PRD intake implementation and documentation.
+2. Publish `@jakyeamos33/terrace@0.1.1`.
+3. Verify `npm install --global @jakyeamos33/terrace@0.1.1`, `terrace new-project`, and `terrace prd import` from a fresh repo.

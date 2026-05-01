@@ -86,7 +86,9 @@ const {
   workstreamsPlan,
   designSourceImport,
   designSourceDiff,
-  runSecurityCheck
+  runSecurityCheck,
+  newProjectFromPrd,
+  importFeaturePrd
 } = require('../packages/terrace-core/src/index.cjs');
 
 const packageJson = require('../package.json');
@@ -96,6 +98,8 @@ const HELP_TEXT = [
   '',
   'Commands:',
   '  terrace init                 Initialize Terrace state in this repo',
+  '  terrace new-project <name> --prd <file>|--paste-prd',
+  '  terrace prd import <feature> --file <file>|--paste',
   '  terrace doctor               Diagnose Terrace installation health',
   '  terrace spec validate        Validate governance artifacts',
   '  terrace spec hash --file <path>',
@@ -181,6 +185,21 @@ function seniorOptions(rawArgs) {
   };
 }
 
+function readFileInput(cwd, filePath) {
+  if (!filePath) {
+    throw new Error('Missing PRD file path.');
+  }
+  const resolved = path.resolve(cwd, filePath);
+  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
+    throw new Error('PRD file not found: ' + filePath);
+  }
+  return fs.readFileSync(resolved, 'utf8');
+}
+
+function readStdinInput() {
+  return fs.readFileSync(0, 'utf8');
+}
+
 function output(data, options) {
   const opts = options || {};
   if (opts.json) {
@@ -263,6 +282,43 @@ async function main() {
   const cwd = process.cwd();
 
   switch (command) {
+    case 'new-project': {
+      const name = args[1];
+      const prdFile = optionValue(rawArgs, '--prd');
+      const paste = hasFlag(rawArgs, '--paste-prd');
+      if (!name || (!prdFile && !paste)) {
+        fail('Usage: terrace new-project <name> --prd <file> | --paste-prd', { json });
+      }
+      const prdText = paste ? readStdinInput() : readFileInput(cwd, prdFile);
+      output(newProjectFromPrd(cwd, {
+        name,
+        prdText,
+        force,
+        source: paste ? { mode: 'paste', path: null } : { mode: 'file', path: prdFile }
+      }), { json });
+      return;
+    }
+    case 'prd': {
+      const sub = args[1];
+      if (sub === 'import') {
+        const feature = args[2];
+        const prdFile = optionValue(rawArgs, '--file');
+        const paste = hasFlag(rawArgs, '--paste');
+        if (!feature || (!prdFile && !paste)) {
+          fail('Usage: terrace prd import <feature> --file <file> | --paste', { json });
+        }
+        const prdText = paste ? readStdinInput() : readFileInput(cwd, prdFile);
+        output(importFeaturePrd(cwd, {
+          feature,
+          prdText,
+          force,
+          source: paste ? { mode: 'paste', path: null } : { mode: 'file', path: prdFile }
+        }), { json });
+        return;
+      }
+      fail('Unknown prd subcommand: ' + sub + '. Use: import', { json });
+      return;
+    }
     case 'core': {
       const sub = args[1];
       if (sub === 'init') {
