@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is credible for public npm v0.1 readiness: CI passes with explicit LF line-ending guardrails, Windows CI coverage is configured, packed-consumer e2e passes, and the report card is 100/100 tier-one ready.
+summary: Terrace remains tier-one release-ready, now scoped as `@jakyeamos33/terrace` to match npm account ownership and support direct global `terrace` usage.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Run Terrace against the new GSD shadow-branch corpus, then prepare the public npm v0.1 release PR/review package.
+nextStep: Publish `@jakyeamos33/terrace`, then verify fresh-project install and global CLI usage (`terrace init`) from npm.
 blockers: []
-lastUpdated: 2026-04-29
+lastUpdated: 2026-05-01
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -40,13 +40,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm run ci; npx npm@10.9.7 ci; npm run package:dry-run; packed npm install smoke; npm audit --audit-level=moderate; npx vitest run tests/lint-script.test.ts --reporter=verbose; npm run lint; npm run build; npx vitest run tests/workflow-commands.test.ts --reporter=verbose
-lastVerifiedAt: "2026-04-29T17:49:13-04:00"
+lastVerifiedCommand: npm run ci
+lastVerifiedAt: "2026-05-01T16:02:00-04:00"
 ---
 
 ## Current State
 
-Terrace is at tier-one readiness for a public npm v0.1 release candidate. The latest verification pass completed `npm run ci`, `npx npm@10.9.7 ci`, `npm run package:dry-run`, a packed npm install smoke test, `npm audit --audit-level=moderate`, focused line-ending guardrail tests, `npm run lint`, `npm run build`, and the workflow command test. The lint gate now explicitly rejects CRLF endings across repo text files before they appear as platform-specific whitespace failures, and GitHub CI/release dry-run jobs are configured to run on both Ubuntu and Windows.
+Terrace is at tier-one readiness for a public npm v0.1 release candidate. The package identity is now scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest verification pass completed `npm run ci`.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, honors explicit GitHub Actions permissions, and records a zero-finding security check for the current repo.
 
@@ -93,6 +93,8 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 29: Added `.gitattributes`, Prettier LF configuration, and lint-script CRLF regression coverage so Windows checkouts cannot reintroduce CRLF-only lint noise.
 - April 29: Added Windows runners to CI and release dry-run workflows, and removed the Unix-specific `/tmp` cache path from `npm run package:dry-run`.
 - April 29: Synced `package-lock.json` for npm 10 CI, made npm script execution portable on Windows, and aligned branch coverage threshold with the CI suite where the external amos-saas fixture is skipped.
+- May 1: Renamed the npm package to `@jakyeamos/terrace`, updated lock metadata, and updated README install/run docs including global install instructions for direct `terrace` commands.
+- May 1: Corrected npm scope to `@jakyeamos33/terrace` to match the authenticated npm username and resolve publish scope ownership errors.
 
 ## Open Problems
 

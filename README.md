@@ -7,21 +7,26 @@ Terrace is a strict-core workflow CLI for spec-driven, test-governed AI-assisted
 Terrace requires Node.js 22 or newer.
 
 ```sh
-npm install --save-dev terrace
+npm install --save-dev @jakyeamos33/terrace
 ```
 
-Run it with `npx terrace` or through the installed `terrace` binary.
+Run it with `npx @jakyeamos33/terrace` or through the installed `terrace` binary.
+If you want `terrace` available globally (no `npx`), install it globally:
+
+```sh
+npm install --global @jakyeamos33/terrace
+```
 
 ## Quickstart
 
 Run Terrace from the root of an existing repository:
 
 ```sh
-npx terrace init
-npx terrace doctor
-npx terrace audit
-npx terrace report
-npx terrace ship check --json
+npx @jakyeamos33/terrace init
+npx @jakyeamos33/terrace doctor
+npx @jakyeamos33/terrace audit
+npx @jakyeamos33/terrace report
+npx @jakyeamos33/terrace ship check --json
 ```
 
 `terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs release-readiness checks and exits nonzero when a blocking gate fails.
@@ -49,7 +54,7 @@ Use these checks before publishing protected work:
 npm run ci
 npm audit --audit-level=moderate
 npm run package:dry-run
-npx terrace ship check --json
+npx @jakyeamos33/terrace ship check --json
 ```
 
 `terrace ship check` is read-only. Use `terrace ship prepare` when you want Terrace to write a release-readiness summary under `docs/terrace/ship/`.
