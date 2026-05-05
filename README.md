@@ -40,11 +40,25 @@ npx @jakyeamos33/terrace ship check --json
 - `.terrace/presets/registry.json`
 - `.terrace/rules/*.json`
 - `.terrace/events.jsonl`
+- `.terrace/agents/manifest.json`
+- `AGENTS.md` when absent
+- `CLAUDE.md` when absent
+- `.claude/skills/terrace-*/SKILL.md` when absent
 - `docs/prd/`
 - `docs/spec/`
 - `docs/testing/`
 
 Report artifacts are explicit: `terrace report` is read-only, while `terrace report update` writes `.terrace/report-card.json`, `docs/terrace/REPORT-CARD.md`, and report history.
+
+## Agent Integration
+
+`terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance.
+
+- Codex reads `AGENTS.md`, which points agents to `terrace next`, `terrace do "<intent>"`, phase commands, quick-task commands, and `terrace ship check`.
+- Claude Code reads `CLAUDE.md` and gets project skills under `.claude/skills/`, including `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-quick`, and `/terrace-ship`.
+- `.terrace/agents/manifest.json` records which assets were written, skipped, or unchanged during the latest init run.
+
+If `AGENTS.md`, `CLAUDE.md`, or a matching Claude skill already exists, Terrace does not overwrite it. Merge the generated guidance manually if your project already has custom agent instructions.
 
 ## PRD Intake
 
@@ -87,7 +101,7 @@ npx @jakyeamos33/terrace ship check --json
 
 - `terrace --help` shows the top-level command list.
 - `terrace --version` prints the package version.
-- `terrace init` initializes Terrace state.
+- `terrace init` initializes Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent.
 - `terrace new-project <name> --prd <file>` or `--paste-prd` initializes Terrace from a source PRD and writes project artifacts.
 - `terrace prd import <feature> --file <file>` or `--paste` imports a feature PRD into an existing Terrace project.
 - `terrace doctor` checks installation health.
@@ -102,6 +116,9 @@ npx @jakyeamos33/terrace ship check --json
 - `terrace history` summarizes migrated phases, sessions, decisions, and quick tasks.
 - `terrace do <plain text>` routes natural-language agent instructions to stable Terrace commands.
 - `terrace autonomous` plans the next phase, prepares execution readiness, and stops at blockers or agent handoff.
+- `terrace execute-phase-complete <id>` runs phase plan, execute, validate, review, and complete in order, stopping at blockers.
+- `terrace settings effort <fast|standard|thorough>` sets the default phase effort used in planning and execution artifacts.
+- `terrace settings show` prints the current Terrace settings.
 - `terrace commands discover` detects package manager, project scripts, and quality-gate command mapping.
 - `terrace align <feature>` writes `docs/terrace/features/<feature>/ALIGNMENT.md` with customer, problem, success metrics, risks, rollout, observability, validation, and cleanup intent.
 - `terrace interrogate <feature>` writes edge-case, assumption-challenge, and failure-mode interrogation.
@@ -147,7 +164,7 @@ Migrated state includes roadmap phases and plans, decisions, sessions, handoff c
 5. Run `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, and `terrace phase complete <id>` to preserve execution history.
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
 
-Agents can use `terrace do "plan phase 11"`, `terrace do "/gsd:plan-phase 11"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have plain text instead of a structured command.
+Agents can use `terrace do "plan phase 11"`, `terrace do "/execute-phase-complete 11"`, `terrace do "/goal run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have plain text instead of a structured command.
 
 ## Senior Cycle
 
