@@ -4,7 +4,7 @@ projectName: Terrace
 summary: Terrace remains tier-one release-ready with PRD intake commands for project initialization and feature imports, and now has an approved design for default agent integration during `terrace init`.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Review and approve the agent init integration spec, then implement default non-overwriting Codex and Claude Code bootstrap assets in `terrace init`.
+nextStep: Execute the approved agent init integration plan and verify default non-overwriting Codex and Claude Code bootstrap assets in `terrace init`.
 blockers: []
 lastUpdated: 2026-05-05
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -46,7 +46,7 @@ lastVerifiedAt: "2026-05-01T17:58:00-04:00"
 
 ## Current State
 
-Terrace now has an approved design spec for default agent integration during `terrace init`: `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md`. The design calls for non-overwriting repo-local bootstrap assets for Codex and Claude Code, including `AGENTS.md`, `CLAUDE.md`, Claude project skills under `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets.
+Terrace now has an approved design spec and implementation plan for default agent integration during `terrace init`: `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`. The design calls for non-overwriting repo-local bootstrap assets for Codex and Claude Code, including `AGENTS.md`, `CLAUDE.md`, Claude project skills under `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets.
 
 Terrace is at tier-one readiness for a public npm v0.1 release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest pass adds deterministic PRD intake through `terrace new-project <name> --prd|--paste-prd` and `terrace prd import <feature> --file|--paste`.
 
@@ -101,6 +101,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 1: Corrected npm scope to `@jakyeamos33/terrace` to match the authenticated npm username and resolve publish scope ownership errors.
 - May 1: Added deterministic PRD intake commands for new project initialization and feature PRD import, including source preservation, derived artifacts, state/events updates, CLI docs, direct core coverage, and v0.1.1 package metadata.
 - May 5: Added the approved design spec for default `terrace init` agent integration, covering Codex `AGENTS.md`, Claude `CLAUDE.md`, Claude project skills, manifest tracking, non-overwrite behavior, JSON output, and tests.
+- May 5: Added the implementation plan for default `terrace init` agent integration with task-level test, implementation, documentation, verification, and commit steps.
 
 ## Open Problems
 
@@ -132,6 +133,6 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Next Concrete Steps
 
-1. Review the agent init integration spec with the user and make any requested changes.
-2. Implement default non-overwriting agent bootstrap assets in `terrace init`.
-3. Add fresh-init, existing-file preservation, idempotence, JSON output, package, and README coverage for the agent integration.
+1. Implement default non-overwriting agent bootstrap assets in `terrace init`.
+2. Add fresh-init, existing-file preservation, idempotence, JSON output, package, and README coverage for the agent integration.
+3. Run focused init tests, typecheck, lint, and package dry-run before finalizing the branch.
