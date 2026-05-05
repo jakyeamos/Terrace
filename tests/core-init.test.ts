@@ -70,6 +70,39 @@ describe('terrace-core init and events', () => {
     ]));
   });
 
+  it('initCore preserves existing user-owned agent files', () => {
+    fs.writeFileSync(path.join(tmpDir, 'AGENTS.md'), '# Custom Codex guidance\n', 'utf-8');
+    fs.mkdirSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next', 'SKILL.md'), 'custom skill\n', 'utf-8');
+    const result = initCore(tmpDir, { projectName: 'demo' }) as {
+      created: string[];
+      agents: { assets: Array<{ path: string; status: string }> };
+    };
+    expect(fs.readFileSync(path.join(tmpDir, 'AGENTS.md'), 'utf-8')).toBe('# Custom Codex guidance\n');
+    expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toBe('custom skill\n');
+    expect(result.agents.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'AGENTS.md', status: 'skipped' }),
+      expect.objectContaining({ path: '.claude/skills/terrace-next/SKILL.md', status: 'skipped' })
+    ]));
+    expect(result.created).not.toContain('AGENTS.md');
+    expect(result.created).not.toContain('.claude/skills/terrace-next/SKILL.md');
+  });
+
+  it('initCore reports unchanged agent assets on repeated init', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const result = initCore(tmpDir, { projectName: 'demo' }) as {
+      created: string[];
+      agents: { assets: Array<{ path: string; status: string }> };
+    };
+    expect(result.agents.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'AGENTS.md', status: 'unchanged' }),
+      expect.objectContaining({ path: 'CLAUDE.md', status: 'unchanged' }),
+      expect.objectContaining({ path: '.claude/skills/terrace-ship/SKILL.md', status: 'unchanged' })
+    ]));
+    expect(result.created).not.toContain('AGENTS.md');
+    expect(result.created).not.toContain('CLAUDE.md');
+  });
+
   it('initCore records an init event with from_state and to_state', () => {
     initCore(tmpDir, { projectName: 'demo' });
     const events = readEvents(tmpDir);
