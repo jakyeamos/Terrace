@@ -18,6 +18,8 @@ const AGENTS_MD = lines([
   '- Route plain-language workflow requests through `terrace do "<intent>"`.',
   '- Use `terrace quick plan`, `terrace quick execute`, and `terrace quick complete` for small scoped work.',
   '- Use `terrace phase plan`, `terrace phase execute`, `terrace phase validate`, `terrace phase review`, and `terrace phase complete` for roadmap phase work.',
+  '- Use `terrace execute-phase-complete <id>` only when the user wants a full phase lifecycle and Terrace gates allow it.',
+  '- Set phase depth with `terrace settings effort <fast|standard|thorough>`.',
   '- Run `terrace ship check` before treating protected work as ready to ship.',
   '- Preserve spec and test evidence before changing protected implementation behavior.',
   '- Do not bypass repository quality gates or Terrace governance state.',
@@ -31,7 +33,7 @@ const CLAUDE_MD = lines([
   '',
   '- Run `terrace next` to identify the next workflow action.',
   '- Route natural-language requests through `terrace do "<intent>"` when a stable Terrace command is not obvious.',
-  '- Use `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-quick`, and `/terrace-ship` when available.',
+  '- Use `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-execute-phase-complete`, `/terrace-quick`, and `/terrace-ship` when available.',
   '- Preserve spec intent, behavior-first tests, validation evidence, and release gates.',
   '- Do not overwrite Terrace state or bypass `terrace ship check` for protected work.',
   '- Keep edits scoped to the active Terrace task and stop at blockers reported by Terrace.'
@@ -79,6 +81,17 @@ const CLAUDE_SKILLS = [
       'Use `terrace do "$ARGUMENTS"` when arguments are provided. If no arguments are provided, run `terrace next` and follow the reported execution command.',
       '',
       'Respect RED, GREEN, validation, and review gates. Stop at blockers instead of bypassing Terrace governance.'
+    ]
+  },
+  {
+    path: '.claude/skills/terrace-execute-phase-complete/SKILL.md',
+    description: 'Run a complete Terrace phase lifecycle from planning through completion.',
+    body: [
+      '# Terrace Execute Phase Complete',
+      '',
+      'Run `terrace do "/execute-phase-complete $ARGUMENTS"` when arguments are provided. If no phase is provided, run `terrace next` first and use the reported phase id.',
+      '',
+      'Inspect each returned step. Stop at blockers and do not bypass senior-cycle, security, validation, review, or cleanup gates.'
     ]
   },
   {

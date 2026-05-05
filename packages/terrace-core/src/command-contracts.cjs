@@ -32,6 +32,18 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Run next phase planning and execution readiness until Terrace reaches a blocker or agent handoff.'
   },
   {
+    command: 'terrace execute-phase-complete <id>',
+    category: 'workflow',
+    json: true,
+    purpose: 'Run the Terrace phase lifecycle end to end, stopping at blockers instead of bypassing gates.'
+  },
+  {
+    command: 'terrace settings effort <fast|standard|thorough>',
+    category: 'workflow',
+    json: true,
+    purpose: 'Persist the default phase effort used by Terrace planning and execution artifacts.'
+  },
+  {
     command: 'terrace commands discover',
     category: 'workflow',
     json: true,

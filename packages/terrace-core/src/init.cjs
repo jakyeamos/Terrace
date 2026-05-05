@@ -47,20 +47,20 @@ function initCore(cwd, options) {
     created.push(relPath);
   }
 
-  appendEvent(cwd, {
-    command: 'terrace init',
-    from_state: 'uninitialized',
-    to_state: 'initialized',
-    evidence_refs: ['.terrace/state.json', '.terrace/config.json']
-  });
-  created.push('.terrace/events.jsonl');
-
   const agents = installAgentBootstrap(cwd);
   for (const asset of agents.assets) {
     if (asset.status === 'written') {
       created.push(asset.path);
     }
   }
+
+  appendEvent(cwd, {
+    command: 'terrace init',
+    from_state: 'uninitialized',
+    to_state: 'initialized',
+    evidence_refs: ['.terrace/state.json', '.terrace/config.json', agents.manifest_path]
+  });
+  created.push('.terrace/events.jsonl');
 
   return { created, agents };
 }

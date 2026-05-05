@@ -13,6 +13,7 @@ const {
   phaseValidate,
   phaseReview,
   phaseComplete,
+  phaseCompleteWorkflow,
   resumeWorkflow,
   nextWorkflow,
   historySummary,
@@ -40,7 +41,9 @@ const {
   uiDiff,
   reviewAi,
   seniorCycleStatus,
-  shipCheck
+  shipCheck,
+  settingsSetEffort,
+  settingsShow
 } = require('../packages/terrace-core/src/index.cjs');
 
 describe('workflow parity core helpers', () => {
@@ -127,22 +130,36 @@ describe('workflow parity core helpers', () => {
   });
 
   it('plans and executes migrated phases with hard blocker awareness', () => {
+    settingsSetEffort(tmpDir, 'thorough');
     const planned = phasePlan(tmpDir, 'phase-11-notifications');
 
     expect(planned).toMatchObject({
       phase_id: 'phase-11-notifications',
       status: 'slice_planned',
+      effort: 'thorough',
       next_command: 'terrace phase execute phase-11-notifications',
       source_refs: ['.planning/phases/11/11-01-PLAN.md']
     });
     expect(fs.existsSync(path.join(tmpDir, planned.plan_ref))).toBe(true);
     const plan = fs.readFileSync(path.join(tmpDir, planned.plan_ref), 'utf-8');
     expect(plan).toContain('Phase 11: Notifications');
+    expect(plan).toContain('- Default: thorough');
     expect(plan).toContain('src/app/notifications/page.tsx');
     expect(phaseExecute(tmpDir, 'phase-11-notifications')).toMatchObject({
       allowed: false,
+      effort: 'thorough',
       blockers: [expect.objectContaining({ description: 'Apply migration 034_prime_notes.sql' })]
     });
+  });
+
+  it('persists the phase effort default in Terrace settings', () => {
+    expect(settingsShow(tmpDir).phase_effort_default).toBe('standard');
+    expect(settingsSetEffort(tmpDir, 'fast')).toMatchObject({
+      phase_effort_default: 'fast',
+      config_path: '.terrace/config.json'
+    });
+    expect(settingsShow(tmpDir).phase_effort_default).toBe('fast');
+    expect(() => settingsSetEffort(tmpDir, 'maximum')).toThrow(/Usage: terrace settings effort/);
   });
 
   it('executes, validates, reviews, and completes a phase lifecycle', () => {
@@ -187,6 +204,40 @@ describe('workflow parity core helpers', () => {
       review_ref: 'docs/terrace/phases/phase-12-release/REVIEW.md',
       summary_ref: 'docs/terrace/phases/phase-12-release/SUMMARY.md'
     });
+  });
+
+  it('runs an end-to-end phase completion workflow until completion or blockers', () => {
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    state.roadmap.phases = [{
+      id: 'phase-13-complete',
+      title: 'Phase 13: Complete Workflow',
+      status: 'planned',
+      source_ref: '.planning/ROADMAP.md',
+      plans: [{ id: '13-01', title: 'Complete Plan', status: 'planned', source_ref: '.planning/phases/13/13-01-PLAN.md' }]
+    }];
+    saveState(tmpDir, state);
+    settingsSetEffort(tmpDir, 'thorough');
+    alignFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
+    testPlanFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
+    observeFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
+    validateProdFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
+    cleanupFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
+
+    const result = phaseCompleteWorkflow(tmpDir, 'phase-13-complete');
+
+    expect(result).toMatchObject({
+      status: 'completed',
+      phase_id: 'phase-13-complete',
+      effort: 'thorough',
+      next_command: 'terrace ship check'
+    });
+    expect(result.steps.map((step: { command: string }) => step.command)).toEqual([
+      'terrace phase plan phase-13-complete',
+      'terrace phase execute phase-13-complete',
+      'terrace phase validate phase-13-complete',
+      'terrace phase review phase-13-complete',
+      'terrace phase complete phase-13-complete'
+    ]);
   });
 
   it('manages backlog items and rejects missing phase ids', () => {
@@ -540,6 +591,16 @@ describe('workflow parity core helpers', () => {
       result: { phase_id: 'phase-11-notifications' }
     });
     expect(routePlainText(tmpDir, '/gsd:plan-phase 11')).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications'
+    });
+    expect(routePlainText(tmpDir, '/execute-phase-complete 11')).toMatchObject({
+      command: 'terrace execute-phase-complete phase-11-notifications',
+      result: {
+        status: 'blocked',
+        phase_id: 'phase-11-notifications'
+      }
+    });
+    expect(routePlainText(tmpDir, '/goal plan phase 11')).toMatchObject({
       command: 'terrace phase plan phase-11-notifications'
     });
     expect(routePlainText(tmpDir, 'run the next phase')).toMatchObject({

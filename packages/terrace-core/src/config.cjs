@@ -42,8 +42,52 @@ function readConfig(cwd) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function normalizePhaseEffort(value) {
+  const normalized = String(value || '').trim().toLowerCase().replace(/-/g, '_');
+  if (['fast', 'standard', 'thorough'].includes(normalized)) {
+    return normalized;
+  }
+  throw new Error('Usage: terrace settings effort <fast|standard|thorough>');
+}
+
+function phaseEffortDefault(cwd) {
+  const config = readConfig(cwd);
+  const configured = config.execution_policy && config.execution_policy.phase_effort_default;
+  return configured ? normalizePhaseEffort(configured) : 'standard';
+}
+
+function settingsShow(cwd) {
+  const config = readConfig(cwd);
+  return {
+    config,
+    phase_effort_default: phaseEffortDefault(cwd)
+  };
+}
+
+function settingsSetEffort(cwd, effort) {
+  const normalized = normalizePhaseEffort(effort);
+  const config = readConfig(cwd);
+  const nextConfig = {
+    ...config,
+    execution_policy: {
+      ...(config.execution_policy || {}),
+      phase_effort_default: normalized
+    }
+  };
+  writeConfig(cwd, nextConfig);
+  return {
+    phase_effort_default: normalized,
+    config_path: '.terrace/config.json',
+    next_command: 'terrace settings show'
+  };
+}
+
 module.exports = {
   detectCommands,
   writeConfig,
-  readConfig
+  readConfig,
+  normalizePhaseEffort,
+  phaseEffortDefault,
+  settingsShow,
+  settingsSetEffort
 };
