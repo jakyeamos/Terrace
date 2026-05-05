@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm test; npm run lint; npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts
-lastVerifiedAt: "2026-05-05T18:54:30-04:00"
+lastVerifiedCommand: npm test; npm run typecheck; npm run lint; npm run package:dry-run; npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts
+lastVerifiedAt: "2026-05-05T18:56:10-04:00"
 ---
 
 ## Current State
@@ -135,7 +135,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
 - **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
 - **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
-- **Git status:** clean on `codex/agent-init-integration` after the phase routing and truth-file commits
+- **Git status:** pending final truth-file commit on `codex/agent-init-integration`
 
 ## Next Concrete Steps
 
