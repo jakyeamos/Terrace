@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace remains tier-one release-ready with PRD intake commands for project initialization and feature imports, and now has an approved design for default agent integration during `terrace init`.
+summary: Terrace remains tier-one release-ready with PRD intake commands and now installs non-overwriting Codex and Claude Code bootstrap assets during `terrace init`.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Execute the approved agent init integration plan and verify default non-overwriting Codex and Claude Code bootstrap assets in `terrace init`.
+nextStep: Run the full `npm run ci` suite when ready, then prepare the agent init integration branch for review.
 blockers: []
 lastUpdated: 2026-05-05
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -40,13 +40,15 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npx vitest run tests/prd-intake.test.ts tests/core-cli.test.ts --reporter=verbose; npx vitest run tests/core-cli.test.ts --reporter=verbose; npm run typecheck; npm run lint; npm run ci; npm pack --dry-run; npm audit --audit-level=moderate; local PRD intake smoke
-lastVerifiedAt: "2026-05-01T17:58:00-04:00"
+lastVerifiedCommand: npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand; npm run typecheck; npm run lint; npm run package:dry-run
+lastVerifiedAt: "2026-05-05T18:54:30-04:00"
 ---
 
 ## Current State
 
-Terrace now has an approved design spec and implementation plan for default agent integration during `terrace init`: `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`. The design calls for non-overwriting repo-local bootstrap assets for Codex and Claude Code, including `AGENTS.md`, `CLAUDE.md`, Claude project skills under `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets.
+Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Claude project skills under `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets.
+
+The approved design spec and implementation plan remain at `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`.
 
 Terrace is at tier-one readiness for a public npm v0.1 release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest pass adds deterministic PRD intake through `terrace new-project <name> --prd|--paste-prd` and `terrace prd import <feature> --file|--paste`.
 
@@ -102,6 +104,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 1: Added deterministic PRD intake commands for new project initialization and feature PRD import, including source preservation, derived artifacts, state/events updates, CLI docs, direct core coverage, and v0.1.1 package metadata.
 - May 5: Added the approved design spec for default `terrace init` agent integration, covering Codex `AGENTS.md`, Claude `CLAUDE.md`, Claude project skills, manifest tracking, non-overwrite behavior, JSON output, and tests.
 - May 5: Added the implementation plan for default `terrace init` agent integration with task-level test, implementation, documentation, verification, and commit steps.
+- May 5: Implemented default `terrace init` agent bootstrap through `packages/terrace-core/src/agents.cjs`, including Codex guidance, Claude guidance, Claude project skills, manifest tracking, JSON output, preservation/idempotence tests, and README documentation.
 
 ## Open Problems
 
@@ -111,11 +114,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Quality Ladder Notes
 
-- **Lint:** `npm run lint` PASS, checking 163 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
+- **Lint:** `npm run lint` PASS, checking 166 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `npm run typecheck` PASS
 - **Tests:** `npm test` PASS in `npm run ci`, 35 files and 256 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.21%, statements 85.74%, functions 88.76%, branches 70.86%
-- **Package:** `npm pack --dry-run` PASS for `@jakyeamos33/terrace@0.1.1`; packed-consumer e2e PASS in the full suite
+- **Package:** `npm run package:dry-run` PASS for `@jakyeamos33/terrace@0.1.1`, including `packages/terrace-core/src/agents.cjs`; packed-consumer e2e PASS in the full suite
 - **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
 - **CI:** `npm run ci` PASS
@@ -129,10 +132,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Final full ship check:** `node src/terrace-tools.cjs ship check --json` PASS in full mode, zero blockers and zero warnings
 - **PRD intake focused tests:** `npx vitest run tests/prd-intake.test.ts tests/core-cli.test.ts --reporter=verbose` PASS, 15 tests
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
-- **Git status:** dirty on `main` with PRD intake implementation and documentation pending commit
+- **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
+- **Git status:** clean on `codex/agent-init-integration` before the final truth-file update commit
 
 ## Next Concrete Steps
 
-1. Implement default non-overwriting agent bootstrap assets in `terrace init`.
-2. Add fresh-init, existing-file preservation, idempotence, JSON output, package, and README coverage for the agent integration.
-3. Run focused init tests, typecheck, lint, and package dry-run before finalizing the branch.
+1. Run the full `npm run ci` suite when ready.
+2. Review the generated `AGENTS.md`, `CLAUDE.md`, and Claude skill wording in a fresh temp repo if product copy needs final polish.
+3. Prepare `codex/agent-init-integration` for review.
