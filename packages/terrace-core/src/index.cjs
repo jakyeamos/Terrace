@@ -6,6 +6,7 @@ module.exports = {
   ...require('./config.cjs'),
   ...require('./rules.cjs'),
   ...require('./init.cjs'),
+  ...require('./agents.cjs'),
   ...require('./prd-intake.cjs'),
   ...require('./gates.cjs'),
   ...require('./roadmap.cjs'),
