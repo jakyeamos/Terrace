@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm --cache /private/tmp/terrace-npm-cache run ci; npm audit --audit-level=moderate; npm --cache /private/tmp/terrace-npm-cache test -- tests/product-readiness.test.ts
-lastVerifiedAt: "2026-05-06T05:24:29-04:00"
+lastVerifiedCommand: npm run package:dry-run; npm test -- tests/product-readiness.test.ts; npm run lint
+lastVerifiedAt: "2026-05-06T05:26:23-04:00"
 ---
 
 ## Current State
@@ -52,7 +52,7 @@ The agent integration branch has been merged locally into `main`. A preserved lo
 
 The approved design spec and implementation plan remain at `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`.
 
-Terrace is ready to publish as `@jakyeamos33/terrace@0.1.2`. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes PRD intake, default agent bootstrap assets, end-to-end phase routing, configurable phase effort defaults, and intent-routing wording.
+Terrace is ready to publish as `@jakyeamos33/terrace@0.1.2`. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes PRD intake, default agent bootstrap assets, end-to-end phase routing, configurable phase effort defaults, intent-routing wording, and an isolated-cache package dry-run helper for release reliability.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, honors explicit GitHub Actions permissions, and records a zero-finding security check for the current repo.
 
@@ -110,6 +110,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 5: Added Terrace-native end-to-end phase routing through `terrace execute-phase-complete <id>` and natural-language goal routing, plus persisted phase effort defaults with `terrace settings effort <fast|standard|thorough>`.
 - May 6: Merged `codex/agent-init-integration` locally into `main` and preserved the intent-routing wording update across CLI help, command contracts, workflow errors, and generated agent guidance.
 - May 6: Bumped the package to `0.1.2`, updated the changelog, and passed the npm release checks using an isolated npm cache because the user-level npm cache has root-owned files.
+- May 6: Replaced the `package:dry-run` script with a Node wrapper that uses a writable temp npm cache so `terrace ship check` and CI are not blocked by root-owned files in `~/.npm`.
 
 ## Open Problems
 
@@ -119,11 +120,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Quality Ladder Notes
 
-- **Lint:** `npm run lint` PASS, checking 166 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
+- **Lint:** `npm run lint` PASS, checking 167 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `npm run typecheck` PASS
 - **Tests:** `npm test` PASS, 35 files and 261 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.21%, statements 85.74%, functions 88.76%, branches 70.86%
-- **Package:** `npm --cache /private/tmp/terrace-npm-cache run package:dry-run` PASS for `@jakyeamos33/terrace@0.1.2`, including `packages/terrace-core/src/agents.cjs`; packed-consumer e2e PASS in the full suite
+- **Package:** `npm run package:dry-run` PASS for `@jakyeamos33/terrace@0.1.2`, including `packages/terrace-core/src/agents.cjs`; packed-consumer e2e PASS in the full suite
 - **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
 - **CI:** `npm --cache /private/tmp/terrace-npm-cache run ci` PASS
@@ -139,7 +140,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
 - **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
 - **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
-- **Git status:** pending truth-file commit for the 0.1.2 release bump
+- **Git status:** clean after the isolated-cache package dry-run fix and truth-file commits
 
 ## Next Concrete Steps
 
