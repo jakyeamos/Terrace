@@ -20,10 +20,10 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Summarize migrated operational history across phases, sessions, decisions, and quick tasks.'
   },
   {
-    command: 'terrace do <plain text>',
+    command: 'terrace do <intent>',
     category: 'workflow',
     json: true,
-    purpose: 'Route natural-language agent instructions to stable Terrace commands.'
+    purpose: 'Route natural-language agent intent to stable Terrace commands.'
   },
   {
     command: 'terrace autonomous',

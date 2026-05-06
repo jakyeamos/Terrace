@@ -113,7 +113,7 @@ const HELP_TEXT = [
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
   '  terrace history              Summarize migrated operational history',
-  '  terrace do <plain text>      Route natural language to a Terrace command',
+  '  terrace do <intent>          Route natural-language intent to a Terrace command',
   '  terrace autonomous           Plan next phase and stop at blocker or handoff',
   '  terrace execute-phase-complete <id> Plan, execute, validate, review, and complete one phase',
   '  terrace settings show        Show Terrace settings',
@@ -674,7 +674,7 @@ async function main() {
     case 'do': {
       const text = args.slice(1).join(' ');
       if (!text) {
-        fail('Usage: terrace do <plain text>', { json });
+        fail('Usage: terrace do <intent>', { json });
       }
       const result = routePlainText(cwd, text);
       output(result, { json });

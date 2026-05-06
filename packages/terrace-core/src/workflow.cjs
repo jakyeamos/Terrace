@@ -1739,7 +1739,7 @@ function phaseCompleteWorkflow(cwd, phaseId) {
 function routePlainText(cwd, text) {
   const input = String(text || '').trim();
   if (!input) {
-    throw new Error('Usage: terrace do <plain text>');
+    throw new Error('Usage: terrace do <intent>');
   }
   const lowered = input.toLowerCase();
   const state = loadState(cwd);

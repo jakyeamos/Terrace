@@ -15,7 +15,7 @@ const AGENTS_MD = lines([
   'Use Terrace as the workflow authority for this repository.',
   '',
   '- Start by running `terrace next` when the next workflow step is unclear.',
-  '- Route plain-language workflow requests through `terrace do "<intent>"`.',
+  '- Route natural-language workflow requests through `terrace do "<intent>"`.',
   '- Use `terrace quick plan`, `terrace quick execute`, and `terrace quick complete` for small scoped work.',
   '- Use `terrace phase plan`, `terrace phase execute`, `terrace phase validate`, `terrace phase review`, and `terrace phase complete` for roadmap phase work.',
   '- Use `terrace execute-phase-complete <id>` only when the user wants a full phase lifecycle and Terrace gates allow it.',
@@ -89,7 +89,7 @@ const CLAUDE_SKILLS = [
     body: [
       '# Terrace Execute Phase Complete',
       '',
-      'Run `terrace do "/execute-phase-complete $ARGUMENTS"` when arguments are provided. If no phase is provided, run `terrace next` first and use the reported phase id.',
+      'Run `terrace execute-phase-complete $ARGUMENTS` when a phase is provided. If no phase is provided, run `terrace next` first and use the reported phase id.',
       '',
       'Inspect each returned step. Stop at blockers and do not bypass senior-cycle, security, validation, review, or cleanup gates.'
     ]
