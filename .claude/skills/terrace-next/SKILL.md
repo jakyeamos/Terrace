@@ -5,6 +5,6 @@ description: Find and follow the next Terrace workflow action.
 
 # Terrace Next
 
-Run `terrace next` and inspect the result.
+Run `terrace next`.
 
-If Terrace reports a next command, explain it briefly and ask before making protected changes. If it reports blockers, stop and surface the blockers.
+Inspect Terrace blockers, warnings, generated files, and next-command output before continuing. Do not bypass Terrace gates or claim success when the command reports blockers.

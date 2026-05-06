@@ -33,7 +33,7 @@ const CLAUDE_MD = lines([
   '',
   '- Run `terrace next` to identify the next workflow action.',
   '- Route natural-language requests through `terrace do "<intent>"` when a stable Terrace command is not obvious.',
-  '- Use `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-execute-phase-complete`, `/terrace-quick`, and `/terrace-ship` when available.',
+  '- Use the repo-local `/terrace-*` project commands when available; they mirror the README command reference.',
   '- Preserve spec intent, behavior-first tests, validation evidence, and release gates.',
   '- Do not overwrite Terrace state or bypass `terrace ship check` for protected work.',
   '- Keep edits scoped to the active Terrace task and stop at blockers reported by Terrace.'
@@ -61,80 +61,87 @@ function commandContent(description, argumentHint, bodyLines) {
   ]);
 }
 
-const TERRACE_WORKFLOWS = [
-  {
-    name: 'terrace-next',
-    description: 'Find and follow the next Terrace workflow action.',
-    argumentHint: '',
-    body: [
-      '# Terrace Next',
-      '',
-      'Run `terrace next` and inspect the result.',
-      '',
-      'If Terrace reports a next command, explain it briefly and ask before making protected changes. If it reports blockers, stop and surface the blockers.'
-    ]
-  },
-  {
-    name: 'terrace-plan',
-    description: 'Plan Terrace-governed phase or quick-task work.',
-    argumentHint: '[phase id or quick-task title]',
-    body: [
-      '# Terrace Plan',
-      '',
-      'Use `terrace do "$ARGUMENTS"` when arguments are provided. If no arguments are provided, run `terrace next` first.',
-      '',
-      'Prefer `terrace phase plan <id>` for phase work and `terrace quick plan <title>` for small scoped work. Do not proceed to implementation until Terrace reports the plan is ready.'
-    ]
-  },
-  {
-    name: 'terrace-execute',
-    description: 'Execute Terrace-governed work within recorded gates.',
-    argumentHint: '[Terrace execution intent]',
-    body: [
-      '# Terrace Execute',
-      '',
-      'Use `terrace do "$ARGUMENTS"` when arguments are provided. If no arguments are provided, run `terrace next` and follow the reported execution command.',
-      '',
-      'Respect RED, GREEN, validation, and review gates. Stop at blockers instead of bypassing Terrace governance.'
-    ]
-  },
-  {
-    name: 'terrace-execute-phase-complete',
-    description: 'Run a complete Terrace phase lifecycle from planning through completion.',
-    argumentHint: '<phase-id>',
-    body: [
-      '# Terrace Execute Phase Complete',
-      '',
-      'Run `terrace execute-phase-complete $ARGUMENTS` when a phase is provided. If no phase is provided, run `terrace next` first and use the reported phase id.',
-      '',
-      'Inspect each returned step. Stop at blockers and do not bypass senior-cycle, security, validation, review, or cleanup gates.'
-    ]
-  },
-  {
-    name: 'terrace-quick',
-    description: 'Run Terrace quick-task planning, execution, and completion.',
-    argumentHint: '[quick-task title or id]',
-    body: [
-      '# Terrace Quick',
-      '',
-      'For a new quick task, run `terrace quick plan "$ARGUMENTS"`.',
-      '',
-      'For an existing quick task, use `terrace quick execute <id>` and `terrace quick complete <id>` only after the required evidence exists. Run `terrace quick list` when the id is unknown.'
-    ]
-  },
-  {
-    name: 'terrace-ship',
-    description: 'Run Terrace release readiness and shipping checks.',
-    argumentHint: '',
-    body: [
-      '# Terrace Ship',
-      '',
-      'Run `terrace ship check` and inspect blockers and warnings.',
-      '',
-      'If release readiness passes and the user wants a written artifact, run `terrace ship prepare`. Do not claim work is ready when Terrace reports blockers.'
-    ]
-  }
+const TERRACE_COMMANDS = [
+  ['terrace-help', 'terrace --help', '', 'Show the top-level Terrace command list.'],
+  ['terrace-version', 'terrace --version', '', 'Print the installed Terrace package version.'],
+  ['terrace-init', 'terrace init', '', 'Initialize Terrace state and non-overwriting agent bootstrap assets.'],
+  ['terrace-new-project', 'terrace new-project $ARGUMENTS', '<name> --prd <file>|--paste-prd', 'Initialize Terrace from a source PRD and write project artifacts.'],
+  ['terrace-prd-import', 'terrace prd import $ARGUMENTS', '<feature> --file <file>|--paste', 'Import a feature PRD into an existing Terrace project.'],
+  ['terrace-doctor', 'terrace doctor', '', 'Check Terrace installation health.'],
+  ['terrace-spec-validate', 'terrace spec validate', '', 'Validate Terrace governance artifacts.'],
+  ['terrace-spec-hash', 'terrace spec hash --file $ARGUMENTS', '<path>', 'Compute a stable spec hash for a file.'],
+  ['terrace-audit', 'terrace audit', '', 'Check artifacts and protected baselines.'],
+  ['terrace-ci-check', 'terrace ci check $ARGUMENTS', '[files...]', 'Run audit plus protected-change enforcement.'],
+  ['terrace-port-gsd-dry-run', 'terrace port gsd --dry-run', '', 'Inventory legacy GSD artifacts without writing Terrace state.'],
+  ['terrace-port-gsd', 'terrace port gsd', '', 'Migrate supported legacy GSD artifacts into Terrace state.'],
+  ['terrace-next', 'terrace next', '', 'Find and follow the next Terrace workflow action.'],
+  ['terrace-resume', 'terrace resume', '', 'Reconstruct paused Terrace workflow context.'],
+  ['terrace-history', 'terrace history', '', 'Summarize migrated phases, sessions, decisions, and quick tasks.'],
+  ['terrace-do', 'terrace do "$ARGUMENTS"', '<intent>', 'Route natural-language agent intent to stable Terrace commands.'],
+  ['terrace-autonomous', 'terrace autonomous', '', 'Plan the next phase and stop at blockers or agent handoff.'],
+  ['terrace-execute-phase-complete', 'terrace execute-phase-complete $ARGUMENTS', '<phase-id>', 'Run a complete Terrace phase lifecycle from planning through completion.'],
+  ['terrace-settings-effort', 'terrace settings effort $ARGUMENTS', '<fast|standard|thorough>', 'Set the default phase effort used in planning and execution artifacts.'],
+  ['terrace-settings-show', 'terrace settings show', '', 'Show current Terrace settings.'],
+  ['terrace-commands-discover', 'terrace commands discover', '', 'Discover project quality scripts and command mappings.'],
+  ['terrace-align', 'terrace align $ARGUMENTS', '<feature>', 'Write senior-cycle alignment intent for a feature.'],
+  ['terrace-interrogate', 'terrace interrogate $ARGUMENTS', '<feature>', 'Write edge-case, assumption-challenge, and failure-mode interrogation.'],
+  ['terrace-map-codebase', 'terrace map-codebase', '', 'Write repo-derived codebase map, architecture, risks, testing, and observability context.'],
+  ['terrace-design', 'terrace design $ARGUMENTS', '<feature>', 'Record architecture decisions, tradeoffs, maintainability, and no-band-aid intent.'],
+  ['terrace-test-plan', 'terrace test-plan $ARGUMENTS', '<feature>', 'Write the behavior-first test plan required before implementation.'],
+  ['terrace-observe', 'terrace observe $ARGUMENTS', '<feature>', 'Write feature observability and post-launch debugging intent.'],
+  ['terrace-validate-prod', 'terrace validate-prod $ARGUMENTS', '<feature>', 'Write production success signals, monitoring, and rollback conditions.'],
+  ['terrace-cleanup', 'terrace cleanup $ARGUMENTS', '<feature>', 'Write cleanup contract for flags, temporary code, and docs.'],
+  ['terrace-ui-import-stitch', 'terrace ui import-stitch $ARGUMENTS', '<feature>', 'Capture a Stitch design import for UI work.'],
+  ['terrace-ui-plan-refresh', 'terrace ui plan-refresh $ARGUMENTS', '<feature>', 'Plan a design-driven UI refresh.'],
+  ['terrace-ui-diff', 'terrace ui diff $ARGUMENTS', '<feature>', 'Write UI source and target diff context.'],
+  ['terrace-phase-list', 'terrace phase list', '', 'List canonical roadmap phases.'],
+  ['terrace-phase-show', 'terrace phase show $ARGUMENTS', '<phase-id>', 'Show one roadmap phase and its migrated plans.'],
+  ['terrace-phase-plan', 'terrace phase plan $ARGUMENTS', '<phase-id>', 'Write a migrated-context phase plan artifact.'],
+  ['terrace-phase-execute', 'terrace phase execute $ARGUMENTS', '<phase-id>', 'Enter RED-gate execution for a phase after blockers are clear.'],
+  ['terrace-phase-validate', 'terrace phase validate $ARGUMENTS', '<phase-id>', 'Write a phase validation artifact.'],
+  ['terrace-phase-review', 'terrace phase review $ARGUMENTS', '<phase-id>', 'Write a phase review artifact.'],
+  ['terrace-phase-complete', 'terrace phase complete $ARGUMENTS', '<phase-id>', 'Write a phase summary and mark the phase complete.'],
+  ['terrace-quick-list', 'terrace quick list', '', 'List migrated GSD quick-task history.'],
+  ['terrace-quick-show', 'terrace quick show $ARGUMENTS', '<quick-task-id>', 'Show one migrated quick task.'],
+  ['terrace-quick-plan', 'terrace quick plan "$ARGUMENTS"', '<title>', 'Create a stateful quick-task plan.'],
+  ['terrace-quick-execute', 'terrace quick execute $ARGUMENTS', '<quick-task-id>', 'Enter RED-gate execution for a quick task.'],
+  ['terrace-quick-complete', 'terrace quick complete $ARGUMENTS', '<quick-task-id>', 'Complete a quick task after verification evidence exists.'],
+  ['terrace-backlog-list', 'terrace backlog list', '', 'List backlog items.'],
+  ['terrace-backlog-add', 'terrace backlog add "$ARGUMENTS"', '<title>', 'Append a backlog item.'],
+  ['terrace-ship-check', 'terrace ship check', '', 'Run read-only release readiness checks.'],
+  ['terrace-ship-prepare', 'terrace ship prepare', '', 'Write a release-readiness summary artifact.'],
+  ['terrace-plan-phase', 'terrace plan-phase $ARGUMENTS', '<phase-id>', 'Run the GSD-compatible phase planning alias.'],
+  ['terrace-execute-phase', 'terrace execute-phase $ARGUMENTS', '<phase-id>', 'Run the GSD-compatible phase execution alias.'],
+  ['terrace-validate-phase', 'terrace validate-phase $ARGUMENTS', '<phase-id>', 'Run the GSD-compatible phase validation alias.'],
+  ['terrace-review-phase', 'terrace review-phase $ARGUMENTS', '<phase-id>', 'Run the GSD-compatible phase review alias.'],
+  ['terrace-complete-phase', 'terrace complete-phase $ARGUMENTS', '<phase-id>', 'Run the GSD-compatible phase completion alias.'],
+  ['terrace-rule-list', 'terrace rule list', '', 'List installed rule packs.'],
+  ['terrace-rule-explain', 'terrace rule explain $ARGUMENTS', '<rule-id>', 'Explain a Terrace rule.'],
+  ['terrace-preset-list', 'terrace preset list', '', 'List installed presets.'],
+  ['terrace-preset-install', 'terrace preset install $ARGUMENTS', '<preset-id>', 'Install a Terrace preset.']
 ];
+
+function titleFromName(name) {
+  return name.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+}
+
+function workflowFromCommand(entry) {
+  const [name, command, argumentHint, description] = entry;
+  return {
+    name,
+    description,
+    argumentHint,
+    body: [
+      '# ' + titleFromName(name),
+      '',
+      'Run `' + command + '`.',
+      '',
+      'Inspect Terrace blockers, warnings, generated files, and next-command output before continuing. Do not bypass Terrace gates or claim success when the command reports blockers.'
+    ]
+  };
+}
+
+const TERRACE_WORKFLOWS = TERRACE_COMMANDS.map(workflowFromCommand);
 
 function templateAssets() {
   return [

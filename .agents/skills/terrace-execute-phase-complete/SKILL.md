@@ -5,6 +5,6 @@ description: Run a complete Terrace phase lifecycle from planning through comple
 
 # Terrace Execute Phase Complete
 
-Run `terrace execute-phase-complete $ARGUMENTS` when a phase is provided. If no phase is provided, run `terrace next` first and use the reported phase id.
+Run `terrace execute-phase-complete $ARGUMENTS`.
 
-Inspect each returned step. Stop at blockers and do not bypass senior-cycle, security, validation, review, or cleanup gates.
+Inspect Terrace blockers, warnings, generated files, and next-command output before continuing. Do not bypass Terrace gates or claim success when the command reports blockers.

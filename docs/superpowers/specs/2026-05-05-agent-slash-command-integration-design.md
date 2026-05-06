@@ -37,31 +37,15 @@ For Codex, Terrace writes `AGENTS.md` when absent. The file should tell Codex to
 - Avoid bypassing repository gates.
 - Keep changes scoped and recoverable.
 
-Terrace also writes Codex repo skills under `.agents/skills/` when each skill is absent:
-
-- `.agents/skills/terrace-next/SKILL.md`
-- `.agents/skills/terrace-plan/SKILL.md`
-- `.agents/skills/terrace-execute/SKILL.md`
-- `.agents/skills/terrace-execute-phase-complete/SKILL.md`
-- `.agents/skills/terrace-quick/SKILL.md`
-- `.agents/skills/terrace-ship/SKILL.md`
+Terrace also writes Codex repo skills under `.agents/skills/` when each skill is absent. The generated skill set mirrors the README command reference, with one `terrace-*` skill per stable command such as `terrace-next`, `terrace-align`, `terrace-phase-plan`, `terrace-quick-plan`, and `terrace-ship-check`.
 
 Each skill must include `name` and `description` frontmatter so Codex can discover it.
 
 For Claude Code, Terrace writes `CLAUDE.md` when absent with the same workflow contract in Claude-oriented language.
 
-Terrace also writes Claude project skills under `.claude/skills/` when each skill is absent:
+Terrace also writes Claude project skills under `.claude/skills/` and Claude project command files under `.claude/commands/terrace-*.md` for command-picker compatibility. The Claude assets mirror the same README command-reference set.
 
-- `.claude/skills/terrace-next/SKILL.md`
-- `.claude/skills/terrace-plan/SKILL.md`
-- `.claude/skills/terrace-execute/SKILL.md`
-- `.claude/skills/terrace-execute-phase-complete/SKILL.md`
-- `.claude/skills/terrace-ship/SKILL.md`
-- `.claude/skills/terrace-quick/SKILL.md`
-
-Terrace also writes Claude project command files under `.claude/commands/terrace-*.md` for command-picker compatibility.
-
-These skills and commands give Claude slash-invokable workflows such as `/terrace-next` and `/terrace-ship`. Each skill should be concise, include clear `name` and `description` frontmatter, and instruct Claude to run the relevant Terrace command, inspect the result, and continue only within the command’s reported gates.
+These skills and commands give Claude slash-invokable workflows such as `/terrace-next`, `/terrace-phase-plan`, and `/terrace-ship-check`. Each skill should be concise, include clear `name` and `description` frontmatter, and instruct Claude to run the relevant Terrace command, inspect the result, and continue only within the command’s reported gates.
 
 ## Platform Behavior
 
@@ -104,4 +88,4 @@ No browser or visual validation is required for this feature.
 
 This should ship as a minor feature in the next Terrace package version. Because it writes new files during `terrace init`, the README and troubleshooting docs should make the non-overwrite behavior explicit.
 
-The first release should keep the generated command set small. Additional agent workflows should be added only when they map to stable Terrace commands and pass the same idempotence and preservation tests.
+The generated command set should stay aligned with the stable README command reference and pass the same idempotence and preservation tests.
