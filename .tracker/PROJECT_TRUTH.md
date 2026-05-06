@@ -40,15 +40,15 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand; npm run lint; npm run package:dry-run; npm run typecheck
-lastVerifiedAt: "2026-05-06T13:28:07-04:00"
+lastVerifiedCommand: npm test; npm run lint; npm run typecheck; npm run package:dry-run
+lastVerifiedAt: "2026-05-06T13:37:34-04:00"
 ---
 
 ## Current State
 
-Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The Claude slash skill set now includes `/terrace-execute-phase-complete`, and Codex/agent routing can resolve natural-language goals like `run phase 11 end to end` through Terrace-native commands.
+Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 57 Codex skills and 57 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, and `/terrace-execute-phase-complete`.
 
-The first agent bootstrap version missed command discovery because it generated Claude skills without `name` frontmatter, did not generate `.claude/commands/*.md`, and did not generate Codex repo skills under `.agents/skills`. The current fix branch addresses those generated assets and adds matching repo-local Terrace command assets so Codex and Claude can discover them after reload.
+The first agent bootstrap version missed command discovery because it generated Claude skills without `name` frontmatter, did not generate `.claude/commands/*.md`, and did not generate Codex repo skills under `.agents/skills`. The second pass only exposed a small shortcut set; the current fix branch expands generation to all stable README commands and adds matching repo-local Terrace command assets so Codex and Claude can discover them after reload.
 
 The approved design spec and implementation plan remain at `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`.
 
@@ -112,6 +112,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 6: Bumped the package to `0.1.2`, updated the changelog, and passed the npm release checks using an isolated npm cache because the user-level npm cache has root-owned files.
 - May 6: Replaced the `package:dry-run` script with a Node wrapper that uses a writable temp npm cache so `terrace ship check` and CI are not blocked by root-owned files in `~/.npm`.
 - May 6: Fixed agent command discovery by adding Codex `.agents/skills/terrace-*`, Claude `.claude/commands/terrace-*`, required skill `name` frontmatter, and repo-local Terrace command assets.
+- May 6: Expanded agent command discovery from the initial shortcut set to the full README command-reference surface, generating 57 Codex skills, 57 Claude skills, and 57 Claude command files while removing stale shortcut-only assets.
 
 ## Open Problems
 
@@ -141,11 +142,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
 - **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
 - **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
-- **Agent command discovery fix:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests; `npm run lint` PASS; `npm run package:dry-run` PASS; `npm run typecheck` PASS
+- **Agent command discovery fix:** `npm test` PASS, 35 files and 261 tests; `npm run lint` PASS, checking 338 text files; `npm run typecheck` PASS; `npm run package:dry-run` PASS
 - **Git status:** fix committed on `codex/fix-agent-command-discovery`; command discovery requires a new or reloaded Codex/Claude session
 
 ## Next Concrete Steps
 
-1. Restart or reload Codex/Claude command discovery and confirm `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-execute-phase-complete`, `/terrace-quick`, and `/terrace-ship` appear.
+1. Restart or reload Codex/Claude command discovery and confirm README-backed commands such as `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, and `/terrace-execute-phase-complete` appear.
 2. Merge the command discovery fix back to `main`.
 3. Continue final `@jakyeamos33/terrace@0.1.2` ship and publish dry-run checks.
