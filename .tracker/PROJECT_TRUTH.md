@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace remains tier-one release-ready with PRD intake, default agent bootstrap assets, Terrace-native end-to-end phase routing, and configurable phase effort defaults.
+summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, default agent bootstrap assets, Terrace-native end-to-end phase routing, and configurable phase effort defaults.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Decide whether to add more Terrace-native slash workflows or move on to corpus automation.
+nextStep: Publish `@jakyeamos33/terrace@0.1.2` to npm after final ship and publish dry-run checks.
 blockers: []
 lastUpdated: 2026-05-06
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm test; npm run typecheck; npm run lint; npm run package:dry-run; npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts
-lastVerifiedAt: "2026-05-06T05:17:01-04:00"
+lastVerifiedCommand: npm --cache /private/tmp/terrace-npm-cache run ci; npm audit --audit-level=moderate; npm --cache /private/tmp/terrace-npm-cache test -- tests/product-readiness.test.ts
+lastVerifiedAt: "2026-05-06T05:24:29-04:00"
 ---
 
 ## Current State
@@ -52,7 +52,7 @@ The agent integration branch has been merged locally into `main`. A preserved lo
 
 The approved design spec and implementation plan remain at `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`.
 
-Terrace is at tier-one readiness for a public npm v0.1 release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest pass adds deterministic PRD intake through `terrace new-project <name> --prd|--paste-prd` and `terrace prd import <feature> --file|--paste`.
+Terrace is ready to publish as `@jakyeamos33/terrace@0.1.2`. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes PRD intake, default agent bootstrap assets, end-to-end phase routing, configurable phase effort defaults, and intent-routing wording.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, honors explicit GitHub Actions permissions, and records a zero-finding security check for the current repo.
 
@@ -109,6 +109,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 5: Implemented default `terrace init` agent bootstrap through `packages/terrace-core/src/agents.cjs`, including Codex guidance, Claude guidance, Claude project skills, manifest tracking, JSON output, preservation/idempotence tests, and README documentation.
 - May 5: Added Terrace-native end-to-end phase routing through `terrace execute-phase-complete <id>` and natural-language goal routing, plus persisted phase effort defaults with `terrace settings effort <fast|standard|thorough>`.
 - May 6: Merged `codex/agent-init-integration` locally into `main` and preserved the intent-routing wording update across CLI help, command contracts, workflow errors, and generated agent guidance.
+- May 6: Bumped the package to `0.1.2`, updated the changelog, and passed the npm release checks using an isolated npm cache because the user-level npm cache has root-owned files.
 
 ## Open Problems
 
@@ -122,10 +123,10 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Types:** `npm run typecheck` PASS
 - **Tests:** `npm test` PASS, 35 files and 261 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.21%, statements 85.74%, functions 88.76%, branches 70.86%
-- **Package:** `npm run package:dry-run` PASS for `@jakyeamos33/terrace@0.1.1`, including `packages/terrace-core/src/agents.cjs`; packed-consumer e2e PASS in the full suite
+- **Package:** `npm --cache /private/tmp/terrace-npm-cache run package:dry-run` PASS for `@jakyeamos33/terrace@0.1.2`, including `packages/terrace-core/src/agents.cjs`; packed-consumer e2e PASS in the full suite
 - **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
-- **CI:** `npm run ci` PASS
+- **CI:** `npm --cache /private/tmp/terrace-npm-cache run ci` PASS
 - **Security:** `node src/terrace-tools.cjs security check --json` PASS, zero findings
 - **Test evaluation:** `node src/terrace-tools.cjs test eval --json` PASS, trust score 100
 - **Rule audit:** `node src/terrace-tools.cjs rule audit --json` PASS, zero blockers and zero warnings
@@ -138,10 +139,10 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
 - **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
 - **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
-- **Git status:** merged locally on `main`; `codex/agent-init-integration` branch deleted after merge verification
+- **Git status:** pending truth-file commit for the 0.1.2 release bump
 
 ## Next Concrete Steps
 
-1. Decide whether to add more Terrace-native slash workflows beyond the current agent bootstrap set.
-2. Consider adding a dedicated `terrace agents install` repair/refresh command for generated agent assets.
-3. Continue toward corpus automation for the existing shadow-branch test set.
+1. Run `node src/terrace-tools.cjs ship check --json` on the clean release state.
+2. Run `npm --cache /private/tmp/terrace-npm-cache publish --dry-run`.
+3. Publish `@jakyeamos33/terrace@0.1.2` to npm and verify with `npm view`.
