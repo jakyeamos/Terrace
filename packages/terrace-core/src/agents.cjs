@@ -39,9 +39,10 @@ const CLAUDE_MD = lines([
   '- Keep edits scoped to the active Terrace task and stop at blockers reported by Terrace.'
 ]);
 
-function skillContent(description, bodyLines) {
+function skillContent(name, description, bodyLines) {
   return lines([
     '---',
+    'name: ' + name,
     'description: ' + description,
     '---',
     '',
@@ -49,10 +50,22 @@ function skillContent(description, bodyLines) {
   ]);
 }
 
-const CLAUDE_SKILLS = [
+function commandContent(description, argumentHint, bodyLines) {
+  return lines([
+    '---',
+    'description: ' + description,
+    ...(argumentHint ? ['argument-hint: ' + argumentHint] : []),
+    '---',
+    '',
+    ...bodyLines
+  ]);
+}
+
+const TERRACE_WORKFLOWS = [
   {
-    path: '.claude/skills/terrace-next/SKILL.md',
+    name: 'terrace-next',
     description: 'Find and follow the next Terrace workflow action.',
+    argumentHint: '',
     body: [
       '# Terrace Next',
       '',
@@ -62,8 +75,9 @@ const CLAUDE_SKILLS = [
     ]
   },
   {
-    path: '.claude/skills/terrace-plan/SKILL.md',
+    name: 'terrace-plan',
     description: 'Plan Terrace-governed phase or quick-task work.',
+    argumentHint: '[phase id or quick-task title]',
     body: [
       '# Terrace Plan',
       '',
@@ -73,8 +87,9 @@ const CLAUDE_SKILLS = [
     ]
   },
   {
-    path: '.claude/skills/terrace-execute/SKILL.md',
+    name: 'terrace-execute',
     description: 'Execute Terrace-governed work within recorded gates.',
+    argumentHint: '[Terrace execution intent]',
     body: [
       '# Terrace Execute',
       '',
@@ -84,8 +99,9 @@ const CLAUDE_SKILLS = [
     ]
   },
   {
-    path: '.claude/skills/terrace-execute-phase-complete/SKILL.md',
+    name: 'terrace-execute-phase-complete',
     description: 'Run a complete Terrace phase lifecycle from planning through completion.',
+    argumentHint: '<phase-id>',
     body: [
       '# Terrace Execute Phase Complete',
       '',
@@ -95,8 +111,9 @@ const CLAUDE_SKILLS = [
     ]
   },
   {
-    path: '.claude/skills/terrace-quick/SKILL.md',
+    name: 'terrace-quick',
     description: 'Run Terrace quick-task planning, execution, and completion.',
+    argumentHint: '[quick-task title or id]',
     body: [
       '# Terrace Quick',
       '',
@@ -106,8 +123,9 @@ const CLAUDE_SKILLS = [
     ]
   },
   {
-    path: '.claude/skills/terrace-ship/SKILL.md',
+    name: 'terrace-ship',
     description: 'Run Terrace release readiness and shipping checks.',
+    argumentHint: '',
     body: [
       '# Terrace Ship',
       '',
@@ -122,10 +140,20 @@ function templateAssets() {
   return [
     { path: 'AGENTS.md', type: 'codex-instructions', content: AGENTS_MD },
     { path: 'CLAUDE.md', type: 'claude-instructions', content: CLAUDE_MD },
-    ...CLAUDE_SKILLS.map((skill) => ({
-      path: skill.path,
+    ...TERRACE_WORKFLOWS.map((workflow) => ({
+      path: '.agents/skills/' + workflow.name + '/SKILL.md',
+      type: 'codex-skill',
+      content: skillContent(workflow.name, workflow.description, workflow.body)
+    })),
+    ...TERRACE_WORKFLOWS.map((workflow) => ({
+      path: '.claude/skills/' + workflow.name + '/SKILL.md',
       type: 'claude-skill',
-      content: skillContent(skill.description, skill.body)
+      content: skillContent(workflow.name, workflow.description, workflow.body)
+    })),
+    ...TERRACE_WORKFLOWS.map((workflow) => ({
+      path: '.claude/commands/' + workflow.name + '.md',
+      type: 'claude-command',
+      content: commandContent(workflow.description, workflow.argumentHint, workflow.body)
     }))
   ];
 }

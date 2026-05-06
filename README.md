@@ -43,7 +43,9 @@ npx @jakyeamos33/terrace ship check --json
 - `.terrace/agents/manifest.json`
 - `AGENTS.md` when absent
 - `CLAUDE.md` when absent
+- `.agents/skills/terrace-*/SKILL.md` when absent
 - `.claude/skills/terrace-*/SKILL.md` when absent
+- `.claude/commands/terrace-*.md` when absent
 - `docs/prd/`
 - `docs/spec/`
 - `docs/testing/`
@@ -54,11 +56,11 @@ Report artifacts are explicit: `terrace report` is read-only, while `terrace rep
 
 `terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance.
 
-- Codex reads `AGENTS.md`, which points agents to `terrace next`, `terrace do "<intent>"` for natural-language intent, phase commands, quick-task commands, and `terrace ship check`.
-- Claude Code reads `CLAUDE.md` and gets project skills under `.claude/skills/`, including `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-quick`, and `/terrace-ship`.
+- Codex reads `AGENTS.md` and gets repo skills under `.agents/skills/`, including `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-execute-phase-complete`, `/terrace-quick`, and `/terrace-ship`.
+- Claude Code reads `CLAUDE.md` and gets project skills plus project commands under `.claude/skills/` and `.claude/commands/`, including `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-execute-phase-complete`, `/terrace-quick`, and `/terrace-ship`.
 - `.terrace/agents/manifest.json` records which assets were written, skipped, or unchanged during the latest init run.
 
-If `AGENTS.md`, `CLAUDE.md`, or a matching Claude skill already exists, Terrace does not overwrite it. Merge the generated guidance manually if your project already has custom agent instructions.
+If `AGENTS.md`, `CLAUDE.md`, or a matching Codex skill, Claude skill, or Claude command already exists, Terrace does not overwrite it. Merge the generated guidance manually if your project already has custom agent instructions.
 
 ## PRD Intake
 
@@ -101,7 +103,7 @@ npx @jakyeamos33/terrace ship check --json
 
 - `terrace --help` shows the top-level command list.
 - `terrace --version` prints the package version.
-- `terrace init` initializes Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent.
+- `terrace init` initializes Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent.
 - `terrace new-project <name> --prd <file>` or `--paste-prd` initializes Terrace from a source PRD and writes project artifacts.
 - `terrace prd import <feature> --file <file>` or `--paste` imports a feature PRD into an existing Terrace project.
 - `terrace doctor` checks installation health.

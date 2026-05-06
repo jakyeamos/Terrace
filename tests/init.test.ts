@@ -66,8 +66,9 @@ describe('terrace init (CLI-07, INST-01 through INST-08, OPS-08 through OPS-14)'
       const inTerrace = resolved.startsWith(path.join(tmpDir, '.terrace'));
       const inDocs = resolved.startsWith(path.join(tmpDir, 'docs'));
       const inClaude = resolved.startsWith(path.join(tmpDir, '.claude'));
+      const inAgents = resolved.startsWith(path.join(tmpDir, '.agents'));
       const isAgentRootFile = resolved === path.join(tmpDir, 'AGENTS.md') || resolved === path.join(tmpDir, 'CLAUDE.md');
-      expect(inTerrace || inDocs || inClaude || isAgentRootFile, `init wrote outside allowed paths: ${entry}`).toBe(true);
+      expect(inTerrace || inDocs || inClaude || inAgents || isAgentRootFile, `init wrote outside allowed paths: ${entry}`).toBe(true);
     }
   });
 

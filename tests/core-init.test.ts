@@ -52,6 +52,8 @@ describe('terrace-core init and events', () => {
       expect.objectContaining({ path: 'AGENTS.md', type: 'codex-instructions', status: 'written' }),
       expect.objectContaining({ path: 'CLAUDE.md', type: 'claude-instructions', status: 'written' }),
       expect.objectContaining({ path: '.claude/skills/terrace-next/SKILL.md', type: 'claude-skill', status: 'written' }),
+      expect.objectContaining({ path: '.claude/commands/terrace-next.md', type: 'claude-command', status: 'written' }),
+      expect.objectContaining({ path: '.agents/skills/terrace-next/SKILL.md', type: 'codex-skill', status: 'written' }),
       expect.objectContaining({ path: '.terrace/agents/manifest.json', type: 'manifest', status: 'written' })
     ]));
     expect(result.created).toContain('AGENTS.md');
@@ -59,6 +61,9 @@ describe('terrace-core init and events', () => {
     expect(result.created).toContain('.terrace/agents/manifest.json');
     expect(fs.readFileSync(path.join(tmpDir, 'AGENTS.md'), 'utf-8')).toContain('terrace next');
     expect(fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf-8')).toContain('terrace do "<intent>"');
+    expect(fs.readFileSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toContain('name: terrace-next');
+    expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toContain('name: terrace-next');
+    expect(fs.readFileSync(path.join(tmpDir, '.claude', 'commands', 'terrace-next.md'), 'utf-8')).toContain('description: Find and follow the next Terrace workflow action.');
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-ship', 'SKILL.md'), 'utf-8')).toContain('description: Run Terrace release readiness');
     const manifest = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'agents', 'manifest.json'), 'utf-8')) as {
       schema_version: string;
@@ -74,18 +79,28 @@ describe('terrace-core init and events', () => {
     fs.writeFileSync(path.join(tmpDir, 'AGENTS.md'), '# Custom Codex guidance\n', 'utf-8');
     fs.mkdirSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next', 'SKILL.md'), 'custom skill\n', 'utf-8');
+    fs.mkdirSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md'), 'custom codex skill\n', 'utf-8');
+    fs.mkdirSync(path.join(tmpDir, '.claude', 'commands'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.claude', 'commands', 'terrace-next.md'), 'custom command\n', 'utf-8');
     const result = initCore(tmpDir, { projectName: 'demo' }) as {
       created: string[];
       agents: { assets: Array<{ path: string; status: string }> };
     };
     expect(fs.readFileSync(path.join(tmpDir, 'AGENTS.md'), 'utf-8')).toBe('# Custom Codex guidance\n');
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toBe('custom skill\n');
+    expect(fs.readFileSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toBe('custom codex skill\n');
+    expect(fs.readFileSync(path.join(tmpDir, '.claude', 'commands', 'terrace-next.md'), 'utf-8')).toBe('custom command\n');
     expect(result.agents.assets).toEqual(expect.arrayContaining([
       expect.objectContaining({ path: 'AGENTS.md', status: 'skipped' }),
-      expect.objectContaining({ path: '.claude/skills/terrace-next/SKILL.md', status: 'skipped' })
+      expect.objectContaining({ path: '.claude/skills/terrace-next/SKILL.md', status: 'skipped' }),
+      expect.objectContaining({ path: '.agents/skills/terrace-next/SKILL.md', status: 'skipped' }),
+      expect.objectContaining({ path: '.claude/commands/terrace-next.md', status: 'skipped' })
     ]));
     expect(result.created).not.toContain('AGENTS.md');
     expect(result.created).not.toContain('.claude/skills/terrace-next/SKILL.md');
+    expect(result.created).not.toContain('.agents/skills/terrace-next/SKILL.md');
+    expect(result.created).not.toContain('.claude/commands/terrace-next.md');
   });
 
   it('initCore reports unchanged agent assets on repeated init', () => {
@@ -97,7 +112,9 @@ describe('terrace-core init and events', () => {
     expect(result.agents.assets).toEqual(expect.arrayContaining([
       expect.objectContaining({ path: 'AGENTS.md', status: 'unchanged' }),
       expect.objectContaining({ path: 'CLAUDE.md', status: 'unchanged' }),
-      expect.objectContaining({ path: '.claude/skills/terrace-ship/SKILL.md', status: 'unchanged' })
+      expect.objectContaining({ path: '.claude/skills/terrace-ship/SKILL.md', status: 'unchanged' }),
+      expect.objectContaining({ path: '.claude/commands/terrace-ship.md', status: 'unchanged' }),
+      expect.objectContaining({ path: '.agents/skills/terrace-ship/SKILL.md', status: 'unchanged' })
     ]));
     expect(result.created).not.toContain('AGENTS.md');
     expect(result.created).not.toContain('CLAUDE.md');

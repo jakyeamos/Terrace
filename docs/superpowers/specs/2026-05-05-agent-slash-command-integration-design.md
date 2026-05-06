@@ -15,7 +15,7 @@ Success criteria:
 - A fresh `terrace init` creates useful Codex and Claude Code integration files without extra flags.
 - Existing `AGENTS.md`, `CLAUDE.md`, and `.claude` content is never overwritten.
 - Claude Code users get repo-local slash-invokable Terrace workflows.
-- Codex users get durable project instructions and command recipes that route through Terrace commands.
+- Codex users get durable project instructions and repo-scoped Terrace skills that appear in Codex skill/slash discovery.
 - Re-running `terrace init` is idempotent and reports written, skipped, and preserved agent assets.
 - The npm package includes the templates and tests prove fresh, existing-file, and repeated-init behavior.
 
@@ -37,6 +37,17 @@ For Codex, Terrace writes `AGENTS.md` when absent. The file should tell Codex to
 - Avoid bypassing repository gates.
 - Keep changes scoped and recoverable.
 
+Terrace also writes Codex repo skills under `.agents/skills/` when each skill is absent:
+
+- `.agents/skills/terrace-next/SKILL.md`
+- `.agents/skills/terrace-plan/SKILL.md`
+- `.agents/skills/terrace-execute/SKILL.md`
+- `.agents/skills/terrace-execute-phase-complete/SKILL.md`
+- `.agents/skills/terrace-quick/SKILL.md`
+- `.agents/skills/terrace-ship/SKILL.md`
+
+Each skill must include `name` and `description` frontmatter so Codex can discover it.
+
 For Claude Code, Terrace writes `CLAUDE.md` when absent with the same workflow contract in Claude-oriented language.
 
 Terrace also writes Claude project skills under `.claude/skills/` when each skill is absent:
@@ -44,16 +55,19 @@ Terrace also writes Claude project skills under `.claude/skills/` when each skil
 - `.claude/skills/terrace-next/SKILL.md`
 - `.claude/skills/terrace-plan/SKILL.md`
 - `.claude/skills/terrace-execute/SKILL.md`
+- `.claude/skills/terrace-execute-phase-complete/SKILL.md`
 - `.claude/skills/terrace-ship/SKILL.md`
 - `.claude/skills/terrace-quick/SKILL.md`
 
-These skills give Claude slash-invokable workflows such as `/terrace-next` and `/terrace-ship`. Each skill should be concise, include a clear `description`, and instruct Claude to run the relevant Terrace command, inspect the result, and continue only within the command’s reported gates.
+Terrace also writes Claude project command files under `.claude/commands/terrace-*.md` for command-picker compatibility.
+
+These skills and commands give Claude slash-invokable workflows such as `/terrace-next` and `/terrace-ship`. Each skill should be concise, include clear `name` and `description` frontmatter, and instruct Claude to run the relevant Terrace command, inspect the result, and continue only within the command’s reported gates.
 
 ## Platform Behavior
 
-Claude Code has repo-local skills that are slash-invokable from `.claude/skills/<name>/SKILL.md`, so Terrace should use that surface directly.
+Claude Code has repo-local skills and project commands that are slash-invokable from `.claude/skills/<name>/SKILL.md` and `.claude/commands/<name>.md`, so Terrace should use both surfaces.
 
-Codex support should avoid claiming Claude-style project slash commands where they are not part of the stable repo-local contract. The first version should use `AGENTS.md` plus Terrace command recipes. If Codex adds a stable repo-local custom prompt or slash-command directory later, Terrace can add that as a new manifest asset without changing the core workflow.
+Codex support should use `AGENTS.md` plus repo skills under `.agents/skills/<name>/SKILL.md`. Codex skills require `name` and `description` frontmatter and are discovered from the current working directory up to the repo root.
 
 ## CLI Output
 
@@ -77,7 +91,7 @@ Path handling must stay repo-local and use the same safe path rules as existing 
 
 Tests should cover:
 
-- Fresh `terrace init` writes `AGENTS.md`, `CLAUDE.md`, `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json`.
+- Fresh `terrace init` writes `AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`.
 - Existing user files are preserved and reported as skipped.
 - Re-running init after a fresh init reports unchanged assets.
 - JSON mode includes agent asset results.
