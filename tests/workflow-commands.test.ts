@@ -585,7 +585,7 @@ describe('workflow parity core helpers', () => {
     });
   });
 
-  it('routes plain text to stable Terrace commands for agents', () => {
+  it('routes natural-language intent and slash-shaped compatibility commands for agents', () => {
     expect(routePlainText(tmpDir, 'plan phase 11')).toMatchObject({
       command: 'terrace phase plan phase-11-notifications',
       result: { phase_id: 'phase-11-notifications' }

@@ -54,7 +54,7 @@ Report artifacts are explicit: `terrace report` is read-only, while `terrace rep
 
 `terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance.
 
-- Codex reads `AGENTS.md`, which points agents to `terrace next`, `terrace do "<intent>"`, phase commands, quick-task commands, and `terrace ship check`.
+- Codex reads `AGENTS.md`, which points agents to `terrace next`, `terrace do "<intent>"` for natural-language intent, phase commands, quick-task commands, and `terrace ship check`.
 - Claude Code reads `CLAUDE.md` and gets project skills under `.claude/skills/`, including `/terrace-next`, `/terrace-plan`, `/terrace-execute`, `/terrace-quick`, and `/terrace-ship`.
 - `.terrace/agents/manifest.json` records which assets were written, skipped, or unchanged during the latest init run.
 
@@ -114,7 +114,7 @@ npx @jakyeamos33/terrace ship check --json
 - `terrace next` reports the next workflow action from state, handoff data, and blockers.
 - `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
 - `terrace history` summarizes migrated phases, sessions, decisions, and quick tasks.
-- `terrace do <plain text>` routes natural-language agent instructions to stable Terrace commands.
+- `terrace do <intent>` routes natural-language agent intent to stable Terrace commands.
 - `terrace autonomous` plans the next phase, prepares execution readiness, and stops at blockers or agent handoff.
 - `terrace execute-phase-complete <id>` runs phase plan, execute, validate, review, and complete in order, stopping at blockers.
 - `terrace settings effort <fast|standard|thorough>` sets the default phase effort used in planning and execution artifacts.
@@ -164,7 +164,7 @@ Migrated state includes roadmap phases and plans, decisions, sessions, handoff c
 5. Run `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, and `terrace phase complete <id>` to preserve execution history.
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
 
-Agents can use `terrace do "plan phase 11"`, `terrace do "/execute-phase-complete 11"`, `terrace do "/goal run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have plain text instead of a structured command.
+Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have natural-language intent instead of a structured command. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
 
 ## Senior Cycle
 
@@ -184,7 +184,7 @@ See `docs/terrace/SENIOR-CYCLE.md` for the audit report, target workflow, artifa
 - `terrace next` reports a blocked action after migration: complete or clear the migrated human action before treating the project as ready.
 - `terrace ship check` exits nonzero: inspect the failed category and run the listed command directly for detailed output.
 - `terrace ship check` reports `QUALITY_SCRIPT_MISSING`: add the suggested package script if that gate should be enforced for this project.
-- `terrace do <plain text>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
+- `terrace do <intent>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
 - Typecheck errors from package dependencies usually mean the repo is not using the supported `Bundler` module resolution settings in `tsconfig.json`.
 
 ## Development
