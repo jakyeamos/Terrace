@@ -22,6 +22,13 @@ describe('--json output mode for all CLI commands (CLI-12)', () => {
     const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'init', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
     const parsed = JSON.parse(stdout);
     expect(parsed.created).toContain('.terrace/state.json');
+    expect(parsed.agents.enabled).toBe(true);
+    expect(parsed.agents.manifest_path).toBe('.terrace/agents/manifest.json');
+    expect(parsed.agents.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'AGENTS.md', status: 'written' }),
+      expect.objectContaining({ path: 'CLAUDE.md', status: 'written' }),
+      expect.objectContaining({ path: '.terrace/agents/manifest.json', status: 'written' })
+    ]));
   });
 
   it('terrace doctor --json produces parseable JSON with blocking and warnings', () => {

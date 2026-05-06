@@ -6,6 +6,7 @@ const { createDefaultState, saveState } = require('./state.cjs');
 const { detectCommands, writeConfig } = require('./config.cjs');
 const { appendEvent } = require('./events.cjs');
 const { defaultRuleFiles, writeDefaultRules } = require('./rules.cjs');
+const { installAgentBootstrap } = require('./agents.cjs');
 
 function ensureDir(cwd, relPath, created) {
   const fullPath = path.resolve(cwd, relPath);
@@ -26,7 +27,8 @@ function initCore(cwd, options) {
     pentest_authorized: false,
     execution_policy: {
       default_mode: 'strict',
-      allow_low_effort: true
+      allow_low_effort: true,
+      phase_effort_default: 'standard'
     }
   });
   created.push('.terrace/config.json');
@@ -45,15 +47,22 @@ function initCore(cwd, options) {
     created.push(relPath);
   }
 
+  const agents = installAgentBootstrap(cwd);
+  for (const asset of agents.assets) {
+    if (asset.status === 'written') {
+      created.push(asset.path);
+    }
+  }
+
   appendEvent(cwd, {
     command: 'terrace init',
     from_state: 'uninitialized',
     to_state: 'initialized',
-    evidence_refs: ['.terrace/state.json', '.terrace/config.json']
+    evidence_refs: ['.terrace/state.json', '.terrace/config.json', agents.manifest_path]
   });
   created.push('.terrace/events.jsonl');
 
-  return { created };
+  return { created, agents };
 }
 
 module.exports = {

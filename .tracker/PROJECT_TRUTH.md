@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace remains tier-one release-ready with PRD intake commands for project initialization and feature imports, packaged as `@jakyeamos33/terrace` v0.1.1.
+summary: Terrace remains tier-one release-ready with PRD intake, default agent bootstrap assets, Terrace-native end-to-end phase routing, and configurable phase effort defaults.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Publish `@jakyeamos33/terrace@0.1.1`, then verify global CLI usage for `terrace new-project` and `terrace prd import`.
+nextStep: Decide whether to add more Terrace-native slash workflows beyond `/execute-phase-complete` and `/goal`, or move on to corpus automation.
 blockers: []
-lastUpdated: 2026-05-01
+lastUpdated: 2026-05-05
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -16,8 +16,8 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: main
-lastCommitDate: "2026-04-29"
+activeBranch: codex/agent-init-integration
+lastCommitDate: "2026-05-05"
 quality:
   lint: pass
   types: pass
@@ -40,11 +40,15 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npx vitest run tests/prd-intake.test.ts tests/core-cli.test.ts --reporter=verbose; npx vitest run tests/core-cli.test.ts --reporter=verbose; npm run typecheck; npm run lint; npm run ci; npm pack --dry-run; npm audit --audit-level=moderate; local PRD intake smoke
-lastVerifiedAt: "2026-05-01T17:58:00-04:00"
+lastVerifiedCommand: npm test; npm run typecheck; npm run lint; npm run package:dry-run; npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts
+lastVerifiedAt: "2026-05-05T18:56:10-04:00"
 ---
 
 ## Current State
+
+Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Claude project skills under `.claude/skills/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The Claude slash skill set now includes `/terrace-execute-phase-complete`, and Codex/agent routing can resolve `/execute-phase-complete <phase>` and `/goal <plain text>` through Terrace-native commands.
+
+The approved design spec and implementation plan remain at `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`.
 
 Terrace is at tier-one readiness for a public npm v0.1 release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest pass adds deterministic PRD intake through `terrace new-project <name> --prd|--paste-prd` and `terrace prd import <feature> --file|--paste`.
 
@@ -52,7 +56,7 @@ The latest hardening pass records release evidence for security, test-suite eval
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
-Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace autonomous`, `terrace commands discover`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
+Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrace resume`, `terrace history`, `terrace do <plain text>`, `terrace autonomous`, `terrace execute-phase-complete <id>`, `terrace settings effort <fast|standard|thorough>`, `terrace settings show`, `terrace commands discover`, `terrace phase list`, `terrace phase show <id>`, `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, `terrace phase complete <id>`, `terrace quick list`, `terrace quick show <id>`, `terrace quick plan <title>`, `terrace quick execute <id>`, `terrace quick complete <id>`, `terrace backlog list`, `terrace backlog add <title>`, `terrace ship check`, and `terrace ship prepare`. GSD-compatible aliases exist for `plan-phase`, `execute-phase`, `validate-phase`, `review-phase`, and `complete-phase`. Command contracts are exported from core so agent-facing expectations can align with CLI behavior.
 
 Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. These generators now infer source areas, architecture hints, test strategy, workstream lanes, route/component hints, unresolved evidence, and concrete affected files from the repo instead of blank TODO placeholders.
 
@@ -98,6 +102,10 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 1: Renamed the npm package to `@jakyeamos/terrace`, updated lock metadata, and updated README install/run docs including global install instructions for direct `terrace` commands.
 - May 1: Corrected npm scope to `@jakyeamos33/terrace` to match the authenticated npm username and resolve publish scope ownership errors.
 - May 1: Added deterministic PRD intake commands for new project initialization and feature PRD import, including source preservation, derived artifacts, state/events updates, CLI docs, direct core coverage, and v0.1.1 package metadata.
+- May 5: Added the approved design spec for default `terrace init` agent integration, covering Codex `AGENTS.md`, Claude `CLAUDE.md`, Claude project skills, manifest tracking, non-overwrite behavior, JSON output, and tests.
+- May 5: Added the implementation plan for default `terrace init` agent integration with task-level test, implementation, documentation, verification, and commit steps.
+- May 5: Implemented default `terrace init` agent bootstrap through `packages/terrace-core/src/agents.cjs`, including Codex guidance, Claude guidance, Claude project skills, manifest tracking, JSON output, preservation/idempotence tests, and README documentation.
+- May 5: Added Terrace-native end-to-end phase routing through `terrace execute-phase-complete <id>`, `/execute-phase-complete`, and `/goal`, plus persisted phase effort defaults with `terrace settings effort <fast|standard|thorough>`.
 
 ## Open Problems
 
@@ -107,11 +115,11 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Quality Ladder Notes
 
-- **Lint:** `npm run lint` PASS, checking 163 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
+- **Lint:** `npm run lint` PASS, checking 166 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS in `npm run ci`, 35 files and 256 tests
+- **Tests:** `npm test` PASS, 35 files and 261 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.21%, statements 85.74%, functions 88.76%, branches 70.86%
-- **Package:** `npm pack --dry-run` PASS for `@jakyeamos33/terrace@0.1.1`; packed-consumer e2e PASS in the full suite
+- **Package:** `npm run package:dry-run` PASS for `@jakyeamos33/terrace@0.1.1`, including `packages/terrace-core/src/agents.cjs`; packed-consumer e2e PASS in the full suite
 - **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
 - **Audit:** `npm audit --audit-level=moderate` PASS, zero vulnerabilities
 - **CI:** `npm run ci` PASS
@@ -125,10 +133,12 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Final full ship check:** `node src/terrace-tools.cjs ship check --json` PASS in full mode, zero blockers and zero warnings
 - **PRD intake focused tests:** `npx vitest run tests/prd-intake.test.ts tests/core-cli.test.ts --reporter=verbose` PASS, 15 tests
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
-- **Git status:** dirty on `main` with PRD intake implementation and documentation pending commit
+- **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
+- **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
+- **Git status:** pending final truth-file commit on `codex/agent-init-integration`
 
 ## Next Concrete Steps
 
-1. Commit the PRD intake implementation and documentation.
-2. Publish `@jakyeamos33/terrace@0.1.1`.
-3. Verify `npm install --global @jakyeamos33/terrace@0.1.1`, `terrace new-project`, and `terrace prd import` from a fresh repo.
+1. Decide whether to add more Terrace-native slash workflows beyond `/execute-phase-complete` and `/goal`.
+2. Consider adding a dedicated `terrace agents install` repair/refresh command for generated agent assets.
+3. Continue toward corpus automation for the existing shadow-branch test set.

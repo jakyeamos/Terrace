@@ -4,6 +4,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
+const { phaseEffortDefault } = require('./config.cjs');
 const { runAudit } = require('./audit.cjs');
 const { runDoctor } = require('./health.cjs');
 const { analyzeRepository, bulletList } = require('./repo-analysis.cjs');
@@ -115,7 +116,26 @@ function phaseContext(cwd, state, phase) {
   };
 }
 
-function planLinesForPhase(phase, blockers, context, discovered) {
+function effortGuidance(effort) {
+  if (effort === 'fast') {
+    return [
+      '- Use the narrowest plan that can satisfy stated acceptance criteria.',
+      '- Prefer existing tests and targeted verification before broader exploratory work.'
+    ];
+  }
+  if (effort === 'thorough') {
+    return [
+      '- Expand source review to adjacent files, historical plans, and failure modes before implementation.',
+      '- Include adversarial review, security implications, regression risk, and release evidence before completion.'
+    ];
+  }
+  return [
+    '- Cover migrated context, likely files, required gates, and focused regression risk.',
+    '- Escalate to thorough handling only when the phase changes shared contracts or release-critical behavior.'
+  ];
+}
+
+function planLinesForPhase(phase, blockers, context, discovered, effort) {
   const ctx = context || { plans: [], source_refs: [], source_snippets: [], quick_tasks: [], likely_files: [] };
   const criteria = Array.isArray(phase.success_criteria) ? phase.success_criteria : [];
   const commands = discovered && Array.isArray(discovered.checks)
@@ -133,6 +153,10 @@ function planLinesForPhase(phase, blockers, context, discovered) {
     '',
     '## Existing Plans',
     ...(ctx.plans.length > 0 ? ctx.plans.map((plan) => '- ' + (plan.title || plan.id) + ' (' + (plan.source_ref || plan.id || 'no source') + ')') : ['- No migrated plans were attached.']),
+    '',
+    '## Effort',
+    '- Default: ' + effort,
+    ...effortGuidance(effort),
     '',
     '## Migrated Context',
     ...(ctx.source_snippets.length > 0 ? ctx.source_snippets.flatMap((item) => [
@@ -195,12 +219,16 @@ function executionQueueForPhase(phase, context, discovered) {
   }));
 }
 
-function executionLinesForPhase(phase, queue, discovered) {
+function executionLinesForPhase(phase, queue, discovered, effort) {
   return [
     '# Execution Queue: ' + phase.title,
     '',
     '## Mode',
     '- Terrace prepares an execution queue and gate evidence; product-code edits remain explicit agent work.',
+    '',
+    '## Effort',
+    '- Default: ' + effort,
+    ...effortGuidance(effort),
     '',
     '## Tasks',
     ...queue.flatMap((task) => [
@@ -256,7 +284,7 @@ function updateQuickTask(state, itemId, fields) {
 }
 
 function findPhaseByText(state, text) {
-  const match = text.match(/(?:phase|plan-phase|execute-phase|validate-phase|review-phase|complete-phase)\s+([a-z0-9_.-]+)/i);
+  const match = text.match(/(?:phase|plan-phase|execute-phase|validate-phase|review-phase|complete-phase|execute-phase-complete|phase-complete-workflow)\s+([a-z0-9_.-]+)/i);
   if (!match) {
     return null;
   }
@@ -967,14 +995,16 @@ function phasePlan(cwd, phaseId) {
   const blockers = (state.blocked_actions || []).filter((item) => item.blocking);
   const context = phaseContext(cwd, state, phase);
   const discovered = discoverProjectCommands(cwd);
+  const effort = phaseEffortDefault(cwd);
   const planRef = phaseRef(phase) + '/PLAN.md';
-  writeMarkdown(cwd, planRef, planLinesForPhase(phase, blockers, context, discovered));
+  writeMarkdown(cwd, planRef, planLinesForPhase(phase, blockers, context, discovered, effort));
   const plannedAt = nowIso();
   const nextState = {
     ...updatePhase(state, phase.id, {
       status: 'planned',
       plan_ref: planRef,
       planned_at: plannedAt,
+      effort,
       source_refs: context.source_refs,
       likely_files: context.likely_files,
       next_command: 'terrace phase execute ' + phase.id
@@ -1002,6 +1032,7 @@ function phasePlan(cwd, phaseId) {
     source_refs: context.source_refs,
     likely_files: context.likely_files,
     related_quick_tasks: context.quick_tasks,
+    effort,
     blocked: blockers.length > 0,
     blockers,
     next_command: 'terrace phase execute ' + phase.id,
@@ -1015,11 +1046,13 @@ function phaseExecute(cwd, phaseId) {
   const blockers = (state.blocked_actions || []).filter((item) => item.blocking);
   const context = phaseContext(cwd, state, phase);
   const discovered = discoverProjectCommands(cwd);
+  const effort = phaseEffortDefault(cwd);
   const queue = executionQueueForPhase(phase, context, discovered);
   if (blockers.length > 0) {
     return {
       allowed: false,
       phase_id: phase.id,
+      effort,
       queue,
       blockers,
       required_action: 'Resolve blocking handoff actions before execution.'
@@ -1031,6 +1064,7 @@ function phaseExecute(cwd, phaseId) {
     return {
       allowed: false,
       phase_id: phase.id,
+      effort,
       queue,
       blockers: seniorGate.blockers,
       senior_cycle: seniorGate,
@@ -1044,12 +1078,13 @@ function phaseExecute(cwd, phaseId) {
     { id: 'completion', status: 'pending', command: 'terrace phase complete ' + phase.id }
   ];
   const executionRef = phaseRef(phase) + '/EXECUTION.md';
-  writeMarkdown(cwd, executionRef, executionLinesForPhase(phase, queue, discovered));
+  writeMarkdown(cwd, executionRef, executionLinesForPhase(phase, queue, discovered, effort));
   const nextState = {
     ...updatePhase(state, phase.id, {
       status: 'executing',
       execution_started_at: startedAt,
       execution_ref: executionRef,
+      effort,
       execution: {
         status: 'red_required',
         queue,
@@ -1076,6 +1111,7 @@ function phaseExecute(cwd, phaseId) {
   return {
     allowed: true,
     phase_id: phase.id,
+    effort,
     status: 'red_required',
     execution_ref: executionRef,
     queue,
@@ -1655,6 +1691,51 @@ function autonomousWorkflow(cwd) {
   };
 }
 
+function phaseCompleteWorkflow(cwd, phaseId) {
+  const state = loadState(cwd);
+  const phase = findPhase(state, phaseId);
+  const steps = [];
+  const planned = phasePlan(cwd, phase.id);
+  steps.push({ command: 'terrace phase plan ' + phase.id, result: planned });
+  const execution = phaseExecute(cwd, phase.id);
+  steps.push({ command: 'terrace phase execute ' + phase.id, result: execution });
+  if (!execution.allowed) {
+    return {
+      status: 'blocked',
+      phase_id: phase.id,
+      effort: planned.effort,
+      steps,
+      blockers: execution.blockers || planned.blockers || [],
+      required_action: execution.required_action || 'Resolve blockers before continuing phase completion.',
+      next_command: 'terrace phase execute ' + phase.id
+    };
+  }
+  const validated = phaseValidate(cwd, phase.id);
+  steps.push({ command: 'terrace phase validate ' + phase.id, result: validated });
+  const reviewed = phaseReview(cwd, phase.id);
+  steps.push({ command: 'terrace phase review ' + phase.id, result: reviewed });
+  const completed = phaseComplete(cwd, phase.id);
+  steps.push({ command: 'terrace phase complete ' + phase.id, result: completed });
+  if (!completed.allowed) {
+    return {
+      status: 'blocked',
+      phase_id: phase.id,
+      effort: planned.effort,
+      steps,
+      blockers: completed.blockers || [],
+      required_action: completed.required_action,
+      next_command: 'terrace phase complete ' + phase.id
+    };
+  }
+  return {
+    status: 'completed',
+    phase_id: phase.id,
+    effort: planned.effort,
+    steps,
+    next_command: completed.next_command
+  };
+}
+
 function routePlainText(cwd, text) {
   const input = String(text || '').trim();
   if (!input) {
@@ -1664,6 +1745,15 @@ function routePlainText(cwd, text) {
   const state = loadState(cwd);
   const phase = findPhaseByText(state, input);
 
+  if (/\/(?:terrace:)?execute-phase-complete\s+/i.test(input) && phase) {
+    return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
+  }
+  if (/\/(?:terrace:)?goal\b/i.test(input)) {
+    const goal = input.replace(/^.*?\/(?:terrace:)?goal\b\s*/i, '').trim();
+    if (goal) {
+      return routePlainText(cwd, goal);
+    }
+  }
   if (/\/gsd:plan-phase\s+/i.test(input) && phase) {
     return { input, command: 'terrace phase plan ' + phase.id, result: phasePlan(cwd, phase.id) };
   }
@@ -1681,6 +1771,9 @@ function routePlainText(cwd, text) {
   }
   if (/\b(run|execute|start)\s+the\s+next\s+phase\b/.test(lowered) || /\bautonomous\b/.test(lowered)) {
     return { input, command: 'terrace autonomous', result: autonomousWorkflow(cwd) };
+  }
+  if (phase && /\b(end[-\s]?to[-\s]?end|complete\s+workflow|full\s+phase|execute\s+phase\s+complete|phase\s+complete\s+workflow)\b/.test(lowered)) {
+    return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
   }
   if (/\b(next|what next|continue)\b/.test(lowered)) {
     return { input, command: 'terrace next', result: nextWorkflow(cwd) };
@@ -1735,6 +1828,7 @@ module.exports = {
   phaseValidate,
   phaseReview,
   phaseComplete,
+  phaseCompleteWorkflow,
   resumeWorkflow,
   nextWorkflow,
   historySummary,

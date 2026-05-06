@@ -38,6 +38,7 @@ const {
   phaseValidate,
   phaseReview,
   phaseComplete,
+  phaseCompleteWorkflow,
   resumeWorkflow,
   nextWorkflow,
   historySummary,
@@ -87,6 +88,8 @@ const {
   designSourceImport,
   designSourceDiff,
   runSecurityCheck,
+  settingsShow,
+  settingsSetEffort,
   newProjectFromPrd,
   importFeaturePrd
 } = require('../packages/terrace-core/src/index.cjs');
@@ -112,6 +115,9 @@ const HELP_TEXT = [
   '  terrace history              Summarize migrated operational history',
   '  terrace do <plain text>      Route natural language to a Terrace command',
   '  terrace autonomous           Plan next phase and stop at blocker or handoff',
+  '  terrace execute-phase-complete <id> Plan, execute, validate, review, and complete one phase',
+  '  terrace settings show        Show Terrace settings',
+  '  terrace settings effort <fast|standard|thorough>',
   '  terrace commands discover    Discover project quality scripts',
   '  terrace align <feature>      Write senior-cycle alignment artifact',
   '  terrace interrogate <feature> Write edge-case and failure-mode artifact',
@@ -598,6 +604,19 @@ async function main() {
       fail('Unknown commands subcommand: ' + sub + '. Use: discover', { json });
       return;
     }
+    case 'settings': {
+      const sub = args[1];
+      if (!sub || sub === 'show') {
+        output(settingsShow(cwd), { json });
+        return;
+      }
+      if (sub === 'effort') {
+        output(settingsSetEffort(cwd, args[2]), { json });
+        return;
+      }
+      fail('Unknown settings subcommand: ' + sub + '. Use: show, effort', { json });
+      return;
+    }
     case 'align': {
       output(alignFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
       return;
@@ -685,6 +704,14 @@ async function main() {
         command_alias: 'terrace phase ' + action + ' ' + phaseId,
         result: handlers[action](cwd, phaseId)
       }, { json });
+      return;
+    }
+    case 'execute-phase-complete': {
+      const phaseId = args[1];
+      if (!phaseId) {
+        fail('Usage: terrace execute-phase-complete <phase-id>', { json });
+      }
+      output(phaseCompleteWorkflow(cwd, phaseId), { json });
       return;
     }
     case 'init': {

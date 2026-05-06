@@ -4,6 +4,7 @@ module.exports = {
   ...require('./state.cjs'),
   ...require('./events.cjs'),
   ...require('./config.cjs'),
+  ...require('./agents.cjs'),
   ...require('./rules.cjs'),
   ...require('./init.cjs'),
   ...require('./prd-intake.cjs'),
