@@ -4,9 +4,9 @@ projectName: Terrace
 summary: Terrace remains tier-one release-ready with PRD intake, default agent bootstrap assets, Terrace-native end-to-end phase routing, and configurable phase effort defaults.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Verify the locally merged `main`, delete the merged feature branch, then decide whether to add more Terrace-native slash workflows or move on to corpus automation.
+nextStep: Decide whether to add more Terrace-native slash workflows or move on to corpus automation.
 blockers: []
-lastUpdated: 2026-05-05
+lastUpdated: 2026-05-06
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -40,7 +40,7 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts; npm run lint
+lastVerifiedCommand: npm test; npm run typecheck; npm run lint; npm run package:dry-run; npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts
 lastVerifiedAt: "2026-05-06T05:17:01-04:00"
 ---
 
@@ -138,10 +138,10 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
 - **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
 - **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
-- **Git status:** clean after intent-routing wording correction commit
+- **Git status:** merged locally on `main`; `codex/agent-init-integration` branch deleted after merge verification
 
 ## Next Concrete Steps
 
-1. Run verification on merged `main`.
-2. Delete the merged `codex/agent-init-integration` branch.
-3. Continue toward corpus automation or additional Terrace-native slash workflows.
+1. Decide whether to add more Terrace-native slash workflows beyond the current agent bootstrap set.
+2. Consider adding a dedicated `terrace agents install` repair/refresh command for generated agent assets.
+3. Continue toward corpus automation for the existing shadow-branch test set.
