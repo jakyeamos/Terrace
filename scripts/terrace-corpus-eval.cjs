@@ -209,7 +209,7 @@ function commandPlanForTrack(track, repo) {
     commands.push(
       { key: 'init', category: 'baseline', args: ['init', '--json'] },
       { key: 'new-project', category: 'scratch-intake', args: ['new-project', project, '--prd', 'docs/input/CORPUS-PRD.md', '--json'] },
-      { key: 'interrogate-project', category: 'interrogation', args: ['interrogate', project, '--tier', 'large', '--json'] },
+      { key: 'interrogate-project', category: 'interrogation', args: ['interrogate', project, '--tier', 'large', '--answers', 'Corpus user answer: preserve the imported PRD outcome, challenge rollout risk, and require rollback ownership.', '--json'] },
       { key: 'prd-import', category: 'scratch-intake', args: ['prd', 'import', feature, '--file', 'docs/input/CORPUS-FEATURE-PRD.md', '--json'] },
       { key: 'prd-import-overwrite-refusal', category: 'scratch-intake', args: ['prd', 'import', feature, '--file', 'docs/input/CORPUS-FEATURE-PRD.md', '--json'], expectedFailure: true }
     );
@@ -230,8 +230,8 @@ function commandPlanForTrack(track, repo) {
     { key: 'quick-list', category: 'quick-task', args: ['quick', 'list', '--json'] },
     { key: 'quick-plan', category: 'quick-task', args: ['quick', 'plan', 'Terrace corpus smoke task', '--json'] },
     { key: 'align', category: 'senior-cycle', args: ['align', feature, '--tier', 'large', '--json'] },
-    { key: 'interrogate', category: 'interrogation', args: ['interrogate', feature, '--tier', 'large', '--json'] },
-    { key: 'interrogate-risk', category: 'interrogation', args: ['interrogate', 'risk', feature, '--tier', 'large', '--json'] },
+    { key: 'interrogate', category: 'interrogation', args: ['interrogate', feature, '--tier', 'large', '--answers', 'Corpus user answer: protect the feature workflow, test malformed input and permission failures, and roll back on data loss or auth regression.', '--json'] },
+    { key: 'interrogate-risk', category: 'interrogation', args: ['interrogate', 'risk', feature, '--tier', 'large', '--answers', 'Corpus user answer: risk owner must approve auth, billing, migration, and server changes before release.', '--json'] },
     { key: 'map-codebase', category: 'senior-cycle', args: ['map-codebase', '--json'] },
     { key: 'design', category: 'senior-cycle', args: ['design', feature, '--tier', 'large', '--json'] },
     { key: 'test-plan', category: 'senior-cycle', args: ['test-plan', feature, '--tier', 'large', '--json'] },

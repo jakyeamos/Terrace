@@ -59,7 +59,7 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     command: 'terrace interrogate <feature>',
     category: 'senior-cycle',
     json: true,
-    purpose: 'Create edge-case, assumption-challenge, and failure-mode interrogation artifacts.'
+    purpose: 'Capture user-driven edge-case, assumption-challenge, and failure-mode interrogation before writing artifacts.'
   },
   {
     command: 'terrace map-codebase',

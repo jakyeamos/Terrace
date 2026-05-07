@@ -70,8 +70,10 @@ describe('terrace-core init and events', () => {
     expect(fs.readFileSync(path.join(tmpDir, 'CLAUDE.md'), 'utf-8')).toContain('terrace do "<intent>"');
     expect(fs.readFileSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toContain('name: terrace-next');
     expect(fs.readFileSync(path.join(tmpDir, '.agents', 'skills', 'terrace-align', 'SKILL.md'), 'utf-8')).toContain('Run `terrace align $ARGUMENTS`.');
+    expect(fs.readFileSync(path.join(tmpDir, '.agents', 'skills', 'terrace-interrogate', 'SKILL.md'), 'utf-8')).toContain('do not tell the user to rerun a command');
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toContain('name: terrace-next');
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'commands', 'terrace-next.md'), 'utf-8')).toContain('description: Find and follow the next Terrace workflow action.');
+    expect(fs.readFileSync(path.join(tmpDir, '.claude', 'commands', 'terrace-interrogate.md'), 'utf-8')).toContain('Use the answers as the authority');
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-ship-check', 'SKILL.md'), 'utf-8')).toContain('description: Run read-only release readiness checks.');
     const manifest = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'agents', 'manifest.json'), 'utf-8')) as {
       schema_version: string;

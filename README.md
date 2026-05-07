@@ -132,7 +132,7 @@ npx @jakyeamos33/terrace ship check --json
 - `terrace settings show` prints the current Terrace settings.
 - `terrace commands discover` detects package manager, project scripts, and quality-gate command mapping.
 - `terrace align <feature>` writes `docs/terrace/features/<feature>/ALIGNMENT.md` with customer, problem, success metrics, risks, rollout, observability, validation, and cleanup intent.
-- `terrace interrogate <feature>` writes edge-case, assumption-challenge, and failure-mode interrogation.
+- `terrace interrogate <feature>` captures user-driven edge-case, assumption-challenge, and failure-mode interrogation; agent skills ask the questions inline before writing the artifact.
 - `terrace map-codebase` writes codebase map, architecture, risks, testing, and observability context under `docs/terrace/codebase/`.
 - `terrace design <feature>` records architecture decisions, tradeoffs, maintainability, and the no band-aid rule.
 - `terrace test-plan <feature>` writes the behavior-first `docs/testing/TEST-PLAN.md` required before implementation.

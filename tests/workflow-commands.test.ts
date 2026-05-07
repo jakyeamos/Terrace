@@ -303,7 +303,10 @@ describe('workflow parity core helpers', () => {
     }));
 
     const aligned = alignFeature(tmpDir, featureId, { tier: 'large' });
-    const interrogated = interrogateFeature(tmpDir, featureId, { tier: 'large' });
+    const interrogated = interrogateFeature(tmpDir, featureId, {
+      tier: 'large',
+      userAnswers: 'User workflow: billing admins can refresh invoices safely.\nRollback trigger: failed invoice reconciliation.'
+    });
     const mapped = mapCodebase(tmpDir);
     const designed = designFeature(tmpDir, featureId, { tier: 'large' });
     const tested = testPlanFeature(tmpDir, featureId, { tier: 'large' });
@@ -314,6 +317,7 @@ describe('workflow parity core helpers', () => {
 
     expect(aligned.artifact).toBe('docs/terrace/features/billing-refresh/ALIGNMENT.md');
     expect(interrogated.artifact).toBe('docs/terrace/features/billing-refresh/INTERROGATION.md');
+    expect(fs.readFileSync(path.join(tmpDir, interrogated.artifact), 'utf-8')).toContain('User workflow: billing admins can refresh invoices safely.');
     expect(mapped.artifacts).toEqual([
       'docs/terrace/codebase/MAP.md',
       'docs/terrace/codebase/ARCHITECTURE.md',

@@ -50,7 +50,7 @@ describe('agent production lifecycle full command surface', () => {
   });
 
   it('supports interrogation modes and structured AI reviews', () => {
-    const adjust = runTerrace(tmpDir, ['interrogate', 'adjust', 'billing-refresh', '--json']);
+    const adjust = runTerrace(tmpDir, ['interrogate', 'adjust', 'billing-refresh', '--answers', 'User confirmed adjustment risk and rollback owner.', '--json']);
     const review = runTerrace(tmpDir, ['review', 'ai', '--mode', 'security', '--feature', 'billing-refresh', '--json']);
 
     expect(adjust).toMatchObject({

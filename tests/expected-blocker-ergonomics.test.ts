@@ -79,6 +79,25 @@ describe('expected blocker ergonomics', () => {
     });
   });
 
+  it('refuses to complete interrogation without user input and returns questions for the agent to ask', () => {
+    const result = runTerrace(tmpDir, ['interrogate', 'billing-refresh', '--json']);
+
+    expect(result.status).toBe(1);
+    expect(result.json).toMatchObject({
+      error: 'INTERROGATION_REQUIRES_USER_INPUT',
+      details: {
+        code: 'INTERROGATION_REQUIRES_USER_INPUT',
+        feature_id: 'billing-refresh',
+        mode: 'init',
+        questions: expect.arrayContaining([
+          expect.stringContaining('What user workflow or business outcome')
+        ]),
+        remediation: expect.stringContaining('Ask the user these questions')
+      }
+    });
+    expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'billing-refresh', 'INTERROGATION.md'))).toBe(false);
+  });
+
   it('summarizes ship-check blockers with next and recheck commands', () => {
     initCore(tmpDir, { projectName: 'Ship UX' });
     fs.writeFileSync(path.join(tmpDir, 'docs', 'prd', 'PRD.md'), '# PRD\n', 'utf-8');

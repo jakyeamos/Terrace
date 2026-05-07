@@ -125,7 +125,7 @@ const HELP_TEXT = [
   '  terrace settings effort <fast|standard|thorough>',
   '  terrace commands discover    Discover project quality scripts',
   '  terrace align <feature>      Write senior-cycle alignment artifact',
-  '  terrace interrogate <feature> Write edge-case and failure-mode artifact',
+  '  terrace interrogate <feature> Capture user-driven edge-case and failure-mode interrogation',
   '  terrace map-codebase         Write codebase context artifacts',
   '  terrace design <feature>     Write architecture decision artifact',
   '  terrace test-plan <feature>  Write behavior-first test strategy',
@@ -192,17 +192,33 @@ function optionValue(rawArgs, name) {
 
 function seniorOptions(rawArgs) {
   return {
-    tier: optionValue(rawArgs, '--tier')
+    tier: optionValue(rawArgs, '--tier'),
+    userAnswers: interrogationAnswers(rawArgs)
   };
+}
+
+function interrogationAnswers(rawArgs) {
+  const inline = optionValue(rawArgs, '--answers');
+  if (inline) {
+    return inline;
+  }
+  const answersFile = optionValue(rawArgs, '--answers-file');
+  if (answersFile) {
+    return readFileInput(process.cwd(), answersFile);
+  }
+  if (hasFlag(rawArgs, '--paste-answers')) {
+    return readStdinInput();
+  }
+  return null;
 }
 
 function readFileInput(cwd, filePath) {
   if (!filePath) {
-    throw new Error('Missing PRD file path.');
+    throw new Error('Missing input file path.');
   }
   const resolved = path.resolve(cwd, filePath);
   if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
-    throw new Error('PRD file not found: ' + filePath);
+    throw new Error('Input file not found: ' + filePath);
   }
   return fs.readFileSync(resolved, 'utf8');
 }

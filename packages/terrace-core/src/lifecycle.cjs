@@ -8,6 +8,7 @@ const { runAudit } = require('./audit.cjs');
 const { analyzeRepository, bulletList, groupFilesByLane, readSmallText } = require('./repo-analysis.cjs');
 const { normalizeImportedFindings, staticReviewFindings } = require('./artifact-analysis.cjs');
 const { blocker, warning } = require('./guidance.cjs');
+const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -1068,11 +1069,18 @@ function interrogateMode(cwd, mode, feature, options) {
   const repo = analyzeRepository(cwd);
   const changed = repo.changed_files.slice(0, 8);
   const riskFiles = repo.files.filter((file) => /(auth|permission|billing|payment|migration|schema|api|route|server|cache)/i.test(file)).slice(0, 8);
+  const interrogation = requireInterrogationAnswers(featureId, normalized, repo, options);
   writeMarkdown(cwd, artifact, [
     '# ' + headingByMode[normalized] + ': ' + featureId,
     '',
     '## Mode',
     '- ' + normalized,
+    '',
+    '## User Answers',
+    ...answerLines(interrogation.userAnswers).map((line) => line.length > 0 ? line : ''),
+    '',
+    '## Questions Asked',
+    ...interrogation.questions.map((question) => '- ' + question),
     '',
     '## Assumptions',
     '- Changed files considered: ' + (changed.length > 0 ? changed.join(', ') : 'no git diff files detected'),

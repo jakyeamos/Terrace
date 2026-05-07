@@ -85,7 +85,7 @@ const TERRACE_COMMANDS = [
   ['terrace-settings-show', 'terrace settings show', '', 'Show current Terrace settings.'],
   ['terrace-commands-discover', 'terrace commands discover', '', 'Discover project quality scripts and command mappings.'],
   ['terrace-align', 'terrace align $ARGUMENTS', '<feature>', 'Write senior-cycle alignment intent for a feature.'],
-  ['terrace-interrogate', 'terrace interrogate $ARGUMENTS', '<feature>', 'Write edge-case, assumption-challenge, and failure-mode interrogation.'],
+  ['terrace-interrogate', 'terrace interrogate $ARGUMENTS', '<feature>', 'Gather user input for edge-case, assumption-challenge, and failure-mode interrogation.'],
   ['terrace-map-codebase', 'terrace map-codebase', '', 'Write repo-derived codebase map, architecture, risks, testing, and observability context.'],
   ['terrace-design', 'terrace design $ARGUMENTS', '<feature>', 'Record architecture decisions, tradeoffs, maintainability, and no-band-aid intent.'],
   ['terrace-test-plan', 'terrace test-plan $ARGUMENTS', '<feature>', 'Write the behavior-first test plan required before implementation.'],
@@ -130,6 +130,24 @@ function titleFromName(name) {
 
 function workflowFromCommand(entry) {
   const [name, command, argumentHint, description] = entry;
+  if (name === 'terrace-interrogate') {
+    return {
+      name,
+      description,
+      argumentHint,
+      body: [
+        '# Terrace Interrogate',
+        '',
+        'Run `terrace interrogate $ARGUMENTS --json` first to get repo-informed interrogation questions.',
+        '',
+        'If Terrace reports `INTERROGATION_REQUIRES_USER_INPUT`, do not tell the user to rerun a command. Ask the returned questions in this chat, wait for the user answers, then run `terrace interrogate $ARGUMENTS --answers-file <captured-answer-file> --json` yourself.',
+        '',
+        'Use the answers as the authority. Repository analysis may suggest risks and prompts, but it must never replace user input for interrogation.',
+        '',
+        'Inspect Terrace blockers, warnings, generated files, and next-command output before continuing. Do not bypass Terrace gates or claim success when the command reports blockers.'
+      ]
+    };
+  }
   return {
     name,
     description,

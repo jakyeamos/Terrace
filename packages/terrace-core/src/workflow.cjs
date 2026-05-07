@@ -11,6 +11,7 @@ const { blocker, topBlockers, warning } = require('./guidance.cjs');
 const { runDoctor } = require('./health.cjs');
 const { analyzeRepository, bulletList } = require('./repo-analysis.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
+const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
 const {
   reportUpdate,
   reportShipCheck,
@@ -698,8 +699,15 @@ function interrogateFeature(cwd, feature, options) {
   const tier = normalizeTier(options && options.tier);
   const artifact = seniorArtifactRefs(featureId).interrogation;
   const repo = analyzeRepository(cwd);
+  const interrogation = requireInterrogationAnswers(featureId, 'init', repo, options);
   writeMarkdown(cwd, artifact, [
     '# Interrogation: ' + featureId,
+    '',
+    '## User Answers',
+    ...answerLines(interrogation.userAnswers).map((line) => line.length > 0 ? line : ''),
+    '',
+    '## Questions Asked',
+    ...interrogation.questions.map((question) => '- ' + question),
     '',
     '## Assumptions To Challenge',
     '- Customer behavior must match changed routes/components: ' + (repo.route_hints.concat(repo.component_hints).slice(0, 8).join(', ') || 'no UI files detected'),

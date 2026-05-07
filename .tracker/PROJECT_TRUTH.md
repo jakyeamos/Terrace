@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, and a first-class cross-repo corpus CLI whose latest sample run reports zero product weaknesses.
+summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, and a first-class cross-repo corpus CLI whose latest sample run reports zero product weaknesses.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Use `terrace corpus run --dry-run-plan --sample --json` and `terrace corpus report --json` as the public readiness loop, then decide whether dead-code scanning belongs in the release gate.
+nextStep: Run a fresh corpus sample after the interrogate behavior change, then decide whether dead-code scanning belongs in the release gate.
 blockers: []
 lastUpdated: 2026-05-07
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: node -c packages/terrace-core/src/agents.cjs; npm test -- tests/core-init.test.ts tests/json-mode.test.ts tests/product-readiness.test.ts; TERRACE_GLOBAL_AGENTS_DIR=/private/tmp/terrace-global-agent-smoke TERRACE_GLOBAL_CLAUDE_DIR=/private/tmp/terrace-global-claude-smoke node src/terrace-tools.cjs agents install-global --json; node src/terrace-tools.cjs agents install-global --json; npm run lint; npm run typecheck
-lastVerifiedAt: "2026-05-07T08:51:22-04:00"
+lastVerifiedCommand: npm test -- tests/expected-blocker-ergonomics.test.ts tests/core-init.test.ts tests/workflow-commands.test.ts tests/agent-production-lifecycle-full.test.ts; npm run lint; npm run typecheck; node -c packages/terrace-core/src/interrogation.cjs && node -c packages/terrace-core/src/agents.cjs && node -c src/terrace-tools.cjs; node src/terrace-tools.cjs interrogate billing-refresh --json; node src/terrace-tools.cjs interrogate billing-refresh --answers <captured-user-answers> --json; npm test
+lastVerifiedAt: "2026-05-07T14:37:00-04:00"
 ---
 
 ## Current State
@@ -118,6 +118,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 5: Added Terrace-native end-to-end phase routing through `terrace execute-phase-complete <id>` and natural-language goal routing, plus persisted phase effort defaults with `terrace settings effort <fast|standard|thorough>`.
 - May 6: Merged `codex/agent-init-integration` locally into `main` and preserved the intent-routing wording update across CLI help, command contracts, workflow errors, and generated agent guidance.
 - May 6: Bumped the package to `0.1.2`, updated the changelog, and passed the npm release checks using an isolated npm cache because the user-level npm cache has root-owned files.
+- May 7: Reworked `terrace interrogate` so the CLI refuses to write interrogation artifacts without user answers, returns repo-informed questions for the agent to ask inline, records `User Answers` in the artifact, and regenerates Codex/Claude interrogate skills around the GSD-style discussion handoff.
 - May 6: Replaced the `package:dry-run` script with a Node wrapper that uses a writable temp npm cache so `terrace ship check` and CI are not blocked by root-owned files in `~/.npm`.
 - May 6: Fixed agent command discovery by adding Codex `.agents/skills/terrace-*`, Claude `.claude/commands/terrace-*`, required skill `name` frontmatter, and repo-local Terrace command assets.
 - May 6: Expanded agent command discovery from the initial shortcut set to the full README command-reference surface, generating 57 Codex skills, 57 Claude skills, and 57 Claude command files while removing stale shortcut-only assets.
@@ -163,6 +164,6 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Next Concrete Steps
 
-1. Run a fresh full `terrace corpus run --sample --json` before publishing if the expected-blocker UX changes need live corpus evidence beyond the dry-run and focused tests.
+1. Run a fresh full `terrace corpus run --sample --json` before publishing so the corpus report reflects user-driven interrogate behavior.
 2. Configure dead-code scanning or explicitly document why it remains out of scope for the current release.
 3. Review whether the remaining intentional blocker language in `docs/terrace/corpus/REPORT.md` needs README/tutorial examples for public beta users.
