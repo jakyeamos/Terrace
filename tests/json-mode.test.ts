@@ -33,21 +33,30 @@ describe('--json output mode for all CLI commands (CLI-12)', () => {
 
   it('terrace agents install-global --json installs into the configured global agents directory', () => {
     const globalAgentsDir = path.join(tmpDir, 'global-agents');
+    const globalClaudeDir = path.join(tmpDir, 'global-claude');
     const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'agents', 'install-global', '--json'], {
       cwd: tmpDir,
       encoding: 'utf-8',
-      env: { ...process.env, TERRACE_GLOBAL_AGENTS_DIR: globalAgentsDir }
+      env: { ...process.env, TERRACE_GLOBAL_AGENTS_DIR: globalAgentsDir, TERRACE_GLOBAL_CLAUDE_DIR: globalClaudeDir }
     });
     const parsed = JSON.parse(stdout);
     expect(parsed.enabled).toBe(true);
     expect(parsed.global_agents_dir).toBe(globalAgentsDir);
+    expect(parsed.global_claude_dir).toBe(globalClaudeDir);
     expect(parsed.next_command).toBe('/terrace');
     expect(parsed.assets).toEqual(expect.arrayContaining([
       expect.objectContaining({ path: 'skills/terrace/SKILL.md', status: 'written' }),
       expect.objectContaining({ path: 'skills/terrace-next/SKILL.md', status: 'written' }),
       expect.objectContaining({ path: 'terrace/manifest.json', status: 'written' })
     ]));
+    expect(parsed.claude_assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'skills/terrace/SKILL.md', status: 'written' }),
+      expect.objectContaining({ path: 'commands/terrace.md', status: 'written' }),
+      expect.objectContaining({ path: 'commands/terrace-next.md', status: 'written' }),
+      expect.objectContaining({ path: 'terrace/manifest.json', status: 'written' })
+    ]));
     expect(fs.existsSync(path.join(globalAgentsDir, 'skills', 'terrace', 'SKILL.md'))).toBe(true);
+    expect(fs.existsSync(path.join(globalClaudeDir, 'commands', 'terrace.md'))).toBe(true);
   });
 
   it('terrace doctor --json produces parseable JSON with blocking and warnings', () => {

@@ -17,7 +17,7 @@ If you want `terrace` available globally (no `npx`), install it globally:
 npm install --global @jakyeamos33/terrace
 ```
 
-To make Terrace slash skills available in Codex across local repos, install the global agent skills:
+To make Terrace slash commands and skills available in Codex and Claude Code across local repos, install the global agent assets:
 
 ```sh
 terrace agents install-global
@@ -68,7 +68,7 @@ Report artifacts are explicit: `terrace report` is read-only, while `terrace rep
 
 If `AGENTS.md`, `CLAUDE.md`, or a matching Codex skill, Claude skill, or Claude command already exists, Terrace does not overwrite it. Merge the generated guidance manually if your project already has custom agent instructions.
 
-For global local Codex discovery, `terrace agents install-global` writes `~/.agents/skills/terrace/SKILL.md`, `~/.agents/skills/terrace-*/SKILL.md`, and `~/.agents/terrace/manifest.json` when absent. It preserves existing global skills and reports them as skipped. The `/terrace` entry routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next` when no arguments are provided.
+For global local discovery, `terrace agents install-global` writes Codex skills under `~/.agents/skills/`, Claude Code skills under `~/.claude/skills/`, Claude Code slash commands under `~/.claude/commands/`, and manifests under each tool directory when absent. It preserves existing global skills and commands and reports them as skipped. The `/terrace` entry routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next` when no arguments are provided.
 
 ## PRD Intake
 
@@ -112,7 +112,7 @@ npx @jakyeamos33/terrace ship check --json
 - `terrace --help` shows the top-level command list.
 - `terrace --version` prints the package version.
 - `terrace init` initializes Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent.
-- `terrace agents install-global` installs non-overwriting global Codex skills under `~/.agents/skills`, including `/terrace` and the full `/terrace-*` command-reference surface.
+- `terrace agents install-global` installs non-overwriting global Codex and Claude Code assets, including `/terrace` and the full `/terrace-*` command-reference surface.
 - `terrace new-project <name> --prd <file>` or `--paste-prd` initializes Terrace from a source PRD and writes project artifacts.
 - `terrace prd import <feature> --file <file>` or `--paste` imports a feature PRD into an existing Terrace project.
 - `terrace doctor` checks installation health.
@@ -190,7 +190,7 @@ See `docs/terrace/SENIOR-CYCLE.md` for the audit report, target workflow, artifa
 ## Troubleshooting
 
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
-- `/terrace` or `/terrace-*` is missing in another local repo: run `terrace agents install-global`, then reload the Codex session.
+- `/terrace` or `/terrace-*` is missing in another local repo: run `terrace agents install-global`, then reload the Codex or Claude Code session.
 - `Protected file changed without DECISION-LOG.md`: add a spec-linked decision before committing.
 - `terrace port gsd` refuses to overwrite state: re-run with `--force` only after preserving existing `.terrace/state.json`.
 - `terrace next` reports a blocked action after migration: complete or clear the migrated human action before treating the project as ready.

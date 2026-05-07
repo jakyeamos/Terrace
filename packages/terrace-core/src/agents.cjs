@@ -197,6 +197,31 @@ function globalTemplateAssets() {
   ];
 }
 
+function globalClaudeTemplateAssets() {
+  return [
+    {
+      path: 'skills/terrace/SKILL.md',
+      type: 'claude-global-skill',
+      content: skillContent(TERRACE_GLOBAL_ENTRYPOINT.name, TERRACE_GLOBAL_ENTRYPOINT.description, TERRACE_GLOBAL_ENTRYPOINT.body)
+    },
+    {
+      path: 'commands/terrace.md',
+      type: 'claude-global-command',
+      content: commandContent(TERRACE_GLOBAL_ENTRYPOINT.description, '<intent>', TERRACE_GLOBAL_ENTRYPOINT.body)
+    },
+    ...TERRACE_WORKFLOWS.map((workflow) => ({
+      path: 'skills/' + workflow.name + '/SKILL.md',
+      type: 'claude-global-skill',
+      content: skillContent(workflow.name, workflow.description, workflow.body)
+    })),
+    ...TERRACE_WORKFLOWS.map((workflow) => ({
+      path: 'commands/' + workflow.name + '.md',
+      type: 'claude-global-command',
+      content: commandContent(workflow.description, workflow.argumentHint, workflow.body)
+    }))
+  ];
+}
+
 function writeAsset(cwd, asset) {
   const target = path.resolve(cwd, asset.path);
   if (!target.startsWith(path.resolve(cwd) + path.sep)) {
@@ -244,8 +269,12 @@ function defaultGlobalAgentsDir() {
   return process.env.TERRACE_GLOBAL_AGENTS_DIR || path.join(os.homedir(), '.agents');
 }
 
-function writeGlobalAsset(globalAgentsDir, asset) {
-  const root = path.resolve(globalAgentsDir);
+function defaultGlobalClaudeDir() {
+  return process.env.TERRACE_GLOBAL_CLAUDE_DIR || path.join(os.homedir(), '.claude');
+}
+
+function writeGlobalAsset(rootDir, asset) {
+  const root = path.resolve(rootDir);
   const target = path.resolve(root, asset.path);
   if (!target.startsWith(root + path.sep)) {
     throw new Error('Global agent asset path escapes target directory: ' + asset.path);
@@ -263,16 +292,15 @@ function writeGlobalAsset(globalAgentsDir, asset) {
   return { path: asset.path, type: asset.type, status: 'written' };
 }
 
-function writeGlobalManifest(globalAgentsDir, assetResults) {
-  const relPath = 'terrace/manifest.json';
-  const root = path.resolve(globalAgentsDir);
+function writeGlobalManifest(rootDir, relPath, generatedBy, assetResults) {
+  const root = path.resolve(rootDir);
   const target = path.resolve(root, relPath);
   if (!target.startsWith(root + path.sep)) {
     throw new Error('Global agent manifest path escapes target directory.');
   }
   const manifest = {
     schema_version: AGENT_SCHEMA_VERSION,
-    generated_by: 'terrace agents install-global',
+    generated_by: generatedBy,
     assets: assetResults
   };
   const content = JSON.stringify(manifest, null, 2) + '\n';
@@ -285,13 +313,19 @@ function writeGlobalManifest(globalAgentsDir, assetResults) {
 function installGlobalAgentBootstrap(options) {
   const opts = options || {};
   const globalAgentsDir = path.resolve(opts.globalAgentsDir || defaultGlobalAgentsDir());
-  const assetResults = globalTemplateAssets().map((asset) => writeGlobalAsset(globalAgentsDir, asset));
-  const manifestResult = writeGlobalManifest(globalAgentsDir, assetResults);
+  const globalClaudeDir = path.resolve(opts.globalClaudeDir || defaultGlobalClaudeDir());
+  const codexAssetResults = globalTemplateAssets().map((asset) => writeGlobalAsset(globalAgentsDir, asset));
+  const codexManifestResult = writeGlobalManifest(globalAgentsDir, 'terrace/manifest.json', 'terrace agents install-global', codexAssetResults);
+  const claudeAssetResults = globalClaudeTemplateAssets().map((asset) => writeGlobalAsset(globalClaudeDir, asset));
+  const claudeManifestResult = writeGlobalManifest(globalClaudeDir, 'terrace/manifest.json', 'terrace agents install-global', claudeAssetResults);
   return {
     enabled: true,
     global_agents_dir: globalAgentsDir,
-    manifest_path: manifestResult.path,
-    assets: [...assetResults, manifestResult],
+    global_claude_dir: globalClaudeDir,
+    manifest_path: codexManifestResult.path,
+    claude_manifest_path: claudeManifestResult.path,
+    assets: [...codexAssetResults, codexManifestResult],
+    claude_assets: [...claudeAssetResults, claudeManifestResult],
     next_command: '/terrace'
   };
 }
@@ -345,6 +379,7 @@ module.exports = {
   agentAssetExpectations,
   installGlobalAgentBootstrap,
   installAgentBootstrap,
+  globalClaudeTemplateAssets,
   globalTemplateAssets,
   templateAssets
 };
