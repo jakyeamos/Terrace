@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable Codex and Claude agent commands, Terrace-native end-to-end phase routing, configurable phase effort defaults, and a repeatable cross-repo corpus evaluation harness.
+summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable Codex and Claude agent commands, Terrace-native end-to-end phase routing, configurable phase effort defaults, and a repeatable cross-repo corpus evaluation harness whose latest sample run reports zero product weaknesses.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Use the corpus report to fix the highest-priority findings: agent asset verification on migrated branches and `port gsd --verify-parity` `state_details` mapping.
+nextStep: Review the corpus expected-blocker watchlist and decide which command ergonomics improvements should be promoted into the next product pass.
 blockers: []
-lastUpdated: 2026-05-06
+lastUpdated: 2026-05-07
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -16,8 +16,8 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: main
-lastCommitDate: "2026-05-06"
+activeBranch: codex/corpus-improvement-report-fixes
+lastCommitDate: "2026-05-07"
 quality:
   lint: pass
   types: pass
@@ -41,14 +41,16 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: npm run lint; npm run typecheck; npm test; npm run package:dry-run; npm run corpus:evaluate -- --dry-run-plan --sample; npm run corpus:evaluate -- --sample
-lastVerifiedAt: "2026-05-06T20:29:30-04:00"
+lastVerifiedAt: "2026-05-07T00:58:18-04:00"
 ---
 
 ## Current State
 
 Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 57 Codex skills and 57 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, and `/terrace-execute-phase-complete`.
 
-Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace-corpus-eval.cjs`, exposed as `npm run corpus:evaluate`. The harness packages local Terrace once, installs the tarball into disposable real-repo worktrees and synthetic fixture repos, tests migrated-GSD, real scratch, and synthetic scratch tracks, captures per-command evidence, scores command behavior, and writes Markdown plus JSON reports under `docs/terrace/corpus/`. The first sample run evaluated 962 command executions across eight real repos and five synthetic fixtures, with 762 passes, 139 expected blockers, 4 product weaknesses, 57 skips, and zero harness/environment issues.
+Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace-corpus-eval.cjs`, exposed as `npm run corpus:evaluate`. The harness packages local Terrace once, installs the tarball into disposable real-repo worktrees and synthetic fixture repos, tests migrated-GSD, real scratch, and synthetic scratch tracks, captures per-command evidence, scores command behavior, and writes Markdown plus JSON reports under `docs/terrace/corpus/`. The latest sample run `2026-05-07T04-42-21-292Z` evaluated 962 command executions across eight real repos and five synthetic fixtures, with 764 passes, 141 expected blockers, 57 skips, zero product weaknesses, and zero harness/environment issues.
+
+The corpus improvement pass fixed the two highest-priority report findings. `terrace port gsd --verify-parity` now treats preserved non-empty `.planning/STATE.md` evidence as mapped `state_details`, still extracts richer decisions/backlog concepts when present, and names the exact missing concept plus source file in parity remediation. Agent asset verification now uses generated expectations from Terrace templates, writes normal evidence records, treats migrated-GSD no-assets as not applicable, and treats migrated-GSD partial assets as expected blockers with a concrete `terrace init` remediation instead of product weaknesses. Scratch tracks remain strict product checks for missing generated assets.
 
 The first agent bootstrap version missed command discovery because it generated Claude skills without `name` frontmatter, did not generate `.claude/commands/*.md`, and did not generate Codex repo skills under `.agents/skills`. The second pass only exposed a small shortcut set; the current fix branch expands generation to all stable README commands and adds matching repo-local Terrace command assets so Codex and Claude can discover them after reload.
 
@@ -116,20 +118,20 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 6: Fixed agent command discovery by adding Codex `.agents/skills/terrace-*`, Claude `.claude/commands/terrace-*`, required skill `name` frontmatter, and repo-local Terrace command assets.
 - May 6: Expanded agent command discovery from the initial shortcut set to the full README command-reference surface, generating 57 Codex skills, 57 Claude skills, and 57 Claude command files while removing stale shortcut-only assets.
 - May 6: Added the cross-repo Terrace corpus evaluation harness and committed the first sample report/evidence under `docs/terrace/corpus/`, covering migrated-GSD, real scratch, and synthetic scratch command behavior.
+- May 7: Fixed corpus parity and report classification so preserved GSD state details count as mapped, migrated partial agent assets are actionable expected blockers, report ranking separates product weaknesses from expected blockers, and the regenerated sample corpus reports zero product weaknesses.
 
 ## Open Problems
 
 - Feature tier selection still defaults to medium unless a feature records an explicit tier.
 - The corpus harness is available as an npm script, but not yet exposed as a first-class `terrace corpus run` CLI command.
-- Corpus parity found `state_details from .planning/STATE.md was not mapped` in two migrated-GSD repos.
-- Corpus agent-asset verification found partial/missing generated assets on two existing migrated branches.
+- The corpus expected-blocker watchlist still contains intentional blockers worth ergonomics review, including PRD overwrite refusal, missing spec sections, and ship/report readiness guidance.
 - Dead-code scanning is not configured.
 
 ## Quality Ladder Notes
 
-- **Lint:** `npm run lint` PASS, checking 1242 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
+- **Lint:** `npm run lint` PASS, checking 2164 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `npm run typecheck` PASS
-- **Tests:** `npm test` PASS, 35 files and 261 tests
+- **Tests:** `npm test` PASS, 36 files and 269 tests
 - **Coverage:** `npm run test:coverage` PASS, global coverage above configured thresholds: lines 86.21%, statements 85.74%, functions 88.76%, branches 70.86%
 - **Package:** `npm run package:dry-run` PASS for `@jakyeamos33/terrace@0.1.2`, including `packages/terrace-core/src/agents.cjs`; packed-consumer e2e PASS in the full suite
 - **Release portability:** `npm run package:dry-run` PASS with the portable npm cache default; corrected packed-install smoke PASS from a fresh temp consumer project
@@ -147,13 +149,14 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **PRD intake smoke:** local temp-repo smoke PASS for `terrace new-project sample --paste-prd --json` and `terrace prd import saved-search --file feature-prd.md --json`
 - **Agent init focused tests:** `npm test -- tests/core-init.test.ts tests/init.test.ts tests/json-mode.test.ts -- --runInBand` PASS, 18 tests
 - **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
-- **Agent command discovery fix:** `npm test` PASS, 35 files and 261 tests; `npm run lint` PASS, checking 338 text files; `npm run typecheck` PASS; `npm run package:dry-run` PASS
-- **Corpus evaluation:** `npm run corpus:evaluate -- --dry-run-plan --sample` PASS; `npm run corpus:evaluate -- --sample` PASS with 962 command executions, 762 passes, 139 expected blockers, 4 product weaknesses, 57 skips, and zero harness/environment issues
-- **Package:** `npm run package:dry-run` PASS after corpus evidence was added; package dry-run reported `@jakyeamos33/terrace@0.1.2` with the corpus harness and report included
-- **Git status:** corpus harness committed on `main`; truth file records the new state
+- **Agent command discovery fix:** `npm test` PASS, 36 files and 269 tests; `npm run lint` PASS, checking 2164 text files; `npm run typecheck` PASS; `npm run package:dry-run` PASS
+- **Corpus improvement focused tests:** `npm test -- tests/corpus-eval.test.ts tests/core-port-gsd-migration.test.ts tests/core-cli.test.ts tests/core-init.test.ts -- --runInBand` PASS
+- **Corpus evaluation:** `npm run corpus:evaluate -- --dry-run-plan --sample` PASS; `npm run corpus:evaluate -- --sample` PASS with 962 command executions, 764 passes, 141 expected blockers, zero product weaknesses, 57 skips, and zero harness/environment issues
+- **Package:** `npm run package:dry-run` PASS after regenerated corpus evidence was added; package dry-run reported `@jakyeamos33/terrace@0.1.2`, 713.9 kB package size, 10.6 MB unpacked size, 2338 own files, and 2338 total files
+- **Git status:** corpus improvement implementation committed on `codex/corpus-improvement-report-fixes`; truth file records the new state
 
 ## Next Concrete Steps
 
-1. Fix migrated-GSD parity so `.planning/STATE.md` `state_details` are intentionally mapped or explicitly waived with a clearer explanation.
-2. Make migrated-branch agent asset verification distinguish pre-existing partial assets from true init-generation failures.
-3. Decide whether to expose the npm-script corpus harness as a first-class `terrace corpus run` CLI command.
+1. Review the expected-blocker watchlist in `docs/terrace/corpus/REPORT.md` and promote the highest-friction command ergonomics improvements into implementation work.
+2. Decide whether to expose the npm-script corpus harness as a first-class `terrace corpus run` CLI command.
+3. Configure dead-code scanning or explicitly document why it remains out of scope for the current release.
