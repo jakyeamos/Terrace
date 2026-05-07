@@ -249,6 +249,7 @@ describe('terrace port gsd migration', () => {
       converted_candidates: expect.any(Number),
       skipped_candidates: expect.any(Number),
       concepts: expect.objectContaining({
+        state_details: 1,
         phases: 2,
         quick_tasks: 1,
         decisions: 1,
@@ -263,6 +264,48 @@ describe('terrace port gsd migration', () => {
       mode: 'verify-parity',
       passed: true,
       blocking: []
+    });
+  });
+
+  it('treats preserved narrative STATE.md as mapped state details', () => {
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), '# State\n\nThe project is paused after discovery.\n', 'utf8');
+
+    const comparison = portGsdCompare(tmpDir);
+    const parity = portGsdVerifyParity(tmpDir);
+
+    expect(comparison).toMatchObject({
+      mode: 'compare',
+      passed: true,
+      concepts: expect.objectContaining({
+        state_details: 1,
+        decisions: 0,
+        backlog: 0
+      })
+    });
+    expect(parity).toMatchObject({
+      mode: 'verify-parity',
+      passed: true,
+      blocking: []
+    });
+  });
+
+  it('still blocks parity when ROADMAP.md has no mapped phases', () => {
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap\n\nNo phase headings yet.\n', 'utf8');
+
+    const parity = portGsdVerifyParity(tmpDir);
+
+    expect(parity).toMatchObject({
+      mode: 'verify-parity',
+      passed: false,
+      blocking: [
+        {
+          code: 'GSD_CONCEPT_UNMAPPED',
+          message: 'phases from .planning/ROADMAP.md was not mapped.'
+        }
+      ],
+      comparison: expect.objectContaining({
+        next_command: 'Review missing migration concepts before porting: phases from .planning/ROADMAP.md.'
+      })
     });
   });
 });

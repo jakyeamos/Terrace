@@ -23,6 +23,7 @@ describe('tier-one product readiness', () => {
     expect(pkg.bin).toEqual({ terrace: 'src/terrace-tools.cjs' });
     expect(pkg.files).toEqual([
       'src/',
+      'scripts/',
       'packages/terrace-core/',
       'README.md',
       'LICENSE',

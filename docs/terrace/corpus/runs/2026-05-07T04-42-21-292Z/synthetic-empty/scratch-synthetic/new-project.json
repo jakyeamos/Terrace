@@ -1,0 +1,58 @@
+{
+  "repo": "synthetic-empty",
+  "repoType": "synthetic-empty",
+  "track": "scratch-synthetic",
+  "key": "new-project",
+  "category": "scratch-intake",
+  "args": [
+    "new-project",
+    "terrace-corpus-synthetic-empty",
+    "--prd",
+    "docs/input/CORPUS-PRD.md",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 105,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "project_id",
+      "initialized",
+      "init_created",
+      "artifacts",
+      "next_command"
+    ],
+    "next_command": "terrace interrogate terrace-corpus-synthetic-empty",
+    "project_id": "terrace-corpus-synthetic-empty",
+    "artifacts": {
+      "length": 5,
+      "sample": [
+        "docs/prd/PRD.md",
+        "docs/spec/COMPILED-SPEC.md",
+        "docs/spec/ACCEPTANCE-CRITERIA.md",
+        "docs/testing/TEST-PLAN.md",
+        "docs/terrace/project/INITIALIZATION.md"
+      ]
+    }
+  },
+  "stdout": "{\n  \"project_id\": \"terrace-corpus-synthetic-empty\",\n  \"initialized\": false,\n  \"init_created\": [],\n  \"artifacts\": [\n    \"docs/prd/PRD.md\",\n    \"docs/spec/COMPILED-SPEC.md\",\n    \"docs/spec/ACCEPTANCE-CRITERIA.md\",\n    \"docs/testing/TEST-PLAN.md\",\n    \"docs/terrace/project/INITIALIZATION.md\"\n  ],\n  \"next_command\": \"terrace interrogate terrace-corpus-synthetic-empty\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 368,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

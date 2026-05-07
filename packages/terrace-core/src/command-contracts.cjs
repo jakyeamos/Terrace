@@ -200,6 +200,18 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Append a Terrace backlog item.'
   },
   {
+    command: 'terrace corpus run',
+    category: 'corpus',
+    json: true,
+    purpose: 'Run the local Terrace corpus evaluator.'
+  },
+  {
+    command: 'terrace corpus report',
+    category: 'corpus',
+    json: true,
+    purpose: 'Show the latest Terrace corpus report summary.'
+  },
+  {
     command: 'terrace ship check',
     category: 'shipping',
     json: true,

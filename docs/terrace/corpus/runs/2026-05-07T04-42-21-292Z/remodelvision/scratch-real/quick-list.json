@@ -1,0 +1,40 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "scratch-real",
+  "key": "quick-list",
+  "category": "quick-task",
+  "args": [
+    "quick",
+    "list",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 101,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "items"
+    ]
+  },
+  "stdout": "{\n  \"items\": []\n}\n",
+  "stderr": "",
+  "stdoutBytes": 18,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 69,
+    "reliability": 25,
+    "usefulness": 6,
+    "artifactQuality": 5,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  }
+}

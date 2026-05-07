@@ -1,0 +1,45 @@
+{
+  "repo": "synthetic-empty",
+  "repoType": "synthetic-empty",
+  "track": "scratch-synthetic",
+  "key": "prd-import-overwrite-refusal",
+  "category": "scratch-intake",
+  "args": [
+    "prd",
+    "import",
+    "terrace-corpus-smoke",
+    "--file",
+    "docs/input/CORPUS-FEATURE-PRD.md",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 166,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "error",
+      "details"
+    ],
+    "error": "Refusing to overwrite docs/terrace/features/terrace-corpus-smoke/PRD.md. Re-run with --force to replace it."
+  },
+  "stdout": "{\n  \"error\": \"Refusing to overwrite docs/terrace/features/terrace-corpus-smoke/PRD.md. Re-run with --force to replace it.\",\n  \"details\": null\n}\n",
+  "stderr": "",
+  "stdoutBytes": 144,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 63,
+    "reliability": 18,
+    "usefulness": 6,
+    "artifactQuality": 5,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  }
+}

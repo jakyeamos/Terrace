@@ -64,6 +64,24 @@ describe('strict core CLI delegation', () => {
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.json'))).toBe(false);
   });
 
+  it('includes mapped state details in GSD parity JSON', () => {
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap\n\n## Phase 1: Bootstrap\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), '# State\n\nNarrative-only state.\n', 'utf-8');
+
+    const result = runTerrace(tmpDir, ['port', 'gsd', '--verify-parity', '--json']);
+
+    expect(result).toMatchObject({
+      mode: 'verify-parity',
+      passed: true,
+      comparison: {
+        concepts: expect.objectContaining({
+          state_details: 1
+        })
+      }
+    });
+  });
+
   it('supports migrated GSD daily workflow commands', () => {
     fs.mkdirSync(path.join(tmpDir, '.planning', 'phases', '11-notifications'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap\n\n## Phase 11: Notifications\n', 'utf-8');

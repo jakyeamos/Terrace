@@ -1,0 +1,24 @@
+{
+  "repo": "BBDSE/CLFE",
+  "repoType": "sparse",
+  "track": "migrated-gsd",
+  "key": "alias-plan-phase-dynamic",
+  "category": "roadmap",
+  "args": [
+    "plan-phase",
+    null,
+    "--json"
+  ],
+  "skipped": true,
+  "skipReason": "No phase id available after migration.",
+  "score": {
+    "total": 0,
+    "reliability": 0,
+    "usefulness": 0,
+    "artifactQuality": 0,
+    "interrogationQuality": 0,
+    "repoFit": 0,
+    "safety": 25,
+    "ergonomics": 0
+  }
+}

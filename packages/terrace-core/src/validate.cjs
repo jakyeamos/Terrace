@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { blocker } = require('./guidance.cjs');
 const { parseFrontmatter } = require('./json.cjs');
 
 const REQUIRED_SECTIONS = {
@@ -15,15 +16,30 @@ const DEFAULT_MAPPING = {
   'DECISION-LOG.md': 'docs/spec/DECISION-LOG.md'
 };
 
+function commandForMissingSection(filePath, section) {
+  const normalized = path.basename(filePath);
+  if (normalized === 'PRD.md') {
+    return 'terrace interrogate <feature>';
+  }
+  if (normalized === 'COMPILED-SPEC.md' && ['requirements', 'protected', 'source_refs'].includes(section)) {
+    return 'terrace design <feature>';
+  }
+  return 'terrace spec validate';
+}
+
 function checkRequiredSections(result, filePath, sections) {
   const content = fs.readFileSync(filePath, 'utf8');
   for (const section of sections) {
     if (!content.includes(section)) {
-      result.blocking.push({
+      result.blocking.push(blocker({
         code: 'MISSING_REQUIRED_SECTION',
         message: 'Missing required section: ' + section,
-        file: filePath
-      });
+        file: filePath,
+        section,
+        why_blocked: 'Terrace cannot prove the governance artifact covers required release intent without this section.',
+        next_command: commandForMissingSection(filePath, section),
+        remediation: 'Add a `' + section + '` section to `' + path.relative(process.cwd(), filePath) + '`, then rerun `terrace spec validate`.'
+      }));
     }
   }
 }
@@ -64,11 +80,14 @@ function validateArtifacts(cwd, config) {
       const content = fs.readFileSync(decisionPath, 'utf8');
       const { frontmatter } = parseFrontmatter(content);
       if (!frontmatter.spec_ref && !content.includes('spec_ref:')) {
-        result.blocking.push({
+        result.blocking.push(blocker({
           code: 'MISSING_SPEC_REF',
           message: 'Decision log entry missing spec_ref',
-          file: decisionPath
-        });
+          file: decisionPath,
+          why_blocked: 'Decisions must link back to a spec so agents can trace why protected behavior changed.',
+          next_command: 'terrace decision log --spec-ref <SPEC-ID>',
+          remediation: 'Add `spec_ref` to the decision entry or record a new decision with `terrace decision log --spec-ref <SPEC-ID>`.'
+        }));
       }
     }
   } catch (error) {

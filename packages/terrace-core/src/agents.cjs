@@ -108,6 +108,8 @@ const TERRACE_COMMANDS = [
   ['terrace-quick-complete', 'terrace quick complete $ARGUMENTS', '<quick-task-id>', 'Complete a quick task after verification evidence exists.'],
   ['terrace-backlog-list', 'terrace backlog list', '', 'List backlog items.'],
   ['terrace-backlog-add', 'terrace backlog add "$ARGUMENTS"', '<title>', 'Append a backlog item.'],
+  ['terrace-corpus-run', 'terrace corpus run $ARGUMENTS', '[--sample|--all-shadow] [--track <track>] [--dry-run-plan]', 'Run the local Terrace corpus evaluator.'],
+  ['terrace-corpus-report', 'terrace corpus report', '', 'Show the latest Terrace corpus report summary.'],
   ['terrace-ship-check', 'terrace ship check', '', 'Run read-only release readiness checks.'],
   ['terrace-ship-prepare', 'terrace ship prepare', '', 'Write a release-readiness summary artifact.'],
   ['terrace-plan-phase', 'terrace plan-phase $ARGUMENTS', '<phase-id>', 'Run the GSD-compatible phase planning alias.'],
@@ -208,7 +210,53 @@ function installAgentBootstrap(cwd) {
   };
 }
 
+function agentAssetExpectations() {
+  const assets = templateAssets();
+  return {
+    codexSkills: assets.filter((asset) => asset.type === 'codex-skill').length,
+    claudeSkills: assets.filter((asset) => asset.type === 'claude-skill').length,
+    claudeCommands: assets.filter((asset) => asset.type === 'claude-command').length
+  };
+}
+
+function agentAssetStatus(cwd) {
+  const assets = templateAssets();
+  const expected = agentAssetExpectations();
+  const counts = {
+    codexSkills: 0,
+    claudeSkills: 0,
+    claudeCommands: 0
+  };
+  for (const asset of assets) {
+    if (!fs.existsSync(path.resolve(cwd, asset.path))) {
+      continue;
+    }
+    if (asset.type === 'codex-skill') counts.codexSkills += 1;
+    if (asset.type === 'claude-skill') counts.claudeSkills += 1;
+    if (asset.type === 'claude-command') counts.claudeCommands += 1;
+  }
+  const present = counts.codexSkills + counts.claudeSkills + counts.claudeCommands;
+  const expectedTotal = expected.codexSkills + expected.claudeSkills + expected.claudeCommands;
+  const complete = counts.codexSkills === expected.codexSkills
+    && counts.claudeSkills === expected.claudeSkills
+    && counts.claudeCommands === expected.claudeCommands;
+  return {
+    expected,
+    counts,
+    present,
+    expected_total: expectedTotal,
+    complete,
+    partial: present > 0 && !complete,
+    next_command: present > 0 && !complete ? 'terrace init' : null,
+    remediation: present > 0 && !complete
+      ? 'Run `terrace init`; Terrace writes missing generated agent assets and does not overwrite user-owned files.'
+      : null
+  };
+}
+
 module.exports = {
+  agentAssetStatus,
+  agentAssetExpectations,
   installAgentBootstrap,
   templateAssets
 };

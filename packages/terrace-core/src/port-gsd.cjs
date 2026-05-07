@@ -417,7 +417,11 @@ function portGsdCompare(cwd) {
   const concepts = planningConcepts(cwd);
   const convertibleCandidates = dryRun.artifacts.filter((artifact) => isConvertiblePlanningArtifact(artifact));
   const skippedCandidates = dryRun.artifacts.filter((artifact) => !isConvertiblePlanningArtifact(artifact));
+  const hasMappedStateDetails = concepts.files.includes('.planning/STATE.md')
+    && Object.prototype.hasOwnProperty.call(SUPPORTED_ARTIFACTS, '.planning/STATE.md')
+    && fs.readFileSync(path.resolve(cwd, '.planning', 'STATE.md'), 'utf8').trim().length > 0;
   const mapped = {
+    state_details: hasMappedStateDetails ? 1 : 0,
     phases: concepts.phases.length,
     phase_artifacts: concepts.phase_artifacts.length,
     quick_tasks: concepts.quick_tasks.length,
@@ -430,9 +434,10 @@ function portGsdCompare(cwd) {
   if (concepts.files.includes('.planning/ROADMAP.md') && mapped.phases === 0) {
     missing.push({ concept: 'phases', source: '.planning/ROADMAP.md' });
   }
-  if (concepts.files.includes('.planning/STATE.md') && mapped.decisions === 0 && mapped.backlog === 0) {
+  if (concepts.files.includes('.planning/STATE.md') && mapped.state_details === 0) {
     missing.push({ concept: 'state_details', source: '.planning/STATE.md' });
   }
+  const missingSummary = missing.map((item) => item.concept + ' from ' + item.source).join(', ');
   return {
     mode: 'compare',
     source_files: concepts.files.length,
@@ -443,7 +448,7 @@ function portGsdCompare(cwd) {
     skipped: skippedCandidates,
     missing,
     passed: missing.length === 0,
-    next_command: missing.length === 0 ? 'terrace port gsd --dry-run' : 'Review missing migration concepts before porting.'
+    next_command: missing.length === 0 ? 'terrace port gsd --dry-run' : 'Review missing migration concepts before porting: ' + missingSummary + '.'
   };
 }
 

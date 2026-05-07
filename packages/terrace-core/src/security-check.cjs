@@ -4,6 +4,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { analyzeRepository, readSmallText } = require('./repo-analysis.cjs');
+const { blocker, warning } = require('./guidance.cjs');
 
 const SECRET_PATTERNS = [
   { code: 'SECRET_AWS_ACCESS_KEY', severity: 'critical', pattern: /AKIA[0-9A-Z]{16}/ },
@@ -16,15 +17,24 @@ const REACT_RAW_HTML_TOKEN = 'dangerously' + 'SetInnerHTML';
 const auditCache = new Map();
 
 function finding(id, severity, file, claim, evidence, recommendedFix) {
+  const classification = severity === 'critical' || severity === 'high' ? 'blocking' : 'warning';
   return {
     id,
+    code: id.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, ''),
     mode: 'security',
     severity,
-    classification: severity === 'critical' || severity === 'high' ? 'blocking' : 'warning',
+    classification,
     file_or_artifact: file,
+    file,
     claim,
+    message: claim,
     evidence,
     recommended_fix: recommendedFix,
+    why_blocked: classification === 'blocking'
+      ? 'Security findings with high or critical severity must be resolved before release readiness passes.'
+      : 'Security findings should be reviewed before release even when they are not blocking.',
+    next_command: 'terrace security check',
+    remediation: recommendedFix + ' Then rerun `terrace security check`.',
     source: 'terrace security check'
   };
 }
@@ -219,11 +229,13 @@ function securityShipCheck(cwd) {
       passed: true,
       security_check: null,
       blocking: [],
-      warnings: [{
+      warnings: [warning({
         code: 'SECURITY_CHECK_MISSING',
         message: 'No security check artifact has been recorded.',
+        why_blocked: 'Terrace has no current security evidence to include in release readiness.',
+        next_command: 'terrace security check',
         remediation: 'Run terrace security check before release if this project has a security-sensitive surface.'
-      }]
+      })]
     };
   }
   try {
@@ -246,11 +258,14 @@ function securityShipCheck(cwd) {
       command: 'terrace security check',
       passed: false,
       security_check: null,
-      blocking: [{
+      blocking: [blocker({
         code: 'SECURITY_CHECK_INVALID',
         message: artifact + ' could not be parsed.',
+        file: artifact,
+        why_blocked: 'Terrace cannot trust malformed security evidence.',
+        next_command: 'terrace security check',
         remediation: 'Rerun terrace security check to regenerate the security artifact.'
-      }],
+      })],
       warnings: []
     };
   }

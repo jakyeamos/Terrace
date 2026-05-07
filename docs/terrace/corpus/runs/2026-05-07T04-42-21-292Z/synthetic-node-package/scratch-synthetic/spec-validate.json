@@ -1,0 +1,90 @@
+{
+  "repo": "synthetic-node-package",
+  "repoType": "synthetic-node-package",
+  "track": "scratch-synthetic",
+  "key": "spec-validate",
+  "category": "baseline",
+  "args": [
+    "spec",
+    "validate",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 158,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "blocking",
+      "warnings"
+    ],
+    "blocking": {
+      "length": 12,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        }
+      ]
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"blocking\": [\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: problem\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: actors\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: desired_outcomes\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: non_goals\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: constraints\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: success_criteria\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: open_questions\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: spec_version\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: phase\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: protected\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: last_updated\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: source_refs\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/synthetic/synthetic-node-package/docs/spec/COMPILED-SPEC.md\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "stdoutBytes": 3572,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 75,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  }
+}

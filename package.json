@@ -12,6 +12,7 @@
   },
   "files": [
     "src/",
+    "scripts/",
     "packages/terrace-core/",
     "README.md",
     "LICENSE",

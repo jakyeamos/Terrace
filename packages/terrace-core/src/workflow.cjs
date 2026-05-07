@@ -6,6 +6,8 @@ const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
 const { phaseEffortDefault } = require('./config.cjs');
 const { runAudit } = require('./audit.cjs');
+const { agentAssetStatus } = require('./agents.cjs');
+const { blocker, topBlockers, warning } = require('./guidance.cjs');
 const { runDoctor } = require('./health.cjs');
 const { analyzeRepository, bulletList } = require('./repo-analysis.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
@@ -335,10 +337,19 @@ function discoverProjectCommands(cwd) {
       command: exists ? runCommandFor(packageManager, item.script).join(' ') : null
     };
   });
+  const agentAssets = agentAssetStatus(cwd);
   return {
     package_manager: packageManager,
     scripts,
-    checks
+    checks,
+    agent_assets: agentAssets,
+    warnings: agentAssets.partial ? [warning({
+      code: 'PARTIAL_AGENT_ASSETS',
+      message: 'Generated Terrace agent assets are partially installed.',
+      why_blocked: 'Codex or Claude may only discover a subset of Terrace commands until missing generated assets are installed.',
+      next_command: 'terrace init',
+      remediation: 'Run `terrace init`; it installs missing generated agent assets without overwriting user-owned files.'
+    })] : []
   };
 }
 
@@ -595,12 +606,14 @@ function seniorCycleShipCheck(cwd) {
 }
 
 function verificationBlocker(artifact) {
-  return {
+  return blocker({
     code: 'VERIFICATION_REQUIRED',
     artifact,
     message: 'No completion without verification evidence.',
+    why_blocked: 'Completion requires evidence that the planned behavior was verified.',
+    next_command: 'terrace quick complete <quick-task-id>',
     remediation: 'Write verification evidence before completing this quick task.'
-  };
+  });
 }
 
 function commandForMissingArtifact(featureId, artifact) {
@@ -1502,9 +1515,11 @@ function migrationReadinessCheck(cwd) {
   try {
     const state = loadState(cwd);
     const readiness = state.migration && state.migration.readiness ? state.migration.readiness : null;
-    const blockers = (state.blocked_actions || []).filter((item) => item.blocking).map((item) => ({
+    const blockers = (state.blocked_actions || []).filter((item) => item.blocking).map((item) => blocker({
       code: 'MIGRATION_BLOCKED_ACTION',
       message: item.description,
+      why_blocked: 'Migrated GSD state recorded a human action as blocking release readiness.',
+      next_command: 'terrace next',
       remediation: 'Resolve or clear the migrated blocked action.'
     }));
     return {
@@ -1520,11 +1535,13 @@ function migrationReadinessCheck(cwd) {
       category: 'migration_readiness',
       command: 'terrace migration readiness',
       passed: false,
-      blocking: [{
+      blocking: [blocker({
         code: 'MIGRATION_READINESS_UNAVAILABLE',
         message: error && error.message ? error.message : String(error),
+        why_blocked: 'Terrace cannot inspect migration readiness until the repo has Terrace state.',
+        next_command: 'terrace init',
         remediation: 'Run terrace init or terrace port gsd before checking migration readiness.'
-      }],
+      })],
       warnings: []
     };
   }
@@ -1543,11 +1560,13 @@ function commandCheck(cwd, command, category) {
       category,
       command: command.join(' '),
       passed: false,
-      blocking: [{
+      blocking: [blocker({
         code: 'QUALITY_GATE_FAILED',
         message: command.join(' ') + ' failed.',
+        why_blocked: 'Release readiness requires the project quality gate to pass.',
+        next_command: command.join(' '),
         remediation: 'Run the command locally and fix the reported failures.'
-      }]
+      })]
     };
   }
 }
@@ -1559,11 +1578,13 @@ function missingScriptCheck(check) {
     passed: true,
     skipped: true,
     blocking: [],
-    warnings: [{
+    warnings: [warning({
       code: 'QUALITY_SCRIPT_MISSING',
       message: 'No package script was found for ' + check.category + '.',
+      why_blocked: 'Terrace could not enforce this optional quality signal because the script is missing.',
+      next_command: 'npm pkg set scripts.' + check.script + '="' + check.suggested + '"',
       remediation: 'Add a `' + check.script + '` script such as `' + check.suggested + '` if this gate should be enforced.'
-    }]
+    })]
   };
 }
 
@@ -1629,7 +1650,10 @@ function shipCheck(cwd, options) {
     categories,
     timings,
     blockers,
-    warnings
+    warnings,
+    top_blockers: topBlockers(blockers, 3),
+    next_command: blockers.length > 0 ? (blockers[0].next_command || 'terrace ship check --fast') : 'terrace ship prepare',
+    recheck_command: 'terrace ship check --fast'
   };
 }
 
@@ -1648,7 +1672,7 @@ function shipPrepare(cwd) {
     ...result.categories.map((category) => '- ' + category.category + ': ' + (category.passed ? 'passed' : 'failed') + ' (`' + category.command + '`)'),
     '',
     '## Blockers',
-    ...(result.blockers.length > 0 ? result.blockers.map((blocker) => '- ' + blocker.code + ': ' + blocker.message) : ['- None.']),
+    ...(result.blockers.length > 0 ? result.blockers.map((item) => '- ' + item.code + ': ' + item.message + (item.next_command ? ' Next: `' + item.next_command + '`.' : '')) : ['- None.']),
     '',
     '## Next Command',
     '- terrace ship check'
@@ -1656,7 +1680,8 @@ function shipPrepare(cwd) {
   return {
     ...result,
     ship_ref: shipRef,
-    next_command: 'terrace ship check'
+    next_command: 'terrace ship check',
+    recheck_command: 'terrace ship check --fast'
   };
 }
 

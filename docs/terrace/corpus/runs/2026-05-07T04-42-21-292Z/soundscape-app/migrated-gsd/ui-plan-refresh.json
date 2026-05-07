@@ -1,0 +1,46 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "migrated-gsd",
+  "key": "ui-plan-refresh",
+  "category": "ui",
+  "args": [
+    "ui",
+    "plan-refresh",
+    "terrace-corpus-smoke",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 1514,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace ui diff terrace-corpus-smoke",
+    "feature_id": "terrace-corpus-smoke",
+    "artifact": "docs/terrace/features/terrace-corpus-smoke/UI-REFRESH.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-smoke\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/UI-REFRESH.md\",\n  \"next_command\": \"terrace ui diff terrace-corpus-smoke\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 175,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}
