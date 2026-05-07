@@ -7,6 +7,7 @@ const { loadState, saveState } = require('./state.cjs');
 const { runAudit } = require('./audit.cjs');
 const { analyzeRepository, bulletList, groupFilesByLane, readSmallText } = require('./repo-analysis.cjs');
 const { normalizeImportedFindings, staticReviewFindings } = require('./artifact-analysis.cjs');
+const { blocker, warning } = require('./guidance.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -496,13 +497,34 @@ function reportCeremony(cwd) {
   const totalWords = artifactDetails.reduce((sum, item) => sum + item.words, 0);
   const warnings = [];
   if (artifactDetails.length > budget.max_artifacts) {
-    warnings.push({ code: 'ARTIFACT_BUDGET_EXCEEDED', message: 'Artifact count exceeds the tier budget.' });
+    warnings.push(warning({
+      code: 'ARTIFACT_BUDGET_EXCEEDED',
+      message: 'Artifact count exceeds the tier budget.',
+      why_blocked: 'Too many artifacts makes handoff and review harder for agents and humans.',
+      next_command: feature ? 'terrace cleanup ' + feature.feature_id : 'terrace report ceremony',
+      remediation: 'Merge or trim low-value generated artifacts, then rerun `terrace report ceremony`.'
+    }));
   }
   if (totalWords > budget.max_words) {
-    warnings.push({ code: 'WORD_BUDGET_EXCEEDED', message: 'Generated markdown word count exceeds the tier budget.' });
+    warnings.push(warning({
+      code: 'WORD_BUDGET_EXCEEDED',
+      message: 'Generated markdown word count exceeds the tier budget.',
+      why_blocked: 'Large generated reports are harder to audit and less useful as release evidence.',
+      next_command: feature ? 'terrace cleanup ' + feature.feature_id : 'terrace report ceremony',
+      remediation: 'Condense duplicated artifact text, then rerun `terrace report ceremony`.'
+    }));
   }
   for (const item of artifactDetails.filter((artifact) => artifact.weak_signals.length > 0)) {
-    warnings.push({ code: 'LOW_DENSITY_ARTIFACT', artifact: item.file, signals: item.weak_signals });
+    warnings.push(warning({
+      code: 'LOW_DENSITY_ARTIFACT',
+      message: 'Artifact contains placeholder or low-density sections.',
+      artifact: item.file,
+      file: item.file,
+      signals: item.weak_signals,
+      why_blocked: 'Placeholder artifacts do not provide enough evidence for reliable handoff or release review.',
+      next_command: feature ? 'terrace cleanup ' + feature.feature_id : 'terrace report ceremony',
+      remediation: 'Replace placeholder sections in `' + item.file + '` or remove the stale artifact, then rerun `terrace report ceremony`.'
+    }));
   }
   return {
     active_feature: feature ? feature.feature_id : null,
@@ -512,7 +534,9 @@ function reportCeremony(cwd) {
     markdown_word_count: totalWords,
     artifacts: artifactDetails,
     warnings,
-    passed: warnings.length === 0
+    passed: warnings.length === 0,
+    top_blockers: warnings.slice(0, 3),
+    next_command: warnings.length > 0 ? (warnings[0].next_command || 'terrace report ceremony') : 'terrace ship check'
   };
 }
 
@@ -1739,21 +1763,25 @@ function debtShipCheck(cwd) {
 
 function reportShipCheck(cwd) {
   const card = reportRead(cwd).report_card;
-  const blocking = card.score < 50 ? [{
+  const blocking = card.score < 50 ? [blocker({
     code: 'TIER_ONE_REPORT_WEAK',
     message: 'Tier One report score is below 50.',
+    why_blocked: 'Release readiness requires enough project evidence to make the Tier One report meaningful.',
+    next_command: 'terrace report update',
     remediation: 'Run terrace report update and complete the top next actions.'
-  }] : [];
+  })] : [];
   return {
     category: 'tier_one_report',
     command: 'terrace report update',
     passed: blocking.length === 0,
     blocking,
-    warnings: card.score < 85 ? [{
+    warnings: card.score < 85 ? [warning({
       code: 'TIER_ONE_GAPS',
       message: 'Tier One report score is below strong readiness: ' + String(card.score) + '.',
+      why_blocked: 'The report is not blocking release, but it still shows readiness gaps.',
+      next_command: 'terrace report update',
       remediation: 'Follow the report next actions.'
-    }] : [],
+    })] : [],
     report_card: {
       score: card.score,
       status_label: card.status_label

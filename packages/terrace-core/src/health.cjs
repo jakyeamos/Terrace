@@ -2,6 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const { agentAssetStatus } = require('./agents.cjs');
+const { warning } = require('./guidance.cjs');
 
 function runDoctor(cwd) {
   const blocking = [];
@@ -33,9 +35,21 @@ function runDoctor(cwd) {
     });
   }
 
+  const agentAssets = agentAssetStatus(cwd);
+  if (agentAssets.partial) {
+    warnings.push(warning({
+      code: 'PARTIAL_AGENT_ASSETS',
+      message: 'Generated Terrace agent assets are partially installed.',
+      why_blocked: 'Codex or Claude may only discover a subset of Terrace commands until missing generated assets are installed.',
+      next_command: 'terrace init',
+      remediation: 'Run `terrace init`; it installs missing generated agent assets without overwriting user-owned files.'
+    }));
+  }
+
   return {
     blocking,
     warnings,
+    agent_assets: agentAssets,
     healthy: blocking.length === 0
   };
 }

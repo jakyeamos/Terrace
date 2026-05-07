@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { appendEvent } = require('./events.cjs');
+const { guidanceError } = require('./guidance.cjs');
 const { initCore } = require('./init.cjs');
 const { loadState, saveState } = require('./state.cjs');
 
@@ -42,7 +43,19 @@ function assertWritable(cwd, relativeFilePaths, force) {
   }
   for (const relativeFilePath of relativeFilePaths) {
     if (fs.existsSync(safeResolve(cwd, relativeFilePath))) {
-      throw new Error('Refusing to overwrite ' + relativeFilePath + '. Re-run with --force to replace it.');
+      const match = relativeFilePath.match(/^docs\/terrace\/features\/([^/]+)\/PRD\.md$/);
+      const featureId = match ? match[1] : null;
+      const nextCommand = featureId
+        ? 'terrace prd import ' + featureId + ' --file <file> --force'
+        : 'terrace new-project <name> --prd <file> --force';
+      throw guidanceError('Refusing to overwrite ' + relativeFilePath + '. Re-run with --force to replace it.', {
+        code: 'PRD_OVERWRITE_REFUSED',
+        file: relativeFilePath,
+        why_blocked: 'Terrace will not replace an existing PRD without explicit confirmation.',
+        next_command: nextCommand,
+        remediation: 'Inspect `' + relativeFilePath + '` first. If replacement is intentional, run `' + nextCommand + '`.',
+        inspect_command: 'sed -n 1,160p ' + relativeFilePath
+      });
     }
   }
 }

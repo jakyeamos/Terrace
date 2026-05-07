@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
+const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const {
@@ -109,6 +110,8 @@ const HELP_TEXT = [
   '  terrace audit                Run governance audit checks',
   '  terrace ci check [files...]  Run audit plus protected-change checks',
   '  terrace security check       Run deterministic local security checks',
+  '  terrace corpus run           Run the local Terrace corpus evaluator',
+  '  terrace corpus report        Show the latest corpus report summary',
   '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
@@ -216,17 +219,134 @@ function output(data, options) {
     process.stdout.write(data + '\n');
     return;
   }
+  const human = humanBlockerOutput(data);
+  if (human) {
+    process.stdout.write(human + '\n');
+    return;
+  }
   process.stdout.write(JSON.stringify(data, null, 2) + '\n');
 }
 
 function fail(message, options) {
   const opts = options || {};
   if (opts.json) {
-    output({ error: message, details: opts.details || null }, { json: true });
+    const details = opts.details || null;
+    output({
+      error: message,
+      details,
+      next_command: opts.next_command || (details && details.next_command) || null,
+      remediation: opts.remediation || (details && details.remediation) || null
+    }, { json: true });
   } else {
     process.stderr.write('ERROR: ' + message + '\n');
+    const details = opts.details || {};
+    const nextCommand = opts.next_command || details.next_command;
+    const remediation = opts.remediation || details.remediation;
+    const file = opts.file || details.file;
+    if (file) {
+      process.stderr.write('File: ' + file + '\n');
+    }
+    if (remediation) {
+      process.stderr.write('Fix: ' + remediation + '\n');
+    }
+    if (nextCommand) {
+      process.stderr.write('Next: ' + nextCommand + '\n');
+    }
   }
   process.exit(typeof opts.code === 'number' ? opts.code : 1);
+}
+
+function humanBlockerOutput(data) {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+  const blockers = Array.isArray(data.blockers) ? data.blockers : Array.isArray(data.blocking) ? data.blocking : [];
+  if (data.passed !== false && blockers.length === 0) {
+    return null;
+  }
+  const lines = [];
+  if (Object.prototype.hasOwnProperty.call(data, 'passed')) {
+    lines.push('Passed: ' + String(data.passed));
+  }
+  if (data.mode) {
+    lines.push('Mode: ' + data.mode);
+  }
+  lines.push('Blockers: ' + String(blockers.length));
+  for (const blocker of blockers.slice(0, 3)) {
+    lines.push('- ' + (blocker.code || 'BLOCKED') + ': ' + (blocker.message || 'Terrace gate is blocked.'));
+    if (blocker.file || blocker.artifact) {
+      lines.push('  File: ' + (blocker.file || blocker.artifact));
+    }
+    if (blocker.remediation) {
+      lines.push('  Fix: ' + blocker.remediation);
+    }
+    if (blocker.next_command) {
+      lines.push('  Next: ' + blocker.next_command);
+    }
+  }
+  if (data.next_command) {
+    lines.push('Next: ' + data.next_command);
+  }
+  if (data.recheck_command) {
+    lines.push('Recheck: ' + data.recheck_command);
+  }
+  return lines.join('\n');
+}
+
+function repoRoot() {
+  return path.resolve(__dirname, '..');
+}
+
+function runCorpusCommand(rawArgs, json) {
+  const forwarded = rawArgs.filter((arg) => arg !== '--json');
+  const script = path.join(repoRoot(), 'scripts', 'terrace-corpus-eval.cjs');
+  if (!fs.existsSync(script)) {
+    throw new Error('Corpus evaluator script not found: ' + script);
+  }
+  const result = spawnSync(process.execPath, [script, ...forwarded], {
+    cwd: repoRoot(),
+    encoding: 'utf8'
+  });
+  if (result.stdout) {
+    process.stdout.write(result.stdout);
+  }
+  if (result.stderr) {
+    process.stderr.write(result.stderr);
+  }
+  if (result.status && result.status !== 0) {
+    process.exitCode = result.status;
+  }
+  if (!json && !result.stdout && result.status === 0) {
+    process.stdout.write('Corpus run completed.\n');
+  }
+}
+
+function corpusReport(json) {
+  const latestPath = path.join(repoRoot(), 'docs', 'terrace', 'corpus', 'latest-results.json');
+  if (!fs.existsSync(latestPath)) {
+    throw new Error('No corpus results found. Run terrace corpus run --sample first.');
+  }
+  const latest = JSON.parse(fs.readFileSync(latestPath, 'utf8'));
+  const reportPath = path.join(repoRoot(), 'docs', 'terrace', 'corpus', 'REPORT.md');
+  const result = {
+    runId: latest.runId,
+    totals: latest.summary ? latest.summary.totals : latest.totals,
+    report: path.relative(process.cwd(), reportPath),
+    evidence: latest.summary && latest.summary.evidenceDir ? latest.summary.evidenceDir : null
+  };
+  if (json) {
+    output(result, { json: true });
+    return;
+  }
+  output([
+    'Run: ' + result.runId,
+    'Report: ' + result.report,
+    'Evidence: ' + result.evidence,
+    'Commands: ' + String(result.totals.commands),
+    'Passed: ' + String(result.totals.pass),
+    'Expected blockers: ' + String(result.totals.expectedBlockers),
+    'Product weaknesses: ' + String(result.totals.productWeaknesses)
+  ].join('\n'), { json: false });
 }
 
 function ensureSteering(cwd) {
@@ -935,6 +1055,19 @@ async function main() {
       }
       return;
     }
+    case 'corpus': {
+      const sub = args[1];
+      if (sub === 'run') {
+        runCorpusCommand(rawArgs.slice(2), json);
+        return;
+      }
+      if (sub === 'report') {
+        corpusReport(json);
+        return;
+      }
+      fail('Unknown corpus subcommand: ' + sub + '. Use: run, report', { json });
+      return;
+    }
     case 'spec': {
       const sub = args[1];
       if (sub === 'hash') {
@@ -968,5 +1101,11 @@ async function main() {
 main().catch((error) => {
   const rawArgs = process.argv.slice(2);
   const json = rawArgs.includes('--json');
-  fail(error && error.message ? error.message : String(error), { json });
+  fail(error && error.message ? error.message : String(error), {
+    json,
+    details: error && error.details ? error.details : null,
+    next_command: error && error.next_command ? error.next_command : null,
+    remediation: error && error.remediation ? error.remediation : null,
+    file: error && error.file ? error.file : null
+  });
 });

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { initCore, readEvents, detectCommands } = require('../packages/terrace-core/src/index.cjs');
+const { agentAssetExpectations, initCore, readEvents, detectCommands } = require('../packages/terrace-core/src/index.cjs');
 
 describe('terrace-core init and events', () => {
   let tmpDir: string;
@@ -61,8 +61,8 @@ describe('terrace-core init and events', () => {
       expect.objectContaining({ path: '.claude/commands/terrace-ship-check.md', type: 'claude-command', status: 'written' }),
       expect.objectContaining({ path: '.terrace/agents/manifest.json', type: 'manifest', status: 'written' })
     ]));
-    expect(result.agents.assets.filter((asset) => asset.type === 'codex-skill')).toHaveLength(57);
-    expect(result.agents.assets.filter((asset) => asset.type === 'claude-command')).toHaveLength(57);
+    expect(result.agents.assets.filter((asset) => asset.type === 'codex-skill')).toHaveLength(agentAssetExpectations().codexSkills);
+    expect(result.agents.assets.filter((asset) => asset.type === 'claude-command')).toHaveLength(agentAssetExpectations().claudeCommands);
     expect(result.created).toContain('AGENTS.md');
     expect(result.created).toContain('CLAUDE.md');
     expect(result.created).toContain('.terrace/agents/manifest.json');

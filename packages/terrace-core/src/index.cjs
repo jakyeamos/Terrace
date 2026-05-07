@@ -9,6 +9,7 @@ module.exports = {
   ...require('./init.cjs'),
   ...require('./prd-intake.cjs'),
   ...require('./gates.cjs'),
+  ...require('./guidance.cjs'),
   ...require('./roadmap.cjs'),
   ...require('./port-gsd.cjs'),
   ...require('./hash.cjs'),

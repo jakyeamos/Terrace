@@ -55,6 +55,20 @@ _No representative examples._
 - `ship-check-fast`: `Terrace` / `migrated-gsd` / `expected-blocker` - { "mode": "fast", "passed": false, "project_commands": { "package_manager": "npm", "scripts": { "typecheck": "tsc --noEmit", "lint": "node scripts/lint.cjs", "build": "npm run typecheck", "test": "vitest run --reporter=verbose", "test:cover
 - `security-check`: `soundscape-app` / `migrated-gsd` / `expected-blocker` - { "checks": [ "secret-patterns", "env-files", "sensitive-logging", "dependency-audit", "deployment-config" ], "status": "blocked", "artifact": ".terrace/security/latest.json", "markdown": "docs/terrace/security/SECURITY-CHECK.md", "created_
 
+## Top Self-Serve Fixes
+
+| command | affectedRuns | blockerType | repo | track | nextCommand |
+| --- | --- | --- | --- | --- | --- |
+| prd-import-overwrite-refusal | 13 | overwrite protection | Terrace | scratch-real | terrace prd import <feature> --file <file> --force |
+| agent-asset-verification | 2 | missing evidence | Terrace | migrated-gsd | terrace init |
+| spec-validate | 13 | missing evidence | Terrace | scratch-real | terrace spec validate |
+| do-ship-check | 21 | missing evidence | Terrace | migrated-gsd | terrace ship check --fast |
+| ship-check | 21 | missing evidence | Terrace | migrated-gsd | terrace ship check --fast |
+| ship-prepare | 21 | missing evidence | Terrace | migrated-gsd | terrace ship check --fast |
+| report-ceremony | 21 | missing evidence | Terrace | migrated-gsd | terrace cleanup <feature> |
+| ship-check-fast | 21 | missing evidence | Terrace | migrated-gsd | terrace ship check --fast |
+| security-check | 8 | strict safety | soundscape-app | migrated-gsd | terrace security check |
+
 ## Lowest Scoring Commands
 
 | key | count | avgScore | failureRate | productWeaknesses | harnessIssues |

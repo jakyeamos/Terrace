@@ -543,6 +543,10 @@ function summarizeParsed(value) {
     'command',
     'command_alias',
     'next_command',
+    'recheck_command',
+    'remediation',
+    'why_blocked',
+    'file',
     'project_id',
     'feature_id',
     'artifact',
@@ -555,7 +559,7 @@ function summarizeParsed(value) {
       summary[key] = value[key];
     }
   }
-  for (const key of ['blocking', 'warnings', 'created', 'artifacts', 'validation_commands', 'review_checklist']) {
+  for (const key of ['blocking', 'blockers', 'top_blockers', 'warnings', 'created', 'artifacts', 'validation_commands', 'review_checklist']) {
     if (Array.isArray(value[key])) {
       summary[key] = { length: value[key].length, sample: value[key].slice(0, 5).map((item) => summarizeParsed(item)) };
     }
@@ -924,6 +928,7 @@ function summarize(records, meta) {
     weakest,
     productWeaknesses,
     expectedBlockerWatchlist,
+    topSelfServeFixes: topSelfServeFixes(records),
     categoryStats: Object.values(categoryStats).sort((a, b) => b.avgScore - a.avgScore),
     repoTypeStats: Object.values(repoTypeStats).sort((a, b) => b.avgScore - a.avgScore),
     improvementBacklog: improvementBacklog(records)
@@ -1010,7 +1015,83 @@ function recommendationFor(key) {
   return 'Review raw output and add more actionable remediation or safer fallback behavior.';
 }
 
+function topSelfServeFixes(records) {
+  const groups = groupStats(records.filter((record) => !record.skipped && record.classification === 'expected-blocker'), (record) => record.key);
+  return Object.values(groups)
+    .sort((a, b) => b.count - a.count || a.avgScore - b.avgScore)
+    .slice(0, 10)
+    .map((group) => {
+      const record = records.find((item) => item.key === group.key && item.classification === 'expected-blocker' && !item.skipped);
+      return {
+        command: group.key,
+        affectedRuns: group.count,
+        blockerType: blockerTypeFor(group.key),
+        repo: record ? record.repo : null,
+        track: record ? record.track : null,
+        nextCommand: nextCommandFromRecord(record) || 'Review the command output and rerun after remediation.',
+        remediation: record ? excerpt(record) : 'Review raw evidence.'
+      };
+    });
+}
+
+function selfServeFixesFromWatchlist(watchlist) {
+  return watchlist.slice(0, 10).map((group) => {
+    const example = group.examples && group.examples[0] ? group.examples[0] : {};
+    return {
+      command: group.key,
+      affectedRuns: group.count,
+      blockerType: blockerTypeFor(group.key),
+      repo: example.repo || null,
+      track: example.track || null,
+      nextCommand: nextCommandForKey(group.key),
+      remediation: example.excerpt || 'Review raw evidence and rerun after remediation.'
+    };
+  });
+}
+
+function blockerTypeFor(key) {
+  if (/overwrite/.test(key)) return 'overwrite protection';
+  if (/security/.test(key)) return 'strict safety';
+  if (/ship|report|spec|agent-asset/.test(key)) return 'missing evidence';
+  return 'workflow gate';
+}
+
+function nextCommandForKey(key) {
+  if (key === 'prd-import-overwrite-refusal') return 'terrace prd import <feature> --file <file> --force';
+  if (/ship/.test(key)) return 'terrace ship check --fast';
+  if (key === 'report-ceremony') return 'terrace cleanup <feature>';
+  if (key === 'spec-validate') return 'terrace spec validate';
+  if (key === 'security-check') return 'terrace security check';
+  if (key === 'agent-asset-verification' || key === 'doctor' || key === 'commands-discover') return 'terrace init';
+  return 'Review the command output and rerun after remediation.';
+}
+
+function nextCommandFromRecord(record) {
+  if (!record) return null;
+  if (record.remediation && /terrace init/.test(record.remediation)) return 'terrace init';
+  const parsed = record.parsed || {};
+  if (parsed.next_command) return parsed.next_command;
+  if (parsed.result && parsed.result.next_command) return parsed.result.next_command;
+  if (parsed.blocking && parsed.blocking.sample && parsed.blocking.sample[0] && parsed.blocking.sample[0].next_command) {
+    return parsed.blocking.sample[0].next_command;
+  }
+  if (parsed.blockers && parsed.blockers.sample && parsed.blockers.sample[0] && parsed.blockers.sample[0].next_command) {
+    return parsed.blockers.sample[0].next_command;
+  }
+  if (parsed.warnings && parsed.warnings.sample && parsed.warnings.sample[0] && parsed.warnings.sample[0].next_command) {
+    return parsed.warnings.sample[0].next_command;
+  }
+  if (record.key === 'prd-import-overwrite-refusal') return 'terrace prd import <feature> --file <file> --force';
+  if (/ship/.test(record.key)) return 'terrace ship check --fast';
+  if (record.key === 'report-ceremony') return 'terrace cleanup <feature>';
+  if (record.key === 'spec-validate') return 'terrace spec validate';
+  return nextCommandForKey(record.key);
+}
+
 function renderReport(summary, records, runId) {
+  const selfServeFixes = summary.topSelfServeFixes && summary.topSelfServeFixes.length
+    ? summary.topSelfServeFixes
+    : selfServeFixesFromWatchlist(summary.expectedBlockerWatchlist || []);
   return [
     '# Terrace Corpus Evaluation Report',
     '',
@@ -1037,6 +1118,10 @@ function renderReport(summary, records, runId) {
     table(summary.expectedBlockerWatchlist, ['key', 'count', 'avgScore', 'expectedBlockers']),
     '',
     ...exampleLines(summary.expectedBlockerWatchlist),
+    '',
+    '## Top Self-Serve Fixes',
+    '',
+    table(selfServeFixes, ['command', 'affectedRuns', 'blockerType', 'repo', 'track', 'nextCommand']),
     '',
     '## Lowest Scoring Commands',
     '',
@@ -1140,5 +1225,6 @@ module.exports = {
   classifyAgentAssetVerification,
   renderReport,
   summarize,
+  topSelfServeFixes,
   verifyAgentAssets
 };
