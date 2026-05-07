@@ -1,0 +1,131 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "scratch-real",
+  "key": "ship-prepare",
+  "category": "shipping-security",
+  "args": [
+    "ship",
+    "prepare",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 10630,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "project_commands",
+      "categories",
+      "timings",
+      "blockers",
+      "warnings",
+      "ship_ref",
+      "next_command"
+    ],
+    "passed": false,
+    "mode": "full",
+    "next_command": "terrace ship check",
+    "warnings": {
+      "length": 15,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"mode\": \"full\",\n  \"passed\": false,\n  \"project_commands\": {\n    \"package_manager\": \"pnpm\",\n    \"scripts\": {\n      \"secrets:pull\": \"tsx scripts/secrets/pull.ts\",\n      \"secrets:push\": \"tsx scripts/secrets/push.ts\",\n      \"secrets:bootstrap\": \"tsx scripts/secrets/bootstrap.ts\",\n      \"secrets:ensure\": \"tsx scripts/secrets/pull.ts\",\n      \"env:check\": \"tsx scripts/env-check.ts\",\n      \"dev\": \"pnpm secrets:ensure && docker compose -f docker/docker-compose.yml up -d && turbo dev\",\n      \"build\": \"turbo build\",\n      \"start\": \"turbo start\",\n      \"lint\": \"eslint . --ext .ts,.tsx\",\n      \"lint:turbo\": \"turbo lint\",\n      \"lint:ci\": \"eslint . --ext .ts,.tsx --max-warnings 0\",\n      \"test\": \"turbo test\",\n      \"test:coverage\": \"turbo test:coverage\",\n      \"typecheck\": \"tsc -p tsconfig.typecheck.json --noEmit\",\n      \"typecheck:packages\": \"turbo typecheck\",\n      \"audit:dead-code\": \"node scripts/dead-code-audit.js\",\n      \"audit:types\": \"tsx scripts/type-audit/scan-types.ts\",\n      \"audit:types:check\": \"tsx scripts/type-audit/compare-baseline.ts\",\n      \"audit:ts-errors\": \"tsx packages/shared/scripts/audit-types.ts\",\n      \"audit:ts-errors:check\": \"tsx packages/shared/scripts/audit-types.ts --check\",\n      \"audit:lint-violations\": \"tsx packages/shared/scripts/audit-lint.ts\",\n      \"audit:lint-violations:check\": \"tsx packages/shared/scripts/audit-lint.ts --check\",\n      \"audit:relation-counts\": \"tsx packages/shared/scripts/relation-count-report.ts\",\n      \"audit:relation-counts:check\": \"tsx packages/shared/scripts/relation-count-report.ts --check\",\n      \"audit:relation-counts:json\": \"tsx packages/shared/scripts/relation-count-report.ts --json\",\n      \"audit:relation-counts:test\": \"tsx packages/shared/scripts/__tests__/relation-count-regression.test.ts\",\n      \"telemetry:utility:validate\": \"tsx scripts/ci/validate-telemetry-utility.ts\",\n      \"telemetry:utility:test\": \"tsx scripts/ci/validate-telemetry-utility.test.ts\",\n      \"db:generate\": \"pnpm --filter ./packages/db exec prisma generate\",\n      \"db:migrate\": \"pnpm --filter ./packages/db exec prisma migrate dev\",\n      \"db:seed\": \"pnpm --filter ./packages/db exec tsx prisma/seed.ts\",\n      \"db:reset\": \"pnpm --filter ./packages/db exec prisma migrate reset --force\",\n      \"db:studio\": \"pnpm --filter ./packages/db exec prisma studio\",\n      \"db:setup\": \"pnpm db:generate && pnpm db:migrate && pnpm db:seed\",\n      \"db:refresh-tiers\": \"tsx scripts/refresh-artist-tiers.ts\",\n      \"db:refresh-tiers:dry-run\": \"tsx scripts/refresh-artist-tiers.ts --dry-run\",\n      \"dev:fresh\": \"pnpm db:reset && pnpm db:seed && pnpm dev\",\n      \"clean\": \"turbo clean && rm -rf node_modules\",\n      \"format\": \"prettier --write \\\"**/*.{ts,tsx,md,json}\\\"\",\n      \"prisma:db\": \"pnpm --filter @soundscape/db exec prisma\",\n      \"prepare\": \"husky\",\n      \"dump:downloads\": \"find . -type f \\\\( -name '*.ts' -o -name '*.tsx' \\\\) -not -path '*/node_modules/*' -not -path '*/.next/*' -not -path '*/dist/*' -print0 | xargs -0 -I {} sh -c 'echo \\\"=== {} ===\\\" && cat \\\"{}\\\"' > ~/Downloads/soundscape-code.txt\",\n      \"db:seed:all\": \"pnpm db:seed\",\n      \"dev:seeded\": \"pnpm db:generate && pnpm db:migrate && pnpm db:seed:all && pnpm dev\",\n      \"repair:types\": \"pnpm -w exec bash -c \\\"rm -rf .turbo && find packages -maxdepth 3 -name '*.tsbuildinfo' -delete && rm -rf packages/**/dist && pnpm -w install && pnpm -w exec tsc -b packages/db/tsconfig.build.json packages/shared/tsconfig.json packages/api/tsconfig.json\\\"\",\n      \"execute\": \"tsx scripts/execute-plan-integrated.ts <plan-path>\",\n      \"e2e:smoke\": \"playwright test --grep @smoke\",\n      \"e2e:full\": \"playwright test\",\n      \"e2e:ui\": \"playwright test --ui\",\n      \"e2e:debug\": \"playwright test --debug\"\n    },\n    \"checks\": [\n      {\n        \"category\": \"typecheck\",\n        \"script\": \"typecheck\",\n        \"required\": false,\n        \"suggested\": \"tsc --noEmit\",\n        \"exists\": true,\n        \"command\": \"pnpm run typecheck\"\n      },\n      {\n        \"category\": \"lint\",\n        \"script\": \"lint\",\n        \"required\": true,\n        \"suggested\": \"eslint .\",\n        \"exists\": true,\n        \"command\": \"pnpm run lint\"\n      },\n      {\n        \"category\": \"test\",\n        \"script\": \"test\",\n        \"required\": false,\n        \"suggested\": \"vitest run or npm test equivalent\",\n        \"exists\": true,\n        \"command\": \"pnpm run test\"\n      },\n      {\n        \"category\": \"coverage\",\n        \"script\": \"test:coverage\",\n        \"required\": false,\n        \"suggested\": \"vitest run --coverage or project equivalent\",\n        \"exists\": true,\n        \"command\": \"pnpm run test:coverage\"\n      },\n      {\n        \"category\": \"package\",\n        \"script\": \"package:dry-run\",\n        \"required\": false,\n        \"suggested\": \"npm pack --dry-run\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"build\",\n        \"script\": \"build\",\n        \"required\": false,\n        \"suggested\": \"framework build command\",\n        \"exists\": true,\n        \"command\": \"pnpm run build\"\n      }\n    ]\n  },\n  \"categories\": [\n    {\n      \"category\": \"doctor\",\n      \"command\": \"terrace doctor\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"audit\",\n      \"command\": \"terrace audit\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: problem\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: actors\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: desired_outcomes\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: non_goals\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: constraints\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: success_criteria\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: open_questions\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: spec_version\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: phase\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: protected\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: last_updated\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: source_refs\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T04-42-21-292Z/worktrees/real/soundscape-app-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"security\",\n      \"command\": \"terrace security check\",\n      \"passed\": false,\n      \"security_check\": {\n        \"status\": \"blocked\",\n        \"artifact\": \".terrace/security/latest.json\",\n        \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\"\n      },\n      \"blocking\": [\n        {\n          \"id\": \"secret_private_key-0\",\n          \"mode\": \"security\",\n          \"severity\": \"critical\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \".env.example\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_PRIVATE_KEY matched in .env.example.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_generic_assignment-1\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"apps/mobile/src/navigation/AppNavigator.tsx\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_GENERIC_ASSIGNMENT matched in apps/mobile/src/navigation/AppNavigator.tsx.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_private_key-3\",\n          \"mode\": \"security\",\n          \"severity\": \"critical\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"docs/platform/secrets/DOPPLER-VARIABLES.md\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_PRIVATE_KEY matched in docs/platform/secrets/DOPPLER-VARIABLES.md.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_private_key-4\",\n          \"mode\": \"security\",\n          \"severity\": \"critical\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/api/.env.example\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_PRIVATE_KEY matched in packages/api/.env.example.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_generic_assignment-5\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/api/src/__tests__/routers/content/spotify-playback.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_GENERIC_ASSIGNMENT matched in packages/api/src/__tests__/routers/content/spotify-playback.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_generic_assignment-6\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/api/src/__tests__/routers/listening/webhooks.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_GENERIC_ASSIGNMENT matched in packages/api/src/__tests__/routers/listening/webhooks.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"source\": \"terrace security check\"\n        }\n      ],\n      \"warnings\": [\n        {\n          \"id\": \"sensitive-logging-2\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"apps/mobile/src/navigation/AppNavigator.tsx\",\n          \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n          \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n          \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"sensitive-logging-7\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"packages/api/src/routers/device.ts\",\n          \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n          \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n          \"recommended_f\n\n[... truncated by Terrace corpus harness ...]\n\ndence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n      \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"sensitive-logging-7\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/api/src/routers/device.ts\",\n      \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n      \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n      \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"sensitive-logging-8\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/api/src/services/analytics/sharing.ts\",\n      \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n      \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n      \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-0\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/pitr-monitoring.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/pitr-monitoring.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-1\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/pr-checks.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/pr-checks.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-2\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/release-e2e-full.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/release-e2e-full.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-3\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/staging-e2e-smoke.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/staging-e2e-smoke.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"docker-review-4\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"docker/Dockerfile\",\n      \"claim\": \"Container configuration should be reviewed for runtime user and secret handling.\",\n      \"evidence\": \"docker/Dockerfile is part of the deployment surface.\",\n      \"recommended_fix\": \"Confirm the image avoids root runtime, does not bake secrets, and has a minimal build context.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"docker-review-5\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"docker/docker-compose.test.yml\",\n      \"claim\": \"Container configuration should be reviewed for runtime user and secret handling.\",\n      \"evidence\": \"docker/docker-compose.test.yml is part of the deployment surface.\",\n      \"recommended_fix\": \"Confirm the image avoids root runtime, does not bake secrets, and has a minimal build context.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"docker-review-6\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"docker/docker-compose.yml\",\n      \"claim\": \"Container configuration should be reviewed for runtime user and secret handling.\",\n      \"evidence\": \"docker/docker-compose.yml is part of the deployment surface.\",\n      \"recommended_fix\": \"Confirm the image avoids root runtime, does not bake secrets, and has a minimal build context.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"code\": \"TIER_ONE_GAPS\",\n      \"message\": \"Tier One report score is below strong readiness: 35.\",\n      \"remediation\": \"Follow the report next actions.\"\n    },\n    {\n      \"code\": \"AI_REVIEW_REQUIRED\",\n      \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"TEST_EVAL_MISSING\",\n      \"message\": \"No test-suite evaluation has been recorded.\"\n    },\n    {\n      \"code\": \"RULE_AUDIT_MISSING\",\n      \"message\": \"No rule audit has been recorded.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for package.\",\n      \"remediation\": \"Add a `package:dry-run` script such as `npm pack --dry-run` if this gate should be enforced.\"\n    }\n  ],\n  \"ship_ref\": \"docs/terrace/ship/SHIP.md\",\n  \"next_command\": \"terrace ship check\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 41899,
+  "stderrBytes": 0,
+  "stdoutTruncated": true,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 85,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 10,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

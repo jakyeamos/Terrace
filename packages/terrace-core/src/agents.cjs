@@ -208,7 +208,17 @@ function installAgentBootstrap(cwd) {
   };
 }
 
+function agentAssetExpectations() {
+  const assets = templateAssets();
+  return {
+    codexSkills: assets.filter((asset) => asset.type === 'codex-skill').length,
+    claudeSkills: assets.filter((asset) => asset.type === 'claude-skill').length,
+    claudeCommands: assets.filter((asset) => asset.type === 'claude-command').length
+  };
+}
+
 module.exports = {
+  agentAssetExpectations,
   installAgentBootstrap,
   templateAssets
 };

@@ -1,0 +1,52 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "phase-plan-dynamic",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "plan",
+    "milestones",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 100,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "phase_id",
+      "status",
+      "plan_ref",
+      "source_refs",
+      "likely_files",
+      "related_quick_tasks",
+      "effort",
+      "blocked",
+      "blockers",
+      "next_command",
+      "active_slice"
+    ],
+    "next_command": "terrace phase execute milestones"
+  },
+  "stdout": "{\n  \"phase_id\": \"milestones\",\n  \"status\": \"slice_planned\",\n  \"plan_ref\": \"docs/terrace/phases/milestones/PLAN.md\",\n  \"source_refs\": [],\n  \"likely_files\": [],\n  \"related_quick_tasks\": [],\n  \"effort\": \"standard\",\n  \"blocked\": true,\n  \"blockers\": [\n    {\n      \"description\": \"Apply migration 034_prime_notes.sql to Supabase instance\",\n      \"context\": \"Added notes column to prime_contractors — must be applied before Notes card works in prod\",\n      \"blocking\": true,\n      \"source_ref\": \".planning/HANDOFF.json\"\n    }\n  ],\n  \"next_command\": \"terrace phase execute milestones\",\n  \"active_slice\": {\n    \"id\": \"milestones\",\n    \"title\": \"Milestones\",\n    \"source_ref\": \".planning/ROADMAP.md\",\n    \"plans\": [],\n    \"spec_refs\": [],\n    \"success_criteria\": [],\n    \"test_intent\": []\n  }\n}\n",
+  "stderr": "",
+  "stdoutBytes": 786,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

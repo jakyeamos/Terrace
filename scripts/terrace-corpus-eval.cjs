@@ -4,6 +4,7 @@ const { execFileSync, spawnSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { agentAssetExpectations } = require('../packages/terrace-core/src/agents.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(REPO_ROOT, 'docs', 'terrace', 'corpus', 'config.json');
@@ -671,12 +672,82 @@ function repoFitScore(text, context) {
 }
 
 function verifyAgentAssets(worktree) {
-  return {
+  const counts = {
     codexSkills: countFiles(path.join(worktree, '.agents', 'skills'), 'SKILL.md'),
     claudeSkills: countFiles(path.join(worktree, '.claude', 'skills'), 'SKILL.md'),
     claudeCommands: countMatching(path.join(worktree, '.claude', 'commands'), /^terrace-.*\.md$/),
     terraceNextCommand: fs.existsSync(path.join(worktree, '.claude', 'commands', 'terrace-next.md')),
     terraceShipCheckCommand: fs.existsSync(path.join(worktree, '.claude', 'commands', 'terrace-ship-check.md'))
+  };
+  const expected = agentAssetExpectations();
+  return {
+    ...counts,
+    expected,
+    complete: counts.codexSkills >= expected.codexSkills
+      && counts.claudeSkills >= expected.claudeSkills
+      && counts.claudeCommands >= expected.claudeCommands,
+    present: counts.codexSkills > 0 || counts.claudeSkills > 0 || counts.claudeCommands > 0
+  };
+}
+
+function classifyAgentAssetVerification(track, agentAssets) {
+  if (track === 'migrated-gsd' && !agentAssets.present) {
+    return {
+      classification: 'not-applicable',
+      skipped: true,
+      skipReason: 'Agent asset verification requires an init/new-project track; migrated-GSD migration does not install slash assets.',
+      remediation: null
+    };
+  }
+  if (agentAssets.complete) {
+    return {
+      classification: 'pass',
+      skipped: false,
+      skipReason: undefined,
+      remediation: null
+    };
+  }
+  if (track === 'migrated-gsd') {
+    return {
+      classification: 'expected-blocker',
+      skipped: false,
+      skipReason: undefined,
+      remediation: 'Run terrace init in the migrated worktree to install missing non-overwriting agent assets.'
+    };
+  }
+  return {
+    classification: 'product-weakness',
+    skipped: false,
+    skipReason: undefined,
+    remediation: 'Expected Terrace init/new-project to install complete non-overwriting agent assets.'
+  };
+}
+
+function scoreAgentAssetVerification(classification, skipped) {
+  if (skipped) {
+    return scoreSkipped();
+  }
+  if (classification === 'pass') {
+    return {
+      total: 100,
+      reliability: 20,
+      usefulness: 15,
+      artifactQuality: 15,
+      interrogationQuality: 10,
+      repoFit: 15,
+      safety: 15,
+      ergonomics: 10
+    };
+  }
+  return {
+    total: classification === 'expected-blocker' ? 72 : 40,
+    reliability: classification === 'expected-blocker' ? 18 : 8,
+    usefulness: 15,
+    artifactQuality: 10,
+    interrogationQuality: 10,
+    repoFit: 12,
+    safety: 15,
+    ergonomics: 10
   };
 }
 
@@ -783,28 +854,22 @@ function runTrack(params) {
     writeJson(path.join(params.evidenceDir, slugify(params.repo.name), params.track, command.key + '.json'), record);
   }
   const agentAssets = verifyAgentAssets(params.worktree);
-  const agentApplicable = params.track !== 'migrated-gsd' || agentAssets.codexSkills > 0 || agentAssets.claudeCommands > 0;
-  params.records.push({
+  const agentClassification = classifyAgentAssetVerification(params.track, agentAssets);
+  const agentRecord = {
     repo: params.repo.name,
     repoType: params.repo.type,
     track: params.track,
     key: 'agent-asset-verification',
     category: 'agent-integration',
-    classification: !agentApplicable ? 'not-applicable' : agentAssets.codexSkills >= 57 && agentAssets.claudeCommands >= 57 ? 'pass' : 'product-weakness',
-    skipped: !agentApplicable,
-    skipReason: !agentApplicable ? 'Agent asset verification requires an init/new-project track; migrated-GSD migration does not install slash assets.' : undefined,
+    classification: agentClassification.classification,
+    skipped: agentClassification.skipped,
+    skipReason: agentClassification.skipReason,
+    remediation: agentClassification.remediation,
     agentAssets,
-    score: !agentApplicable ? scoreSkipped() : {
-      total: agentAssets.codexSkills >= 57 && agentAssets.claudeCommands >= 57 ? 100 : 40,
-      reliability: 20,
-      usefulness: 15,
-      artifactQuality: 15,
-      interrogationQuality: 10,
-      repoFit: 15,
-      safety: 15,
-      ergonomics: 10
-    }
-  });
+    score: scoreAgentAssetVerification(agentClassification.classification, agentClassification.skipped)
+  };
+  params.records.push(agentRecord);
+  writeJson(path.join(params.evidenceDir, slugify(params.repo.name), params.track, 'agent-asset-verification.json'), agentRecord);
 }
 
 function cleanupWorktrees(worktrees) {
@@ -831,6 +896,19 @@ function summarize(records, meta) {
     .filter((item) => item.scoredCount >= 2)
     .sort((a, b) => a.avgScore - b.avgScore || b.failureRate - a.failureRate)
     .slice(0, 12);
+  const productWeaknesses = Object.values(groupStats(
+    records.filter((record) => !record.skipped && (record.classification === 'product-weakness' || record.classification === 'harness-or-environment' || record.classification === 'harness-timeout')),
+    (record) => record.key
+  ))
+    .sort((a, b) => b.count - a.count || a.avgScore - b.avgScore)
+    .slice(0, 12);
+  const expectedBlockerWatchlist = Object.values(groupStats(
+    records.filter((record) => !record.skipped && record.classification === 'expected-blocker'),
+    (record) => record.key
+  ))
+    .filter((item) => item.scoredCount >= 2)
+    .sort((a, b) => a.avgScore - b.avgScore || b.count - a.count)
+    .slice(0, 12);
   return {
     runId: meta.runId,
     evidenceDir: path.relative(REPO_ROOT, meta.evidenceDir),
@@ -844,6 +922,8 @@ function summarize(records, meta) {
     },
     strongest,
     weakest,
+    productWeaknesses,
+    expectedBlockerWatchlist,
     categoryStats: Object.values(categoryStats).sort((a, b) => b.avgScore - a.avgScore),
     repoTypeStats: Object.values(repoTypeStats).sort((a, b) => b.avgScore - a.avgScore),
     improvementBacklog: improvementBacklog(records)
@@ -888,12 +968,19 @@ function excerpt(record) {
   if (record.skipReason) {
     return record.skipReason;
   }
+  if (record.remediation) {
+    return record.remediation;
+  }
   const text = [record.stderr, record.stdout].filter(Boolean).join('\n').trim();
   return text.replace(/\s+/g, ' ').slice(0, 240);
 }
 
 function improvementBacklog(records) {
-  const weaknesses = records.filter((record) => !record.skipped && (record.classification === 'product-weakness' || (record.score && record.score.total < 55)));
+  const weaknesses = records.filter((record) => !record.skipped && (
+    record.classification === 'product-weakness'
+    || record.classification === 'harness-or-environment'
+    || record.classification === 'harness-timeout'
+  ));
   const byKey = groupStats(weaknesses, (record) => record.key);
   return Object.values(byKey)
     .sort((a, b) => b.count - a.count || a.avgScore - b.avgScore)
@@ -939,7 +1026,19 @@ function renderReport(summary, records, runId) {
     '',
     table(summary.strongest, ['key', 'count', 'avgScore', 'passRate', 'productWeaknesses']),
     '',
-    '## Commands Needing Improvement',
+    '## Product Weaknesses',
+    '',
+    table(summary.productWeaknesses, ['key', 'count', 'avgScore', 'failureRate', 'productWeaknesses', 'harnessIssues']),
+    '',
+    ...exampleLines(summary.productWeaknesses),
+    '',
+    '## Expected Blockers / Ergonomics Watchlist',
+    '',
+    table(summary.expectedBlockerWatchlist, ['key', 'count', 'avgScore', 'expectedBlockers']),
+    '',
+    ...exampleLines(summary.expectedBlockerWatchlist),
+    '',
+    '## Lowest Scoring Commands',
     '',
     table(summary.weakest, ['key', 'count', 'avgScore', 'failureRate', 'productWeaknesses', 'harnessIssues']),
     '',
@@ -953,10 +1052,7 @@ function renderReport(summary, records, runId) {
     '',
     '## Improvement Backlog',
     '',
-    ...summary.improvementBacklog.map((item, index) => [
-      String(index + 1) + '. `' + item.command + '` - ' + item.recommendation,
-      '   Affected runs: ' + item.affectedRuns + ', average score: ' + item.averageScore + '.'
-    ].join('\n')),
+    ...improvementBacklogLines(summary.improvementBacklog),
     '',
     '## Raw Evidence Index',
     '',
@@ -967,6 +1063,28 @@ function renderReport(summary, records, runId) {
     '',
     ...spotCheckTargets(records).map((record) => '- `' + record.repo + '` / `' + record.track + '` / `' + record.key + '` - ' + record.classification)
   ].join('\n') + '\n';
+}
+
+function improvementBacklogLines(items) {
+  if (!items.length) {
+    return ['_No product weaknesses or harness issues in this run._'];
+  }
+  return items.map((item, index) => [
+      String(index + 1) + '. `' + item.command + '` - ' + item.recommendation,
+      '   Affected runs: ' + item.affectedRuns + ', average score: ' + item.averageScore + '.'
+    ].join('\n'));
+}
+
+function exampleLines(groups) {
+  if (!groups.length) {
+    return ['_No representative examples._'];
+  }
+  return groups.flatMap((group) => {
+    if (!group.examples || !group.examples.length) {
+      return ['- `' + group.key + '`: no representative failing example captured.'];
+    }
+    return group.examples.slice(0, 1).map((example) => '- `' + group.key + '`: `' + example.repo + '` / `' + example.track + '` / `' + example.classification + '` - ' + example.excerpt);
+  });
 }
 
 function table(rows, columns) {
@@ -1014,4 +1132,13 @@ function main() {
   }, null, 2) + '\n');
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  classifyAgentAssetVerification,
+  renderReport,
+  summarize,
+  verifyAgentAssets
+};

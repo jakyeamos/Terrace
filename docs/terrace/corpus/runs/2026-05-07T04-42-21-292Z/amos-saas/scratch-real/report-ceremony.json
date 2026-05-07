@@ -1,0 +1,112 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "scratch-real",
+  "key": "report-ceremony",
+  "category": "shipping-security",
+  "args": [
+    "report",
+    "ceremony",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 93,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "active_feature",
+      "tier",
+      "budget",
+      "artifact_count",
+      "markdown_word_count",
+      "artifacts",
+      "warnings",
+      "passed"
+    ],
+    "passed": false,
+    "warnings": {
+      "length": 2,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 34,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"active_feature\": \"terrace-corpus-smoke\",\n  \"tier\": \"medium\",\n  \"budget\": {\n    \"max_artifacts\": 8,\n    \"max_words\": 3000\n  },\n  \"artifact_count\": 34,\n  \"markdown_word_count\": 4028,\n  \"artifacts\": [\n    {\n      \"file\": \"docs/prd/PRD.md\",\n      \"words\": 122,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/spec/ACCEPTANCE-CRITERIA.md\",\n      \"words\": 246,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/spec/COMPILED-SPEC.md\",\n      \"words\": 152,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/REPORT-CARD.md\",\n      \"words\": 284,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/ARCHITECTURE.md\",\n      \"words\": 80,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/MAP.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/OBSERVABILITY.md\",\n      \"words\": 11,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/RISKS.md\",\n      \"words\": 46,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/TESTING.md\",\n      \"words\": 13,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-amos-saas/INTERROGATION.md\",\n      \"words\": 128,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ACCEPTANCE-CRITERIA.md\",\n      \"words\": 195,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"words\": 233,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"words\": 77,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n      \"words\": 108,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n      \"words\": 128,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/PRD-IMPORT.md\",\n      \"words\": 36,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/PRD.md\",\n      \"words\": 103,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n      \"words\": 118,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/TEST-PLAN.md\",\n      \"words\": 129,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-DIFF.md\",\n      \"words\": 67,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-REFRESH.md\",\n      \"words\": 104,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-STITCH.md\",\n      \"words\": 109,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/project/INITIALIZATION.md\",\n      \"words\": 51,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/SUMMARY.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/VERIFICATION.md\",\n      \"words\": 12,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-2/PLAN.md\",\n      \"words\": 64,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-49-44-791Z.md\",\n      \"words\": 300,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-49-55-527Z.md\",\n      \"words\": 290,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-49-58-833Z.md\",\n      \"words\": 284,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/security/SECURITY-CHECK.md\",\n      \"words\": 120,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-PLAN.md\",\n      \"words\": 103,\n      \"weak_signals\": []\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\"\n    },\n    {\n      \"code\": \"WORD_BUDGET_EXCEEDED\",\n      \"message\": \"Generated markdown word count exceeds the tier budget.\"\n    }\n  ],\n  \"passed\": false\n}\n",
+  "stderr": "",
+  "stdoutBytes": 4602,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "phase-complete-dynamic",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "complete",
+    "milestones",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 91,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "allowed",
+      "phase_id",
+      "blockers",
+      "senior_cycle",
+      "required_action"
+    ]
+  },
+  "stdout": "{\n  \"allowed\": false,\n  \"phase_id\": \"milestones\",\n  \"blockers\": [\n    {\n      \"code\": \"CLEANUP_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/milestones/CLEANUP.md\",\n      \"message\": \"No completion without cleanup ownership.\"\n    }\n  ],\n  \"senior_cycle\": {\n    \"feature_id\": \"milestones\",\n    \"tier\": \"medium\",\n    \"architecture_default\": \"sustainable\",\n    \"no_band_aid_rule\": true,\n    \"required_artifacts\": [\n      \"docs/terrace/features/milestones/ALIGNMENT.md\",\n      \"docs/testing/TEST-PLAN.md\",\n      \"docs/terrace/features/milestones/OBSERVABILITY.md\",\n      \"docs/terrace/features/milestones/VALIDATION.md\",\n      \"docs/terrace/features/milestones/CLEANUP.md\"\n    ],\n    \"missing_artifacts\": [\n      \"docs/terrace/features/milestones/ALIGNMENT.md\",\n      \"docs/terrace/features/milestones/OBSERVABILITY.md\",\n      \"docs/terrace/features/milestones/VALIDATION.md\",\n      \"docs/terrace/features/milestones/CLEANUP.md\"\n    ],\n    \"allowed\": {\n      \"execute\": false,\n      \"implement\": true,\n      \"ship\": false,\n      \"complete\": false\n    },\n    \"blockers\": [\n      {\n        \"code\": \"ALIGNMENT_REQUIRED\",\n        \"artifact\": \"docs/terrace/features/milestones/ALIGNMENT.md\",\n        \"message\": \"Tier 2+ work requires alignment before execution.\"\n      },\n      {\n        \"code\": \"OBSERVABILITY_REQUIRED\",\n        \"artifact\": \"docs/terrace/features/milestones/OBSERVABILITY.md\",\n        \"message\": \"No ship without observability and debugging intent.\"\n      },\n      {\n        \"code\": \"VALIDATION_REQUIRED\",\n        \"artifact\": \"docs/terrace/features/milestones/VALIDATION.md\",\n        \"message\": \"No ship without production validation and rollback conditions.\"\n      },\n      {\n        \"code\": \"CLEANUP_REQUIRED\",\n        \"artifact\": \"docs/terrace/features/milestones/CLEANUP.md\",\n        \"message\": \"No completion without cleanup ownership.\"\n      }\n    ],\n    \"next_command\": \"terrace align milestones\"\n  },\n  \"required_action\": \"Complete senior-cycle cleanup before phase completion.\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 2003,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

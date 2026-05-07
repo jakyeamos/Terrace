@@ -1,0 +1,149 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "port-gsd",
+  "category": "migration",
+  "args": [
+    "port",
+    "gsd",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 106,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "artifacts",
+      "converted",
+      "skipped",
+      "writes",
+      "blockers",
+      "warnings",
+      "readiness",
+      "next_command",
+      "review_checklist",
+      "validation_commands"
+    ],
+    "mode": "migration",
+    "next_command": "terrace phase show overview",
+    "readiness": {
+      "status": "review_required",
+      "score": 75
+    },
+    "warnings": {
+      "length": 15,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "remediation"
+          ],
+          "artifact": ".planning/PHASE-GOALS.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "remediation"
+          ],
+          "artifact": ".planning/codebase/ARCHITECTURE.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "remediation"
+          ],
+          "artifact": ".planning/codebase/CONCERNS.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "remediation"
+          ],
+          "artifact": ".planning/codebase/CONVENTIONS.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "remediation"
+          ],
+          "artifact": ".planning/codebase/INTEGRATIONS.md"
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 45,
+      "sample": [
+        ".planning/PHASE-GOALS.md",
+        ".planning/PROJECT.md",
+        ".planning/REQUIREMENTS.md",
+        ".planning/ROADMAP.md",
+        ".planning/STATE.md"
+      ]
+    },
+    "validation_commands": {
+      "length": 2,
+      "sample": [
+        "terrace doctor",
+        "terrace audit"
+      ]
+    },
+    "review_checklist": {
+      "length": 5,
+      "sample": [
+        "Review docs/prd/PRD.md against the original .planning/PROJECT.md.",
+        "Review docs/spec/COMPILED-SPEC.md against the original .planning/REQUIREMENTS.md.",
+        "Review docs/terrace-migration/GSD-STATE.md for legacy state that should become Terrace decisions or sessions.",
+        "Run terrace doctor and terrace audit after reviewing migrated artifacts.",
+        "Run terrace phase show overview to resume the migrated workflow."
+      ]
+    },
+    "converted": {
+      "length": 30
+    },
+    "skipped": {
+      "length": 15
+    },
+    "writes": {
+      "length": 32
+    }
+  },
+  "stdout": "{\n  \"mode\": \"migration\",\n  \"artifacts\": [\n    \".planning/PHASE-GOALS.md\",\n    \".planning/PROJECT.md\",\n    \".planning/REQUIREMENTS.md\",\n    \".planning/ROADMAP.md\",\n    \".planning/STATE.md\",\n    \".planning/codebase/ARCHITECTURE.md\",\n    \".planning/codebase/CONCERNS.md\",\n    \".planning/codebase/CONVENTIONS.md\",\n    \".planning/codebase/INTEGRATIONS.md\",\n    \".planning/codebase/STACK.md\",\n    \".planning/codebase/STRUCTURE.md\",\n    \".planning/codebase/TESTING.md\",\n    \".planning/config.json\",\n    \".planning/phases/01-session-persistence/01-01-PLAN.md\",\n    \".planning/phases/01-session-persistence/01-01-SUMMARY.md\",\n    \".planning/phases/01-session-persistence/01-02-PLAN.md\",\n    \".planning/phases/01-session-persistence/01-02-SUMMARY.md\",\n    \".planning/phases/01-session-persistence/01-03-PLAN.md\",\n    \".planning/phases/01-session-persistence/01-03-SUMMARY.md\",\n    \".planning/phases/01-session-persistence/01-HANDOFF.md\",\n    \".planning/phases/01-session-persistence/01-HUMAN-UAT.md\",\n    \".planning/phases/01-session-persistence/01-UI-SPEC.md\",\n    \".planning/phases/01-session-persistence/01-VERIFICATION.md\",\n    \".planning/phases/02-pipeline-ui/02-01-PLAN.md\",\n    \".planning/phases/02-pipeline-ui/02-02-PLAN.md\",\n    \".planning/phases/02-pipeline-ui/02-03-PLAN.md\",\n    \".planning/phases/02-pipeline-ui/02-HANDOFF.md\",\n    \".planning/phases/03-cost-estimate-ux/03-01-PLAN.md\",\n    \".planning/phases/03-cost-estimate-ux/03-02-PLAN.md\",\n    \".planning/phases/03-cost-estimate-ux/03-03-PLAN.md\",\n    \".planning/phases/03-cost-estimate-ux/03-HANDOFF.md\",\n    \".planning/phases/04-rendering-editor/04-01-PLAN.md\",\n    \".planning/phases/04-rendering-editor/04-02-PLAN.md\",\n    \".planning/phases/04-rendering-editor/04-HANDOFF.md\",\n    \".planning/phases/05-dashboard-polish/05-01-PLAN.md\",\n    \".planning/phases/05-dashboard-polish/05-02-PLAN.md\",\n    \".planning/phases/05-dashboard-polish/05-HANDOFF.md\",\n    \".planning/phases/06-code-quality/06-01-PLAN.md\",\n    \".planning/phases/06-code-quality/06-02-PLAN.md\",\n    \".planning/phases/06-code-quality/06-03-PLAN.md\",\n    \".planning/phases/06-code-quality/06-HANDOFF.md\",\n    \".planning/phases/07-launch-hardening/07-01-PLAN.md\",\n    \".planning/phases/07-launch-hardening/07-02-PLAN.md\",\n    \".planning/phases/07-launch-hardening/07-03-PLAN.md\",\n    \".planning/phases/07-launch-hardening/07-HANDOFF.md\"\n  ],\n  \"converted\": [\n    {\n      \"artifact\": \".planning/PROJECT.md\",\n      \"target\": \"docs/prd/PRD.md\",\n      \"type\": \"prd\"\n    },\n    {\n      \"artifact\": \".planning/REQUIREMENTS.md\",\n      \"target\": \"docs/spec/COMPILED-SPEC.md\",\n      \"type\": \"compiled_spec\"\n    },\n    {\n      \"artifact\": \".planning/STATE.md\",\n      \"target\": \"docs/terrace-migration/GSD-STATE.md\",\n      \"type\": \"state_archive\"\n    },\n    {\n      \"artifact\": \".planning/ROADMAP.md\",\n      \"target\": \"docs/terrace-migration/GSD-ROADMAP.md\",\n      \"type\": \"roadmap_archive\"\n    },\n    {\n      \"artifact\": \".planning/config.json\",\n      \"target\": \"docs/terrace-migration/GSD-config.json\",\n      \"type\": \"config\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-01-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/01-session-persistence/01-01-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-01-SUMMARY.md\",\n      \"target\": \"docs/terrace-migration/phases/01-session-persistence/01-01-SUMMARY.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-02-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/01-session-persistence/01-02-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-02-SUMMARY.md\",\n      \"target\": \"docs/terrace-migration/phases/01-session-persistence/01-02-SUMMARY.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-03-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/01-session-persistence/01-03-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-03-SUMMARY.md\",\n      \"target\": \"docs/terrace-migration/phases/01-session-persistence/01-03-SUMMARY.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-HUMAN-UAT.md\",\n      \"target\": \"docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md\",\n      \"type\": \"testing_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-UI-SPEC.md\",\n      \"target\": \"docs/terrace-migration/phases/01-session-persistence/01-UI-SPEC.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-VERIFICATION.md\",\n      \"target\": \"docs/testing/gsd/01-session-persistence/01-VERIFICATION.md\",\n      \"type\": \"testing_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/02-pipeline-ui/02-01-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/02-pipeline-ui/02-01-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/02-pipeline-ui/02-02-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/02-pipeline-ui/02-02-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/02-pipeline-ui/02-03-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/02-pipeline-ui/02-03-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/03-cost-estimate-ux/03-01-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/03-cost-estimate-ux/03-01-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/03-cost-estimate-ux/03-02-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/03-cost-estimate-ux/03-02-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/03-cost-estimate-ux/03-03-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/03-cost-estimate-ux/03-03-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/04-rendering-editor/04-01-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/04-rendering-editor/04-01-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/04-rendering-editor/04-02-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/04-rendering-editor/04-02-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/05-dashboard-polish/05-01-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/05-dashboard-polish/05-01-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/05-dashboard-polish/05-02-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/05-dashboard-polish/05-02-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/06-code-quality/06-01-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/06-code-quality/06-01-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/06-code-quality/06-02-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/06-code-quality/06-02-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/06-code-quality/06-03-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/06-code-quality/06-03-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/07-launch-hardening/07-01-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/07-launch-hardening/07-01-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/07-launch-hardening/07-02-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/07-launch-hardening/07-02-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    },\n    {\n      \"artifact\": \".planning/phases/07-launch-hardening/07-03-PLAN.md\",\n      \"target\": \"docs/terrace-migration/phases/07-launch-hardening/07-03-PLAN.md\",\n      \"type\": \"phase_artifact\"\n    }\n  ],\n  \"skipped\": [\n    {\n      \"artifact\": \".planning/PHASE-GOALS.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/codebase/ARCHITECTURE.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/codebase/CONCERNS.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/codebase/CONVENTIONS.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/codebase/INTEGRATIONS.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/codebase/STACK.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/codebase/STRUCTURE.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/codebase/TESTING.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/phases/01-session-persistence/01-HANDOFF.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/phases/02-pipeline-ui/02-HANDOFF.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/phases/03-cost-estimate-ux/03-HANDOFF.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/phases/04-rendering-editor/04-HANDOFF.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/phases/05-dashboard-polish/05-HANDOFF.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/phases/06-code-quality/06-HANDOFF.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"artifact\": \".planning/phases/07-launch-hardening/07-HANDOFF.md\",\n      \"reason\": \"unsupported_artifact\",\n      \"suggested_action\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    }\n  ],\n  \"writes\": [\n    \".terrace/state.json\",\n    \"docs/prd/PRD.md\",\n    \"docs/spec/COMPILED-SPEC.md\",\n    \"docs/terrace-migration/GSD-STATE.md\",\n    \"docs/terrace-migration/GSD-ROADMAP.md\",\n    \"docs/terrace-migration/GSD-config.json\",\n    \"docs/terrace-migration/phases/01-session-persistence/01-01-PLAN.md\",\n    \"docs/terrace-migration/phases/01-session-persistence/01-01-SUMMARY.md\",\n    \"docs/terrace-migration/phases/01-session-persistence/01-02-PLAN.md\",\n    \"docs/terrace-migration/phases/01-session-persistence/01-02-SUMMARY.md\",\n    \"docs/terrace-migration/phases/01-session-persistence/01-03-PLAN.md\",\n    \"docs/terrace-migration/phases/01-session-persistence/01-03-SUMMARY.md\",\n    \"docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md\",\n    \"docs/terrace-migration/phases/01-session-persistence/01-UI-SPEC.md\",\n    \"docs/testing/gsd/01-session-persistence/01-VERIFICATION.md\",\n    \"docs/terrace-migration/phases/02-pipeline-ui/02-01-PLAN.md\",\n    \"docs/terrace-migration/phases/02-pipeline-ui/02-02-PLAN.md\",\n    \"docs/terrace-migration/phases/02-pipeline-ui/02-03-PLAN.md\",\n    \"docs/terrace-migration/phases/03-cost-estimate-ux/03-01-PLAN.md\",\n    \"docs/terrace-migration/phases/03-cost-estimate-ux/03-02-PLAN.md\",\n    \"docs/terrace-migration/phases/03-cost-estimate-ux/03-03-PLAN.md\",\n    \"docs/terrace-migration/phases/04-rendering-editor/04-01-PLAN.md\",\n    \"docs/terrace-migration/phases/04-rendering-editor/04-02-PLAN.md\",\n    \"docs/terrace-migration/phases/05-dashboard-polish/05-01-PLAN.md\",\n    \"docs/terrace-migration/phases/05-dashboard-polish/05-02-PLAN.md\",\n    \"docs/terrace-migration/phases/06-code-quality/06-01-PLAN.md\",\n    \"docs/terrace-migration/phases/06-code-quality/06-02-PLAN.md\",\n    \"docs/terrace-migration/phases/06-code-quality/06-03-PLAN.md\",\n    \"docs/terrace-migration/phases/07-launch-hardening/07-01-PLAN.md\",\n    \"docs/terrace-migration/phases/07-launch-hardening/07-02-PLAN.md\",\n    \"docs/terrace-migration/phases/07-launch-hardening/07-03-PLAN.md\",\n    \".terrace/migration/gsd-port-report.json\"\n  ],\n  \"blockers\": [],\n  \"warnings\": [\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/PHASE-GOALS.md was not converted automatically.\",\n      \"artifact\": \".planning/PHASE-GOALS.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/codebase/ARCHITECTURE.md was not converted automatically.\",\n      \"artifact\": \".planning/codebase/ARCHITECTURE.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/codebase/CONCERNS.md was not converted automatically.\",\n      \"artifact\": \".planning/codebase/CONCERNS.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/codebase/CONVENTIONS.md was not converted automatically.\",\n      \"artifact\": \".planning/codebase/CONVENTIONS.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/codebase/INTEGRATIONS.md was not converted automatically.\",\n      \"artifact\": \".planning/codebase/INTEGRATIONS.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/codebase/STACK.md was not converted automatically.\",\n      \"artifact\": \".planning/codebase/STACK.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/codebase/STRUCTURE.md was not converted automatically.\",\n      \"artifact\": \".planning/codebase/STRUCTURE.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/codebase/TESTING.md was not converted automatically.\",\n      \"artifact\": \".planning/codebase/TESTING.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/phases/01-session-persistence/01-HANDOFF.md was not converted automatically.\",\n      \"artifact\": \".planning/phases/01-session-persistence/01-HANDOFF.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/phases/02-pipeline-ui/02-HANDOFF.md was not converted automatically.\",\n      \"artifact\": \".planning/phases/02-pipeline-ui/02-HANDOFF.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/phases/03-cost-estimate-ux/03-HANDOFF.md was not converted automatically.\",\n      \"artifact\": \".planning/phases/03-cost-estimate-ux/03-HANDOFF.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/phases/04-rendering-editor/04-HANDOFF.md was not converted automatically.\",\n      \"artifact\": \".planning/phases/04-rendering-editor/04-HANDOFF.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/phases/05-dashboard-polish/05-HANDOFF.md was not converted automatically.\",\n      \"artifact\": \".planning/phases/05-dashboard-polish/05-HANDOFF.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/phases/06-code-quality/06-HANDOFF.md was not converted automatically.\",\n      \"artifact\": \".planning/phases/06-code-quality/06-HANDOFF.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    },\n    {\n      \"code\": \"GSD_UNSUPPORTED_ARTIFACT\",\n      \"message\": \".planning/phases/07-launch-hardening/07-HANDOFF.md was not converted automatically.\",\n      \"artifact\": \".planning/phases/07-launch-hardening/07-HANDOFF.md\",\n      \"remediation\": \"Review manually and move any still-relevant content into Terrace state or docs.\"\n    }\n  ],\n  \"readiness\": {\n    \"status\": \"review_required\",\n    \"score\": 75\n  },\n  \"next_command\": \"terrace phase show overview\",\n  \"review_checklist\": [\n    \"Review docs/prd/PRD.md against the original .planning/PROJECT.md.\",\n    \"Review docs/spec/COMPILED-SPEC.md against the original .planning/REQUIREMENTS.md.\",\n    \"Review docs/terrace-migration/GSD-STATE.md for legacy state that should become Terrace decisions or sessions.\",\n    \"Run terrace doctor and terrace audit after reviewing migrated artifacts.\",\n    \"Run terrace phase show overview to resume the migrated workflow.\"\n  ],\n  \"validation_commands\": [\n    \"terrace doctor\",\n    \"terrace audit\"\n  ]\n}\n",
+  "stderr": "",
+  "stdoutBytes": 18805,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [
+    "?? .terrace/"
+  ],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

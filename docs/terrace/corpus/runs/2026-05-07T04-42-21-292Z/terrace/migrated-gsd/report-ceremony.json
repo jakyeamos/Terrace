@@ -1,0 +1,105 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "migrated-gsd",
+  "key": "report-ceremony",
+  "category": "shipping-security",
+  "args": [
+    "report",
+    "ceremony",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 95,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "active_feature",
+      "tier",
+      "budget",
+      "artifact_count",
+      "markdown_word_count",
+      "artifacts",
+      "warnings",
+      "passed"
+    ],
+    "passed": false,
+    "warnings": {
+      "length": 1,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 29,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"active_feature\": \"terrace-corpus-smoke\",\n  \"tier\": \"large\",\n  \"budget\": {\n    \"max_artifacts\": 14,\n    \"max_words\": 6000\n  },\n  \"artifact_count\": 29,\n  \"markdown_word_count\": 3903,\n  \"artifacts\": [\n    {\n      \"file\": \"docs/spec/DECISION-LOG.md\",\n      \"words\": 39,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/REPORT-CARD.md\",\n      \"words\": 190,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/SENIOR-CYCLE.md\",\n      \"words\": 1470,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/ARCHITECTURE.md\",\n      \"words\": 84,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/MAP.md\",\n      \"words\": 63,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/OBSERVABILITY.md\",\n      \"words\": 8,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/RISKS.md\",\n      \"words\": 30,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/TESTING.md\",\n      \"words\": 51,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"words\": 197,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"words\": 73,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n      \"words\": 108,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n      \"words\": 117,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"words\": 76,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n      \"words\": 112,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/SUMMARY.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/VERIFICATION.md\",\n      \"words\": 12,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-2/PLAN.md\",\n      \"words\": 64,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-04-29T18-53-01-915Z.md\",\n      \"words\": 117,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-04-29T18-53-35-160Z.md\",\n      \"words\": 103,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-04-29T18-53-50-609Z.md\",\n      \"words\": 103,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-42-30-907Z.md\",\n      \"words\": 102,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-42-37-730Z.md\",\n      \"words\": 202,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-42-41-149Z.md\",\n      \"words\": 190,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/rules/RULE-AUDIT.md\",\n      \"words\": 36,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/security/SECURITY-CHECK.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-EVAL.md\",\n      \"words\": 49,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-PLAN.md\",\n      \"words\": 97,\n      \"weak_signals\": []\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\"\n    }\n  ],\n  \"passed\": false\n}\n",
+  "stderr": "",
+  "stdoutBytes": 3807,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

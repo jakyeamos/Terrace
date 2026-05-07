@@ -1,0 +1,48 @@
+{
+  "repo": "synthetic-node-app-no-scripts",
+  "repoType": "synthetic-node-no-scripts",
+  "track": "scratch-synthetic",
+  "key": "interrogate-project",
+  "category": "interrogation",
+  "args": [
+    "interrogate",
+    "terrace-corpus-synthetic-node-app-no-scripts",
+    "--tier",
+    "large",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 497,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace design terrace-corpus-synthetic-node-app-no-scripts",
+    "feature_id": "terrace-corpus-synthetic-node-app-no-scripts",
+    "artifact": "docs/terrace/features/terrace-corpus-synthetic-node-app-no-scripts/INTERROGATION.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-synthetic-node-app-no-scripts\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-synthetic-node-app-no-scripts/INTERROGATION.md\",\n  \"next_command\": \"terrace design terrace-corpus-synthetic-node-app-no-scripts\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 268,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 5,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

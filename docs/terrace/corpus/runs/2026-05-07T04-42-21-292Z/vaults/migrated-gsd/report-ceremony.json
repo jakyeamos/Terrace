@@ -1,0 +1,105 @@
+{
+  "repo": "Vaults",
+  "repoType": "docs",
+  "track": "migrated-gsd",
+  "key": "report-ceremony",
+  "category": "shipping-security",
+  "args": [
+    "report",
+    "ceremony",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 92,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "active_feature",
+      "tier",
+      "budget",
+      "artifact_count",
+      "markdown_word_count",
+      "artifacts",
+      "warnings",
+      "passed"
+    ],
+    "passed": false,
+    "warnings": {
+      "length": 1,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 22,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"active_feature\": \"terrace-corpus-smoke\",\n  \"tier\": \"large\",\n  \"budget\": {\n    \"max_artifacts\": 14,\n    \"max_words\": 6000\n  },\n  \"artifact_count\": 22,\n  \"markdown_word_count\": 2101,\n  \"artifacts\": [\n    {\n      \"file\": \"docs/terrace/REPORT-CARD.md\",\n      \"words\": 212,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/ARCHITECTURE.md\",\n      \"words\": 39,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/MAP.md\",\n      \"words\": 98,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/OBSERVABILITY.md\",\n      \"words\": 16,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/RISKS.md\",\n      \"words\": 40,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/TESTING.md\",\n      \"words\": 19,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"words\": 216,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n      \"words\": 101,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n      \"words\": 123,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"words\": 84,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n      \"words\": 119,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"words\": 71,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/SUMMARY.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/VERIFICATION.md\",\n      \"words\": 12,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-2/PLAN.md\",\n      \"words\": 64,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-51-00-582Z.md\",\n      \"words\": 137,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-51-06-140Z.md\",\n      \"words\": 224,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T04-51-07-938Z.md\",\n      \"words\": 212,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/security/SECURITY-CHECK.md\",\n      \"words\": 43,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-PLAN.md\",\n      \"words\": 96,\n      \"weak_signals\": []\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\"\n    }\n  ],\n  \"passed\": false\n}\n",
+  "stderr": "",
+  "stdoutBytes": 3003,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}
