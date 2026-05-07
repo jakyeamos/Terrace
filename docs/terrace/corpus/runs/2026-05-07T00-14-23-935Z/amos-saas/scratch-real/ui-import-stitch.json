@@ -1,0 +1,46 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "scratch-real",
+  "key": "ui-import-stitch",
+  "category": "ui",
+  "args": [
+    "ui",
+    "import-stitch",
+    "terrace-corpus-smoke",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 262,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace ui plan-refresh terrace-corpus-smoke",
+    "feature_id": "terrace-corpus-smoke",
+    "artifact": "docs/terrace/features/terrace-corpus-smoke/UI-STITCH.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-smoke\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/UI-STITCH.md\",\n  \"next_command\": \"terrace ui plan-refresh terrace-corpus-smoke\"\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 182,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

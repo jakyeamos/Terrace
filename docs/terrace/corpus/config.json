@@ -1,0 +1,221 @@
+{
+  "realRepos": [
+    {
+      "id": "terrace",
+      "name": "Terrace",
+      "path": "/Users/jakyeamos/projects/Terrace",
+      "branch": "codex/terrace-shadow-test",
+      "type": "self-hosting-cli",
+      "sample": true,
+      "ui": false
+    },
+    {
+      "id": "soundscape-app",
+      "name": "soundscape-app",
+      "path": "/Users/jakyeamos/projects/soundscape-app",
+      "branch": "codex/terrace-shadow-test",
+      "type": "large-fullstack-ts",
+      "sample": true,
+      "ui": true
+    },
+    {
+      "id": "remodelvision",
+      "name": "remodelvision",
+      "path": "/Users/jakyeamos/projects/remodelvision",
+      "branch": "codex/terrace-shadow-test",
+      "type": "app-with-e2e",
+      "sample": true,
+      "ui": true
+    },
+    {
+      "id": "pre-cr-suite-lsp",
+      "name": "pre-cr-suite-lsp",
+      "path": "/Users/jakyeamos/projects/pre-cr-suite-lsp",
+      "branch": "codex/terrace-shadow-test",
+      "type": "typescript-tooling",
+      "sample": true,
+      "ui": false
+    },
+    {
+      "id": "amos-saas",
+      "name": "amos-saas",
+      "path": "/Users/jakyeamos/projects/amos-saas",
+      "branch": "codex/terrace-shadow-test",
+      "type": "saas-app",
+      "sample": true,
+      "ui": true
+    },
+    {
+      "id": "signal-lab",
+      "name": "BBDSE/Signal Lab",
+      "path": "/Users/jakyeamos/projects/BBDSE/Signal Lab",
+      "branch": "codex/terrace-shadow-test",
+      "type": "python",
+      "sample": true,
+      "ui": false
+    },
+    {
+      "id": "vaults",
+      "name": "Vaults",
+      "path": "/Users/jakyeamos/projects/Vaults",
+      "branch": "codex/terrace-shadow-test",
+      "type": "docs",
+      "sample": true,
+      "ui": false
+    },
+    {
+      "id": "clfe",
+      "name": "BBDSE/CLFE",
+      "path": "/Users/jakyeamos/projects/BBDSE/CLFE",
+      "branch": "codex/terrace-shadow-test",
+      "type": "sparse",
+      "sample": true,
+      "ui": false
+    },
+    {
+      "id": "cap-fit-builder",
+      "name": "BBDSE/Cap-Fit Builder",
+      "path": "/Users/jakyeamos/projects/BBDSE/Cap-Fit Builder",
+      "branch": "codex/terrace-shadow-test",
+      "type": "legacy-planning",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "rte",
+      "name": "BBDSE/RTE",
+      "path": "/Users/jakyeamos/projects/BBDSE/RTE",
+      "branch": "codex/terrace-shadow-test",
+      "type": "legacy-planning",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "bballedu",
+      "name": "Bballedu",
+      "path": "/Users/jakyeamos/projects/Bballedu",
+      "branch": "codex/terrace-shadow-test",
+      "type": "node-app",
+      "sample": false,
+      "ui": true
+    },
+    {
+      "id": "dsci-proj",
+      "name": "Dsci-proj",
+      "path": "/Users/jakyeamos/projects/Dsci-proj",
+      "branch": "codex/terrace-shadow-test",
+      "type": "legacy-planning",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "fantasy",
+      "name": "Fantasy",
+      "path": "/Users/jakyeamos/projects/Fantasy",
+      "branch": "codex/terrace-shadow-test",
+      "type": "legacy-planning",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "r-project",
+      "name": "R-Project",
+      "path": "/Users/jakyeamos/projects/R-Project",
+      "branch": "codex/terrace-shadow-test",
+      "type": "legacy-planning",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "claude-improvement-lab",
+      "name": "claude-improvement-lab",
+      "path": "/Users/jakyeamos/projects/claude-improvement-lab",
+      "branch": "codex/terrace-shadow-test",
+      "type": "python",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "csds391-s26-6",
+      "name": "csds391-s26-6",
+      "path": "/Users/jakyeamos/projects/csds391-s26-6",
+      "branch": "codex/terrace-shadow-test",
+      "type": "legacy-planning",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "dispatches-from-cyberspace",
+      "name": "dispatches-from-cyberspace",
+      "path": "/Users/jakyeamos/projects/dispatches-from-cyberspace",
+      "branch": "codex/terrace-shadow-test",
+      "type": "node-content",
+      "sample": false,
+      "ui": true
+    },
+    {
+      "id": "portfolio",
+      "name": "portfolio",
+      "path": "/Users/jakyeamos/projects/portfolio",
+      "branch": "codex/terrace-shadow-test",
+      "type": "frontend",
+      "sample": false,
+      "ui": true
+    },
+    {
+      "id": "tm",
+      "name": "tm",
+      "path": "/Users/jakyeamos/projects/tm",
+      "branch": "codex/terrace-shadow-test",
+      "type": "node-app",
+      "sample": false,
+      "ui": false
+    },
+    {
+      "id": "video-pipeline",
+      "name": "video-pipeline",
+      "path": "/Users/jakyeamos/projects/video-pipeline",
+      "branch": "codex/terrace-shadow-test",
+      "type": "media-pipeline",
+      "sample": false,
+      "ui": false
+    }
+  ],
+  "syntheticRepos": [
+    {
+      "id": "synthetic-node-package",
+      "name": "synthetic-node-package",
+      "type": "synthetic-node-package",
+      "template": "node-package",
+      "ui": false
+    },
+    {
+      "id": "synthetic-node-app-no-scripts",
+      "name": "synthetic-node-app-no-scripts",
+      "type": "synthetic-node-no-scripts",
+      "template": "node-app-no-scripts",
+      "ui": true
+    },
+    {
+      "id": "synthetic-python",
+      "name": "synthetic-python",
+      "type": "synthetic-python",
+      "template": "python",
+      "ui": false
+    },
+    {
+      "id": "synthetic-docs",
+      "name": "synthetic-docs",
+      "type": "synthetic-docs",
+      "template": "docs",
+      "ui": false
+    },
+    {
+      "id": "synthetic-empty",
+      "name": "synthetic-empty",
+      "type": "synthetic-empty",
+      "template": "empty",
+      "ui": false
+    }
+  ]
+}

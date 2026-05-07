@@ -1,0 +1,72 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "scratch-real",
+  "key": "security-check",
+  "category": "shipping-security",
+  "args": [
+    "security",
+    "check",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 3313,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "checks",
+      "status",
+      "artifact",
+      "markdown",
+      "created_at",
+      "findings",
+      "blocking",
+      "warnings"
+    ],
+    "artifact": ".terrace/security/latest.json",
+    "blocking": {
+      "length": 0,
+      "sample": []
+    },
+    "warnings": {
+      "length": 1,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"checks\": [\n    \"secret-patterns\",\n    \"env-files\",\n    \"sensitive-logging\",\n    \"dependency-audit\",\n    \"deployment-config\"\n  ],\n  \"status\": \"passed\",\n  \"artifact\": \".terrace/security/latest.json\",\n  \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\",\n  \"created_at\": \"2026-05-07T00:19:00.257Z\",\n  \"findings\": [\n    {\n      \"id\": \"npm-audit-unavailable\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"npm audit could not produce dependency vulnerability data.\",\n      \"evidence\": \"spawnSync npm ETIMEDOUT\",\n      \"recommended_fix\": \"Run npm audit locally when network access is available.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"blocking\": [],\n  \"warnings\": [\n    {\n      \"id\": \"npm-audit-unavailable\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"npm audit could not produce dependency vulnerability data.\",\n      \"evidence\": \"spawnSync npm ETIMEDOUT\",\n      \"recommended_fix\": \"Run npm audit locally when network access is available.\",\n      \"source\": \"terrace security check\"\n    }\n  ]\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 1225,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

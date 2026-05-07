@@ -1,0 +1,25 @@
+{
+  "repo": "pre-cr-suite-lsp",
+  "repoType": "typescript-tooling",
+  "track": "migrated-gsd",
+  "key": "phase-plan-dynamic",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "plan",
+    null,
+    "--json"
+  ],
+  "skipped": true,
+  "skipReason": "No phase id available after migration.",
+  "score": {
+    "total": 0,
+    "reliability": 0,
+    "usefulness": 0,
+    "artifactQuality": 0,
+    "interrogationQuality": 0,
+    "repoFit": 0,
+    "safety": 25,
+    "ergonomics": 0
+  }
+}

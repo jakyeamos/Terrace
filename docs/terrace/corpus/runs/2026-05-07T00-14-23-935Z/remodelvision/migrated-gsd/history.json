@@ -1,0 +1,44 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "history",
+  "category": "workflow",
+  "args": [
+    "history",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 97,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "quick_tasks",
+      "sessions",
+      "decisions",
+      "phases",
+      "recent_quick_tasks",
+      "recent_sessions"
+    ]
+  },
+  "stdout": "{\n  \"quick_tasks\": {\n    \"total\": 0,\n    \"completed\": 0\n  },\n  \"sessions\": {\n    \"total\": 0\n  },\n  \"decisions\": {\n    \"total\": 20\n  },\n  \"phases\": {\n    \"total\": 11,\n    \"with_plans\": 7\n  },\n  \"recent_quick_tasks\": [],\n  \"recent_sessions\": []\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 73,
+    "reliability": 25,
+    "usefulness": 6,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  },
+  "stdoutBytes": 245,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

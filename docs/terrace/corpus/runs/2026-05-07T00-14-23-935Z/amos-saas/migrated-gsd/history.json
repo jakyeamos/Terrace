@@ -1,0 +1,44 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "history",
+  "category": "workflow",
+  "args": [
+    "history",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 89,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "quick_tasks",
+      "sessions",
+      "decisions",
+      "phases",
+      "recent_quick_tasks",
+      "recent_sessions"
+    ]
+  },
+  "stdout": "{\n  \"quick_tasks\": {\n    \"total\": 87,\n    \"completed\": 87\n  },\n  \"sessions\": {\n    \"total\": 167\n  },\n  \"decisions\": {\n    \"total\": 32\n  },\n  \"phases\": {\n    \"total\": 45,\n    \"with_plans\": 37\n  },\n  \"recent_quick_tasks\": [\n    {\n      \"id\": \"260331-pkg\",\n      \"title\": \"Quick Task 260331-pkg: Summary\",\n      \"status\": \"completed\",\n      \"source_dir\": \".planning/quick/260331-pkg-make-industry-sector-editable-on-prime-d\",\n      \"plan_ref\": \".planning/quick/260331-pkg-make-industry-sector-editable-on-prime-d/260331-pkg-PLAN.md\",\n      \"summary_ref\": \".planning/quick/260331-pkg-make-industry-sector-editable-on-prime-d/260331-pkg-SUMMARY.md\",\n      \"subsystem\": null,\n      \"files_modified\": [],\n      \"commits\": [\n        \"262a354\"\n      ]\n    },\n    {\n      \"id\": \"260331-pjf\",\n      \"title\": \"Quick Task 260331-pjf: Summary\",\n      \"status\": \"completed\",\n      \"source_dir\": \".planning/quick/260331-pjf-remove-estimated-contract-value-from-rec\",\n      \"plan_ref\": \".planning/quick/260331-pjf-remove-estimated-contract-value-from-rec/260331-pjf-PLAN.md\",\n      \"summary_ref\": \".planning/quick/260331-pjf-remove-estimated-contract-value-from-rec/260331-pjf-SUMMARY.md\",\n      \"subsystem\": null,\n      \"files_modified\": [],\n      \"commits\": [\n        \"a23291a\"\n      ]\n    },\n    {\n      \"id\": \"260331-o2c\",\n      \"title\": \"Quick Task 260331-o2c: Improve Prime Detail Page — Industry/Sector, Notes, and Find Contact URLs\",\n      \"status\": \"completed\",\n      \"source_dir\": \".planning/quick/260331-o2c-improve-prime-detail-page-add-industry-s\",\n      \"plan_ref\": \".planning/quick/260331-o2c-improve-prime-detail-page-add-industry-s/260331-o2c-PLAN.md\",\n      \"summary_ref\": \".planning/quick/260331-o2c-improve-prime-detail-page-add-industry-s/260331-o2c-SUMMARY.md\",\n      \"subsystem\": \"primes\",\n      \"files_modified\": [\n        \"src/app/(app)/primes/[id]/prime-detail-client.tsx\",\n        \"src/lib/primes/types.ts\",\n        \"src/app/(app)/primes/actions.ts\",\n        \"src/app/api/primes/find-contact/route.ts\",\n        \"supabase/migrations/034_prime_notes.sql\"\n      ],\n      \"commits\": [\n        \"3cf147a\",\n        \"e0d6b1c\",\n        \"7a156af\"\n      ]\n    },\n    {\n      \"id\": \"260331-nzn\",\n      \"title\": \"Quick Task 260331-nzn: Move Chevron Icon to Left of Section Label Summary\",\n      \"status\": \"completed\",\n      \"source_dir\": \".planning/quick/260331-nzn-move-chevron-icon-to-left-of-section-lab\",\n      \"plan_ref\": \".planning/quick/260331-nzn-move-chevron-icon-to-left-of-section-lab/260331-nzn-PLAN.md\",\n      \"summary_ref\": \".planning/quick/260331-nzn-move-chevron-icon-to-left-of-section-lab/260331-nzn-SUMMARY.md\",\n      \"subsystem\": \"dashboard\",\n      \"files_modified\": [\n        \"src/app/(app)/dashboard/activity-feed.tsx\"\n      ],\n      \"commits\": [\n        \"80c08c0\"\n      ]\n    },\n    {\n      \"id\": \"260331-nt2\",\n      \"title\": \"Quick 260331-nt2: Add Collapsible Sections to Recent Activity Feed Summary\",\n      \"status\": \"completed\",\n      \"source_dir\": \".planning/quick/260331-nt2-add-collapsible-sections-to-recent-activ\",\n      \"plan_ref\": \".planning/quick/260331-nt2-add-collapsible-sections-to-recent-activ/260331-nt2-PLAN.md\",\n      \"summary_ref\": \".planning/quick/260331-nt2-add-collapsible-sections-to-recent-activ/260331-nt2-SUMMARY.md\",\n      \"subsystem\": \"dashboard\",\n      \"files_modified\": [\n        \"src/app/(app)/dashboard/activity-feed.tsx\"\n      ],\n      \"commits\": [\n        \"0d1b950\"\n      ]\n    }\n  ],\n  \"recent_sessions\": [\n    {\n      \"source\": \"gsd_quick\",\n      \"task_id\": \"260331-pkg\",\n      \"status\": \"completed\",\n      \"source_ref\": \".planning/quick/260331-pkg-make-industry-sector-editable-on-prime-d/260331-pkg-SUMMARY.md\"\n    },\n    {\n      \"source\": \"gsd_quick\",\n      \"task_id\": \"260331-pkg\",\n      \"status\": \"planned\",\n      \"source_ref\": \".planning/quick/260331-pkg-make-industry-sector-editable-on-prime-d/260331-pkg-PLAN.md\"\n    },\n    {\n      \"source\": \"gsd_quick\",\n      \"task_id\": \"260331-pjf\",\n      \"status\": \"completed\",\n      \"source_ref\": \".planning/quick/260331-pjf-remove-estimated-contract-value-from-rec/260331-pjf-SUMMARY.md\"\n    },\n    {\n      \"source\": \"gsd_quick\",\n      \"task_id\": \"260331-pjf\",\n      \"status\": \"planned\",\n      \"source_ref\": \".planning/quick/260331-pjf-remove-estimated-contract-value-from-rec/260331-pjf-PLAN.md\"\n    },\n    {\n      \"source\": \"gsd_quick\",\n      \"task_id\": \"260331-o2c\",\n      \"status\": \"completed\",\n      \"source_ref\": \".planning/quick/260331-o2c-improve-prime-detail-page-add-industry-s/260331-o2c-SUMMARY.md\"\n    }\n  ]\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 73,
+    "reliability": 25,
+    "usefulness": 6,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  },
+  "stdoutBytes": 4531,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

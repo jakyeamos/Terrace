@@ -1,0 +1,42 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "scratch-real",
+  "key": "commands-discover",
+  "category": "baseline",
+  "args": [
+    "commands",
+    "discover",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 93,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "package_manager",
+      "scripts",
+      "checks"
+    ]
+  },
+  "stdout": "{\n  \"package_manager\": \"pnpm\",\n  \"scripts\": {\n    \"secrets:pull\": \"tsx scripts/secrets/pull.ts\",\n    \"secrets:push\": \"tsx scripts/secrets/push.ts\",\n    \"secrets:bootstrap\": \"tsx scripts/secrets/bootstrap.ts\",\n    \"secrets:ensure\": \"tsx scripts/secrets/pull.ts\",\n    \"env:check\": \"tsx scripts/env-check.ts\",\n    \"dev\": \"pnpm secrets:ensure && docker compose -f docker/docker-compose.yml up -d && turbo dev\",\n    \"build\": \"turbo build\",\n    \"start\": \"turbo start\",\n    \"lint\": \"eslint . --ext .ts,.tsx\",\n    \"lint:turbo\": \"turbo lint\",\n    \"lint:ci\": \"eslint . --ext .ts,.tsx --max-warnings 0\",\n    \"test\": \"turbo test\",\n    \"test:coverage\": \"turbo test:coverage\",\n    \"typecheck\": \"tsc -p tsconfig.typecheck.json --noEmit\",\n    \"typecheck:packages\": \"turbo typecheck\",\n    \"audit:dead-code\": \"node scripts/dead-code-audit.js\",\n    \"audit:types\": \"tsx scripts/type-audit/scan-types.ts\",\n    \"audit:types:check\": \"tsx scripts/type-audit/compare-baseline.ts\",\n    \"audit:ts-errors\": \"tsx packages/shared/scripts/audit-types.ts\",\n    \"audit:ts-errors:check\": \"tsx packages/shared/scripts/audit-types.ts --check\",\n    \"audit:lint-violations\": \"tsx packages/shared/scripts/audit-lint.ts\",\n    \"audit:lint-violations:check\": \"tsx packages/shared/scripts/audit-lint.ts --check\",\n    \"audit:relation-counts\": \"tsx packages/shared/scripts/relation-count-report.ts\",\n    \"audit:relation-counts:check\": \"tsx packages/shared/scripts/relation-count-report.ts --check\",\n    \"audit:relation-counts:json\": \"tsx packages/shared/scripts/relation-count-report.ts --json\",\n    \"audit:relation-counts:test\": \"tsx packages/shared/scripts/__tests__/relation-count-regression.test.ts\",\n    \"telemetry:utility:validate\": \"tsx scripts/ci/validate-telemetry-utility.ts\",\n    \"telemetry:utility:test\": \"tsx scripts/ci/validate-telemetry-utility.test.ts\",\n    \"db:generate\": \"pnpm --filter ./packages/db exec prisma generate\",\n    \"db:migrate\": \"pnpm --filter ./packages/db exec prisma migrate dev\",\n    \"db:seed\": \"pnpm --filter ./packages/db exec tsx prisma/seed.ts\",\n    \"db:reset\": \"pnpm --filter ./packages/db exec prisma migrate reset --force\",\n    \"db:studio\": \"pnpm --filter ./packages/db exec prisma studio\",\n    \"db:setup\": \"pnpm db:generate && pnpm db:migrate && pnpm db:seed\",\n    \"db:refresh-tiers\": \"tsx scripts/refresh-artist-tiers.ts\",\n    \"db:refresh-tiers:dry-run\": \"tsx scripts/refresh-artist-tiers.ts --dry-run\",\n    \"dev:fresh\": \"pnpm db:reset && pnpm db:seed && pnpm dev\",\n    \"clean\": \"turbo clean && rm -rf node_modules\",\n    \"format\": \"prettier --write \\\"**/*.{ts,tsx,md,json}\\\"\",\n    \"prisma:db\": \"pnpm --filter @soundscape/db exec prisma\",\n    \"prepare\": \"husky\",\n    \"dump:downloads\": \"find . -type f \\\\( -name '*.ts' -o -name '*.tsx' \\\\) -not -path '*/node_modules/*' -not -path '*/.next/*' -not -path '*/dist/*' -print0 | xargs -0 -I {} sh -c 'echo \\\"=== {} ===\\\" && cat \\\"{}\\\"' > ~/Downloads/soundscape-code.txt\",\n    \"db:seed:all\": \"pnpm db:seed\",\n    \"dev:seeded\": \"pnpm db:generate && pnpm db:migrate && pnpm db:seed:all && pnpm dev\",\n    \"repair:types\": \"pnpm -w exec bash -c \\\"rm -rf .turbo && find packages -maxdepth 3 -name '*.tsbuildinfo' -delete && rm -rf packages/**/dist && pnpm -w install && pnpm -w exec tsc -b packages/db/tsconfig.build.json packages/shared/tsconfig.json packages/api/tsconfig.json\\\"\",\n    \"execute\": \"tsx scripts/execute-plan-integrated.ts <plan-path>\",\n    \"e2e:smoke\": \"playwright test --grep @smoke\",\n    \"e2e:full\": \"playwright test\",\n    \"e2e:ui\": \"playwright test --ui\",\n    \"e2e:debug\": \"playwright test --debug\"\n  },\n  \"checks\": [\n    {\n      \"category\": \"typecheck\",\n      \"script\": \"typecheck\",\n      \"required\": false,\n      \"suggested\": \"tsc --noEmit\",\n      \"exists\": true,\n      \"command\": \"pnpm run typecheck\"\n    },\n    {\n      \"category\": \"lint\",\n      \"script\": \"lint\",\n      \"required\": true,\n      \"suggested\": \"eslint .\",\n      \"exists\": true,\n      \"command\": \"pnpm run lint\"\n    },\n    {\n      \"category\": \"test\",\n      \"script\": \"test\",\n      \"required\": false,\n      \"suggested\": \"vitest run or npm test equivalent\",\n      \"exists\": true,\n      \"command\": \"pnpm run test\"\n    },\n    {\n      \"category\": \"coverage\",\n      \"script\": \"test:coverage\",\n      \"required\": false,\n      \"suggested\": \"vitest run --coverage or project equivalent\",\n      \"exists\": true,\n      \"command\": \"pnpm run test:coverage\"\n    },\n    {\n      \"category\": \"package\",\n      \"script\": \"package:dry-run\",\n      \"required\": false,\n      \"suggested\": \"npm pack --dry-run\",\n      \"exists\": false,\n      \"command\": null\n    },\n    {\n      \"category\": \"build\",\n      \"script\": \"build\",\n      \"required\": false,\n      \"suggested\": \"framework build command\",\n      \"exists\": true,\n      \"command\": \"pnpm run build\"\n    }\n  ]\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 4752,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

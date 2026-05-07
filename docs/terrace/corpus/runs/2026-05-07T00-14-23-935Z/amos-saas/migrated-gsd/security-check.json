@@ -1,0 +1,163 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "security-check",
+  "category": "shipping-security",
+  "args": [
+    "security",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 2005,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "checks",
+      "status",
+      "artifact",
+      "markdown",
+      "created_at",
+      "findings",
+      "blocking",
+      "warnings"
+    ],
+    "artifact": ".terrace/security/latest.json",
+    "blocking": {
+      "length": 2,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 8,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"checks\": [\n    \"secret-patterns\",\n    \"env-files\",\n    \"sensitive-logging\",\n    \"dependency-audit\",\n    \"deployment-config\"\n  ],\n  \"status\": \"blocked\",\n  \"artifact\": \".terrace/security/latest.json\",\n  \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\",\n  \"created_at\": \"2026-05-07T00:20:49.273Z\",\n  \"findings\": [\n    {\n      \"id\": \"react-html-injection-0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"src/components/ui/chart.tsx\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in src/components/ui/chart.tsx.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-@anthropic-ai/sdk-0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for @anthropic-ai/sdk.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace @anthropic-ai/sdk and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-@hono/node-server-1\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for @hono/node-server.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace @hono/node-server and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-brace-expansion-2\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for brace-expansion.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace brace-expansion and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-express-rate-limit-3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for express-rate-limit.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace express-rate-limit and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-hono-4\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for hono.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace hono and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-ip-address-5\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for ip-address.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace ip-address and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-next-6\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for next.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace next and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-path-to-regexp-7\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for path-to-regexp.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace path-to-regexp and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-postcss-8\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for postcss.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace postcss and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"blocking\": [\n    {\n      \"id\": \"npm-audit-next-6\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for next.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace next and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-path-to-regexp-7\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for path-to-regexp.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace path-to-regexp and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"id\": \"react-html-injection-0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"src/components/ui/chart.tsx\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in src/components/ui/chart.tsx.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-@anthropic-ai/sdk-0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for @anthropic-ai/sdk.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace @anthropic-ai/sdk and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-@hono/node-server-1\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for @hono/node-server.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace @hono/node-server and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-brace-expansion-2\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for brace-expansion.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace brace-expansion and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-express-rate-limit-3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for express-rate-limit.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace express-rate-limit and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-hono-4\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for hono.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace hono and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-ip-address-5\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for ip-address.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace ip-address and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-postcss-8\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for postcss.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace postcss and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    }\n  ]\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 9364,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

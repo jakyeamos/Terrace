@@ -1,0 +1,86 @@
+{
+  "repo": "Vaults",
+  "repoType": "docs",
+  "track": "migrated-gsd",
+  "key": "port-gsd-dry-run",
+  "category": "migration",
+  "args": [
+    "port",
+    "gsd",
+    "--dry-run",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 94,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "artifacts",
+      "command_strategies",
+      "converted",
+      "skipped",
+      "writes",
+      "blockers",
+      "warnings",
+      "readiness",
+      "next_command",
+      "review_checklist",
+      "validation_commands"
+    ],
+    "mode": "dry-run",
+    "next_command": null,
+    "readiness": {
+      "status": "review_required",
+      "score": 0
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    },
+    "artifacts": {
+      "length": 0,
+      "sample": []
+    },
+    "validation_commands": {
+      "length": 2,
+      "sample": [
+        "terrace doctor",
+        "terrace audit"
+      ]
+    },
+    "review_checklist": {
+      "length": 0,
+      "sample": []
+    },
+    "converted": {
+      "length": 0
+    },
+    "skipped": {
+      "length": 0
+    },
+    "writes": {
+      "length": 0
+    }
+  },
+  "stdout": "{\n  \"mode\": \"dry-run\",\n  \"artifacts\": [],\n  \"command_strategies\": {\n    \"improved\": [\n      \"gsd-new-project\",\n      \"gsd-discuss-phase\",\n      \"gsd-plan-phase\",\n      \"gsd-execute-phase\",\n      \"gsd-quick\"\n    ],\n    \"replaced\": [\n      \"gsd-validate-phase\",\n      \"gsd-verify-work\",\n      \"gsd-ship\"\n    ],\n    \"as-is\": [\n      \"gsd-note\",\n      \"gsd-add-todo\",\n      \"gsd-check-todos\",\n      \"gsd-health\",\n      \"gsd-stats\",\n      \"gsd-forensics\",\n      \"gsd-map-codebase\"\n    ]\n  },\n  \"converted\": [],\n  \"skipped\": [],\n  \"writes\": [],\n  \"blockers\": [],\n  \"warnings\": [],\n  \"readiness\": {\n    \"status\": \"review_required\",\n    \"score\": 0\n  },\n  \"next_command\": null,\n  \"review_checklist\": [],\n  \"validation_commands\": [\n    \"terrace doctor\",\n    \"terrace audit\"\n  ]\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 770,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

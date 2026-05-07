@@ -1,0 +1,48 @@
+{
+  "repo": "synthetic-node-package",
+  "repoType": "synthetic-node-package",
+  "track": "scratch-synthetic",
+  "key": "align",
+  "category": "senior-cycle",
+  "args": [
+    "align",
+    "terrace-corpus-smoke",
+    "--tier",
+    "large",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 274,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace interrogate terrace-corpus-smoke",
+    "feature_id": "terrace-corpus-smoke",
+    "artifact": "docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-smoke\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n  \"next_command\": \"terrace interrogate terrace-corpus-smoke\"\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 197,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

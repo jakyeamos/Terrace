@@ -1,0 +1,95 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "phase-list",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "list",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 91,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "phases"
+    ],
+    "phases": {
+      "length": 11,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"phases\": [\n    {\n      \"id\": \"overview\",\n      \"title\": \"Overview\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": []\n    },\n    {\n      \"id\": \"phases\",\n      \"title\": \"Phases\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": []\n    },\n    {\n      \"id\": \"phase-details\",\n      \"title\": \"Phase Details\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": []\n    },\n    {\n      \"id\": \"phase-1-session-persistence\",\n      \"title\": \"Phase 1: Session Persistence\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": [\n        {\n          \"id\": \"01-01\",\n          \"title\": \"01-01\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/01-session-persistence/01-01-PLAN.md\"\n        },\n        {\n          \"id\": \"01-02\",\n          \"title\": \"01-02\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/01-session-persistence/01-02-PLAN.md\"\n        },\n        {\n          \"id\": \"01-03\",\n          \"title\": \"01-03\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/01-session-persistence/01-03-PLAN.md\"\n        }\n      ]\n    },\n    {\n      \"id\": \"phase-2-pipeline-ui\",\n      \"title\": \"Phase 2: Pipeline UI\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": [\n        {\n          \"id\": \"02-01\",\n          \"title\": \"TypeScript clean\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/02-pipeline-ui/02-01-PLAN.md\"\n        },\n        {\n          \"id\": \"02-02\",\n          \"title\": \"TypeScript clean\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/02-pipeline-ui/02-02-PLAN.md\"\n        },\n        {\n          \"id\": \"02-03\",\n          \"title\": \"TypeScript clean across all phase 2 files\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/02-pipeline-ui/02-03-PLAN.md\"\n        }\n      ]\n    },\n    {\n      \"id\": \"phase-3-cost-estimate-ux\",\n      \"title\": \"Phase 3: Cost Estimate UX\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": [\n        {\n          \"id\": \"03-01\",\n          \"title\": \"03-01\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/03-cost-estimate-ux/03-01-PLAN.md\"\n        },\n        {\n          \"id\": \"03-02\",\n          \"title\": \"03-02\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/03-cost-estimate-ux/03-02-PLAN.md\"\n        },\n        {\n          \"id\": \"03-03\",\n          \"title\": \"03-03\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/03-cost-estimate-ux/03-03-PLAN.md\"\n        }\n      ]\n    },\n    {\n      \"id\": \"phase-4-rendering-editor\",\n      \"title\": \"Phase 4: Rendering Editor\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": [\n        {\n          \"id\": \"04-01\",\n          \"title\": \"04-01\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/04-rendering-editor/04-01-PLAN.md\"\n        },\n        {\n          \"id\": \"04-02\",\n          \"title\": \"04-02\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/04-rendering-editor/04-02-PLAN.md\"\n        }\n      ]\n    },\n    {\n      \"id\": \"phase-5-dashboard-polish\",\n      \"title\": \"Phase 5: Dashboard Polish\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": [\n        {\n          \"id\": \"05-01\",\n          \"title\": \"05-01\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/05-dashboard-polish/05-01-PLAN.md\"\n        },\n        {\n          \"id\": \"05-02\",\n          \"title\": \"05-02\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/05-dashboard-polish/05-02-PLAN.md\"\n        }\n      ]\n    },\n    {\n      \"id\": \"phase-6-code-quality\",\n      \"title\": \"Phase 6: Code Quality\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": [\n        {\n          \"id\": \"06-01\",\n          \"title\": \"06-01\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/06-code-quality/06-01-PLAN.md\"\n        },\n        {\n          \"id\": \"06-02\",\n          \"title\": \"06-02\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/06-code-quality/06-02-PLAN.md\"\n        },\n        {\n          \"id\": \"06-03\",\n          \"title\": \"RemodelVision — Environment Variables\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/06-code-quality/06-03-PLAN.md\"\n        }\n      ]\n    },\n    {\n      \"id\": \"phase-7-launch-hardening\",\n      \"title\": \"Phase 7: Launch Hardening\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": [\n        {\n          \"id\": \"07-01\",\n          \"title\": \"07-01\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/07-launch-hardening/07-01-PLAN.md\"\n        },\n        {\n          \"id\": \"07-02\",\n          \"title\": \"07-02\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/07-launch-hardening/07-02-PLAN.md\"\n        },\n        {\n          \"id\": \"07-03\",\n          \"title\": \"07-03\",\n          \"status\": \"migrated\",\n          \"source_ref\": \".planning/phases/07-launch-hardening/07-03-PLAN.md\"\n        }\n      ]\n    },\n    {\n      \"id\": \"progress\",\n      \"title\": \"Progress\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": []\n    }\n  ]\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 69,
+    "reliability": 25,
+    "usefulness": 6,
+    "artifactQuality": 5,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  },
+  "stdoutBytes": 5533,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

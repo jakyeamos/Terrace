@@ -1,0 +1,139 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "report-ceremony",
+  "category": "shipping-security",
+  "args": [
+    "report",
+    "ceremony",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 97,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "active_feature",
+      "tier",
+      "budget",
+      "artifact_count",
+      "markdown_word_count",
+      "artifacts",
+      "warnings",
+      "passed"
+    ],
+    "passed": false,
+    "warnings": {
+      "length": 6,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/spec/COMPILED-SPEC.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md"
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 29,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"active_feature\": \"terrace-corpus-smoke\",\n  \"tier\": \"medium\",\n  \"budget\": {\n    \"max_artifacts\": 8,\n    \"max_words\": 3000\n  },\n  \"artifact_count\": 29,\n  \"markdown_word_count\": 6259,\n  \"artifacts\": [\n    {\n      \"file\": \"docs/prd/PRD.md\",\n      \"words\": 997,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/spec/COMPILED-SPEC.md\",\n      \"words\": 926,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/terrace/REPORT-CARD.md\",\n      \"words\": 201,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/ARCHITECTURE.md\",\n      \"words\": 67,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/MAP.md\",\n      \"words\": 97,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/OBSERVABILITY.md\",\n      \"words\": 11,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/RISKS.md\",\n      \"words\": 46,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/TESTING.md\",\n      \"words\": 51,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"words\": 227,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n      \"words\": 113,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n      \"words\": 128,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n      \"words\": 115,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-DIFF.md\",\n      \"words\": 67,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-REFRESH.md\",\n      \"words\": 104,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-STITCH.md\",\n      \"words\": 109,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/SUMMARY.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/VERIFICATION.md\",\n      \"words\": 12,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-2/PLAN.md\",\n      \"words\": 64,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-18-04-188Z.md\",\n      \"words\": 126,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-18-09-706Z.md\",\n      \"words\": 213,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-18-11-385Z.md\",\n      \"words\": 201,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/security/SECURITY-CHECK.md\",\n      \"words\": 40,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-PLAN.md\",\n      \"words\": 107,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md\",\n      \"words\": 199,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/01-session-persistence/01-VERIFICATION.md\",\n      \"words\": 1715,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\"\n    },\n    {\n      \"code\": \"WORD_BUDGET_EXCEEDED\",\n      \"message\": \"Generated markdown word count exceeds the tier budget.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/prd/PRD.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/spec/COMPILED-SPEC.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/01-session-persistence/01-VERIFICATION.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    }\n  ],\n  \"passed\": false\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 4817,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

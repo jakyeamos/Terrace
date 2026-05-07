@@ -1,0 +1,24 @@
+{
+  "repo": "BBDSE/CLFE",
+  "repoType": "sparse",
+  "track": "migrated-gsd",
+  "key": "do-phase-complete-dynamic",
+  "category": "workflow",
+  "args": [
+    "do",
+    "run phase <phase-id> end to end",
+    "--json"
+  ],
+  "skipped": true,
+  "skipReason": "No phase id available after migration.",
+  "score": {
+    "total": 0,
+    "reliability": 0,
+    "usefulness": 0,
+    "artifactQuality": 0,
+    "interrogationQuality": 0,
+    "repoFit": 0,
+    "safety": 25,
+    "ergonomics": 0
+  }
+}

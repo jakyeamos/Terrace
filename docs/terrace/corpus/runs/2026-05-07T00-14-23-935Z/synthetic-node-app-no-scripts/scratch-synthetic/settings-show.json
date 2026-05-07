@@ -1,0 +1,41 @@
+{
+  "repo": "synthetic-node-app-no-scripts",
+  "repoType": "synthetic-node-no-scripts",
+  "track": "scratch-synthetic",
+  "key": "settings-show",
+  "category": "workflow",
+  "args": [
+    "settings",
+    "show",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 90,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "config",
+      "phase_effort_default"
+    ]
+  },
+  "stdout": "{\n  \"config\": {\n    \"schema_version\": \"1.0\",\n    \"commands\": {\n      \"test_command\": null,\n      \"typecheck_command\": null,\n      \"lint_command\": null\n    },\n    \"pentest_authorized\": false,\n    \"execution_policy\": {\n      \"default_mode\": \"strict\",\n      \"allow_low_effort\": true,\n      \"phase_effort_default\": \"standard\"\n    }\n  },\n  \"phase_effort_default\": \"standard\"\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 81,
+    "reliability": 25,
+    "usefulness": 6,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 372,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

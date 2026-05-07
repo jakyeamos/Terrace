@@ -1,0 +1,49 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "migrated-gsd",
+  "key": "spec-validate",
+  "category": "baseline",
+  "args": [
+    "spec",
+    "validate",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 99,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "blocking",
+      "warnings"
+    ],
+    "blocking": {
+      "length": 0,
+      "sample": []
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"blocking\": [],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 81,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  },
+  "stdoutBytes": 39,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

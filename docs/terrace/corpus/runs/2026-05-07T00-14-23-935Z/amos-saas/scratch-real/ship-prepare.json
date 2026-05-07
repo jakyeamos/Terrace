@@ -1,0 +1,131 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "scratch-real",
+  "key": "ship-prepare",
+  "category": "shipping-security",
+  "args": [
+    "ship",
+    "prepare",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 1425,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "project_commands",
+      "categories",
+      "timings",
+      "blockers",
+      "warnings",
+      "ship_ref",
+      "next_command"
+    ],
+    "passed": false,
+    "mode": "full",
+    "next_command": "terrace ship check",
+    "warnings": {
+      "length": 16,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "claim",
+            "evidence",
+            "recommended_fix",
+            "source"
+          ],
+          "mode": "security"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"mode\": \"full\",\n  \"passed\": false,\n  \"project_commands\": {\n    \"package_manager\": \"npm\",\n    \"scripts\": {\n      \"dev\": \"next dev\",\n      \"build\": \"next build\",\n      \"start\": \"next start\",\n      \"lint\": \"eslint\"\n    },\n    \"checks\": [\n      {\n        \"category\": \"typecheck\",\n        \"script\": \"typecheck\",\n        \"required\": false,\n        \"suggested\": \"tsc --noEmit\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"lint\",\n        \"script\": \"lint\",\n        \"required\": true,\n        \"suggested\": \"eslint .\",\n        \"exists\": true,\n        \"command\": \"npm run lint\"\n      },\n      {\n        \"category\": \"test\",\n        \"script\": \"test\",\n        \"required\": false,\n        \"suggested\": \"vitest run or npm test equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"coverage\",\n        \"script\": \"test:coverage\",\n        \"required\": false,\n        \"suggested\": \"vitest run --coverage or project equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"package\",\n        \"script\": \"package:dry-run\",\n        \"required\": false,\n        \"suggested\": \"npm pack --dry-run\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"build\",\n        \"script\": \"build\",\n        \"required\": false,\n        \"suggested\": \"framework build command\",\n        \"exists\": true,\n        \"command\": \"npm run build\"\n      }\n    ]\n  },\n  \"categories\": [\n    {\n      \"category\": \"doctor\",\n      \"command\": \"terrace doctor\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"audit\",\n      \"command\": \"terrace audit\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: problem\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: actors\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: desired_outcomes\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: non_goals\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: constraints\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: success_criteria\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: open_questions\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: spec_version\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: phase\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: protected\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: last_updated\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: source_refs\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"security\",\n      \"command\": \"terrace security check\",\n      \"passed\": false,\n      \"security_check\": {\n        \"status\": \"blocked\",\n        \"artifact\": \".terrace/security/latest.json\",\n        \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\"\n      },\n      \"blocking\": [\n        {\n          \"id\": \"npm-audit-next-6\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for next.\",\n          \"evidence\": \"npm audit severity: high.\",\n          \"recommended_fix\": \"Upgrade or replace next and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-path-to-regexp-7\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for path-to-regexp.\",\n          \"evidence\": \"npm audit severity: high.\",\n          \"recommended_fix\": \"Upgrade or replace path-to-regexp and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        }\n      ],\n      \"warnings\": [\n        {\n          \"id\": \"react-html-injection-0\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"src/components/ui/chart.tsx\",\n          \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n          \"evidence\": \"dangerouslySetInnerHTML appears in src/components/ui/chart.tsx.\",\n          \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-@anthropic-ai/sdk-0\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for @anthropic-ai/sdk.\",\n          \"evidence\": \"npm audit severity: moderate.\",\n          \"recommended_fix\": \"Upgrade or replace @anthropic-ai/sdk and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-@hono/node-server-1\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for @hono/node-server.\",\n          \"evidence\": \"npm audit severity: moderate.\",\n          \"recommended_fix\": \"Upgrade or replace @hono/node-server and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-brace-expansion-2\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for brace-expansion.\",\n          \"evidence\": \"npm audit severity: moderate.\",\n          \"recommended_fix\": \"Upgrade or replace brace-expansion and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-express-rate-limit-3\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for express-rate-limit.\",\n          \"evidence\": \"npm audit severity: moderate.\",\n          \"recommended_fix\": \"Upgrade or replace express-rate-limit and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-hono-4\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for hono.\",\n          \"evidence\": \"npm audit severity: moderate.\",\n          \"recommended_fix\": \"Upgrade or replace hono and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-ip-address-5\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for ip-address.\",\n          \"evidence\": \"npm audit severity: moderate.\",\n          \"recommended_fix\": \"Upgrade or replace ip-address and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-postcss-8\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for postcss.\",\n          \"evidence\": \"npm audit severity: moderate.\",\n          \"recommended_fix\": \"Upgrade or replace postcss and rerun terrace security check.\",\n          \"source\": \"terrace security check\"\n        }\n      ],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"tier_one_report\",\n      \"command\": \"terrace report update\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"TIER_ONE_REPORT_WEAK\",\n          \"message\": \"Tier One report score is below 50.\",\n          \"remediation\": \"Run terrace report update and complete the top next actions.\"\n        }\n      ],\n      \"warnings\": [\n        {\n          \"code\": \"TIER_ONE_GAPS\",\n          \"message\": \"Tier One report score is below strong readiness: 25.\",\n          \"remediation\": \"Follow the report next actions.\"\n        }\n      ],\n      \"report_card\": {\n        \"score\": 25,\n        \"status_label\": \"planning_or_governance_weak\"\n      },\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"migration_readiness\",\n      \"command\": \"terrace migration readiness\",\n      \"passed\": true,\n      \"readiness\": null,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"senior_cycle\",\n      \"command\": \"terrace senior-cycle status terrace-corpus-smoke\",\n      \"passed\": true,\n      \"senior_cycle\": {\n        \"feature_id\": \"terrace-corpus-smoke\",\n        \"tier\": \"medium\",\n        \"architecture_default\": \"sustainable\",\n        \"no_band_aid_rule\": true,\n        \"required_artifacts\": [\n          \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n          \"docs/testing/TEST-PLAN.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\"\n        ],\n        \"missing_artifacts\": [],\n        \"allowed\": {\n          \"execute\": true,\n          \"implement\": true,\n          \"ship\": true,\n          \"complete\": true\n        },\n        \"blockers\": [],\n        \"next_command\": \"terrace ship check\"\n      },\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"production_preflight\",\n      \"command\": \"terrace preflight terrace-corpus-smoke\",\n      \"passed\": false,\n      \"preflight\": null,\n      \"blocking\": [\n        {\n          \"code\": \"PREFLIGHT_REQUIRED\",\n          \"message\": \"Production preflight is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace preflight terrace-corpus-smoke\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"ai_review\",\n      \"command\": \"terrace review ai --feature terrace-corpus-smoke\",\n      \"passed\": true,\n      \"ai_review\": null,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"AI_REVIEW_REQUIRED\",\n          \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n        }\n      ],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"debt\",\n      \"command\": \"terrace debt audit\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"audit\": {\n        \"open_count\": 0,\n        \"blockers\": [],\n        \"warnings\": [],\n        \"passed\": true\n      },\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\n\n[... truncated by Terrace corpus harness ...]\n\n {\n      \"code\": \"DOCUMENTATION_REQUIRED\",\n      \"message\": \"Documentation is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace docu terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"npm run lint failed.\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"npm run build failed.\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"git diff --quiet failed.\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"id\": \"react-html-injection-0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"src/components/ui/chart.tsx\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in src/components/ui/chart.tsx.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-@anthropic-ai/sdk-0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for @anthropic-ai/sdk.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace @anthropic-ai/sdk and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-@hono/node-server-1\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for @hono/node-server.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace @hono/node-server and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-brace-expansion-2\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for brace-expansion.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace brace-expansion and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-express-rate-limit-3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for express-rate-limit.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace express-rate-limit and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-hono-4\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for hono.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace hono and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-ip-address-5\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for ip-address.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace ip-address and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-postcss-8\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for postcss.\",\n      \"evidence\": \"npm audit severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace postcss and rerun terrace security check.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"code\": \"TIER_ONE_GAPS\",\n      \"message\": \"Tier One report score is below strong readiness: 25.\",\n      \"remediation\": \"Follow the report next actions.\"\n    },\n    {\n      \"code\": \"AI_REVIEW_REQUIRED\",\n      \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"TEST_EVAL_MISSING\",\n      \"message\": \"No test-suite evaluation has been recorded.\"\n    },\n    {\n      \"code\": \"RULE_AUDIT_MISSING\",\n      \"message\": \"No rule audit has been recorded.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for typecheck.\",\n      \"remediation\": \"Add a `typecheck` script such as `tsc --noEmit` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for test.\",\n      \"remediation\": \"Add a `test` script such as `vitest run or npm test equivalent` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for coverage.\",\n      \"remediation\": \"Add a `test:coverage` script such as `vitest run --coverage or project equivalent` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for package.\",\n      \"remediation\": \"Add a `package:dry-run` script such as `npm pack --dry-run` if this gate should be enforced.\"\n    }\n  ],\n  \"ship_ref\": \"docs/terrace/ship/SHIP.md\",\n  \"next_command\": \"terrace ship check\"\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 85,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 10,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 30201,
+  "stdoutTruncated": true,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

@@ -1,0 +1,53 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "migrated-gsd",
+  "key": "do-plan-next",
+  "category": "workflow",
+  "args": [
+    "do",
+    "plan the next phase",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 104,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "input",
+      "command",
+      "result"
+    ],
+    "command": "terrace next",
+    "result": {
+      "type": "object",
+      "keys": [
+        "command",
+        "blocked",
+        "blockers",
+        "next_action"
+      ],
+      "command": "terrace doctor"
+    }
+  },
+  "stdout": "{\n  \"input\": \"plan the next phase\",\n  \"command\": \"terrace next\",\n  \"result\": {\n    \"command\": \"terrace doctor\",\n    \"blocked\": false,\n    \"blockers\": [],\n    \"next_action\": null\n  }\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 184,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

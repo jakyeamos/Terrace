@@ -1,0 +1,48 @@
+{
+  "repo": "synthetic-empty",
+  "repoType": "synthetic-empty",
+  "track": "scratch-synthetic",
+  "key": "interrogate-project",
+  "category": "interrogation",
+  "args": [
+    "interrogate",
+    "terrace-corpus-synthetic-empty",
+    "--tier",
+    "large",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 254,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace design terrace-corpus-synthetic-empty",
+    "feature_id": "terrace-corpus-synthetic-empty",
+    "artifact": "docs/terrace/features/terrace-corpus-synthetic-empty/INTERROGATION.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-synthetic-empty\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-synthetic-empty/INTERROGATION.md\",\n  \"next_command\": \"terrace design terrace-corpus-synthetic-empty\"\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 5,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 226,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

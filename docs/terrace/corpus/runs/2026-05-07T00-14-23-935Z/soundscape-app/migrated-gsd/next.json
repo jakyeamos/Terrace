@@ -1,0 +1,43 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "migrated-gsd",
+  "key": "next",
+  "category": "workflow",
+  "args": [
+    "next",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 89,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "command",
+      "blocked",
+      "blockers",
+      "next_action"
+    ],
+    "command": "terrace phase show snapshot"
+  },
+  "stdout": "{\n  \"command\": \"terrace phase show snapshot\",\n  \"blocked\": false,\n  \"blockers\": [],\n  \"next_action\": null\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 108,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

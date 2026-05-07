@@ -1,0 +1,58 @@
+{
+  "repo": "BBDSE/Signal Lab",
+  "repoType": "python",
+  "track": "migrated-gsd",
+  "key": "doctor",
+  "category": "baseline",
+  "args": [
+    "doctor",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 107,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "blocking",
+      "warnings",
+      "healthy"
+    ],
+    "healthy": true,
+    "blocking": {
+      "length": 0,
+      "sample": []
+    },
+    "warnings": {
+      "length": 1,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"blocking\": [],\n  \"warnings\": [\n    {\n      \"code\": \"MISSING_PRESET_REGISTRY\",\n      \"message\": \"Missing .terrace/presets/registry.json\"\n    }\n  ],\n  \"healthy\": true\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 81,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  },
+  "stdoutBytes": 172,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

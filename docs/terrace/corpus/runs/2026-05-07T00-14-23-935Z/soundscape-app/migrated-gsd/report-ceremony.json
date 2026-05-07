@@ -1,0 +1,139 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "migrated-gsd",
+  "key": "report-ceremony",
+  "category": "shipping-security",
+  "args": [
+    "report",
+    "ceremony",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 99,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "active_feature",
+      "tier",
+      "budget",
+      "artifact_count",
+      "markdown_word_count",
+      "artifacts",
+      "warnings",
+      "passed"
+    ],
+    "passed": false,
+    "warnings": {
+      "length": 5,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/spec/COMPILED-SPEC.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/testing/gsd/95-data-rights-account-lifecycle/95-VALIDATION.md"
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 31,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"active_feature\": \"terrace-corpus-smoke\",\n  \"tier\": \"medium\",\n  \"budget\": {\n    \"max_artifacts\": 8,\n    \"max_words\": 3000\n  },\n  \"artifact_count\": 31,\n  \"markdown_word_count\": 7180,\n  \"artifacts\": [\n    {\n      \"file\": \"docs/prd/PRD.md\",\n      \"words\": 1062,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/spec/COMPILED-SPEC.md\",\n      \"words\": 1169,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/terrace/REPORT-CARD.md\",\n      \"words\": 201,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/ARCHITECTURE.md\",\n      \"words\": 93,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/MAP.md\",\n      \"words\": 83,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/OBSERVABILITY.md\",\n      \"words\": 46,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/RISKS.md\",\n      \"words\": 46,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/TESTING.md\",\n      \"words\": 51,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"words\": 227,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n      \"words\": 154,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n      \"words\": 119,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"words\": 96,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n      \"words\": 115,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-DIFF.md\",\n      \"words\": 61,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-REFRESH.md\",\n      \"words\": 69,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-STITCH.md\",\n      \"words\": 81,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/SUMMARY.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/VERIFICATION.md\",\n      \"words\": 12,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-2/PLAN.md\",\n      \"words\": 64,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-15-54-911Z.md\",\n      \"words\": 126,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-16-01-534Z.md\",\n      \"words\": 213,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-16-07-354Z.md\",\n      \"words\": 201,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/security/SECURITY-CHECK.md\",\n      \"words\": 109,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-PLAN.md\",\n      \"words\": 98,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/109-boundary-containment/109-VALIDATION.md\",\n      \"words\": 676,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/110-structural-cleanup/110-VALIDATION.md\",\n      \"words\": 750,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/93-entity-support-notification-delivery/93-VALIDATION.md\",\n      \"words\": 492,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/95-data-rights-account-lifecycle/95-VALIDATION.md\",\n      \"words\": 517,\n      \"weak_signals\": [\n        \"placeholder_language\"\n      ]\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\"\n    },\n    {\n      \"code\": \"WORD_BUDGET_EXCEEDED\",\n      \"message\": \"Generated markdown word count exceeds the tier budget.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/prd/PRD.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/spec/COMPILED-SPEC.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/95-data-rights-account-lifecycle/95-VALIDATION.md\",\n      \"signals\": [\n        \"placeholder_language\"\n      ]\n    }\n  ],\n  \"passed\": false\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 4922,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

@@ -1,0 +1,139 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "report-ceremony",
+  "category": "shipping-security",
+  "args": [
+    "report",
+    "ceremony",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 100,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "active_feature",
+      "tier",
+      "budget",
+      "artifact_count",
+      "markdown_word_count",
+      "artifacts",
+      "warnings",
+      "passed"
+    ],
+    "passed": false,
+    "warnings": {
+      "length": 28,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/spec/COMPILED-SPEC.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "signals"
+          ],
+          "artifact": "docs/testing/gsd/01-foundation-auth/01-VERIFICATION.md"
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 63,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"active_feature\": \"terrace-corpus-smoke\",\n  \"tier\": \"medium\",\n  \"budget\": {\n    \"max_artifacts\": 8,\n    \"max_words\": 3000\n  },\n  \"artifact_count\": 63,\n  \"markdown_word_count\": 47237,\n  \"artifacts\": [\n    {\n      \"file\": \"docs/prd/PRD.md\",\n      \"words\": 1656,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/spec/COMPILED-SPEC.md\",\n      \"words\": 734,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/terrace/REPORT-CARD.md\",\n      \"words\": 560,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/ARCHITECTURE.md\",\n      \"words\": 80,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/MAP.md\",\n      \"words\": 92,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/OBSERVABILITY.md\",\n      \"words\": 11,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/RISKS.md\",\n      \"words\": 46,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/TESTING.md\",\n      \"words\": 19,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"words\": 227,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n      \"words\": 108,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n      \"words\": 128,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n      \"words\": 115,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-DIFF.md\",\n      \"words\": 67,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-REFRESH.md\",\n      \"words\": 104,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-STITCH.md\",\n      \"words\": 109,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-88/PLAN.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-88/SUMMARY.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-88/VERIFICATION.md\",\n      \"words\": 12,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-89/PLAN.md\",\n      \"words\": 64,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-20-31-339Z.md\",\n      \"words\": 485,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-20-37-263Z.md\",\n      \"words\": 572,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-05-07T00-20-39-074Z.md\",\n      \"words\": 560,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/security/SECURITY-CHECK.md\",\n      \"words\": 120,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-PLAN.md\",\n      \"words\": 103,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/01-foundation-auth/01-VALIDATION.md\",\n      \"words\": 677,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/01-foundation-auth/01-VERIFICATION.md\",\n      \"words\": 2256,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/02-capability-profile/02-VALIDATION.md\",\n      \"words\": 447,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/02-capability-profile/02-VERIFICATION.md\",\n      \"words\": 1401,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/03-bid-scout/03-VALIDATION.md\",\n      \"words\": 565,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/03-bid-scout/03-VERIFICATION.md\",\n      \"words\": 1603,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/04-bid-intelligence/04-VALIDATION.md\",\n      \"words\": 807,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/04-bid-intelligence/04-VERIFICATION.md\",\n      \"words\": 2164,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/05-prime-database/05-HUMAN-UAT.md\",\n      \"words\": 140,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/05-prime-database/05-VALIDATION.md\",\n      \"words\": 622,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/05-prime-database/05-VERIFICATION.md\",\n      \"words\": 1923,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/06-nfp-client-database/06-REVIEWS.md\",\n      \"words\": 1253,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/06-nfp-client-database/06-UAT.md\",\n      \"words\": 640,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/06-nfp-client-database/06-UI-REVIEW.md\",\n      \"words\": 2252,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/06-nfp-client-database/06-VALIDATION.md\",\n      \"words\": 762,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/06.1-entity-restructuring-and-compliance-data-model/06.1-HUMAN-UAT.md\",\n      \"words\": 180,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/06.1-entity-restructuring-and-compliance-data-model/06.1-VALIDATION.md\",\n      \"words\": 876,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/06.1-entity-restructuring-and-compliance-data-model/06.1-VERIFICATION.md\",\n      \"words\": 2575,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/06.2-postgrid-direct-mail-integration/06.2-REVIEWS.md\",\n      \"words\": 1508,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/06.2-postgrid-direct-mail-integration/06.2-VALIDATION.md\",\n      \"words\": 1044,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-HUMAN-UAT.md\",\n      \"words\": 143,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-REVIEWS.md\",\n      \"words\": 1550,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-UAT.md\",\n      \"words\": 494,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-VALIDATION.md\",\n      \"words\": 802,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-VERIFICATION.md\",\n      \"words\": 2372,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/08-ui-polish/08-HUMAN-UAT.md\",\n      \"words\": 170,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/08-ui-polish/08-VALIDATION.md\",\n      \"words\": 451,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/08-ui-polish/08-VERIFICATION.md\",\n      \"words\": 2357,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/09-dashboard-reporting/09-REVIEWS.md\",\n      \"words\": 2024,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/09-dashboard-reporting/09-UAT.md\",\n      \"words\": 451,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/09-dashboard-reporting/09-VALIDATION.md\",\n      \"words\": 724,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/09-dashboard-reporting/09-VERIFICATION.md\",\n      \"words\": 1827,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/10-admin-dashboard/10-HUMAN-UAT.md\",\n      \"words\": 134,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/10-admin-dashboard/10-UAT.md\",\n      \"words\": 1005,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/10-admin-dashboard/10-VALIDATION.md\",\n      \"words\": 580,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/10-admin-dashboard/10-VERIFICATION.md\",\n      \"words\": 2163,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\"\n    },\n    {\n      \"code\": \"WORD_BUDGET_EXCEEDED\",\n      \"message\": \"Generated markdown word count exceeds the tier budget.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/prd/PRD.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/spec/COMPILED-SPEC.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/01-foundation-auth/01-VERIFICATION.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/02-capability-profile/02-VERIFICATION.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/03-bid-scout/03-VERIFICATION.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/04-bid-intelligence/04-VERIFICATION.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/05-prime-database/05-HUMAN-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/05-prime-database/05-VERIFICATION.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/06-nfp-client-database/06-REVIEWS.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/06-nfp-client-database/06-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/06-nfp-client-database/06-UI-REVIEW.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/06.1-entity-restructuring-and-compliance-data-model/06.1-HUMAN-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/06.1-entity-restructuring-and-compliance-data-model/06.1-VERIFICATION.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/06.2-postgrid-direct-mail-integration/06.2-REVIEWS.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-HUMAN-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-REVIEWS.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/07-dynamic-onboarding-wizard/07-VERIFICATION.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/08-ui-polish/08-HUMAN-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/08-ui-polish/08-VERIFICATION.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/09-dashboard-reporting/09-REVIEWS.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/09-dashboard-reporting/09-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/09-dashboard-reporting/09-VERIFICATION.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/10-admin-dashboard/10-HUMAN-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/10-admin-dashboard/10-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"artifact\": \"docs/testing/gsd/10-admin-dashboard/10-VERIFICATION.md\",\n      \"signals\": [\n        \"empty_section\"\n      ]\n    }\n  ],\n  \"passed\": false\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 14339,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

@@ -1,0 +1,90 @@
+{
+  "repo": "BBDSE/Signal Lab",
+  "repoType": "python",
+  "track": "scratch-real",
+  "key": "spec-validate",
+  "category": "baseline",
+  "args": [
+    "spec",
+    "validate",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 98,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "blocking",
+      "warnings"
+    ],
+    "blocking": {
+      "length": 12,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        }
+      ]
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"blocking\": [\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: problem\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: actors\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: desired_outcomes\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: non_goals\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: constraints\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: success_criteria\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: open_questions\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: spec_version\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: phase\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: protected\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: last_updated\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: source_refs\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/bbdse-signal-lab-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 75,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  },
+  "stdoutBytes": 3596,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

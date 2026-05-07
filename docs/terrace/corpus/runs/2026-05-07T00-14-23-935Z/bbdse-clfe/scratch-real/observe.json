@@ -1,0 +1,48 @@
+{
+  "repo": "BBDSE/CLFE",
+  "repoType": "sparse",
+  "track": "scratch-real",
+  "key": "observe",
+  "category": "senior-cycle",
+  "args": [
+    "observe",
+    "terrace-corpus-smoke",
+    "--tier",
+    "large",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 258,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace validate-prod terrace-corpus-smoke",
+    "feature_id": "terrace-corpus-smoke",
+    "artifact": "docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-smoke\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n  \"next_command\": \"terrace validate-prod terrace-corpus-smoke\"\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 203,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

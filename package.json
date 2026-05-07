@@ -26,6 +26,7 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "package:dry-run": "node scripts/npm-pack-dry-run.cjs",
+    "corpus:evaluate": "node scripts/terrace-corpus-eval.cjs",
     "ci": "npm run typecheck && npm run lint && npm test && npm run test:coverage && npm run package:dry-run"
   },
   "dependencies": {

@@ -1,0 +1,96 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "scratch-real",
+  "key": "audit",
+  "category": "baseline",
+  "args": [
+    "audit",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 90,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "blocking",
+      "warnings",
+      "healthy",
+      "baseline"
+    ],
+    "healthy": false,
+    "blocking": {
+      "length": 12,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file"
+          ]
+        }
+      ]
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"blocking\": [\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: problem\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: actors\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: desired_outcomes\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: non_goals\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: constraints\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: success_criteria\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: open_questions\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/prd/PRD.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: spec_version\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: phase\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: protected\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: last_updated\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: source_refs\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-05-07T00-14-23-935Z/worktrees/real/terrace-scratch-real/docs/spec/COMPILED-SPEC.md\"\n    }\n  ],\n  \"warnings\": [],\n  \"healthy\": false,\n  \"baseline\": {\n    \"entries\": [],\n    \"protected_without_spec_ref\": [],\n    \"requirements_without_protected_anchor\": [],\n    \"missing_files\": [],\n    \"conflicts\": [],\n    \"blocking\": []\n  }\n}\n",
+  "stderr": "",
+  "changedFiles": [
+    " M .terrace/report-card.json",
+    " M docs/terrace/REPORT-CARD.md",
+    "?? docs/terrace/report-history/2026-05-07T00-15-13-814Z.md"
+  ],
+  "score": {
+    "total": 81,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  },
+  "stdoutBytes": 3700,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}

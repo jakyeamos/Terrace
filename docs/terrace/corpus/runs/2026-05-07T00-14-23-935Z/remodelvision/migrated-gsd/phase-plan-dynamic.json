@@ -1,0 +1,52 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "phase-plan-dynamic",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "plan",
+    "overview",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 96,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "phase_id",
+      "status",
+      "plan_ref",
+      "source_refs",
+      "likely_files",
+      "related_quick_tasks",
+      "effort",
+      "blocked",
+      "blockers",
+      "next_command",
+      "active_slice"
+    ],
+    "next_command": "terrace phase execute overview"
+  },
+  "stdout": "{\n  \"phase_id\": \"overview\",\n  \"status\": \"slice_planned\",\n  \"plan_ref\": \"docs/terrace/phases/overview/PLAN.md\",\n  \"source_refs\": [],\n  \"likely_files\": [],\n  \"related_quick_tasks\": [],\n  \"effort\": \"standard\",\n  \"blocked\": false,\n  \"blockers\": [],\n  \"next_command\": \"terrace phase execute overview\",\n  \"active_slice\": {\n    \"id\": \"overview\",\n    \"title\": \"Overview\",\n    \"source_ref\": \".planning/ROADMAP.md\",\n    \"plans\": [],\n    \"spec_refs\": [],\n    \"success_criteria\": [],\n    \"test_intent\": []\n  }\n}\n",
+  "stderr": "",
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "stdoutBytes": 500,
+  "stdoutTruncated": false,
+  "stderrBytes": 0,
+  "stderrTruncated": false
+}
