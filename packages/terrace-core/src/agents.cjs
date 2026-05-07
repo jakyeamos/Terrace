@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const AGENT_SCHEMA_VERSION = '1.0';
@@ -145,6 +146,20 @@ function workflowFromCommand(entry) {
 
 const TERRACE_WORKFLOWS = TERRACE_COMMANDS.map(workflowFromCommand);
 
+const TERRACE_GLOBAL_ENTRYPOINT = {
+  name: 'terrace',
+  description: 'Route Terrace workflow intent through the local Terrace CLI.',
+  body: [
+    '# Terrace',
+    '',
+    'Run `terrace do "$ARGUMENTS"` when arguments are provided.',
+    '',
+    'If no arguments are provided, run `terrace next` to identify the next workflow action.',
+    '',
+    'Inspect Terrace blockers, warnings, generated files, and next-command output before continuing. Do not bypass Terrace gates or claim success when the command reports blockers.'
+  ]
+};
+
 function templateAssets() {
   return [
     { path: 'AGENTS.md', type: 'codex-instructions', content: AGENTS_MD },
@@ -163,6 +178,21 @@ function templateAssets() {
       path: '.claude/commands/' + workflow.name + '.md',
       type: 'claude-command',
       content: commandContent(workflow.description, workflow.argumentHint, workflow.body)
+    }))
+  ];
+}
+
+function globalTemplateAssets() {
+  return [
+    {
+      path: 'skills/terrace/SKILL.md',
+      type: 'codex-global-skill',
+      content: skillContent(TERRACE_GLOBAL_ENTRYPOINT.name, TERRACE_GLOBAL_ENTRYPOINT.description, TERRACE_GLOBAL_ENTRYPOINT.body)
+    },
+    ...TERRACE_WORKFLOWS.map((workflow) => ({
+      path: 'skills/' + workflow.name + '/SKILL.md',
+      type: 'codex-global-skill',
+      content: skillContent(workflow.name, workflow.description, workflow.body)
     }))
   ];
 }
@@ -207,6 +237,62 @@ function installAgentBootstrap(cwd) {
     enabled: true,
     manifest_path: manifestResult.path,
     assets: [...assetResults, manifestResult]
+  };
+}
+
+function defaultGlobalAgentsDir() {
+  return process.env.TERRACE_GLOBAL_AGENTS_DIR || path.join(os.homedir(), '.agents');
+}
+
+function writeGlobalAsset(globalAgentsDir, asset) {
+  const root = path.resolve(globalAgentsDir);
+  const target = path.resolve(root, asset.path);
+  if (!target.startsWith(root + path.sep)) {
+    throw new Error('Global agent asset path escapes target directory: ' + asset.path);
+  }
+  if (fs.existsSync(target)) {
+    const existing = fs.readFileSync(target, 'utf8');
+    return {
+      path: asset.path,
+      type: asset.type,
+      status: existing === asset.content ? 'unchanged' : 'skipped'
+    };
+  }
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, asset.content, 'utf8');
+  return { path: asset.path, type: asset.type, status: 'written' };
+}
+
+function writeGlobalManifest(globalAgentsDir, assetResults) {
+  const relPath = 'terrace/manifest.json';
+  const root = path.resolve(globalAgentsDir);
+  const target = path.resolve(root, relPath);
+  if (!target.startsWith(root + path.sep)) {
+    throw new Error('Global agent manifest path escapes target directory.');
+  }
+  const manifest = {
+    schema_version: AGENT_SCHEMA_VERSION,
+    generated_by: 'terrace agents install-global',
+    assets: assetResults
+  };
+  const content = JSON.stringify(manifest, null, 2) + '\n';
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const status = fs.existsSync(target) && fs.readFileSync(target, 'utf8') === content ? 'unchanged' : 'written';
+  fs.writeFileSync(target, content, 'utf8');
+  return { path: relPath, type: 'global-manifest', status };
+}
+
+function installGlobalAgentBootstrap(options) {
+  const opts = options || {};
+  const globalAgentsDir = path.resolve(opts.globalAgentsDir || defaultGlobalAgentsDir());
+  const assetResults = globalTemplateAssets().map((asset) => writeGlobalAsset(globalAgentsDir, asset));
+  const manifestResult = writeGlobalManifest(globalAgentsDir, assetResults);
+  return {
+    enabled: true,
+    global_agents_dir: globalAgentsDir,
+    manifest_path: manifestResult.path,
+    assets: [...assetResults, manifestResult],
+    next_command: '/terrace'
   };
 }
 
@@ -257,6 +343,8 @@ function agentAssetStatus(cwd) {
 module.exports = {
   agentAssetStatus,
   agentAssetExpectations,
+  installGlobalAgentBootstrap,
   installAgentBootstrap,
+  globalTemplateAssets,
   templateAssets
 };

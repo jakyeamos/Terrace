@@ -52,6 +52,7 @@ describe('tier-one product readiness', () => {
 
     expect(help).toContain('Usage: terrace <command>');
     expect(help).toContain('terrace init');
+    expect(help).toContain('terrace agents install-global');
     expect(version).toBe(pkg.version);
   });
 

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-const { agentAssetExpectations, initCore, readEvents, detectCommands } = require('../packages/terrace-core/src/index.cjs');
+const { agentAssetExpectations, initCore, installGlobalAgentBootstrap, readEvents, detectCommands } = require('../packages/terrace-core/src/index.cjs');
 
 describe('terrace-core init and events', () => {
   let tmpDir: string;
@@ -126,6 +126,33 @@ describe('terrace-core init and events', () => {
     ]));
     expect(result.created).not.toContain('AGENTS.md');
     expect(result.created).not.toContain('CLAUDE.md');
+  });
+
+  it('installs global Codex Terrace skills without overwriting user-owned files', () => {
+    const globalAgentsDir = path.join(tmpDir, 'global-agents');
+    fs.mkdirSync(path.join(globalAgentsDir, 'skills', 'terrace-next'), { recursive: true });
+    fs.writeFileSync(path.join(globalAgentsDir, 'skills', 'terrace-next', 'SKILL.md'), 'custom global skill\n', 'utf-8');
+
+    const result = installGlobalAgentBootstrap({ globalAgentsDir }) as {
+      enabled: boolean;
+      global_agents_dir: string;
+      manifest_path: string;
+      assets: Array<{ path: string; type: string; status: string }>;
+      next_command: string;
+    };
+
+    expect(result.enabled).toBe(true);
+    expect(result.global_agents_dir).toBe(globalAgentsDir);
+    expect(result.manifest_path).toBe('terrace/manifest.json');
+    expect(result.next_command).toBe('/terrace');
+    expect(result.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'skills/terrace/SKILL.md', type: 'codex-global-skill', status: 'written' }),
+      expect.objectContaining({ path: 'skills/terrace-next/SKILL.md', type: 'codex-global-skill', status: 'skipped' }),
+      expect.objectContaining({ path: 'skills/terrace-ship-check/SKILL.md', type: 'codex-global-skill', status: 'written' }),
+      expect.objectContaining({ path: 'terrace/manifest.json', type: 'global-manifest', status: 'written' })
+    ]));
+    expect(fs.readFileSync(path.join(globalAgentsDir, 'skills', 'terrace', 'SKILL.md'), 'utf-8')).toContain('name: terrace');
+    expect(fs.readFileSync(path.join(globalAgentsDir, 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toBe('custom global skill\n');
   });
 
   it('initCore records an init event with from_state and to_state', () => {

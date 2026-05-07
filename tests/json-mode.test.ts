@@ -31,6 +31,25 @@ describe('--json output mode for all CLI commands (CLI-12)', () => {
     ]));
   });
 
+  it('terrace agents install-global --json installs into the configured global agents directory', () => {
+    const globalAgentsDir = path.join(tmpDir, 'global-agents');
+    const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'agents', 'install-global', '--json'], {
+      cwd: tmpDir,
+      encoding: 'utf-8',
+      env: { ...process.env, TERRACE_GLOBAL_AGENTS_DIR: globalAgentsDir }
+    });
+    const parsed = JSON.parse(stdout);
+    expect(parsed.enabled).toBe(true);
+    expect(parsed.global_agents_dir).toBe(globalAgentsDir);
+    expect(parsed.next_command).toBe('/terrace');
+    expect(parsed.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: 'skills/terrace/SKILL.md', status: 'written' }),
+      expect.objectContaining({ path: 'skills/terrace-next/SKILL.md', status: 'written' }),
+      expect.objectContaining({ path: 'terrace/manifest.json', status: 'written' })
+    ]));
+    expect(fs.existsSync(path.join(globalAgentsDir, 'skills', 'terrace', 'SKILL.md'))).toBe(true);
+  });
+
   it('terrace doctor --json produces parseable JSON with blocking and warnings', () => {
     const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'doctor', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
     const parsed = JSON.parse(stdout) as { blocking: unknown[]; warnings: unknown[] };

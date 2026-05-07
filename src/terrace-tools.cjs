@@ -92,7 +92,8 @@ const {
   settingsShow,
   settingsSetEffort,
   newProjectFromPrd,
-  importFeaturePrd
+  importFeaturePrd,
+  installGlobalAgentBootstrap
 } = require('../packages/terrace-core/src/index.cjs');
 
 const packageJson = require('../package.json');
@@ -102,6 +103,7 @@ const HELP_TEXT = [
   '',
   'Commands:',
   '  terrace init                 Initialize Terrace state in this repo',
+  '  terrace agents install-global Install Terrace Codex skills into ~/.agents',
   '  terrace new-project <name> --prd <file>|--paste-prd',
   '  terrace prd import <feature> --file <file>|--paste',
   '  terrace doctor               Diagnose Terrace installation health',
@@ -452,6 +454,15 @@ async function main() {
         return;
       }
       fail('Unknown core subcommand: ' + sub + '. Use: init', { json });
+      return;
+    }
+    case 'agents': {
+      const sub = args[1];
+      if (sub === 'install-global') {
+        output(installGlobalAgentBootstrap(), { json });
+        return;
+      }
+      fail('Unknown agents subcommand: ' + sub + '. Use: install-global', { json });
       return;
     }
     case 'rule': {

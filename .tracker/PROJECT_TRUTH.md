@@ -1,7 +1,7 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable Codex and Claude agent commands, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, and a first-class cross-repo corpus CLI whose latest sample run reports zero product weaknesses.
+summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, and a first-class cross-repo corpus CLI whose latest sample run reports zero product weaknesses.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Use `terrace corpus run --dry-run-plan --sample --json` and `terrace corpus report --json` as the public readiness loop, then decide whether dead-code scanning belongs in the release gate.
@@ -16,7 +16,7 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: codex/expected-blocker-ergonomics
+activeBranch: codex/global-agent-installer
 lastCommitDate: "2026-05-07"
 quality:
   lint: pass
@@ -40,13 +40,15 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: node -c scripts/terrace-corpus-eval.cjs; node -c src/terrace-tools.cjs; npm run lint; npm run typecheck; npm test; npm run package:dry-run; npm run corpus:evaluate -- --dry-run-plan --sample; node src/terrace-tools.cjs corpus run --dry-run-plan --sample --json; node src/terrace-tools.cjs corpus report --json
-lastVerifiedAt: "2026-05-07T01:23:21-04:00"
+lastVerifiedCommand: node -c packages/terrace-core/src/agents.cjs; node -c src/terrace-tools.cjs; npm test -- tests/core-init.test.ts tests/json-mode.test.ts tests/product-readiness.test.ts; npm run lint; npm run typecheck; TERRACE_GLOBAL_AGENTS_DIR=/private/tmp/terrace-global-agent-smoke node src/terrace-tools.cjs agents install-global --json; node src/terrace-tools.cjs agents install-global --json
+lastVerifiedAt: "2026-05-07T08:46:59-04:00"
 ---
 
 ## Current State
 
 Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 59 Codex skills and 59 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, `/terrace-execute-phase-complete`, `/terrace-corpus-run`, and `/terrace-corpus-report`.
+
+Terrace now also has `terrace agents install-global`, which installs non-overwriting global Codex skills into `~/.agents/skills`. The global installer writes a top-level `/terrace` entrypoint that routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next`, plus the full `/terrace-*` command-reference surface and `~/.agents/terrace/manifest.json`. The installer supports `TERRACE_GLOBAL_AGENTS_DIR` for deterministic tests and has been run against `/Users/jakyeamos/.agents` so local Codex sessions can discover `/terrace` across repos after reload.
 
 Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace-corpus-eval.cjs`, exposed as both `npm run corpus:evaluate` and the public CLI commands `terrace corpus run` / `terrace corpus report`. The harness packages local Terrace once, installs the tarball into disposable real-repo worktrees and synthetic fixture repos, tests migrated-GSD, real scratch, and synthetic scratch tracks, captures per-command evidence, scores command behavior, and writes Markdown plus JSON reports under `docs/terrace/corpus/`. The latest sample run `2026-05-07T04-42-21-292Z` evaluated 962 command executions across eight real repos and five synthetic fixtures, with 764 passes, 141 expected blockers, 57 skips, zero product weaknesses, and zero harness/environment issues.
 
@@ -121,6 +123,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 6: Expanded agent command discovery from the initial shortcut set to the full README command-reference surface, generating 57 Codex skills, 57 Claude skills, and 57 Claude command files while removing stale shortcut-only assets.
 - May 6: Added the cross-repo Terrace corpus evaluation harness and committed the first sample report/evidence under `docs/terrace/corpus/`, covering migrated-GSD, real scratch, and synthetic scratch command behavior.
 - May 7: Fixed corpus parity and report classification so preserved GSD state details count as mapped, migrated partial agent assets are actionable expected blockers, report ranking separates product weaknesses from expected blockers, and the regenerated sample corpus reports zero product weaknesses.
+- May 7: Added `terrace agents install-global` with a `/terrace` global Codex entrypoint, full global `/terrace-*` skill generation, non-overwrite manifest tracking, README docs, JSON-mode coverage, and a local install into `/Users/jakyeamos/.agents`.
 
 ## Open Problems
 
