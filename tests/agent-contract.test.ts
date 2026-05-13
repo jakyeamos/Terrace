@@ -40,6 +40,19 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ship check', json: true }));
   });
 
+  it('terrace-autonomous generated skill carries autonomous workflow guardrails', () => {
+    const { templateAssets } = require('../packages/terrace-core/src/agents.cjs') as { templateAssets: () => Array<{ path: string; content: string }> };
+    const asset = templateAssets().find((item) => item.path === '.agents/skills/terrace-autonomous/SKILL.md');
+    const localPath = path.resolve(process.cwd(), '.agents/skills/terrace-autonomous/SKILL.md');
+
+    expect(asset).toBeDefined();
+    expect(asset?.content).toContain('allowed-tools:');
+    expect(asset?.content).toContain('terrace autonomous --json');
+    expect(asset?.content).toContain('<stop_conditions>');
+    expect(asset?.content).toContain('Do not claim the autonomous run completed unless Terrace gates and verification agree.');
+    expect(fs.readFileSync(localPath, 'utf-8')).toBe(asset?.content);
+  });
+
   it('terrace-spec-interrogator agent directory exists at .agents/skills/terrace-spec-interrogator/ (AGNT-01)', () => {
     const agentDir = path.resolve(process.cwd(), '.agents/skills/terrace-spec-interrogator');
     expect(fs.existsSync(agentDir)).toBe(true);
