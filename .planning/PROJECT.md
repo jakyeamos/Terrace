@@ -20,6 +20,9 @@ Every implementation slice should be recoverable from repo state, tied to spec i
 
 ## Active
 
+- [ ] Create a complete GSD-style planning package for Terrace itself: `.planning/config.json`, `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, and `.planning/codebase/`.
+- [ ] Build native roadmap authoring so Terrace phases are first-class product state rather than mostly migrated state.
+- [ ] Strengthen recovery, handoff, workstream planning, and operator visibility until Terrace is a credible day-to-day alternative to GSD.
 - [ ] Expand GSD migration beyond core artifact conversion into per-phase plans, decision history, and session history.
 - [ ] Replace remaining prose-heavy agent instructions with core-backed command contracts.
 - [ ] Decide how to handle the moderate PostCSS advisory in the dev dependency tree.
@@ -34,6 +37,7 @@ Every implementation slice should be recoverable from repo state, tied to spec i
 | Legacy behavior must be re-hosted, not wrapped | Wrappers preserve old architecture; extraction makes the product standalone | Active |
 | GitNexus is not part of Terrace core | Broken generated integration instructions created workflow friction and are not needed for the standalone core | Implemented |
 | Hard product gates define readiness | Tier-one progress should be blocked by quality, packaging, and docs gates | Implemented via `npm run ci` |
+| Terrace should pursue parity by workflow job, not by cloning GSD internals | Preserve Terrace's simplicity advantage while closing practical adoption gaps | Active |
 
 ---
-*Last updated: 2026-04-28 after mitigating the core GSD port coding gap*
+*Last updated: 2026-05-13 after establishing parity-driven GSD planning artifacts for Terrace*

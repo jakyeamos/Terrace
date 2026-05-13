@@ -1,0 +1,14 @@
+{
+  "project_name": "Terrace",
+  "planning_mode": "parity-driven",
+  "comparison_target": {
+    "product": "gsd-2",
+    "release": "v2.82.0",
+    "release_date": "2026-05-10"
+  },
+  "default_next_command": "/gsd-plan-phase 1",
+  "notes": [
+    "Use GSD parity as a prioritization input, not a mandate to copy GSD architecture blindly.",
+    "Prefer Terrace-native product shape where it improves determinism, repo-local authority, and auditability."
+  ]
+}
