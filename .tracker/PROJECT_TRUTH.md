@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, and a first-class cross-repo corpus CLI whose latest sample run reports zero product weaknesses.
+summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, and a first-class cross-repo corpus CLI whose latest sample run reports zero product weaknesses.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Run a fresh corpus sample after the interrogate behavior change, then decide whether dead-code scanning belongs in the release gate.
 blockers: []
-lastUpdated: 2026-05-07
+lastUpdated: 2026-05-13
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -17,7 +17,7 @@ repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
 activeBranch: codex/global-agent-installer
-lastCommitDate: "2026-05-07"
+lastCommitDate: "2026-05-13"
 quality:
   lint: pass
   types: pass
@@ -40,13 +40,13 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: npm test -- tests/expected-blocker-ergonomics.test.ts tests/core-init.test.ts tests/workflow-commands.test.ts tests/agent-production-lifecycle-full.test.ts; npm run lint; npm run typecheck; node -c packages/terrace-core/src/interrogation.cjs && node -c packages/terrace-core/src/agents.cjs && node -c src/terrace-tools.cjs; node src/terrace-tools.cjs interrogate billing-refresh --json; node src/terrace-tools.cjs interrogate billing-refresh --answers <captured-user-answers> --json; npm test
-lastVerifiedAt: "2026-05-07T14:37:00-04:00"
+lastVerifiedCommand: pnpm test -- tests/agent-contract.test.ts
+lastVerifiedAt: "2026-05-13T00:10:53-04:00"
 ---
 
 ## Current State
 
-Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 59 Codex skills and 59 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, `/terrace-execute-phase-complete`, `/terrace-corpus-run`, and `/terrace-corpus-report`.
+Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 59 Codex skills and 59 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, `/terrace-execute-phase-complete`, `/terrace-corpus-run`, and `/terrace-corpus-report`. The `terrace-autonomous` generated skill now carries a GSD-style autonomous workflow contract with JSON-first command execution, explicit implementation/verification loop guidance, allowed tools metadata, and stop conditions for blockers, human judgment, release readiness, and failed verification.
 
 Terrace now also has `terrace agents install-global`, which installs non-overwriting global Codex skills into `~/.agents/skills` and global Claude Code skills/commands into `~/.claude/skills` and `~/.claude/commands`. The global installer writes a top-level `/terrace` entrypoint that routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next`, plus the full `/terrace-*` command-reference surface and manifests under both tool directories. The installer supports `TERRACE_GLOBAL_AGENTS_DIR` and `TERRACE_GLOBAL_CLAUDE_DIR` for deterministic tests and has been run against `/Users/jakyeamos/.agents` and `/Users/jakyeamos/.claude` so local Codex and Claude Code sessions can discover `/terrace` across repos after reload.
 
@@ -118,6 +118,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 5: Added Terrace-native end-to-end phase routing through `terrace execute-phase-complete <id>` and natural-language goal routing, plus persisted phase effort defaults with `terrace settings effort <fast|standard|thorough>`.
 - May 6: Merged `codex/agent-init-integration` locally into `main` and preserved the intent-routing wording update across CLI help, command contracts, workflow errors, and generated agent guidance.
 - May 6: Bumped the package to `0.1.2`, updated the changelog, and passed the npm release checks using an isolated npm cache because the user-level npm cache has root-owned files.
+- May 13: Expanded the generated and checked-in `terrace-autonomous` Codex/Claude agent assets from a thin `terrace autonomous` wrapper into a GSD-style autonomous phase-advancement workflow with guardrails and regression coverage.
 - May 7: Reworked `terrace interrogate` so the CLI refuses to write interrogation artifacts without user answers, returns repo-informed questions for the agent to ask inline, records `User Answers` in the artifact, and regenerates Codex/Claude interrogate skills around the GSD-style discussion handoff.
 - May 6: Replaced the `package:dry-run` script with a Node wrapper that uses a writable temp npm cache so `terrace ship check` and CI are not blocked by root-owned files in `~/.npm`.
 - May 6: Fixed agent command discovery by adding Codex `.agents/skills/terrace-*`, Claude `.claude/commands/terrace-*`, required skill `name` frontmatter, and repo-local Terrace command assets.
