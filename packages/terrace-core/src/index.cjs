@@ -27,6 +27,7 @@ module.exports = {
   ...require('./fragments.cjs'),
   ...require('./health.cjs'),
   ...require('./repo-analysis.cjs'),
+  ...require('./planning.cjs'),
   ...require('./artifact-analysis.cjs'),
   ...require('./security-check.cjs'),
   ...require('./interrogation.cjs')

@@ -254,6 +254,12 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Fail when legacy GSD concepts are present but unmapped by Terrace migration.'
   },
   {
+    command: 'terrace planning refresh',
+    category: 'planning',
+    json: true,
+    purpose: 'Initialize or refresh the repo .planning package from Terrace state and repository analysis.'
+  },
+  {
     command: 'terrace security check',
     category: 'security',
     json: true,

@@ -93,7 +93,8 @@ const {
   settingsSetEffort,
   newProjectFromPrd,
   importFeaturePrd,
-  installGlobalAgentBootstrap
+  installGlobalAgentBootstrap,
+  refreshPlanningPackage
 } = require('../packages/terrace-core/src/index.cjs');
 
 const packageJson = require('../package.json');
@@ -115,6 +116,7 @@ const HELP_TEXT = [
   '  terrace corpus run           Run the local Terrace corpus evaluator',
   '  terrace corpus report        Show the latest corpus report summary',
   '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
+  '  terrace planning refresh    Initialize or refresh .planning from Terrace state',
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
   '  terrace history              Summarize migrated operational history',
@@ -590,6 +592,15 @@ async function main() {
         return;
       }
       fail('Unknown port subcommand: ' + sub + '. Use: gsd', { json });
+      return;
+    }
+    case 'planning': {
+      const sub = args[1];
+      if (sub === 'refresh' || sub === 'init') {
+        output(refreshPlanningPackage(cwd), { json });
+        return;
+      }
+      fail('Unknown planning subcommand: ' + sub + '. Use: refresh, init', { json });
       return;
     }
     case 'next': {
