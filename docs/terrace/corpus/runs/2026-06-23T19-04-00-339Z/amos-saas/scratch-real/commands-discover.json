@@ -1,0 +1,48 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "scratch-real",
+  "key": "commands-discover",
+  "category": "baseline",
+  "args": [
+    "commands",
+    "discover",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 96,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "package_manager",
+      "scripts",
+      "checks",
+      "agent_assets",
+      "warnings"
+    ],
+    "warnings": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"package_manager\": \"npm\",\n  \"scripts\": {\n    \"dev\": \"next dev\",\n    \"build\": \"next build\",\n    \"start\": \"next start\",\n    \"lint\": \"eslint\"\n  },\n  \"checks\": [\n    {\n      \"category\": \"typecheck\",\n      \"script\": \"typecheck\",\n      \"required\": false,\n      \"suggested\": \"tsc --noEmit\",\n      \"exists\": false,\n      \"command\": null\n    },\n    {\n      \"category\": \"lint\",\n      \"script\": \"lint\",\n      \"required\": true,\n      \"suggested\": \"eslint .\",\n      \"exists\": true,\n      \"command\": \"npm run lint\"\n    },\n    {\n      \"category\": \"test\",\n      \"script\": \"test\",\n      \"required\": false,\n      \"suggested\": \"vitest run or npm test equivalent\",\n      \"exists\": false,\n      \"command\": null\n    },\n    {\n      \"category\": \"coverage\",\n      \"script\": \"test:coverage\",\n      \"required\": false,\n      \"suggested\": \"vitest run --coverage or project equivalent\",\n      \"exists\": false,\n      \"command\": null\n    },\n    {\n      \"category\": \"package\",\n      \"script\": \"package:dry-run\",\n      \"required\": false,\n      \"suggested\": \"npm pack --dry-run\",\n      \"exists\": false,\n      \"command\": null\n    },\n    {\n      \"category\": \"build\",\n      \"script\": \"build\",\n      \"required\": false,\n      \"suggested\": \"framework build command\",\n      \"exists\": true,\n      \"command\": \"npm run build\"\n    }\n  ],\n  \"agent_assets\": {\n    \"expected\": {\n      \"codexSkills\": 59,\n      \"claudeSkills\": 59,\n      \"claudeCommands\": 59\n    },\n    \"counts\": {\n      \"codexSkills\": 59,\n      \"claudeSkills\": 59,\n      \"claudeCommands\": 59\n    },\n    \"present\": 177,\n    \"expected_total\": 177,\n    \"complete\": true,\n    \"partial\": false,\n    \"next_command\": null,\n    \"remediation\": null\n  },\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "stdoutBytes": 1685,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

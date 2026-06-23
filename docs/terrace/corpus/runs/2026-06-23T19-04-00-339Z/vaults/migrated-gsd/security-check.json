@@ -1,0 +1,82 @@
+{
+  "repo": "Vaults",
+  "repoType": "docs",
+  "track": "migrated-gsd",
+  "key": "security-check",
+  "category": "shipping-security",
+  "args": [
+    "security",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 236,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "checks",
+      "status",
+      "artifact",
+      "markdown",
+      "created_at",
+      "findings",
+      "blocking",
+      "warnings"
+    ],
+    "artifact": ".terrace/security/latest.json",
+    "blocking": {
+      "length": 1,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "Command-Center/09 Archive/AI History/Codex/2026/2026-03-22-locate-env-variable-updates-for--c7d2111b.md"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"checks\": [\n    \"secret-patterns\",\n    \"env-files\",\n    \"sensitive-logging\",\n    \"dependency-audit\",\n    \"deployment-config\"\n  ],\n  \"status\": \"blocked\",\n  \"artifact\": \".terrace/security/latest.json\",\n  \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\",\n  \"created_at\": \"2026-06-23T19:08:24.778Z\",\n  \"findings\": [\n    {\n      \"id\": \"secret_private_key-0\",\n      \"code\": \"SECRET_PRIVATE_KEY_0\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"Command-Center/09 Archive/AI History/Codex/2026/2026-03-22-locate-env-variable-updates-for--c7d2111b.md\",\n      \"file\": \"Command-Center/09 Archive/AI History/Codex/2026/2026-03-22-locate-env-variable-updates-for--c7d2111b.md\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_PRIVATE_KEY matched in Command-Center/09 Archive/AI History/Codex/2026/2026-03-22-locate-env-variable-updates-for--c7d2111b.md.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"blocking\": [\n    {\n      \"id\": \"secret_private_key-0\",\n      \"code\": \"SECRET_PRIVATE_KEY_0\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"Command-Center/09 Archive/AI History/Codex/2026/2026-03-22-locate-env-variable-updates-for--c7d2111b.md\",\n      \"file\": \"Command-Center/09 Archive/AI History/Codex/2026/2026-03-22-locate-env-variable-updates-for--c7d2111b.md\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_PRIVATE_KEY matched in Command-Center/09 Archive/AI History/Codex/2026/2026-03-22-locate-env-variable-updates-for--c7d2111b.md.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "stdoutBytes": 2788,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

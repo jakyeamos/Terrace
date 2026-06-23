@@ -1,0 +1,25 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "migrated-gsd",
+  "key": "phase-complete-dynamic",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "complete",
+    null,
+    "--json"
+  ],
+  "skipped": true,
+  "skipReason": "No phase id available after migration.",
+  "score": {
+    "total": 0,
+    "reliability": 0,
+    "usefulness": 0,
+    "artifactQuality": 0,
+    "interrogationQuality": 0,
+    "repoFit": 0,
+    "safety": 25,
+    "ergonomics": 0
+  }
+}

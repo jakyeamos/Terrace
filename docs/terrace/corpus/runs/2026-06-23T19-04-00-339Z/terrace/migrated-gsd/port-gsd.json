@@ -1,0 +1,24 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "migrated-gsd",
+  "key": "port-gsd",
+  "category": "migration",
+  "args": [
+    "port",
+    "gsd",
+    "--json"
+  ],
+  "skipped": true,
+  "skipReason": "Existing .terrace/state.json makes full migration overwrite testing not applicable for this worktree.",
+  "score": {
+    "total": 0,
+    "reliability": 0,
+    "usefulness": 0,
+    "artifactQuality": 0,
+    "interrogationQuality": 0,
+    "repoFit": 0,
+    "safety": 25,
+    "ergonomics": 0
+  }
+}

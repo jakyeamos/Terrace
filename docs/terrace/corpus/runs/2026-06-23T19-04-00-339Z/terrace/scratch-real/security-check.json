@@ -1,0 +1,110 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "scratch-real",
+  "key": "security-check",
+  "category": "shipping-security",
+  "args": [
+    "security",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 806,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "checks",
+      "status",
+      "artifact",
+      "markdown",
+      "created_at",
+      "findings",
+      "blocking",
+      "warnings"
+    ],
+    "artifact": ".terrace/security/latest.json",
+    "blocking": {
+      "length": 2,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Upgrade or replace fast-uri and rerun terrace security check. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "package-lock.json"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Upgrade or replace vite and rerun terrace security check. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "package-lock.json"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"checks\": [\n    \"secret-patterns\",\n    \"env-files\",\n    \"sensitive-logging\",\n    \"dependency-audit\",\n    \"deployment-config\"\n  ],\n  \"status\": \"blocked\",\n  \"artifact\": \".terrace/security/latest.json\",\n  \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\",\n  \"created_at\": \"2026-06-23T19:04:35.134Z\",\n  \"findings\": [\n    {\n      \"id\": \"npm-audit-fast-uri-0\",\n      \"code\": \"NPM_AUDIT_FAST_URI_0\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for fast-uri.\",\n      \"message\": \"Dependency vulnerability reported for fast-uri.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace fast-uri and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace fast-uri and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-vite-1\",\n      \"code\": \"NPM_AUDIT_VITE_1\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for vite.\",\n      \"message\": \"Dependency vulnerability reported for vite.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace vite and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace vite and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"blocking\": [\n    {\n      \"id\": \"npm-audit-fast-uri-0\",\n      \"code\": \"NPM_AUDIT_FAST_URI_0\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for fast-uri.\",\n      \"message\": \"Dependency vulnerability reported for fast-uri.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace fast-uri and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace fast-uri and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-vite-1\",\n      \"code\": \"NPM_AUDIT_VITE_1\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for vite.\",\n      \"message\": \"Dependency vulnerability reported for vite.\",\n      \"evidence\": \"npm audit severity: high.\",\n      \"recommended_fix\": \"Upgrade or replace vite and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace vite and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"warnings\": []\n}\n",
+  "stderr": "",
+  "stdoutBytes": 3768,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [
+    " M .terrace/security/latest.json",
+    " M docs/terrace/security/SECURITY-CHECK.md"
+  ],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

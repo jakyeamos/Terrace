@@ -1,0 +1,34 @@
+{
+  "repo": "BBDSE/CLFE",
+  "repoType": "sparse",
+  "track": "scratch-real",
+  "key": "agent-asset-verification",
+  "category": "agent-integration",
+  "classification": "pass",
+  "skipped": false,
+  "remediation": null,
+  "agentAssets": {
+    "codexSkills": 59,
+    "claudeSkills": 59,
+    "claudeCommands": 59,
+    "terraceNextCommand": true,
+    "terraceShipCheckCommand": true,
+    "expected": {
+      "codexSkills": 59,
+      "claudeSkills": 59,
+      "claudeCommands": 59
+    },
+    "complete": true,
+    "present": true
+  },
+  "score": {
+    "total": 100,
+    "reliability": 20,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 15,
+    "safety": 15,
+    "ergonomics": 10
+  }
+}

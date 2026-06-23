@@ -1,0 +1,34 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "migrated-gsd",
+  "key": "agent-asset-verification",
+  "category": "agent-integration",
+  "classification": "expected-blocker",
+  "skipped": false,
+  "remediation": "Run terrace init in the migrated worktree to install missing non-overwriting agent assets.",
+  "agentAssets": {
+    "codexSkills": 5,
+    "claudeSkills": 0,
+    "claudeCommands": 0,
+    "terraceNextCommand": false,
+    "terraceShipCheckCommand": false,
+    "expected": {
+      "codexSkills": 59,
+      "claudeSkills": 59,
+      "claudeCommands": 59
+    },
+    "complete": false,
+    "present": true
+  },
+  "score": {
+    "total": 72,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 10
+  }
+}

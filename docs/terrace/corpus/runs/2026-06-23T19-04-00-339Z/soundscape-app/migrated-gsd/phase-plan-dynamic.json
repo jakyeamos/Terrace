@@ -1,0 +1,56 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "migrated-gsd",
+  "key": "phase-plan-dynamic",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "plan",
+    "snapshot",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 156,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "phase_id",
+      "status",
+      "plan_ref",
+      "source_refs",
+      "likely_files",
+      "related_quick_tasks",
+      "effort",
+      "blocked",
+      "blockers",
+      "next_command",
+      "active_slice"
+    ],
+    "next_command": "terrace phase execute snapshot",
+    "blockers": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"phase_id\": \"snapshot\",\n  \"status\": \"slice_planned\",\n  \"plan_ref\": \"docs/terrace/phases/snapshot/PLAN.md\",\n  \"source_refs\": [],\n  \"likely_files\": [],\n  \"related_quick_tasks\": [],\n  \"effort\": \"standard\",\n  \"blocked\": false,\n  \"blockers\": [],\n  \"next_command\": \"terrace phase execute snapshot\",\n  \"active_slice\": {\n    \"id\": \"snapshot\",\n    \"title\": \"Snapshot\",\n    \"source_ref\": \".planning/ROADMAP.md\",\n    \"plans\": [],\n    \"spec_refs\": [],\n    \"success_criteria\": [],\n    \"test_intent\": []\n  }\n}\n",
+  "stderr": "",
+  "stdoutBytes": 500,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

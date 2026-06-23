@@ -1,0 +1,88 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "execute-phase-complete-dynamic",
+  "category": "roadmap",
+  "args": [
+    "execute-phase-complete",
+    "overview",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 130,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "status",
+      "phase_id",
+      "effort",
+      "steps",
+      "blockers",
+      "required_action",
+      "next_command"
+    ],
+    "next_command": "terrace phase execute overview",
+    "blockers": {
+      "length": 4,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "message"
+          ],
+          "artifact": "docs/terrace/features/overview/ALIGNMENT.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "message"
+          ],
+          "artifact": "docs/terrace/features/overview/OBSERVABILITY.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "message"
+          ],
+          "artifact": "docs/terrace/features/overview/VALIDATION.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "message"
+          ],
+          "artifact": "docs/terrace/features/overview/CLEANUP.md"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"status\": \"blocked\",\n  \"phase_id\": \"overview\",\n  \"effort\": \"standard\",\n  \"steps\": [\n    {\n      \"command\": \"terrace phase plan overview\",\n      \"result\": {\n        \"phase_id\": \"overview\",\n        \"status\": \"slice_planned\",\n        \"plan_ref\": \"docs/terrace/phases/overview/PLAN.md\",\n        \"source_refs\": [],\n        \"likely_files\": [],\n        \"related_quick_tasks\": [],\n        \"effort\": \"standard\",\n        \"blocked\": false,\n        \"blockers\": [],\n        \"next_command\": \"terrace phase execute overview\",\n        \"active_slice\": {\n          \"id\": \"overview\",\n          \"title\": \"Overview\",\n          \"source_ref\": \".planning/ROADMAP.md\",\n          \"plans\": [],\n          \"spec_refs\": [],\n          \"success_criteria\": [],\n          \"test_intent\": []\n        }\n      }\n    },\n    {\n      \"command\": \"terrace phase execute overview\",\n      \"result\": {\n        \"allowed\": false,\n        \"phase_id\": \"overview\",\n        \"effort\": \"standard\",\n        \"queue\": [\n          {\n            \"id\": \"overview-plan\",\n            \"title\": \"Overview\",\n            \"source_ref\": \"docs/terrace/phases/overview/PLAN.md\",\n            \"status\": \"ready\",\n            \"wave\": 1,\n            \"likely_files\": [],\n            \"validation_commands\": [\n              \"npm run lint\",\n              \"npm run test\",\n              \"npm run test:coverage\",\n              \"npm run build\"\n            ],\n            \"agent_prompt\": \"Implement Overview for overview, then run the listed validation commands and update Terrace state.\"\n          }\n        ],\n        \"blockers\": [\n          {\n            \"code\": \"ALIGNMENT_REQUIRED\",\n            \"artifact\": \"docs/terrace/features/overview/ALIGNMENT.md\",\n            \"message\": \"Tier 2+ work requires alignment before execution.\"\n          },\n          {\n            \"code\": \"OBSERVABILITY_REQUIRED\",\n            \"artifact\": \"docs/terrace/features/overview/OBSERVABILITY.md\",\n            \"message\": \"No ship without observability and debugging intent.\"\n          },\n          {\n            \"code\": \"VALIDATION_REQUIRED\",\n            \"artifact\": \"docs/terrace/features/overview/VALIDATION.md\",\n            \"message\": \"No ship without production validation and rollback conditions.\"\n          },\n          {\n            \"code\": \"CLEANUP_REQUIRED\",\n            \"artifact\": \"docs/terrace/features/overview/CLEANUP.md\",\n            \"message\": \"No completion without cleanup ownership.\"\n          }\n        ],\n        \"senior_cycle\": {\n          \"feature_id\": \"overview\",\n          \"tier\": \"medium\",\n          \"architecture_default\": \"sustainable\",\n          \"no_band_aid_rule\": true,\n          \"required_artifacts\": [\n            \"docs/terrace/features/overview/ALIGNMENT.md\",\n            \"docs/testing/TEST-PLAN.md\",\n            \"docs/terrace/features/overview/OBSERVABILITY.md\",\n            \"docs/terrace/features/overview/VALIDATION.md\",\n            \"docs/terrace/features/overview/CLEANUP.md\"\n          ],\n          \"missing_artifacts\": [\n            \"docs/terrace/features/overview/ALIGNMENT.md\",\n            \"docs/terrace/features/overview/OBSERVABILITY.md\",\n            \"docs/terrace/features/overview/VALIDATION.md\",\n            \"docs/terrace/features/overview/CLEANUP.md\"\n          ],\n          \"allowed\": {\n            \"execute\": false,\n            \"implement\": true,\n            \"ship\": false,\n            \"complete\": false\n          },\n          \"blockers\": [\n            {\n              \"code\": \"ALIGNMENT_REQUIRED\",\n              \"artifact\": \"docs/terrace/features/overview/ALIGNMENT.md\",\n              \"message\": \"Tier 2+ work requires alignment before execution.\"\n            },\n            {\n              \"code\": \"OBSERVABILITY_REQUIRED\",\n              \"artifact\": \"docs/terrace/features/overview/OBSERVABILITY.md\",\n              \"message\": \"No ship without observability and debugging intent.\"\n            },\n            {\n              \"code\": \"VALIDATION_REQUIRED\",\n              \"artifact\": \"docs/terrace/features/overview/VALIDATION.md\",\n              \"message\": \"No ship without production validation and rollback conditions.\"\n            },\n            {\n              \"code\": \"CLEANUP_REQUIRED\",\n              \"artifact\": \"docs/terrace/features/overview/CLEANUP.md\",\n              \"message\": \"No completion without cleanup ownership.\"\n            }\n          ],\n          \"next_command\": \"terrace align overview\"\n        },\n        \"required_action\": \"Complete senior-cycle gates before execution.\"\n      }\n    }\n  ],\n  \"blockers\": [\n    {\n      \"code\": \"ALIGNMENT_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/overview/ALIGNMENT.md\",\n      \"message\": \"Tier 2+ work requires alignment before execution.\"\n    },\n    {\n      \"code\": \"OBSERVABILITY_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/overview/OBSERVABILITY.md\",\n      \"message\": \"No ship without observability and debugging intent.\"\n    },\n    {\n      \"code\": \"VALIDATION_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/overview/VALIDATION.md\",\n      \"message\": \"No ship without production validation and rollback conditions.\"\n    },\n    {\n      \"code\": \"CLEANUP_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/overview/CLEANUP.md\",\n      \"message\": \"No completion without cleanup ownership.\"\n    }\n  ],\n  \"required_action\": \"Complete senior-cycle gates before execution.\",\n  \"next_command\": \"terrace phase execute overview\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 5350,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

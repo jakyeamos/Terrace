@@ -1,0 +1,182 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "security-check",
+  "category": "shipping-security",
+  "args": [
+    "security",
+    "check",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 3490,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "checks",
+      "status",
+      "artifact",
+      "markdown",
+      "created_at",
+      "findings",
+      "blocking",
+      "warnings"
+    ],
+    "artifact": ".terrace/security/latest.json",
+    "blocking": {
+      "length": 0,
+      "sample": []
+    },
+    "warnings": {
+      "length": 5,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".planning/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".planning/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "docs/terrace-migration/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "docs/terrace-migration/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Run npm audit locally when network access is available. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "package-lock.json"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"checks\": [\n    \"secret-patterns\",\n    \"env-files\",\n    \"sensitive-logging\",\n    \"dependency-audit\",\n    \"deployment-config\"\n  ],\n  \"status\": \"passed\",\n  \"artifact\": \".terrace/security/latest.json\",\n  \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\",\n  \"created_at\": \"2026-06-23T19:07:36.983Z\",\n  \"findings\": [\n    {\n      \"id\": \"react-html-injection-0\",\n      \"code\": \"REACT_HTML_INJECTION_0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"file\": \".planning/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in .planning/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-1\",\n      \"code\": \"REACT_HTML_INJECTION_1\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"file\": \".planning/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in .planning/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-2\",\n      \"code\": \"REACT_HTML_INJECTION_2\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"docs/terrace-migration/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"file\": \"docs/terrace-migration/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in docs/terrace-migration/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-3\",\n      \"code\": \"REACT_HTML_INJECTION_3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"docs/terrace-migration/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"file\": \"docs/terrace-migration/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in docs/terrace-migration/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-unavailable\",\n      \"code\": \"NPM_AUDIT_UNAVAILABLE\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"npm audit could not produce dependency vulnerability data.\",\n      \"message\": \"npm audit could not produce dependency vulnerability data.\",\n      \"evidence\": \"spawnSync npm ETIMEDOUT\",\n      \"recommended_fix\": \"Run npm audit locally when network access is available.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Run npm audit locally when network access is available. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"blocking\": [],\n  \"warnings\": [\n    {\n      \"id\": \"react-html-injection-0\",\n      \"code\": \"REACT_HTML_INJECTION_0\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"file\": \".planning/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in .planning/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-1\",\n      \"code\": \"REACT_HTML_INJECTION_1\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"file\": \".planning/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in .planning/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-2\",\n      \"code\": \"REACT_HTML_INJECTION_2\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"docs/terrace-migration/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"file\": \"docs/terrace-migration/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in docs/terrace-migration/milestones/v1.3-phases/23-weekly-digest-editorial-layer/23-03-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-3\",\n      \"code\": \"REACT_HTML_INJECTION_3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"docs/terrace-migration/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"file\": \"docs/terrace-migration/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in docs/terrace-migration/milestones/v1.3-phases/24-apollo-affiliate-postcard-templates/24-01-PLAN.md.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-unavailable\",\n      \"code\": \"NPM_AUDIT_UNAVAILABLE\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"npm audit could not produce dependency vulnerability data.\",\n      \"message\": \"npm audit could not produce dependency vulnerability data.\",\n      \"evidence\": \"spawnSync npm ETIMEDOUT\",\n      \"recommended_fix\": \"Run npm audit locally when network access is available.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Run npm audit locally when network access is available. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ]\n}\n",
+  "stderr": "",
+  "stdoutBytes": 11347,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

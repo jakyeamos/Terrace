@@ -1,0 +1,64 @@
+{
+  "repo": "pre-cr-suite-lsp",
+  "repoType": "typescript-tooling",
+  "track": "scratch-real",
+  "key": "do-quick",
+  "category": "workflow",
+  "args": [
+    "do",
+    "create quick task fix smoke issue",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 94,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "input",
+      "command",
+      "result"
+    ],
+    "command": "terrace quick plan smoke issue",
+    "result": {
+      "type": "object",
+      "keys": [
+        "item",
+        "next_command"
+      ],
+      "next_command": "terrace quick execute terrace-quick-2",
+      "item": {
+        "type": "object",
+        "keys": [
+          "id",
+          "title",
+          "status",
+          "source_ref",
+          "plan_ref",
+          "created_at",
+          "next_command"
+        ],
+        "next_command": "terrace quick execute terrace-quick-2"
+      }
+    }
+  },
+  "stdout": "{\n  \"input\": \"create quick task fix smoke issue\",\n  \"command\": \"terrace quick plan smoke issue\",\n  \"result\": {\n    \"item\": {\n      \"id\": \"terrace-quick-2\",\n      \"title\": \"smoke issue\",\n      \"status\": \"planned\",\n      \"source_ref\": \"terrace quick plan\",\n      \"plan_ref\": \"docs/terrace/quick/terrace-quick-2/PLAN.md\",\n      \"created_at\": \"2026-06-23T19:07:06.283Z\",\n      \"next_command\": \"terrace quick execute terrace-quick-2\"\n    },\n    \"next_command\": \"terrace quick execute terrace-quick-2\"\n  }\n}\n",
+  "stderr": "",
+  "stdoutBytes": 502,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

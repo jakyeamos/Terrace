@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, and a cross-repo corpus CLI whose latest sample run reports zero product weaknesses.
+summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, and a cross-repo corpus CLI whose June 23 sample run reports zero product weaknesses.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Run a fresh corpus sample after the planning refresh command, then decide whether dead-code scanning belongs in the release gate.
+nextStep: Decide whether the npm dependency-audit drift in the Terrace corpus security-check watchlist should be fixed before publish, then decide whether dead-code scanning belongs in the release gate.
 blockers: []
-lastUpdated: 2026-05-19
+lastUpdated: 2026-06-23
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm test -- tests/planning-refresh.test.ts tests/core-cli.test.ts tests/core-port-gsd.test.ts && pnpm typecheck && pnpm lint
-lastVerifiedAt: "2026-05-19T00:50:00-04:00"
+lastVerifiedCommand: ./src/terrace-tools.cjs corpus run --sample --json && ./src/terrace-tools.cjs corpus report
+lastVerifiedAt: "2026-06-23T15:12:02-04:00"
 ---
 
 ## Current State
@@ -50,7 +50,7 @@ Terrace now installs default non-overwriting agent integration assets during `te
 
 Terrace now also has `terrace agents install-global`, which installs non-overwriting global Codex skills into `~/.agents/skills` and global Claude Code skills/commands into `~/.claude/skills` and `~/.claude/commands`. The global installer writes a top-level `/terrace` entrypoint that routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next`, plus the full `/terrace-*` command-reference surface and manifests under both tool directories. The installer supports `TERRACE_GLOBAL_AGENTS_DIR` and `TERRACE_GLOBAL_CLAUDE_DIR` for deterministic tests and has been run against `/Users/jakyeamos/.agents` and `/Users/jakyeamos/.claude` so local Codex and Claude Code sessions can discover `/terrace` across repos after reload.
 
-Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace-corpus-eval.cjs`, exposed as both `npm run corpus:evaluate` and the public CLI commands `terrace corpus run` / `terrace corpus report`. The harness packages local Terrace once, installs the tarball into disposable real-repo worktrees and synthetic fixture repos, tests migrated-GSD, real scratch, and synthetic scratch tracks, captures per-command evidence, scores command behavior, and writes Markdown plus JSON reports under `docs/terrace/corpus/`. The latest sample run `2026-05-07T04-42-21-292Z` evaluated 962 command executions across eight real repos and five synthetic fixtures, with 764 passes, 141 expected blockers, 57 skips, zero product weaknesses, and zero harness/environment issues.
+Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace-corpus-eval.cjs`, exposed as both `npm run corpus:evaluate` and the public CLI commands `terrace corpus run` / `terrace corpus report`. The harness packages local Terrace once, installs the tarball into disposable real-repo worktrees and synthetic fixture repos, tests migrated-GSD, real scratch, and synthetic scratch tracks, captures per-command evidence, scores command behavior, and writes Markdown plus JSON reports under `docs/terrace/corpus/`. The latest sample run `2026-06-23T19-04-00-339Z` evaluated 962 command executions across eight real repos and five synthetic fixtures, with 763 passes, 142 expected blockers, 57 skips, zero product weaknesses, and zero harness/environment issues.
 
 Expected blockers now carry a shared guidance contract for both JSON and human CLI output where applicable: `code`, `message`, `file`, `why_blocked`, `next_command`, and `remediation`. PRD overwrite refusal now names the exact `--force` command and an inspect-first alternative. Spec validation, ship checks, report ceremony, and security checks now surface concrete next commands and artifact paths without weakening gate strictness. Ship checks summarize the top three blockers and keep `terrace ship check --fast` as the quick recheck path. `terrace doctor` and `terrace commands discover` detect stale partial generated agent assets and recommend non-overwriting `terrace init`.
 
@@ -129,6 +129,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 7: Fixed corpus parity and report classification so preserved GSD state details count as mapped, migrated partial agent assets are actionable expected blockers, report ranking separates product weaknesses from expected blockers, and the regenerated sample corpus reports zero product weaknesses.
 - May 7: Added `terrace agents install-global` with `/terrace` global Codex and Claude Code entrypoints, full global `/terrace-*` skill/command generation, non-overwrite manifest tracking, README docs, JSON-mode coverage, and local installs into `/Users/jakyeamos/.agents` and `/Users/jakyeamos/.claude`.
 - May 19: Added `terrace planning refresh` / `terrace planning init` to regenerate `.planning` from Terrace state and repo analysis with deterministic JSON output, plus Phase 1 planning-parity tests that verify repeated refreshes and `terrace port gsd --verify-parity`.
+- June 23: Refreshed the full sample corpus after the user-driven interrogate flow and planning refresh command; the run reports zero product weaknesses and zero harness/environment issues, with one additional expected security-check blocker from current npm dependency-audit findings in the Terrace package lock.
 
 ## Open Problems
 
@@ -160,7 +161,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Focused phase routing tests:** `npm test -- tests/workflow-commands.test.ts tests/core-init.test.ts tests/json-mode.test.ts` PASS, 36 tests
 - **Agent command discovery fix:** `npm test` PASS, 36 files and 269 tests; `npm run lint` PASS, checking 2164 text files; `npm run typecheck` PASS; `npm run package:dry-run` PASS
 - **Corpus improvement focused tests:** `npm test -- tests/corpus-eval.test.ts tests/core-port-gsd-migration.test.ts tests/core-cli.test.ts tests/core-init.test.ts -- --runInBand` PASS
-- **Corpus evaluation:** `npm run corpus:evaluate -- --dry-run-plan --sample` PASS; `npm run corpus:evaluate -- --sample` PASS with 962 command executions, 764 passes, 141 expected blockers, zero product weaknesses, 57 skips, and zero harness/environment issues
+- **Corpus evaluation:** `./src/terrace-tools.cjs corpus run --sample --json` PASS with 962 command executions, 763 passes, 142 expected blockers, zero product weaknesses, 57 skips, and zero harness/environment issues; `./src/terrace-tools.cjs corpus report` PASS and points at `docs/terrace/corpus/runs/2026-06-23T19-04-00-339Z`
 - **Expected-blocker ergonomics focused tests:** `npm test -- tests/expected-blocker-ergonomics.test.ts tests/core-init.test.ts tests/corpus-eval.test.ts -- --runInBand` PASS, covering PRD overwrite guidance, spec validation guidance, ship/report/security blockers, partial agent assets, and corpus CLI commands
 - **Corpus CLI:** `node src/terrace-tools.cjs corpus run --dry-run-plan --sample --json` PASS; `node src/terrace-tools.cjs corpus report --json` PASS and returns run id, totals, report path, and evidence path
 - **Package:** `npm run package:dry-run` PASS after adding the corpus wrapper; package dry-run reported `@jakyeamos33/terrace@0.1.2`, 731.1 kB package size, 10.6 MB unpacked size, 2342 own files, and 2342 total files
@@ -168,6 +169,6 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Next Concrete Steps
 
-1. Run a fresh full `terrace corpus run --sample --json` before publishing so the corpus report reflects user-driven interrogate behavior and the new planning refresh command.
+1. Decide whether to resolve the Terrace package-lock dependency-audit findings now or keep them as expected corpus security blockers for the next release pass.
 2. Configure dead-code scanning or explicitly document why it remains out of scope for the current release.
 3. Review whether the remaining intentional blocker language in `docs/terrace/corpus/REPORT.md` needs README/tutorial examples for public beta users.

@@ -1,0 +1,96 @@
+{
+  "repo": "pre-cr-suite-lsp",
+  "repoType": "typescript-tooling",
+  "track": "migrated-gsd",
+  "key": "port-gsd",
+  "category": "migration",
+  "args": [
+    "port",
+    "gsd",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 116,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "artifacts",
+      "converted",
+      "skipped",
+      "writes",
+      "blockers",
+      "warnings",
+      "readiness",
+      "next_command",
+      "review_checklist",
+      "validation_commands"
+    ],
+    "mode": "migration",
+    "next_command": "terrace doctor",
+    "readiness": {
+      "status": "ready",
+      "score": 100
+    },
+    "blockers": {
+      "length": 0,
+      "sample": []
+    },
+    "warnings": {
+      "length": 0,
+      "sample": []
+    },
+    "artifacts": {
+      "length": 0,
+      "sample": []
+    },
+    "validation_commands": {
+      "length": 2,
+      "sample": [
+        "terrace doctor",
+        "terrace audit"
+      ]
+    },
+    "review_checklist": {
+      "length": 5,
+      "sample": [
+        "Review docs/prd/PRD.md against the original .planning/PROJECT.md.",
+        "Review docs/spec/COMPILED-SPEC.md against the original .planning/REQUIREMENTS.md.",
+        "Review docs/terrace-migration/GSD-STATE.md for legacy state that should become Terrace decisions or sessions.",
+        "Run terrace doctor and terrace audit after reviewing migrated artifacts.",
+        "Run terrace doctor to resume the migrated workflow."
+      ]
+    },
+    "converted": {
+      "length": 0
+    },
+    "skipped": {
+      "length": 0
+    },
+    "writes": {
+      "length": 2
+    }
+  },
+  "stdout": "{\n  \"mode\": \"migration\",\n  \"artifacts\": [],\n  \"converted\": [],\n  \"skipped\": [],\n  \"writes\": [\n    \".terrace/state.json\",\n    \".terrace/migration/gsd-port-report.json\"\n  ],\n  \"blockers\": [],\n  \"warnings\": [],\n  \"readiness\": {\n    \"status\": \"ready\",\n    \"score\": 100\n  },\n  \"next_command\": \"terrace doctor\",\n  \"review_checklist\": [\n    \"Review docs/prd/PRD.md against the original .planning/PROJECT.md.\",\n    \"Review docs/spec/COMPILED-SPEC.md against the original .planning/REQUIREMENTS.md.\",\n    \"Review docs/terrace-migration/GSD-STATE.md for legacy state that should become Terrace decisions or sessions.\",\n    \"Run terrace doctor and terrace audit after reviewing migrated artifacts.\",\n    \"Run terrace doctor to resume the migrated workflow.\"\n  ],\n  \"validation_commands\": [\n    \"terrace doctor\",\n    \"terrace audit\"\n  ]\n}\n",
+  "stderr": "",
+  "stdoutBytes": 827,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [
+    "?? .terrace/"
+  ],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

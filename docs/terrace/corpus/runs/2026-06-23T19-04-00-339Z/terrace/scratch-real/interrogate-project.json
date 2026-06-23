@@ -1,0 +1,52 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "scratch-real",
+  "key": "interrogate-project",
+  "category": "interrogation",
+  "args": [
+    "interrogate",
+    "terrace-corpus-terrace",
+    "--tier",
+    "large",
+    "--answers",
+    "Corpus user answer: preserve the imported PRD outcome, challenge rollout risk, and require rollback ownership.",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 152,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace design terrace-corpus-terrace",
+    "feature_id": "terrace-corpus-terrace",
+    "artifact": "docs/terrace/features/terrace-corpus-terrace/INTERROGATION.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-terrace\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-terrace/INTERROGATION.md\",\n  \"next_command\": \"terrace design terrace-corpus-terrace\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 202,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [
+    "?? docs/terrace/features/"
+  ],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 5,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

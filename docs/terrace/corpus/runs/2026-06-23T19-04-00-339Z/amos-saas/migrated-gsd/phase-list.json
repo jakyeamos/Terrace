@@ -1,0 +1,75 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "phase-list",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "list",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 351,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "phases"
+    ],
+    "phases": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plans"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"phases\": [\n    {\n      \"id\": \"milestones\",\n      \"title\": \"Milestones\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": []\n    },\n    {\n      \"id\": \"phases\",\n      \"title\": \"Phases\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": []\n    },\n    {\n      \"id\": \"progress\",\n      \"title\": \"Progress\",\n      \"status\": \"migrated\",\n      \"source_ref\": \".planning/ROADMAP.md\",\n      \"plans\": []\n    }\n  ]\n}\n",
+  "stderr": "",
+  "stdoutBytes": 483,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 69,
+    "reliability": 25,
+    "usefulness": 6,
+    "artifactQuality": 5,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  }
+}
