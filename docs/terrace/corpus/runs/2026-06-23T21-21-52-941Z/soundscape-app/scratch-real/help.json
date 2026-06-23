@@ -1,0 +1,33 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "scratch-real",
+  "key": "help",
+  "category": "baseline",
+  "args": [
+    "--help"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 255,
+  "classification": "pass",
+  "jsonValid": false,
+  "parsed": null,
+  "stdout": "Usage: terrace <command> [options]\n\nCommands:\n  terrace init                 Initialize Terrace state in this repo\n  terrace agents install-global Install Terrace Codex skills into ~/.agents\n  terrace new-project <name> --prd <file>|--paste-prd\n  terrace prd import <feature> --file <file>|--paste\n  terrace doctor               Diagnose Terrace installation health\n  terrace spec validate        Validate governance artifacts\n  terrace spec hash --file <path>\n  terrace audit                Run governance audit checks\n  terrace ci check [files...]  Run audit plus protected-change checks\n  terrace security check       Run deterministic local security checks\n  terrace corpus run           Run the local Terrace corpus evaluator\n  terrace corpus report        Show the latest corpus report summary\n  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts\n  terrace planning refresh    Initialize or refresh .planning from Terrace state\n  terrace next                 Show the next workflow action\n  terrace resume               Reconstruct paused workflow context\n  terrace history              Summarize migrated operational history\n  terrace do <intent>          Route natural-language intent to a Terrace command\n  terrace autonomous           Plan next phase and stop at blocker or handoff\n  terrace execute-phase-complete <id> Plan, execute, validate, review, and complete one phase\n  terrace settings show        Show Terrace settings\n  terrace settings effort <fast|standard|thorough>\n  terrace commands discover    Discover project quality scripts\n  terrace align <feature>      Write senior-cycle alignment artifact\n  terrace interrogate <feature> Capture user-driven edge-case and failure-mode interrogation\n  terrace map-codebase         Write codebase context artifacts\n  terrace design <feature>     Write architecture decision artifact\n  terrace test-plan <feature>  Write behavior-first test strategy\n  terrace observe <feature>    Write observability plan\n  terrace validate-prod <feature> Write production validation plan\n  terrace cleanup <feature>    Write cleanup contract\n  terrace ui import-stitch <feature> Capture Stitch design import\n  terrace ui plan-refresh <feature> Plan UI refresh work\n  terrace ui diff <feature>    Write UI source/target diff\n  terrace phase list           List roadmap phases\n  terrace phase show <id>      Show a roadmap phase\n  terrace phase plan <id>      Generate a phase plan artifact\n  terrace phase execute <id>   Enter RED-gate execution for a phase\n  terrace phase validate <id>  Generate validation artifact\n  terrace phase review <id>    Generate review artifact\n  terrace phase complete <id>  Complete a phase with summary artifact\n  terrace quick list           List migrated quick-task history\n  terrace quick show <id>      Show one migrated quick task\n  terrace quick plan <title>   Create a stateful quick-task plan\n  terrace quick execute <id>   Enter RED-gate execution for a quick task\n  terrace quick complete <id>  Complete a quick task\n  terrace backlog list         List backlog items\n  terrace backlog add <title>  Add a backlog item\n  terrace ship check           Run release readiness checks\n  terrace ship prepare         Write PR/release readiness summary\n  terrace report [update|open|history|ceremony]\n  terrace handoff create [--feature <id>] [--for codex|claude|generic]\n  terrace debt add|list|audit|resolve\n  terrace preflight <feature>  Write production failure preflight\n  terrace docu <feature>       Write production documentation draft\n  terrace test eval            Evaluate test-suite trust\n  terrace review ai --mode <mode>\n  terrace rule add <domain> <rule-id>\n  terrace rule audit\n  terrace waive <gate>         Record a reviewed temporary waiver\n  terrace backfill             Write standards backfill spec\n  terrace workstreams plan <feature>\n  terrace design-source import <source> <feature> <ref>\n  terrace plan-phase <id>      GSD-compatible alias for phase plan\n  terrace execute-phase <id>   GSD-compatible alias for phase execute\n  terrace rule list            List installed rule packs\n  terrace rule explain <id>    Explain a rule\n  terrace preset list          List installed presets\n  terrace preset install <id>  Install a preset\n\nGlobal options:\n  --help, -h       Show this help\n  --version, -v    Print Terrace version\n  --json           Print machine-readable JSON where supported\n",
+  "stderr": "",
+  "stdoutBytes": 4411,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

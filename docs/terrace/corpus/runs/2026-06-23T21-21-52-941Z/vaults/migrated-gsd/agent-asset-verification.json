@@ -1,0 +1,36 @@
+{
+  "repo": "Vaults",
+  "repoType": "docs",
+  "track": "migrated-gsd",
+  "key": "agent-asset-verification",
+  "category": "agent-integration",
+  "classification": "not-applicable",
+  "skipped": true,
+  "skipReason": "Agent asset verification requires an init/new-project track; migrated-GSD migration does not install slash assets.",
+  "remediation": null,
+  "repair": null,
+  "agentAssets": {
+    "codexSkills": 0,
+    "claudeSkills": 0,
+    "claudeCommands": 0,
+    "terraceNextCommand": false,
+    "terraceShipCheckCommand": false,
+    "expected": {
+      "codexSkills": 59,
+      "claudeSkills": 59,
+      "claudeCommands": 59
+    },
+    "complete": false,
+    "present": false
+  },
+  "score": {
+    "total": 0,
+    "reliability": 0,
+    "usefulness": 0,
+    "artifactQuality": 0,
+    "interrogationQuality": 0,
+    "repoFit": 0,
+    "safety": 25,
+    "ergonomics": 0
+  }
+}

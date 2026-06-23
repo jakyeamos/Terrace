@@ -1,0 +1,282 @@
+{
+  "repo": "pre-cr-suite-lsp",
+  "repoType": "typescript-tooling",
+  "track": "scratch-real",
+  "key": "ship-check",
+  "category": "shipping-security",
+  "args": [
+    "ship",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 5991,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "project_commands",
+      "categories",
+      "timings",
+      "blockers",
+      "warnings",
+      "top_blockers",
+      "next_command",
+      "recheck_command"
+    ],
+    "passed": false,
+    "mode": "full",
+    "next_command": "terrace interrogate <feature>",
+    "recheck_command": "terrace ship check --fast",
+    "blockers": {
+      "length": 23,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `non_goals` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `constraints` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        }
+      ]
+    },
+    "top_blockers": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 8,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "packages/core/src/checklist/security.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".github/workflows/ci.yml"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace report update",
+          "remediation": "Follow the report next actions.",
+          "why_blocked": "The report is not blocking release, but it still shows readiness gaps."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"mode\": \"full\",\n  \"passed\": false,\n  \"project_commands\": {\n    \"package_manager\": \"pnpm\",\n    \"scripts\": {\n      \"build\": \"pnpm run build:core && pnpm run build:server && pnpm run build:vscode\",\n      \"build:core\": \"pnpm --filter @pre-cr/core build\",\n      \"build:server\": \"pnpm --filter @pre-cr/server build\",\n      \"build:vscode\": \"pnpm --filter pre-cr-suite build\",\n      \"typecheck\": \"turbo run typecheck\",\n      \"test\": \"turbo run test\",\n      \"lint\": \"turbo run lint\",\n      \"package\": \"pnpm run build && pnpm --filter pre-cr-suite package\",\n      \"clean\": \"pnpm -r run clean && rm -rf node_modules\",\n      \"dev\": \"turbo run dev --parallel\"\n    },\n    \"checks\": [\n      {\n        \"category\": \"typecheck\",\n        \"script\": \"typecheck\",\n        \"required\": false,\n        \"suggested\": \"tsc --noEmit\",\n        \"exists\": true,\n        \"command\": \"pnpm run typecheck\"\n      },\n      {\n        \"category\": \"lint\",\n        \"script\": \"lint\",\n        \"required\": true,\n        \"suggested\": \"eslint .\",\n        \"exists\": true,\n        \"command\": \"pnpm run lint\"\n      },\n      {\n        \"category\": \"test\",\n        \"script\": \"test\",\n        \"required\": false,\n        \"suggested\": \"vitest run or npm test equivalent\",\n        \"exists\": true,\n        \"command\": \"pnpm run test\"\n      },\n      {\n        \"category\": \"coverage\",\n        \"script\": \"test:coverage\",\n        \"required\": false,\n        \"suggested\": \"vitest run --coverage or project equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"package\",\n        \"script\": \"package:dry-run\",\n        \"required\": false,\n        \"suggested\": \"npm pack --dry-run\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"build\",\n        \"script\": \"build\",\n        \"required\": false,\n        \"suggested\": \"framework build command\",\n        \"exists\": true,\n        \"command\": \"pnpm run build\"\n      }\n    ],\n    \"agent_assets\": {\n      \"expected\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"counts\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"present\": 177,\n      \"expected_total\": 177,\n      \"complete\": true,\n      \"partial\": false,\n      \"next_command\": null,\n      \"remediation\": null\n    },\n    \"warnings\": []\n  },\n  \"categories\": [\n    {\n      \"category\": \"doctor\",\n      \"command\": \"terrace doctor\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"audit\",\n      \"command\": \"terrace audit\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: problem\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"problem\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: actors\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"actors\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: desired_outcomes\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"desired_outcomes\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: non_goals\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"non_goals\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `non_goals` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: constraints\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"constraints\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `constraints` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: success_criteria\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"success_criteria\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `success_criteria` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: open_questions\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"open_questions\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `open_questions` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: spec_version\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"spec_version\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `spec_version` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: phase\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"phase\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `phase` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: protected\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"protected\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace design <feature>\",\n          \"remediation\": \"Add a `protected` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: last_updated\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"last_updated\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `last_updated` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: source_refs\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"source_refs\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace design <feature>\",\n          \"remediation\": \"Add a `source_refs` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"security\",\n      \"command\": \"terrace security check\",\n      \"passed\": false,\n      \"security_check\": {\n        \"status\": \"blocked\",\n        \"artifact\": \".terrace/security/latest.json\",\n        \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\"\n      },\n      \"blocking\": [\n        {\n          \"id\": \"secret_github_token-0\",\n          \"code\": \"SECRET_GITHUB_TOKEN_0\",\n          \"mode\": \"security\",\n          \"severity\": \"critical\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n          \"file\": \"packages/core/src/checklist/security.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"message\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_GITHUB_TOKEN matched in packages/core/src/checklist/security.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_private_key-1\",\n          \"code\": \"SECRET_PRIVATE_KEY_1\",\n          \"mode\": \"security\",\n          \"severity\": \"critical\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n          \"file\": \"packages/core/src/checklist/security.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"message\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_PRIVATE_KEY matched in packages/core/src/checklist/security.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_generic_assignment-2\",\n          \"code\": \"SECRET_GENERIC_ASSIGNMENT_2\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n          \"file\": \"packages/core/src/checklist/security.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"message\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_GENERIC_ASSIGNMENT matched in packages/core/src/checklist/security.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Rotate \n\n[... truncated by Terrace corpus harness ...]\n\nthe command locally and fix the reported failures.\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"id\": \"react-html-injection-3\",\n      \"code\": \"REACT_HTML_INJECTION_3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-4\",\n      \"code\": \"REACT_HTML_INJECTION_4\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.ts\",\n      \"file\": \"packages/core/src/checklist/security.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-0\",\n      \"code\": \"WORKFLOW_PERMISSIONS_0\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/ci.yml\",\n      \"file\": \".github/workflows/ci.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/ci.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"code\": \"TIER_ONE_GAPS\",\n      \"message\": \"Tier One report score is below strong readiness: 25.\",\n      \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n      \"next_command\": \"terrace report update\",\n      \"remediation\": \"Follow the report next actions.\"\n    },\n    {\n      \"code\": \"TEST_EVAL_MISSING\",\n      \"message\": \"No test-suite evaluation has been recorded.\"\n    },\n    {\n      \"code\": \"RULE_AUDIT_MISSING\",\n      \"message\": \"No rule audit has been recorded.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for coverage.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.test:coverage=\\\"vitest run --coverage or project equivalent\\\"\",\n      \"remediation\": \"Add a `test:coverage` script such as `vitest run --coverage or project equivalent` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for package.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.package:dry-run=\\\"npm pack --dry-run\\\"\",\n      \"remediation\": \"Add a `package:dry-run` script such as `npm pack --dry-run` if this gate should be enforced.\"\n    }\n  ],\n  \"top_blockers\": [\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: problem\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: actors\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: desired_outcomes\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/pre-cr-suite-lsp-scratch-real/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    }\n  ],\n  \"next_command\": \"terrace interrogate <feature>\",\n  \"recheck_command\": \"terrace ship check --fast\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 45989,
+  "stderrBytes": 0,
+  "stdoutTruncated": true,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 85,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 10,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

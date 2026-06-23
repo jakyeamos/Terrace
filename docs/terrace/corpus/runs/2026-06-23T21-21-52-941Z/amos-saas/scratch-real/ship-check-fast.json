@@ -1,0 +1,313 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "scratch-real",
+  "key": "ship-check-fast",
+  "category": "shipping-security",
+  "args": [
+    "ship",
+    "check",
+    "--fast",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 178,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "project_commands",
+      "categories",
+      "timings",
+      "blockers",
+      "warnings",
+      "top_blockers",
+      "next_command",
+      "recheck_command"
+    ],
+    "passed": false,
+    "mode": "fast",
+    "next_command": "terrace interrogate <feature>",
+    "recheck_command": "terrace ship check --fast",
+    "blockers": {
+      "length": 20,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `non_goals` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `constraints` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        }
+      ]
+    },
+    "top_blockers": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 21,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "src/components/ui/chart.tsx"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Upgrade or replace @anthropic-ai/sdk and rerun terrace security check. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "package-lock.json"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Upgrade or replace @babel/core and rerun terrace security check. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "package-lock.json"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Upgrade or replace @hono/node-server and rerun terrace security check. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "package-lock.json"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Upgrade or replace brace-expansion and rerun terrace security check. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "package-lock.json"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"mode\": \"fast\",\n  \"passed\": false,\n  \"project_commands\": {\n    \"package_manager\": \"npm\",\n    \"scripts\": {\n      \"dev\": \"next dev\",\n      \"build\": \"next build\",\n      \"start\": \"next start\",\n      \"lint\": \"eslint\"\n    },\n    \"checks\": [\n      {\n        \"category\": \"typecheck\",\n        \"script\": \"typecheck\",\n        \"required\": false,\n        \"suggested\": \"tsc --noEmit\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"lint\",\n        \"script\": \"lint\",\n        \"required\": true,\n        \"suggested\": \"eslint .\",\n        \"exists\": true,\n        \"command\": \"npm run lint\"\n      },\n      {\n        \"category\": \"test\",\n        \"script\": \"test\",\n        \"required\": false,\n        \"suggested\": \"vitest run or npm test equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"coverage\",\n        \"script\": \"test:coverage\",\n        \"required\": false,\n        \"suggested\": \"vitest run --coverage or project equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"package\",\n        \"script\": \"package:dry-run\",\n        \"required\": false,\n        \"suggested\": \"npm pack --dry-run\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"build\",\n        \"script\": \"build\",\n        \"required\": false,\n        \"suggested\": \"framework build command\",\n        \"exists\": true,\n        \"command\": \"npm run build\"\n      }\n    ],\n    \"agent_assets\": {\n      \"expected\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"counts\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"present\": 177,\n      \"expected_total\": 177,\n      \"complete\": true,\n      \"partial\": false,\n      \"next_command\": null,\n      \"remediation\": null\n    },\n    \"warnings\": []\n  },\n  \"categories\": [\n    {\n      \"category\": \"doctor\",\n      \"command\": \"terrace doctor\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"audit\",\n      \"command\": \"terrace audit\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: problem\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"problem\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: actors\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"actors\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: desired_outcomes\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"desired_outcomes\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: non_goals\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"non_goals\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `non_goals` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: constraints\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"constraints\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `constraints` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: success_criteria\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"success_criteria\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `success_criteria` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: open_questions\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n          \"section\": \"open_questions\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `open_questions` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: spec_version\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"spec_version\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `spec_version` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: phase\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"phase\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `phase` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: protected\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"protected\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace design <feature>\",\n          \"remediation\": \"Add a `protected` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: last_updated\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"last_updated\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `last_updated` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: source_refs\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"source_refs\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace design <feature>\",\n          \"remediation\": \"Add a `source_refs` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"security\",\n      \"command\": \"terrace security check\",\n      \"passed\": false,\n      \"security_check\": {\n        \"status\": \"blocked\",\n        \"artifact\": \".terrace/security/latest.json\",\n        \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\"\n      },\n      \"blocking\": [\n        {\n          \"id\": \"npm-audit-fast-uri-7\",\n          \"code\": \"NPM_AUDIT_FAST_URI_7\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"file\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for fast-uri.\",\n          \"message\": \"Dependency vulnerability reported for fast-uri.\",\n          \"evidence\": \"npm audit --omit=dev severity: high.\",\n          \"recommended_fix\": \"Upgrade or replace fast-uri and rerun terrace security check.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Upgrade or replace fast-uri and rerun terrace security check. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-hono-8\",\n          \"code\": \"NPM_AUDIT_HONO_8\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"file\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for hono.\",\n          \"message\": \"Dependency vulnerability reported for hono.\",\n          \"evidence\": \"npm audit --omit=dev severity: high.\",\n          \"recommended_fix\": \"Upgrade or replace hono and rerun terrace security check.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Upgrade or replace hono and rerun terrace security check. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-next-11\",\n          \"code\": \"NPM_AUDIT_NEXT_11\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"file\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for next.\",\n          \"message\": \"Dependency vulnerability reported for next.\",\n          \"evidence\": \"npm audit --omit=dev severity: high.\",\n          \"recommended_fix\": \"Upgrade or replace next and rerun terrace security check.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Upgrade or replace next and rerun terrace security check. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"npm-audit-path-to-regexp-12\",\n          \"code\": \"NPM_AUDIT_PATH_TO_REGEXP_12\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"file\": \"package-lock.json\",\n          \"claim\": \"Dependency vulnerability reported for path-to-regexp.\",\n          \"message\": \"Dependency vulnerability reported for path-to-regexp.\",\n          \"evidence\": \"npm audit --omit=dev severity: high.\",\n          \"recommended_fix\": \"Upgrade or replace path-to-regexp and rerun terrace security check.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Upgrade or replace path-to-regexp and rerun terrace security check. Then rerun `terrace security check`.\",\n\n[... truncated by Terrace corpus harness ...]\n\n\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace react-email and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-resend-16\",\n      \"code\": \"NPM_AUDIT_RESEND_16\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for resend.\",\n      \"message\": \"Dependency vulnerability reported for resend.\",\n      \"evidence\": \"npm audit --omit=dev severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace resend and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace resend and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-socket.io-adapter-17\",\n      \"code\": \"NPM_AUDIT_SOCKET_IO_ADAPTER_17\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for socket.io-adapter.\",\n      \"message\": \"Dependency vulnerability reported for socket.io-adapter.\",\n      \"evidence\": \"npm audit --omit=dev severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace socket.io-adapter and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace socket.io-adapter and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-svix-18\",\n      \"code\": \"NPM_AUDIT_SVIX_18\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for svix.\",\n      \"message\": \"Dependency vulnerability reported for svix.\",\n      \"evidence\": \"npm audit --omit=dev severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace svix and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace svix and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"npm-audit-uuid-19\",\n      \"code\": \"NPM_AUDIT_UUID_19\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"Dependency vulnerability reported for uuid.\",\n      \"message\": \"Dependency vulnerability reported for uuid.\",\n      \"evidence\": \"npm audit --omit=dev severity: moderate.\",\n      \"recommended_fix\": \"Upgrade or replace uuid and rerun terrace security check.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Upgrade or replace uuid and rerun terrace security check. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"code\": \"TIER_ONE_GAPS\",\n      \"message\": \"Tier One report score is below strong readiness: 25.\",\n      \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n      \"next_command\": \"terrace report update\",\n      \"remediation\": \"Follow the report next actions.\"\n    },\n    {\n      \"code\": \"AI_REVIEW_REQUIRED\",\n      \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"TEST_EVAL_MISSING\",\n      \"message\": \"No test-suite evaluation has been recorded.\"\n    },\n    {\n      \"code\": \"RULE_AUDIT_MISSING\",\n      \"message\": \"No rule audit has been recorded.\"\n    }\n  ],\n  \"top_blockers\": [\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: problem\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: actors\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: desired_outcomes\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/real/amos-saas-scratch-real/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    }\n  ],\n  \"next_command\": \"terrace interrogate <feature>\",\n  \"recheck_command\": \"terrace ship check --fast\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 66523,
+  "stderrBytes": 0,
+  "stdoutTruncated": true,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

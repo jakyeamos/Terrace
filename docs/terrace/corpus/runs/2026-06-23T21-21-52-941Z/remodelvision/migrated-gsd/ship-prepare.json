@@ -1,0 +1,226 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "ship-prepare",
+  "category": "shipping-security",
+  "args": [
+    "ship",
+    "prepare",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 2931,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "project_commands",
+      "categories",
+      "timings",
+      "blockers",
+      "warnings",
+      "top_blockers",
+      "next_command",
+      "recheck_command",
+      "ship_ref"
+    ],
+    "passed": false,
+    "mode": "full",
+    "next_command": "terrace ship check",
+    "recheck_command": "terrace ship check --fast",
+    "blockers": {
+      "length": 6,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "remediation"
+          ],
+          "remediation": "Run terrace preflight terrace-corpus-smoke"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "remediation"
+          ],
+          "remediation": "Run terrace docu terrace-corpus-smoke"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "npm run lint",
+          "remediation": "Run the command locally and fix the reported failures.",
+          "why_blocked": "Release readiness requires the project quality gate to pass."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "npm run test",
+          "remediation": "Run the command locally and fix the reported failures.",
+          "why_blocked": "Release readiness requires the project quality gate to pass."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "npm run test:coverage",
+          "remediation": "Run the command locally and fix the reported failures.",
+          "why_blocked": "Release readiness requires the project quality gate to pass."
+        }
+      ]
+    },
+    "top_blockers": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": null,
+          "remediation": "Run terrace preflight terrace-corpus-smoke",
+          "file": null
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": null,
+          "remediation": "Run terrace docu terrace-corpus-smoke",
+          "file": null
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "npm run lint",
+          "remediation": "Run the command locally and fix the reported failures.",
+          "file": null
+        }
+      ]
+    },
+    "warnings": {
+      "length": 8,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Run npm audit --omit=dev locally when network access is available. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "package-lock.json"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace report update",
+          "remediation": "Follow the report next actions.",
+          "why_blocked": "The report is not blocking release, but it still shows readiness gaps."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "remediation"
+          ],
+          "remediation": "Run terrace review ai --mode architecture --feature terrace-corpus-smoke"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"mode\": \"full\",\n  \"passed\": false,\n  \"project_commands\": {\n    \"package_manager\": \"npm\",\n    \"scripts\": {\n      \"dev\": \"next dev\",\n      \"build\": \"next build\",\n      \"start\": \"next start\",\n      \"lint\": \"eslint\",\n      \"test\": \"vitest\",\n      \"test:ui\": \"vitest --ui\",\n      \"test:watch\": \"vitest --watch\",\n      \"test:coverage\": \"vitest --coverage\",\n      \"test:e2e\": \"node scripts/test-pipeline.js --skip-auth\"\n    },\n    \"checks\": [\n      {\n        \"category\": \"typecheck\",\n        \"script\": \"typecheck\",\n        \"required\": false,\n        \"suggested\": \"tsc --noEmit\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"lint\",\n        \"script\": \"lint\",\n        \"required\": true,\n        \"suggested\": \"eslint .\",\n        \"exists\": true,\n        \"command\": \"npm run lint\"\n      },\n      {\n        \"category\": \"test\",\n        \"script\": \"test\",\n        \"required\": false,\n        \"suggested\": \"vitest run or npm test equivalent\",\n        \"exists\": true,\n        \"command\": \"npm run test\"\n      },\n      {\n        \"category\": \"coverage\",\n        \"script\": \"test:coverage\",\n        \"required\": false,\n        \"suggested\": \"vitest run --coverage or project equivalent\",\n        \"exists\": true,\n        \"command\": \"npm run test:coverage\"\n      },\n      {\n        \"category\": \"package\",\n        \"script\": \"package:dry-run\",\n        \"required\": false,\n        \"suggested\": \"npm pack --dry-run\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"build\",\n        \"script\": \"build\",\n        \"required\": false,\n        \"suggested\": \"framework build command\",\n        \"exists\": true,\n        \"command\": \"npm run build\"\n      }\n    ],\n    \"agent_assets\": {\n      \"expected\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"counts\": {\n        \"codexSkills\": 0,\n        \"claudeSkills\": 0,\n        \"claudeCommands\": 0\n      },\n      \"present\": 0,\n      \"expected_total\": 177,\n      \"complete\": false,\n      \"partial\": false,\n      \"next_command\": null,\n      \"remediation\": null\n    },\n    \"warnings\": []\n  },\n  \"categories\": [\n    {\n      \"category\": \"doctor\",\n      \"command\": \"terrace doctor\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"MISSING_PRESET_REGISTRY\",\n          \"message\": \"Missing .terrace/presets/registry.json\"\n        }\n      ],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"audit\",\n      \"command\": \"terrace audit\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"security\",\n      \"command\": \"terrace security check\",\n      \"passed\": true,\n      \"security_check\": {\n        \"status\": \"passed\",\n        \"artifact\": \".terrace/security/latest.json\",\n        \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\"\n      },\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"id\": \"npm-audit-unavailable\",\n          \"code\": \"NPM_AUDIT_UNAVAILABLE\",\n          \"mode\": \"security\",\n          \"severity\": \"info\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"package-lock.json\",\n          \"file\": \"package-lock.json\",\n          \"claim\": \"npm audit could not produce dependency vulnerability data.\",\n          \"message\": \"npm audit could not produce dependency vulnerability data.\",\n          \"evidence\": \"spawnSync npm ETIMEDOUT\",\n          \"recommended_fix\": \"Run npm audit --omit=dev locally when network access is available.\",\n          \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Run npm audit --omit=dev locally when network access is available. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        }\n      ],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"tier_one_report\",\n      \"command\": \"terrace report update\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"TIER_ONE_GAPS\",\n          \"message\": \"Tier One report score is below strong readiness: 50.\",\n          \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n          \"next_command\": \"terrace report update\",\n          \"remediation\": \"Follow the report next actions.\"\n        }\n      ],\n      \"report_card\": {\n        \"score\": 50,\n        \"status_label\": \"foundations_incomplete\"\n      },\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"migration_readiness\",\n      \"command\": \"terrace migration readiness\",\n      \"passed\": true,\n      \"readiness\": null,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"senior_cycle\",\n      \"command\": \"terrace senior-cycle status terrace-corpus-smoke\",\n      \"passed\": true,\n      \"senior_cycle\": {\n        \"feature_id\": \"terrace-corpus-smoke\",\n        \"tier\": \"medium\",\n        \"architecture_default\": \"sustainable\",\n        \"no_band_aid_rule\": true,\n        \"required_artifacts\": [\n          \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n          \"docs/testing/TEST-PLAN.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\"\n        ],\n        \"missing_artifacts\": [],\n        \"allowed\": {\n          \"execute\": true,\n          \"implement\": true,\n          \"ship\": true,\n          \"complete\": true\n        },\n        \"blockers\": [],\n        \"next_command\": \"terrace ship check\"\n      },\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"production_preflight\",\n      \"command\": \"terrace preflight terrace-corpus-smoke\",\n      \"passed\": false,\n      \"preflight\": null,\n      \"blocking\": [\n        {\n          \"code\": \"PREFLIGHT_REQUIRED\",\n          \"message\": \"Production preflight is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace preflight terrace-corpus-smoke\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"ai_review\",\n      \"command\": \"terrace review ai --feature terrace-corpus-smoke\",\n      \"passed\": true,\n      \"ai_review\": null,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"AI_REVIEW_REQUIRED\",\n          \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n        }\n      ],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"debt\",\n      \"command\": \"terrace debt audit\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"audit\": {\n        \"open_count\": 0,\n        \"blockers\": [],\n        \"warnings\": [],\n        \"passed\": true\n      },\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"waivers\",\n      \"command\": \"terrace waive\",\n      \"passed\": true,\n      \"waivers\": [],\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"documentation\",\n      \"command\": \"terrace docu terrace-corpus-smoke\",\n      \"passed\": false,\n      \"documentation\": null,\n      \"blocking\": [\n        {\n          \"code\": \"DOCUMENTATION_REQUIRED\",\n          \"message\": \"Documentation is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace docu terrace-corpus-smoke\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"test_eval\",\n      \"command\": \"terrace test eval\",\n      \"passed\": true,\n      \"test_evaluation\": null,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"TEST_EVAL_MISSING\",\n          \"message\": \"No test-suite evaluation has been recorded.\"\n        }\n      ],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"rule_audit\",\n      \"command\": \"terrace rule audit\",\n      \"passed\": true,\n      \"rule_audit\": null,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"RULE_AUDIT_MISSING\",\n          \"message\": \"No rule audit has been recorded.\"\n        }\n      ],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"typecheck\",\n      \"command\": \"npm run typecheck\",\n      \"passed\": true,\n      \"skipped\": true,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"QUALITY_SCRIPT_MISSING\",\n          \"message\": \"No package script was found for typecheck.\",\n          \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n          \"next_command\": \"npm pkg set scripts.typecheck=\\\"tsc --noEmit\\\"\",\n          \"remediation\": \"Add a `typecheck` script such as `tsc --noEmit` if this gate should be enforced.\"\n        }\n      ],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"lint\",\n      \"command\": \"npm run lint\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"QUALITY_GATE_FAILED\",\n          \"message\": \"npm run lint failed.\",\n          \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n          \"next_command\": \"npm run lint\",\n          \"remediation\": \"Run the command locally and fix the reported failures.\"\n        }\n      ],\n      \"elapsed_ms\": 467\n    },\n    {\n      \"category\": \"test\",\n      \"command\": \"npm run test\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"QUALITY_GATE_FAILED\",\n          \"message\": \"npm run test failed.\",\n          \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n          \"next_command\": \"npm run test\",\n          \"remediation\": \"Run the command locally and fix the reported failures.\"\n        }\n      ],\n      \"elapsed_ms\": 922\n    },\n    {\n      \"category\": \"coverage\",\n      \"command\": \"npm run test:coverage\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"QUALITY_GATE_FAILED\",\n          \"message\": \"npm run test:coverage failed.\",\n          \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n          \"next_command\": \"npm run test:coverage\",\n          \"remediation\": \"Run the command locally and fix the reported failures.\"\n        }\n      ],\n      \"elapsed_ms\": 626\n    },\n    {\n      \"category\": \"package\",\n      \"command\": \"npm run package:dry-run\",\n      \"passed\": true,\n      \"skipped\": true,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"QUALITY_SCRIPT_MISSING\",\n          \"message\": \"No package script was found for package.\",\n          \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n          \"next_command\": \"npm pkg set scripts.package:dry-run=\\\"npm pack --dry-run\\\"\",\n          \"remediation\": \"Add a `package:dry-run` script such as `npm pack --dry-run` if this gate should be enforced.\"\n        }\n      ],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"build\",\n      \"command\": \"npm run build\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"QUALITY_GATE_FAILED\",\n          \"message\": \"npm run build failed.\",\n          \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n          \"next_command\": \"npm run build\",\n          \"remediation\": \"Run the command locally and fix the reported failures.\"\n        }\n      ],\n      \"elapsed_ms\": 590\n    },\n    {\n      \"category\": \"dirty_tree\",\n      \"command\": \"git diff --quiet\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"elapsed_ms\": 193\n    }\n  ],\n  \"timings\": [\n    {\n      \"category\": \"doctor\",\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"audit\",\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"security\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"tier_one_report\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"migration_readiness\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"senior_cycle\",\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"production_preflight\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"ai_review\",\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"debt\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"waivers\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"documentation\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"test_eval\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"rule_audit\",\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"typecheck\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"lint\",\n      \"elapsed_ms\": 467\n    },\n    {\n      \"category\": \"test\",\n      \"elapsed_ms\": 922\n    },\n    {\n      \"category\": \"coverage\",\n      \"elapsed_ms\": 626\n    },\n    {\n      \"category\": \"package\",\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"build\",\n      \"elapsed_ms\": 590\n    },\n    {\n      \"category\": \"dirty_tree\",\n      \"elapsed_ms\": 193\n    }\n  ],\n  \"blockers\": [\n    {\n      \"code\": \"PREFLIGHT_REQUIRED\",\n      \"message\": \"Production preflight is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace preflight terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"DOCUMENTATION_REQUIRED\",\n      \"message\": \"Documentation is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace docu terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"npm run lint failed.\",\n      \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n      \"next_command\": \"npm run lint\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"npm run test failed.\",\n      \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n      \"next_command\": \"npm run test\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"npm run test:coverage failed.\",\n      \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n      \"next_command\": \"npm run test:coverage\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"npm run build failed.\",\n      \"why_blocked\": \"Release readiness requires the project quality gate to pass.\",\n      \"next_command\": \"npm run build\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"MISSING_PRESET_REGISTRY\",\n      \"message\": \"Missing .terrace/presets/registry.json\"\n    },\n    {\n      \"id\": \"npm-audit-unavailable\",\n      \"code\": \"NPM_AUDIT_UNAVAILABLE\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"package-lock.json\",\n      \"file\": \"package-lock.json\",\n      \"claim\": \"npm audit could not produce dependency vulnerability data.\",\n      \"message\": \"npm audit could not produce dependency vulnerability data.\",\n      \"evidence\": \"spawnSync npm ETIMEDOUT\",\n      \"recommended_fix\": \"Run npm audit --omit=dev locally when network access is available.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Run npm audit --omit=dev locally when network access is available. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"code\": \"TIER_ONE_GAPS\",\n      \"message\": \"Tier One report score is below strong readiness: 50.\",\n      \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n      \"next_command\": \"terrace report update\",\n      \"remediation\": \"Follow the report next actions.\"\n    },\n    {\n      \"code\": \"AI_REVIEW_REQUIRED\",\n      \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"TEST_EVAL_MISSING\",\n      \"message\": \"No test-suite evaluation has been recorded.\"\n    },\n    {\n      \"code\": \"RULE_AUDIT_MISSING\",\n      \"message\": \"No rule audit has been recorded.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for typecheck.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.typecheck=\\\"tsc --noEmit\\\"\",\n      \"remediation\": \"Add a `typecheck` script such as `tsc --noEmit` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for package.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.package:dry-run=\\\"npm pack --dry-run\\\"\",\n      \"remediation\": \"Add a `package:dry-run` script such as `npm pack --dry-run` if this gate should be enforced.\"\n    }\n  ],\n  \"top_blockers\": [\n    {\n      \"code\": \"PREFLIGHT_REQUIRED\",\n      \"message\": \"Production preflight is missing for active feature: terrace-corpus-smoke\",\n      \"file\": null,\n      \"next_command\": null,\n      \"remediation\": \"Run terrace preflight terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"DOCUMENTATION_REQUIRED\",\n      \"message\": \"Documentation is missing for active feature: terrace-corpus-smoke\",\n      \"file\": null,\n      \"next_command\": null,\n      \"remediation\": \"Run terrace docu terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"QUALITY_GATE_FAILED\",\n      \"message\": \"npm run lint failed.\",\n      \"file\": null,\n      \"next_command\": \"npm run lint\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    }\n  ],\n  \"next_command\": \"terrace ship check\",\n  \"recheck_command\": \"terrace ship check --fast\",\n  \"ship_ref\": \"docs/terrace/ship/SHIP.md\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 18050,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 85,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 10,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

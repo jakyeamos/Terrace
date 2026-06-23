@@ -1,0 +1,50 @@
+{
+  "repo": "synthetic-node-package",
+  "repoType": "synthetic-node-package",
+  "track": "scratch-synthetic",
+  "key": "interrogate-project",
+  "category": "interrogation",
+  "args": [
+    "interrogate",
+    "terrace-corpus-synthetic-node-package",
+    "--tier",
+    "large",
+    "--answers",
+    "Corpus user answer: preserve the imported PRD outcome, challenge rollout risk, and require rollback ownership.",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 360,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace design terrace-corpus-synthetic-node-package",
+    "feature_id": "terrace-corpus-synthetic-node-package",
+    "artifact": "docs/terrace/features/terrace-corpus-synthetic-node-package/INTERROGATION.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-synthetic-node-package\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-synthetic-node-package/INTERROGATION.md\",\n  \"next_command\": \"terrace design terrace-corpus-synthetic-node-package\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 247,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 5,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

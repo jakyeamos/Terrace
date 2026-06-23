@@ -1,0 +1,240 @@
+{
+  "repo": "synthetic-python",
+  "repoType": "synthetic-python",
+  "track": "scratch-synthetic",
+  "key": "ship-check",
+  "category": "shipping-security",
+  "args": [
+    "ship",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 213,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "project_commands",
+      "categories",
+      "timings",
+      "blockers",
+      "warnings",
+      "top_blockers",
+      "next_command",
+      "recheck_command"
+    ],
+    "passed": false,
+    "mode": "full",
+    "next_command": "terrace interrogate <feature>",
+    "recheck_command": "terrace ship check --fast",
+    "blockers": {
+      "length": 16,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `non_goals` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "section",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `constraints` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "why_blocked": "Terrace cannot prove the governance artifact covers required release intent without this section.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        }
+      ]
+    },
+    "top_blockers": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace interrogate <feature>",
+          "remediation": "Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.",
+          "file": "/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 9,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace report update",
+          "remediation": "Follow the report next actions.",
+          "why_blocked": "The report is not blocking release, but it still shows readiness gaps."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "npm pkg set scripts.typecheck=\"tsc --noEmit\"",
+          "remediation": "Add a `typecheck` script such as `tsc --noEmit` if this gate should be enforced.",
+          "why_blocked": "Terrace could not enforce this optional quality signal because the script is missing."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "npm pkg set scripts.lint=\"eslint .\"",
+          "remediation": "Add a `lint` script such as `eslint .` if this gate should be enforced.",
+          "why_blocked": "Terrace could not enforce this optional quality signal because the script is missing."
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"mode\": \"full\",\n  \"passed\": false,\n  \"project_commands\": {\n    \"package_manager\": \"npm\",\n    \"scripts\": {},\n    \"checks\": [\n      {\n        \"category\": \"typecheck\",\n        \"script\": \"typecheck\",\n        \"required\": false,\n        \"suggested\": \"tsc --noEmit\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"lint\",\n        \"script\": \"lint\",\n        \"required\": true,\n        \"suggested\": \"eslint .\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"test\",\n        \"script\": \"test\",\n        \"required\": false,\n        \"suggested\": \"vitest run or npm test equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"coverage\",\n        \"script\": \"test:coverage\",\n        \"required\": false,\n        \"suggested\": \"vitest run --coverage or project equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"package\",\n        \"script\": \"package:dry-run\",\n        \"required\": false,\n        \"suggested\": \"npm pack --dry-run\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"build\",\n        \"script\": \"build\",\n        \"required\": false,\n        \"suggested\": \"framework build command\",\n        \"exists\": false,\n        \"command\": null\n      }\n    ],\n    \"agent_assets\": {\n      \"expected\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"counts\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"present\": 177,\n      \"expected_total\": 177,\n      \"complete\": true,\n      \"partial\": false,\n      \"next_command\": null,\n      \"remediation\": null\n    },\n    \"warnings\": []\n  },\n  \"categories\": [\n    {\n      \"category\": \"doctor\",\n      \"command\": \"terrace doctor\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"audit\",\n      \"command\": \"terrace audit\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: problem\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n          \"section\": \"problem\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: actors\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n          \"section\": \"actors\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: desired_outcomes\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n          \"section\": \"desired_outcomes\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: non_goals\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n          \"section\": \"non_goals\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `non_goals` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: constraints\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n          \"section\": \"constraints\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `constraints` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: success_criteria\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n          \"section\": \"success_criteria\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `success_criteria` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: open_questions\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n          \"section\": \"open_questions\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace interrogate <feature>\",\n          \"remediation\": \"Add a `open_questions` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: spec_version\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"spec_version\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `spec_version` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: phase\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"phase\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `phase` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: protected\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"protected\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace design <feature>\",\n          \"remediation\": \"Add a `protected` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: last_updated\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"last_updated\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace spec validate\",\n          \"remediation\": \"Add a `last_updated` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        },\n        {\n          \"code\": \"MISSING_REQUIRED_SECTION\",\n          \"message\": \"Missing required section: source_refs\",\n          \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/spec/COMPILED-SPEC.md\",\n          \"section\": \"source_refs\",\n          \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n          \"next_command\": \"terrace design <feature>\",\n          \"remediation\": \"Add a `source_refs` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"security\",\n      \"command\": \"terrace security check\",\n      \"passed\": true,\n      \"security_check\": {\n        \"status\": \"passed\",\n        \"artifact\": \".terrace/security/latest.json\",\n        \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\"\n      },\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"tier_one_report\",\n      \"command\": \"terrace report update\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"TIER_ONE_REPORT_WEAK\",\n          \"message\": \"Tier One report score is below 50.\",\n          \"why_blocked\": \"Release readiness requires enough project evidence to make the Tier One report meaningful.\",\n          \"next_command\": \"terrace report update\",\n          \"remediation\": \"Run terrace report update and complete the top next actions.\"\n        }\n      ],\n      \"warnings\": [\n        {\n          \"code\": \"TIER_ONE_GAPS\",\n          \"message\": \"Tier One report score is below strong readiness: 25.\",\n          \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n          \"next_command\": \"terrace report update\",\n          \"remediation\": \"Follow the report next actions.\"\n        }\n      ],\n      \"report_card\": {\n        \"score\": 25,\n        \"status_label\": \"planning_or_governance_weak\"\n      },\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"migration_readiness\",\n      \"command\": \"terrace migration readiness\",\n      \"passed\": true,\n      \"readiness\": null,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"senior_cycle\",\n      \"command\": \"terrace senior-cycle status terrace-corpus-smoke\",\n      \"passed\": true,\n      \"senior_cycle\": {\n        \"feature_id\": \"terrace-corpus-smoke\",\n        \"tier\": \"large\",\n        \"architecture_default\": \"sustainable\",\n        \"no_band_aid_rule\": true,\n        \"required_artifacts\": [\n          \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n          \"docs/terrace/codebase/MAP.md\",\n          \"docs/terrace/codebase/ARCHITECTURE.md\",\n          \"docs/terrace/codebase/RISKS.md\",\n          \"docs/terrace/codebase/TESTING.md\",\n          \"docs/terrace/codebase/OBSERVABILITY.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n          \"docs/testing/TEST-PLAN.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\"\n        ],\n        \"missing_artifacts\": [],\n        \"allowed\": {\n          \"execute\": true,\n          \"implement\": true,\n          \"ship\": true,\n          \"complete\": true\n        },\n        \"blockers\": [],\n        \"next_command\": \"terrace ship check\"\n      },\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"production_preflight\",\n      \"command\": \"terrace preflight terrace-corpus-smoke\",\n      \"passed\": false,\n      \"preflight\": null,\n      \"blocking\": [\n        {\n          \"code\": \"PREFLIGHT_REQUIRED\",\n          \"message\": \"Production preflight is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace preflight terrace-corpus-smoke\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"ai_review\",\n      \"command\": \"terrace review ai --feature terrace-corpus-smoke\",\n      \"passed\": false,\n      \"ai_review\": null,\n      \"blocking\": [\n        {\n          \"code\": \"AI_REVIEW_REQUIRED\",\n          \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"debt\",\n      \"command\": \"terrace debt audit\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"audit\": {\n        \"open_count\": 0,\n        \"blockers\": [],\n        \"warnings\": [],\n        \"passed\": true\n \n\n[... truncated by Terrace corpus harness ...]\n\nrs/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/spec/COMPILED-SPEC.md\",\n      \"section\": \"source_refs\",\n      \"why_blocked\": \"Terrace cannot prove the governance artifact covers required release intent without this section.\",\n      \"next_command\": \"terrace design <feature>\",\n      \"remediation\": \"Add a `source_refs` section to `docs/spec/COMPILED-SPEC.md`, then rerun `terrace spec validate`.\"\n    },\n    {\n      \"code\": \"TIER_ONE_REPORT_WEAK\",\n      \"message\": \"Tier One report score is below 50.\",\n      \"why_blocked\": \"Release readiness requires enough project evidence to make the Tier One report meaningful.\",\n      \"next_command\": \"terrace report update\",\n      \"remediation\": \"Run terrace report update and complete the top next actions.\"\n    },\n    {\n      \"code\": \"PREFLIGHT_REQUIRED\",\n      \"message\": \"Production preflight is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace preflight terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"AI_REVIEW_REQUIRED\",\n      \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n    },\n    {\n      \"code\": \"DOCUMENTATION_REQUIRED\",\n      \"message\": \"Documentation is missing for active feature: terrace-corpus-smoke\",\n      \"remediation\": \"Run terrace docu terrace-corpus-smoke\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"TIER_ONE_GAPS\",\n      \"message\": \"Tier One report score is below strong readiness: 25.\",\n      \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n      \"next_command\": \"terrace report update\",\n      \"remediation\": \"Follow the report next actions.\"\n    },\n    {\n      \"code\": \"TEST_EVAL_MISSING\",\n      \"message\": \"No test-suite evaluation has been recorded.\"\n    },\n    {\n      \"code\": \"RULE_AUDIT_MISSING\",\n      \"message\": \"No rule audit has been recorded.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for typecheck.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.typecheck=\\\"tsc --noEmit\\\"\",\n      \"remediation\": \"Add a `typecheck` script such as `tsc --noEmit` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for lint.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.lint=\\\"eslint .\\\"\",\n      \"remediation\": \"Add a `lint` script such as `eslint .` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for test.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.test=\\\"vitest run or npm test equivalent\\\"\",\n      \"remediation\": \"Add a `test` script such as `vitest run or npm test equivalent` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for coverage.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.test:coverage=\\\"vitest run --coverage or project equivalent\\\"\",\n      \"remediation\": \"Add a `test:coverage` script such as `vitest run --coverage or project equivalent` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for package.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.package:dry-run=\\\"npm pack --dry-run\\\"\",\n      \"remediation\": \"Add a `package:dry-run` script such as `npm pack --dry-run` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for build.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.build=\\\"framework build command\\\"\",\n      \"remediation\": \"Add a `build` script such as `framework build command` if this gate should be enforced.\"\n    }\n  ],\n  \"top_blockers\": [\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: problem\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `problem` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: actors\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `actors` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    },\n    {\n      \"code\": \"MISSING_REQUIRED_SECTION\",\n      \"message\": \"Missing required section: desired_outcomes\",\n      \"file\": \"/private/var/folders/r7/b6pc8f3d7mjgkqx_wps2p52r0000gn/T/terrace-corpus-eval-2026-06-23T21-21-52-941Z/worktrees/synthetic/synthetic-python/docs/prd/PRD.md\",\n      \"next_command\": \"terrace interrogate <feature>\",\n      \"remediation\": \"Add a `desired_outcomes` section to `docs/prd/PRD.md`, then rerun `terrace spec validate`.\"\n    }\n  ],\n  \"next_command\": \"terrace interrogate <feature>\",\n  \"recheck_command\": \"terrace ship check --fast\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 33515,
+  "stderrBytes": 0,
+  "stdoutTruncated": true,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 85,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 10,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

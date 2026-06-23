@@ -1,0 +1,50 @@
+{
+  "repo": "BBDSE/Signal Lab",
+  "repoType": "python",
+  "track": "scratch-real",
+  "key": "interrogate-project",
+  "category": "interrogation",
+  "args": [
+    "interrogate",
+    "terrace-corpus-bbdse-signal-lab",
+    "--tier",
+    "large",
+    "--answers",
+    "Corpus user answer: preserve the imported PRD outcome, challenge rollout risk, and require rollback ownership.",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 300,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace design terrace-corpus-bbdse-signal-lab",
+    "feature_id": "terrace-corpus-bbdse-signal-lab",
+    "artifact": "docs/terrace/features/terrace-corpus-bbdse-signal-lab/INTERROGATION.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-bbdse-signal-lab\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-bbdse-signal-lab/INTERROGATION.md\",\n  \"next_command\": \"terrace design terrace-corpus-bbdse-signal-lab\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 229,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 5,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

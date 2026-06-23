@@ -1,0 +1,208 @@
+{
+  "repo": "pre-cr-suite-lsp",
+  "repoType": "typescript-tooling",
+  "track": "scratch-real",
+  "key": "security-check",
+  "category": "shipping-security",
+  "args": [
+    "security",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 324,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "checks",
+      "status",
+      "artifact",
+      "markdown",
+      "created_at",
+      "findings",
+      "blocking",
+      "warnings"
+    ],
+    "artifact": ".terrace/security/latest.json",
+    "blocking": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "packages/core/src/checklist/security.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".github/workflows/ci.yml"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"checks\": [\n    \"secret-patterns\",\n    \"env-files\",\n    \"sensitive-logging\",\n    \"dependency-audit\",\n    \"deployment-config\"\n  ],\n  \"status\": \"blocked\",\n  \"artifact\": \".terrace/security/latest.json\",\n  \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\",\n  \"created_at\": \"2026-06-23T21:28:50.544Z\",\n  \"findings\": [\n    {\n      \"id\": \"secret_github_token-0\",\n      \"code\": \"SECRET_GITHUB_TOKEN_0\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_GITHUB_TOKEN matched in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"secret_private_key-1\",\n      \"code\": \"SECRET_PRIVATE_KEY_1\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_PRIVATE_KEY matched in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"secret_generic_assignment-2\",\n      \"code\": \"SECRET_GENERIC_ASSIGNMENT_2\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_GENERIC_ASSIGNMENT matched in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-3\",\n      \"code\": \"REACT_HTML_INJECTION_3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-4\",\n      \"code\": \"REACT_HTML_INJECTION_4\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.ts\",\n      \"file\": \"packages/core/src/checklist/security.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-0\",\n      \"code\": \"WORKFLOW_PERMISSIONS_0\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/ci.yml\",\n      \"file\": \".github/workflows/ci.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/ci.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"blocking\": [\n    {\n      \"id\": \"secret_github_token-0\",\n      \"code\": \"SECRET_GITHUB_TOKEN_0\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_GITHUB_TOKEN matched in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"secret_private_key-1\",\n      \"code\": \"SECRET_PRIVATE_KEY_1\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_PRIVATE_KEY matched in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"secret_generic_assignment-2\",\n      \"code\": \"SECRET_GENERIC_ASSIGNMENT_2\",\n      \"mode\": \"security\",\n      \"severity\": \"high\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_GENERIC_ASSIGNMENT matched in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"id\": \"react-html-injection-3\",\n      \"code\": \"REACT_HTML_INJECTION_3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-4\",\n      \"code\": \"REACT_HTML_INJECTION_4\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.ts\",\n      \"file\": \"packages/core/src/checklist/security.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-0\",\n      \"code\": \"WORKFLOW_PERMISSIONS_0\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/ci.yml\",\n      \"file\": \".github/workflows/ci.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/ci.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ]\n}\n",
+  "stderr": "",
+  "stdoutBytes": 12630,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

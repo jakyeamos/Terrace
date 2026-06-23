@@ -1,0 +1,176 @@
+{
+  "repo": "synthetic-node-package",
+  "repoType": "synthetic-node-package",
+  "track": "scratch-synthetic",
+  "key": "quick-plan",
+  "category": "quick-task",
+  "args": [
+    "quick",
+    "plan",
+    "Terrace corpus smoke task",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 102,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "item",
+      "next_command"
+    ],
+    "next_command": "terrace quick execute terrace-quick-1",
+    "item": {
+      "type": "object",
+      "keys": [
+        "id",
+        "title",
+        "status",
+        "source_ref",
+        "plan_ref",
+        "created_at",
+        "next_command"
+      ],
+      "next_command": "terrace quick execute terrace-quick-1"
+    }
+  },
+  "stdout": "{\n  \"item\": {\n    \"id\": \"terrace-quick-1\",\n    \"title\": \"Terrace corpus smoke task\",\n    \"status\": \"planned\",\n    \"source_ref\": \"terrace quick plan\",\n    \"plan_ref\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n    \"created_at\": \"2026-06-23T21:33:31.641Z\",\n    \"next_command\": \"terrace quick execute terrace-quick-1\"\n  },\n  \"next_command\": \"terrace quick execute terrace-quick-1\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 383,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 93,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  },
+  "followUps": [
+    {
+      "repo": "synthetic-node-package",
+      "repoType": "synthetic-node-package",
+      "track": "scratch-synthetic",
+      "key": "quick-execute",
+      "category": "quick-task",
+      "args": [
+        "quick",
+        "execute",
+        "terrace-quick-1",
+        "--json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 152,
+      "classification": "pass",
+      "jsonValid": true,
+      "parsed": {
+        "type": "object",
+        "keys": [
+          "allowed",
+          "item",
+          "next_command"
+        ],
+        "next_command": "terrace quick complete terrace-quick-1",
+        "item": {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plan_ref",
+            "created_at",
+            "next_command",
+            "execution_started_at"
+          ],
+          "next_command": "terrace quick complete terrace-quick-1"
+        }
+      },
+      "stdout": "{\n  \"allowed\": true,\n  \"item\": {\n    \"id\": \"terrace-quick-1\",\n    \"title\": \"Terrace corpus smoke task\",\n    \"status\": \"red_required\",\n    \"source_ref\": \"terrace quick plan\",\n    \"plan_ref\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n    \"created_at\": \"2026-06-23T21:33:31.641Z\",\n    \"next_command\": \"terrace quick complete terrace-quick-1\",\n    \"execution_started_at\": \"2026-06-23T21:33:32.081Z\"\n  },\n  \"next_command\": \"terrace quick complete terrace-quick-1\"\n}\n",
+      "stderr": "",
+      "stdoutBytes": 465,
+      "stderrBytes": 0,
+      "stdoutTruncated": false,
+      "stderrTruncated": false,
+      "changedFiles": [],
+      "score": {
+        "total": 93,
+        "reliability": 25,
+        "usefulness": 15,
+        "artifactQuality": 15,
+        "interrogationQuality": 10,
+        "repoFit": 12,
+        "safety": 15,
+        "ergonomics": 15
+      }
+    },
+    {
+      "repo": "synthetic-node-package",
+      "repoType": "synthetic-node-package",
+      "track": "scratch-synthetic",
+      "key": "quick-complete",
+      "category": "quick-task",
+      "args": [
+        "quick",
+        "complete",
+        "terrace-quick-1",
+        "--json"
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "durationMs": 321,
+      "classification": "pass",
+      "jsonValid": true,
+      "parsed": {
+        "type": "object",
+        "keys": [
+          "allowed",
+          "item",
+          "next_command"
+        ],
+        "next_command": "terrace ship check",
+        "item": {
+          "type": "object",
+          "keys": [
+            "id",
+            "title",
+            "status",
+            "source_ref",
+            "plan_ref",
+            "created_at",
+            "next_command",
+            "execution_started_at",
+            "summary_ref",
+            "completed_at"
+          ],
+          "next_command": "terrace ship check"
+        }
+      },
+      "stdout": "{\n  \"allowed\": true,\n  \"item\": {\n    \"id\": \"terrace-quick-1\",\n    \"title\": \"Terrace corpus smoke task\",\n    \"status\": \"completed\",\n    \"source_ref\": \"terrace quick plan\",\n    \"plan_ref\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n    \"created_at\": \"2026-06-23T21:33:31.641Z\",\n    \"next_command\": \"terrace ship check\",\n    \"execution_started_at\": \"2026-06-23T21:33:32.081Z\",\n    \"summary_ref\": \"docs/terrace/quick/terrace-quick-1/SUMMARY.md\",\n    \"completed_at\": \"2026-06-23T21:33:32.682Z\"\n  },\n  \"next_command\": \"terrace ship check\"\n}\n",
+      "stderr": "",
+      "stdoutBytes": 538,
+      "stderrBytes": 0,
+      "stdoutTruncated": false,
+      "stderrTruncated": false,
+      "changedFiles": [],
+      "score": {
+        "total": 93,
+        "reliability": 25,
+        "usefulness": 15,
+        "artifactQuality": 15,
+        "interrogationQuality": 10,
+        "repoFit": 12,
+        "safety": 15,
+        "ergonomics": 15
+      }
+    }
+  ]
+}

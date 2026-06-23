@@ -1,0 +1,50 @@
+{
+  "repo": "BBDSE/CLFE",
+  "repoType": "sparse",
+  "track": "migrated-gsd",
+  "key": "port-gsd-verify-parity",
+  "category": "migration",
+  "args": [
+    "port",
+    "gsd",
+    "--verify-parity",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 302,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "blocking",
+      "comparison"
+    ],
+    "passed": true,
+    "mode": "verify-parity",
+    "blocking": {
+      "length": 0,
+      "sample": []
+    }
+  },
+  "stdout": "{\n  \"mode\": \"verify-parity\",\n  \"passed\": true,\n  \"blocking\": [],\n  \"comparison\": {\n    \"mode\": \"compare\",\n    \"source_files\": 0,\n    \"converted_candidates\": 0,\n    \"skipped_candidates\": 0,\n    \"concepts\": {\n      \"state_details\": 0,\n      \"phases\": 0,\n      \"phase_artifacts\": 0,\n      \"quick_tasks\": 0,\n      \"decisions\": 0,\n      \"backlog\": 0,\n      \"sessions\": 0,\n      \"blockers\": 0\n    },\n    \"converted\": [],\n    \"skipped\": [],\n    \"missing\": [],\n    \"passed\": true,\n    \"next_command\": \"terrace port gsd --dry-run\"\n  }\n}\n",
+  "stderr": "",
+  "stdoutBytes": 528,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

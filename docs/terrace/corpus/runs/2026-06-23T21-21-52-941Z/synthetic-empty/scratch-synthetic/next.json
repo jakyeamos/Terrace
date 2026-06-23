@@ -1,0 +1,76 @@
+{
+  "repo": "synthetic-empty",
+  "repoType": "synthetic-empty",
+  "track": "scratch-synthetic",
+  "key": "next",
+  "category": "workflow",
+  "args": [
+    "next",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 92,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "command",
+      "blocked",
+      "blockers",
+      "next_action",
+      "senior_cycle"
+    ],
+    "command": "terrace observe terrace-corpus-smoke",
+    "blockers": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "message"
+          ],
+          "artifact": "docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "message"
+          ],
+          "artifact": "docs/terrace/features/terrace-corpus-smoke/VALIDATION.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "artifact",
+            "message"
+          ],
+          "artifact": "docs/terrace/features/terrace-corpus-smoke/CLEANUP.md"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"command\": \"terrace observe terrace-corpus-smoke\",\n  \"blocked\": true,\n  \"blockers\": [\n    {\n      \"code\": \"OBSERVABILITY_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"message\": \"No ship without observability and debugging intent.\"\n    },\n    {\n      \"code\": \"VALIDATION_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"message\": \"No ship without production validation and rollback conditions.\"\n    },\n    {\n      \"code\": \"CLEANUP_REQUIRED\",\n      \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"message\": \"No completion without cleanup ownership.\"\n    }\n  ],\n  \"next_action\": null,\n  \"senior_cycle\": {\n    \"feature_id\": \"terrace-corpus-smoke\",\n    \"tier\": \"medium\",\n    \"architecture_default\": \"sustainable\",\n    \"no_band_aid_rule\": true,\n    \"required_artifacts\": [\n      \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"docs/testing/TEST-PLAN.md\",\n      \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\"\n    ],\n    \"missing_artifacts\": [\n      \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\"\n    ],\n    \"allowed\": {\n      \"execute\": true,\n      \"implement\": true,\n      \"ship\": false,\n      \"complete\": false\n    },\n    \"blockers\": [\n      {\n        \"code\": \"OBSERVABILITY_REQUIRED\",\n        \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n        \"message\": \"No ship without observability and debugging intent.\"\n      },\n      {\n        \"code\": \"VALIDATION_REQUIRED\",\n        \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n        \"message\": \"No ship without production validation and rollback conditions.\"\n      },\n      {\n        \"code\": \"CLEANUP_REQUIRED\",\n        \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n        \"message\": \"No completion without cleanup ownership.\"\n      }\n    ],\n    \"next_command\": \"terrace observe terrace-corpus-smoke\"\n  }\n}\n",
+  "stderr": "",
+  "stdoutBytes": 2267,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

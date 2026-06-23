@@ -1,0 +1,208 @@
+{
+  "repo": "soundscape-app",
+  "repoType": "large-fullstack-ts",
+  "track": "migrated-gsd",
+  "key": "security-check",
+  "category": "shipping-security",
+  "args": [
+    "security",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 1765,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "checks",
+      "status",
+      "artifact",
+      "markdown",
+      "created_at",
+      "findings",
+      "blocking",
+      "warnings"
+    ],
+    "artifact": ".terrace/security/latest.json",
+    "blocking": {
+      "length": 1,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": ".env.example"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 6,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".planning/phases/done/milestone-a-core/13-launch-preparation/SESSION-ACCOUNT-HARDENING.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".planning/phases/done/milestone-a-hardening/42-core-feature-completeness/42-RESEARCH.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".github/workflows/pitr-monitoring.yml"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".github/workflows/pr-checks.yml"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".github/workflows/release-e2e-full.yml"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"checks\": [\n    \"secret-patterns\",\n    \"env-files\",\n    \"sensitive-logging\",\n    \"dependency-audit\",\n    \"deployment-config\"\n  ],\n  \"status\": \"blocked\",\n  \"artifact\": \".terrace/security/latest.json\",\n  \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\",\n  \"created_at\": \"2026-06-23T21:24:42.846Z\",\n  \"findings\": [\n    {\n      \"id\": \"secret_private_key-0\",\n      \"code\": \"SECRET_PRIVATE_KEY_0\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \".env.example\",\n      \"file\": \".env.example\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_PRIVATE_KEY matched in .env.example.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"sensitive-logging-1\",\n      \"code\": \"SENSITIVE_LOGGING_1\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/phases/done/milestone-a-core/13-launch-preparation/SESSION-ACCOUNT-HARDENING.md\",\n      \"file\": \".planning/phases/done/milestone-a-core/13-launch-preparation/SESSION-ACCOUNT-HARDENING.md\",\n      \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n      \"message\": \"Logging code appears to include sensitive authentication fields.\",\n      \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n      \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"sensitive-logging-2\",\n      \"code\": \"SENSITIVE_LOGGING_2\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/phases/done/milestone-a-hardening/42-core-feature-completeness/42-RESEARCH.md\",\n      \"file\": \".planning/phases/done/milestone-a-hardening/42-core-feature-completeness/42-RESEARCH.md\",\n      \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n      \"message\": \"Logging code appears to include sensitive authentication fields.\",\n      \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n      \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-0\",\n      \"code\": \"WORKFLOW_PERMISSIONS_0\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/pitr-monitoring.yml\",\n      \"file\": \".github/workflows/pitr-monitoring.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/pitr-monitoring.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-1\",\n      \"code\": \"WORKFLOW_PERMISSIONS_1\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/pr-checks.yml\",\n      \"file\": \".github/workflows/pr-checks.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/pr-checks.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-2\",\n      \"code\": \"WORKFLOW_PERMISSIONS_2\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/release-e2e-full.yml\",\n      \"file\": \".github/workflows/release-e2e-full.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/release-e2e-full.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-3\",\n      \"code\": \"WORKFLOW_PERMISSIONS_3\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/staging-e2e-smoke.yml\",\n      \"file\": \".github/workflows/staging-e2e-smoke.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/staging-e2e-smoke.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"blocking\": [\n    {\n      \"id\": \"secret_private_key-0\",\n      \"code\": \"SECRET_PRIVATE_KEY_0\",\n      \"mode\": \"security\",\n      \"severity\": \"critical\",\n      \"classification\": \"blocking\",\n      \"file_or_artifact\": \".env.example\",\n      \"file\": \".env.example\",\n      \"claim\": \"Potential secret material appears in a tracked text file.\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"evidence\": \"SECRET_PRIVATE_KEY matched in .env.example.\",\n      \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n      \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"id\": \"sensitive-logging-1\",\n      \"code\": \"SENSITIVE_LOGGING_1\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/phases/done/milestone-a-core/13-launch-preparation/SESSION-ACCOUNT-HARDENING.md\",\n      \"file\": \".planning/phases/done/milestone-a-core/13-launch-preparation/SESSION-ACCOUNT-HARDENING.md\",\n      \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n      \"message\": \"Logging code appears to include sensitive authentication fields.\",\n      \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n      \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"sensitive-logging-2\",\n      \"code\": \"SENSITIVE_LOGGING_2\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".planning/phases/done/milestone-a-hardening/42-core-feature-completeness/42-RESEARCH.md\",\n      \"file\": \".planning/phases/done/milestone-a-hardening/42-core-feature-completeness/42-RESEARCH.md\",\n      \"claim\": \"Logging code appears to include sensitive authentication fields.\",\n      \"message\": \"Logging code appears to include sensitive authentication fields.\",\n      \"evidence\": \"A logging call references token, secret, password, authorization, or cookie.\",\n      \"recommended_fix\": \"Redact sensitive values before logging and add a regression test for redaction.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-0\",\n      \"code\": \"WORKFLOW_PERMISSIONS_0\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/pitr-monitoring.yml\",\n      \"file\": \".github/workflows/pitr-monitoring.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/pitr-monitoring.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-1\",\n      \"code\": \"WORKFLOW_PERMISSIONS_1\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/pr-checks.yml\",\n      \"file\": \".github/workflows/pr-checks.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/pr-checks.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-2\",\n      \"code\": \"WORKFLOW_PERMISSIONS_2\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/release-e2e-full.yml\",\n      \"file\": \".github/workflows/release-e2e-full.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/release-e2e-full.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-3\",\n      \"code\": \"WORKFLOW_PERMISSIONS_3\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/staging-e2e-smoke.yml\",\n      \"file\": \".github/workflows/staging-e2e-smoke.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/staging-e2e-smoke.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    }\n  ]\n}\n",
+  "stderr": "",
+  "stdoutBytes": 14758,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

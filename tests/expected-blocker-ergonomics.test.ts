@@ -157,6 +157,22 @@ describe('expected blocker ergonomics', () => {
     });
   });
 
+  it('ignores generated corpus evidence during security source scans', () => {
+    initCore(tmpDir, { projectName: 'Security Corpus Evidence' });
+    fs.mkdirSync(path.join(tmpDir, 'docs', 'terrace', 'corpus', 'runs', 'sample'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, 'docs', 'terrace', 'corpus', 'runs', 'sample', 'security-check.json'),
+      JSON.stringify({ stdout: 'dangerouslySetInnerHTML appears in an evaluated downstream app.' }) + '\n',
+      'utf-8'
+    );
+
+    const check = runSecurityCheck(tmpDir);
+
+    expect(check.findings).not.toContainEqual(expect.objectContaining({
+      code: expect.stringContaining('REACT_HTML_INJECTION')
+    }));
+  });
+
   it('detects partial generated agent assets in doctor and command discovery', () => {
     writeJson(path.join(tmpDir, '.terrace', 'state.json'), { project: { name: 'Partial Agents' } });
     fs.mkdirSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true });

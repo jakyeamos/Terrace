@@ -42,7 +42,7 @@ function finding(id, severity, file, claim, evidence, recommendedFix) {
 function scanTextFindings(cwd, repo) {
   const findings = [];
   for (const file of repo.files.slice(0, 1000)) {
-    if (file.startsWith('.terrace/security/') || file.startsWith('docs/terrace/security/')) {
+    if (file.startsWith('.terrace/security/') || file.startsWith('docs/terrace/security/') || file.startsWith('docs/terrace/corpus/runs/')) {
       continue;
     }
     const base = path.basename(file);
@@ -134,7 +134,7 @@ function npmAuditFindings(cwd) {
     return auditCache.get(cwd);
   }
   try {
-    const output = execFileSync('npm', ['audit', '--json'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 3000 });
+    const output = execFileSync('npm', ['audit', '--omit=dev', '--json'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 3000 });
     const parsed = JSON.parse(output || '{}');
     const findings = auditJsonFindings(parsed);
     auditCache.set(cwd, findings);
@@ -152,7 +152,7 @@ function npmAuditFindings(cwd) {
       'package-lock.json',
       'npm audit could not produce dependency vulnerability data.',
       error && error.message ? error.message : 'npm audit failed without JSON output.',
-      'Run npm audit locally when network access is available.'
+      'Run npm audit --omit=dev locally when network access is available.'
     )];
     auditCache.set(cwd, findings);
     return findings;
@@ -168,7 +168,7 @@ function auditJsonFindings(parsed) {
       severity === 'critical' || severity === 'high' ? severity : 'medium',
       'package-lock.json',
       'Dependency vulnerability reported for ' + name + '.',
-      'npm audit severity: ' + severity + '.',
+      'npm audit --omit=dev severity: ' + severity + '.',
       'Upgrade or replace ' + name + ' and rerun terrace security check.'
     );
   });

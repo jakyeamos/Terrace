@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
 const {
   agentAssetExpectations,
@@ -6,6 +9,7 @@ const {
 } = require('../packages/terrace-core/src/agents.cjs');
 const {
   classifyAgentAssetVerification,
+  repairMigratedAgentAssets,
   renderReport,
   summarize
 } = require('../scripts/terrace-corpus-eval.cjs');
@@ -40,6 +44,45 @@ describe('terrace corpus evaluation helpers', () => {
       skipped: false,
       remediation: 'Run terrace init in the migrated worktree to install missing non-overwriting agent assets.'
     });
+  });
+
+  it('repairs partial migrated-GSD agent assets before final verification', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'terrace-corpus-agent-repair-'));
+    try {
+      fs.mkdirSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true });
+      fs.writeFileSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md'), '# terrace-next\n', 'utf-8');
+      const fakeTerrace = path.join(tmpDir, 'fake-terrace.cjs');
+      fs.writeFileSync(fakeTerrace, [
+        '#!/usr/bin/env node',
+        "const { initCore } = require('" + path.resolve(process.cwd(), 'packages/terrace-core/src/index.cjs') + "');",
+        "initCore(process.cwd(), { projectName: 'Agent Repair Fixture' });",
+        "process.stdout.write(JSON.stringify({ ok: true }) + '\\n');"
+      ].join('\n') + '\n', 'utf-8');
+      fs.chmodSync(fakeTerrace, 0o755);
+
+      const repair = repairMigratedAgentAssets({
+        track: 'migrated-gsd',
+        worktree: tmpDir,
+        terraceBin: fakeTerrace,
+        timeoutMs: 30000,
+        npmCache: path.join(tmpDir, 'npm-cache')
+      }, {
+        present: true,
+        complete: false
+      });
+
+      expect(repair).toMatchObject({
+        command: 'terrace init --json',
+        exitCode: 0,
+        jsonValid: true
+      });
+      expect(classifyAgentAssetVerification('migrated-gsd', require('../scripts/terrace-corpus-eval.cjs').verifyAgentAssets(tmpDir))).toMatchObject({
+        classification: 'pass',
+        skipped: false
+      });
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 
   it('keeps scratch tracks strict when agent assets are incomplete', () => {

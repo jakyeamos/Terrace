@@ -1,0 +1,49 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "scratch-real",
+  "key": "prd-import-overwrite-refusal",
+  "category": "scratch-intake",
+  "args": [
+    "prd",
+    "import",
+    "terrace-corpus-smoke",
+    "--file",
+    "docs/input/CORPUS-FEATURE-PRD.md",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 180,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "error",
+      "details",
+      "next_command",
+      "remediation"
+    ],
+    "next_command": "terrace prd import terrace-corpus-smoke --file <file> --force",
+    "remediation": "Inspect `docs/terrace/features/terrace-corpus-smoke/PRD.md` first. If replacement is intentional, run `terrace prd import terrace-corpus-smoke --file <file> --force`.",
+    "error": "Refusing to overwrite docs/terrace/features/terrace-corpus-smoke/PRD.md. Re-run with --force to replace it."
+  },
+  "stdout": "{\n  \"error\": \"Refusing to overwrite docs/terrace/features/terrace-corpus-smoke/PRD.md. Re-run with --force to replace it.\",\n  \"details\": {\n    \"code\": \"PRD_OVERWRITE_REFUSED\",\n    \"file\": \"docs/terrace/features/terrace-corpus-smoke/PRD.md\",\n    \"why_blocked\": \"Terrace will not replace an existing PRD without explicit confirmation.\",\n    \"next_command\": \"terrace prd import terrace-corpus-smoke --file <file> --force\",\n    \"remediation\": \"Inspect `docs/terrace/features/terrace-corpus-smoke/PRD.md` first. If replacement is intentional, run `terrace prd import terrace-corpus-smoke --file <file> --force`.\",\n    \"inspect_command\": \"sed -n 1,160p docs/terrace/features/terrace-corpus-smoke/PRD.md\"\n  },\n  \"next_command\": \"terrace prd import terrace-corpus-smoke --file <file> --force\",\n  \"remediation\": \"Inspect `docs/terrace/features/terrace-corpus-smoke/PRD.md` first. If replacement is intentional, run `terrace prd import terrace-corpus-smoke --file <file> --force`.\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 974,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 78,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 5,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

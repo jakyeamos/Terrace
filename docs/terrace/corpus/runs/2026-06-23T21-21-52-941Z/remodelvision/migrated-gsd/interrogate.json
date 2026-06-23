@@ -1,0 +1,50 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "interrogate",
+  "category": "interrogation",
+  "args": [
+    "interrogate",
+    "terrace-corpus-smoke",
+    "--tier",
+    "large",
+    "--answers",
+    "Corpus user answer: protect the feature workflow, test malformed input and permission failures, and roll back on data loss or auth regression.",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 393,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "tier",
+      "artifact",
+      "next_command"
+    ],
+    "next_command": "terrace design terrace-corpus-smoke",
+    "feature_id": "terrace-corpus-smoke",
+    "artifact": "docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-smoke\",\n  \"tier\": \"large\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n  \"next_command\": \"terrace design terrace-corpus-smoke\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 196,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 5,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

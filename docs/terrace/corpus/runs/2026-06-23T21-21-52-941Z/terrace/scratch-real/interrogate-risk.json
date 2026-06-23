@@ -1,0 +1,56 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "scratch-real",
+  "key": "interrogate-risk",
+  "category": "interrogation",
+  "args": [
+    "interrogate",
+    "risk",
+    "terrace-corpus-smoke",
+    "--tier",
+    "large",
+    "--answers",
+    "Corpus user answer: risk owner must approve auth, billing, migration, and server changes before release.",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 431,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "feature_id",
+      "mode",
+      "artifact",
+      "created_at",
+      "tier",
+      "next_command"
+    ],
+    "mode": "risk",
+    "next_command": "terrace report update",
+    "feature_id": "terrace-corpus-smoke",
+    "artifact": "docs/terrace/features/terrace-corpus-smoke/RISK.md"
+  },
+  "stdout": "{\n  \"feature_id\": \"terrace-corpus-smoke\",\n  \"mode\": \"risk\",\n  \"artifact\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n  \"created_at\": \"2026-06-23T21:23:06.277Z\",\n  \"tier\": \"large\",\n  \"next_command\": \"terrace report update\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 235,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [
+    "?? docs/terrace/report-history/2026-06-23T21-23-06-279Z.md"
+  ],
+  "score": {
+    "total": 97,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 15,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

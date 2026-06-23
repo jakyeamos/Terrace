@@ -1,0 +1,59 @@
+{
+  "repo": "Terrace",
+  "repoType": "self-hosting-cli",
+  "track": "migrated-gsd",
+  "key": "port-gsd-compare",
+  "category": "migration",
+  "args": [
+    "port",
+    "gsd",
+    "--compare",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 96,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "source_files",
+      "converted_candidates",
+      "skipped_candidates",
+      "concepts",
+      "converted",
+      "skipped",
+      "missing",
+      "passed",
+      "next_command"
+    ],
+    "passed": true,
+    "mode": "compare",
+    "next_command": "terrace port gsd --dry-run",
+    "converted": {
+      "length": 2
+    },
+    "skipped": {
+      "length": 0
+    }
+  },
+  "stdout": "{\n  \"mode\": \"compare\",\n  \"source_files\": 2,\n  \"converted_candidates\": 2,\n  \"skipped_candidates\": 0,\n  \"concepts\": {\n    \"state_details\": 1,\n    \"phases\": 0,\n    \"phase_artifacts\": 0,\n    \"quick_tasks\": 0,\n    \"decisions\": 0,\n    \"backlog\": 0,\n    \"sessions\": 0,\n    \"blockers\": 0\n  },\n  \"converted\": [\n    \".planning/PROJECT.md\",\n    \".planning/STATE.md\"\n  ],\n  \"skipped\": [],\n  \"missing\": [],\n  \"passed\": true,\n  \"next_command\": \"terrace port gsd --dry-run\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 461,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

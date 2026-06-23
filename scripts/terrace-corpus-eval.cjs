@@ -694,6 +694,29 @@ function verifyAgentAssets(worktree) {
   };
 }
 
+function repairMigratedAgentAssets(context, agentAssets) {
+  if (context.track !== 'migrated-gsd' || !agentAssets.present || agentAssets.complete) {
+    return null;
+  }
+  const raw = runProcess(context.terraceBin, ['init', '--json'], {
+    cwd: context.worktree,
+    timeoutMs: context.timeoutMs,
+    npmCache: context.npmCache
+  });
+  const parsed = parseJson(raw.stdout);
+  return {
+    command: 'terrace init --json',
+    exitCode: raw.exitCode,
+    signal: raw.signal,
+    timedOut: raw.timedOut,
+    durationMs: raw.durationMs,
+    jsonValid: parsed.valid,
+    parsed: summarizeParsed(parsed.value),
+    stdout: captureOutput(raw.stdout).text,
+    stderr: captureOutput(raw.stderr).text
+  };
+}
+
 function classifyAgentAssetVerification(track, agentAssets) {
   if (track === 'migrated-gsd' && !agentAssets.present) {
     return {
@@ -857,7 +880,11 @@ function runTrack(params) {
     }
     writeJson(path.join(params.evidenceDir, slugify(params.repo.name), params.track, command.key + '.json'), record);
   }
-  const agentAssets = verifyAgentAssets(params.worktree);
+  let agentAssets = verifyAgentAssets(params.worktree);
+  const repair = repairMigratedAgentAssets(context, agentAssets);
+  if (repair && repair.exitCode === 0) {
+    agentAssets = verifyAgentAssets(params.worktree);
+  }
   const agentClassification = classifyAgentAssetVerification(params.track, agentAssets);
   const agentRecord = {
     repo: params.repo.name,
@@ -869,6 +896,7 @@ function runTrack(params) {
     skipped: agentClassification.skipped,
     skipReason: agentClassification.skipReason,
     remediation: agentClassification.remediation,
+    repair,
     agentAssets,
     score: scoreAgentAssetVerification(agentClassification.classification, agentClassification.skipped)
   };
@@ -1223,6 +1251,7 @@ if (require.main === module) {
 
 module.exports = {
   classifyAgentAssetVerification,
+  repairMigratedAgentAssets,
   renderReport,
   summarize,
   topSelfServeFixes,

@@ -1,0 +1,43 @@
+{
+  "repo": "BBDSE/Signal Lab",
+  "repoType": "python",
+  "track": "migrated-gsd",
+  "key": "resume",
+  "category": "workflow",
+  "args": [
+    "resume",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 116,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "status",
+      "next_action",
+      "phase",
+      "blocked_actions",
+      "sessions"
+    ]
+  },
+  "stdout": "{\n  \"status\": \"intake_recorded\",\n  \"next_action\": null,\n  \"phase\": null,\n  \"blocked_actions\": [],\n  \"sessions\": []\n}\n",
+  "stderr": "",
+  "stdoutBytes": 117,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 73,
+    "reliability": 25,
+    "usefulness": 6,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 6
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "port-gsd-compare",
+  "category": "migration",
+  "args": [
+    "port",
+    "gsd",
+    "--compare",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 230,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "source_files",
+      "converted_candidates",
+      "skipped_candidates",
+      "concepts",
+      "converted",
+      "skipped",
+      "missing",
+      "passed",
+      "next_command"
+    ],
+    "passed": true,
+    "mode": "compare",
+    "next_command": "terrace port gsd --dry-run",
+    "converted": {
+      "length": 30
+    },
+    "skipped": {
+      "length": 15
+    }
+  },
+  "stdout": "{\n  \"mode\": \"compare\",\n  \"source_files\": 45,\n  \"converted_candidates\": 30,\n  \"skipped_candidates\": 15,\n  \"concepts\": {\n    \"state_details\": 1,\n    \"phases\": 11,\n    \"phase_artifacts\": 32,\n    \"quick_tasks\": 0,\n    \"decisions\": 20,\n    \"backlog\": 0,\n    \"sessions\": 0,\n    \"blockers\": 0\n  },\n  \"converted\": [\n    \".planning/PROJECT.md\",\n    \".planning/REQUIREMENTS.md\",\n    \".planning/ROADMAP.md\",\n    \".planning/STATE.md\",\n    \".planning/config.json\",\n    \".planning/phases/01-session-persistence/01-01-PLAN.md\",\n    \".planning/phases/01-session-persistence/01-01-SUMMARY.md\",\n    \".planning/phases/01-session-persistence/01-02-PLAN.md\",\n    \".planning/phases/01-session-persistence/01-02-SUMMARY.md\",\n    \".planning/phases/01-session-persistence/01-03-PLAN.md\",\n    \".planning/phases/01-session-persistence/01-03-SUMMARY.md\",\n    \".planning/phases/01-session-persistence/01-HUMAN-UAT.md\",\n    \".planning/phases/01-session-persistence/01-UI-SPEC.md\",\n    \".planning/phases/01-session-persistence/01-VERIFICATION.md\",\n    \".planning/phases/02-pipeline-ui/02-01-PLAN.md\",\n    \".planning/phases/02-pipeline-ui/02-02-PLAN.md\",\n    \".planning/phases/02-pipeline-ui/02-03-PLAN.md\",\n    \".planning/phases/03-cost-estimate-ux/03-01-PLAN.md\",\n    \".planning/phases/03-cost-estimate-ux/03-02-PLAN.md\",\n    \".planning/phases/03-cost-estimate-ux/03-03-PLAN.md\",\n    \".planning/phases/04-rendering-editor/04-01-PLAN.md\",\n    \".planning/phases/04-rendering-editor/04-02-PLAN.md\",\n    \".planning/phases/05-dashboard-polish/05-01-PLAN.md\",\n    \".planning/phases/05-dashboard-polish/05-02-PLAN.md\",\n    \".planning/phases/06-code-quality/06-01-PLAN.md\",\n    \".planning/phases/06-code-quality/06-02-PLAN.md\",\n    \".planning/phases/06-code-quality/06-03-PLAN.md\",\n    \".planning/phases/07-launch-hardening/07-01-PLAN.md\",\n    \".planning/phases/07-launch-hardening/07-02-PLAN.md\",\n    \".planning/phases/07-launch-hardening/07-03-PLAN.md\"\n  ],\n  \"skipped\": [\n    \".planning/PHASE-GOALS.md\",\n    \".planning/codebase/ARCHITECTURE.md\",\n    \".planning/codebase/CONCERNS.md\",\n    \".planning/codebase/CONVENTIONS.md\",\n    \".planning/codebase/INTEGRATIONS.md\",\n    \".planning/codebase/STACK.md\",\n    \".planning/codebase/STRUCTURE.md\",\n    \".planning/codebase/TESTING.md\",\n    \".planning/phases/01-session-persistence/01-HANDOFF.md\",\n    \".planning/phases/02-pipeline-ui/02-HANDOFF.md\",\n    \".planning/phases/03-cost-estimate-ux/03-HANDOFF.md\",\n    \".planning/phases/04-rendering-editor/04-HANDOFF.md\",\n    \".planning/phases/05-dashboard-polish/05-HANDOFF.md\",\n    \".planning/phases/06-code-quality/06-HANDOFF.md\",\n    \".planning/phases/07-launch-hardening/07-HANDOFF.md\"\n  ],\n  \"missing\": [],\n  \"passed\": true,\n  \"next_command\": \"terrace port gsd --dry-run\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 2731,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 89,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 10,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

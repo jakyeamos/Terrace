@@ -1,0 +1,45 @@
+{
+  "repo": "amos-saas",
+  "repoType": "saas-app",
+  "track": "migrated-gsd",
+  "key": "phase-validate-dynamic",
+  "category": "roadmap",
+  "args": [
+    "phase",
+    "validate",
+    "milestones",
+    "--json"
+  ],
+  "exitCode": 0,
+  "signal": null,
+  "durationMs": 145,
+  "classification": "pass",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "phase_id",
+      "status",
+      "validation_ref",
+      "next_command"
+    ],
+    "next_command": "terrace phase review milestones"
+  },
+  "stdout": "{\n  \"phase_id\": \"milestones\",\n  \"status\": \"validation_ready\",\n  \"validation_ref\": \"docs/terrace/phases/milestones/VALIDATION.md\",\n  \"next_command\": \"terrace phase review milestones\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 184,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 84,
+    "reliability": 25,
+    "usefulness": 15,
+    "artifactQuality": 5,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

@@ -1,0 +1,299 @@
+{
+  "repo": "pre-cr-suite-lsp",
+  "repoType": "typescript-tooling",
+  "track": "migrated-gsd",
+  "key": "ship-check",
+  "category": "shipping-security",
+  "args": [
+    "ship",
+    "check",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 8782,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "mode",
+      "passed",
+      "project_commands",
+      "categories",
+      "timings",
+      "blockers",
+      "warnings",
+      "top_blockers",
+      "next_command",
+      "recheck_command"
+    ],
+    "passed": false,
+    "mode": "full",
+    "next_command": "terrace security check",
+    "recheck_command": "terrace ship check --fast",
+    "blockers": {
+      "length": 11,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings with high or critical severity must be resolved before release readiness passes.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace report update",
+          "remediation": "Run terrace report update and complete the top next actions.",
+          "why_blocked": "Release readiness requires enough project evidence to make the Tier One report meaningful."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "remediation"
+          ],
+          "remediation": "Run terrace preflight terrace-corpus-smoke"
+        }
+      ]
+    },
+    "top_blockers": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "file",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace security check",
+          "remediation": "Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 9,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message"
+          ]
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "packages/core/src/checklist/security.test.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": "packages/core/src/checklist/security.ts"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "id",
+            "code",
+            "mode",
+            "severity",
+            "classification",
+            "file_or_artifact",
+            "file",
+            "claim",
+            "message",
+            "evidence",
+            "recommended_fix",
+            "why_blocked",
+            "next_command",
+            "remediation",
+            "source"
+          ],
+          "mode": "security",
+          "next_command": "terrace security check",
+          "remediation": "Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.",
+          "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+          "file": ".github/workflows/ci.yml"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace report update",
+          "remediation": "Follow the report next actions.",
+          "why_blocked": "The report is not blocking release, but it still shows readiness gaps."
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"mode\": \"full\",\n  \"passed\": false,\n  \"project_commands\": {\n    \"package_manager\": \"pnpm\",\n    \"scripts\": {\n      \"build\": \"pnpm run build:core && pnpm run build:server && pnpm run build:vscode\",\n      \"build:core\": \"pnpm --filter @pre-cr/core build\",\n      \"build:server\": \"pnpm --filter @pre-cr/server build\",\n      \"build:vscode\": \"pnpm --filter pre-cr-suite build\",\n      \"typecheck\": \"turbo run typecheck\",\n      \"test\": \"turbo run test\",\n      \"lint\": \"turbo run lint\",\n      \"package\": \"pnpm run build && pnpm --filter pre-cr-suite package\",\n      \"clean\": \"pnpm -r run clean && rm -rf node_modules\",\n      \"dev\": \"turbo run dev --parallel\"\n    },\n    \"checks\": [\n      {\n        \"category\": \"typecheck\",\n        \"script\": \"typecheck\",\n        \"required\": false,\n        \"suggested\": \"tsc --noEmit\",\n        \"exists\": true,\n        \"command\": \"pnpm run typecheck\"\n      },\n      {\n        \"category\": \"lint\",\n        \"script\": \"lint\",\n        \"required\": true,\n        \"suggested\": \"eslint .\",\n        \"exists\": true,\n        \"command\": \"pnpm run lint\"\n      },\n      {\n        \"category\": \"test\",\n        \"script\": \"test\",\n        \"required\": false,\n        \"suggested\": \"vitest run or npm test equivalent\",\n        \"exists\": true,\n        \"command\": \"pnpm run test\"\n      },\n      {\n        \"category\": \"coverage\",\n        \"script\": \"test:coverage\",\n        \"required\": false,\n        \"suggested\": \"vitest run --coverage or project equivalent\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"package\",\n        \"script\": \"package:dry-run\",\n        \"required\": false,\n        \"suggested\": \"npm pack --dry-run\",\n        \"exists\": false,\n        \"command\": null\n      },\n      {\n        \"category\": \"build\",\n        \"script\": \"build\",\n        \"required\": false,\n        \"suggested\": \"framework build command\",\n        \"exists\": true,\n        \"command\": \"pnpm run build\"\n      }\n    ],\n    \"agent_assets\": {\n      \"expected\": {\n        \"codexSkills\": 59,\n        \"claudeSkills\": 59,\n        \"claudeCommands\": 59\n      },\n      \"counts\": {\n        \"codexSkills\": 0,\n        \"claudeSkills\": 0,\n        \"claudeCommands\": 0\n      },\n      \"present\": 0,\n      \"expected_total\": 177,\n      \"complete\": false,\n      \"partial\": false,\n      \"next_command\": null,\n      \"remediation\": null\n    },\n    \"warnings\": []\n  },\n  \"categories\": [\n    {\n      \"category\": \"doctor\",\n      \"command\": \"terrace doctor\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [\n        {\n          \"code\": \"MISSING_PRESET_REGISTRY\",\n          \"message\": \"Missing .terrace/presets/registry.json\"\n        }\n      ],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"audit\",\n      \"command\": \"terrace audit\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"security\",\n      \"command\": \"terrace security check\",\n      \"passed\": false,\n      \"security_check\": {\n        \"status\": \"blocked\",\n        \"artifact\": \".terrace/security/latest.json\",\n        \"markdown\": \"docs/terrace/security/SECURITY-CHECK.md\"\n      },\n      \"blocking\": [\n        {\n          \"id\": \"secret_github_token-0\",\n          \"code\": \"SECRET_GITHUB_TOKEN_0\",\n          \"mode\": \"security\",\n          \"severity\": \"critical\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n          \"file\": \"packages/core/src/checklist/security.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"message\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_GITHUB_TOKEN matched in packages/core/src/checklist/security.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_private_key-1\",\n          \"code\": \"SECRET_PRIVATE_KEY_1\",\n          \"mode\": \"security\",\n          \"severity\": \"critical\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n          \"file\": \"packages/core/src/checklist/security.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"message\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_PRIVATE_KEY matched in packages/core/src/checklist/security.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"secret_generic_assignment-2\",\n          \"code\": \"SECRET_GENERIC_ASSIGNMENT_2\",\n          \"mode\": \"security\",\n          \"severity\": \"high\",\n          \"classification\": \"blocking\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n          \"file\": \"packages/core/src/checklist/security.test.ts\",\n          \"claim\": \"Potential secret material appears in a tracked text file.\",\n          \"message\": \"Potential secret material appears in a tracked text file.\",\n          \"evidence\": \"SECRET_GENERIC_ASSIGNMENT matched in packages/core/src/checklist/security.test.ts.\",\n          \"recommended_fix\": \"Rotate the credential if real, remove it from source, and add a safe fixture value.\",\n          \"why_blocked\": \"Security findings with high or critical severity must be resolved before release readiness passes.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        }\n      ],\n      \"warnings\": [\n        {\n          \"id\": \"react-html-injection-3\",\n          \"code\": \"REACT_HTML_INJECTION_3\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n          \"file\": \"packages/core/src/checklist/security.test.ts\",\n          \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n          \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n          \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.test.ts.\",\n          \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n          \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"react-html-injection-4\",\n          \"code\": \"REACT_HTML_INJECTION_4\",\n          \"mode\": \"security\",\n          \"severity\": \"medium\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \"packages/core/src/checklist/security.ts\",\n          \"file\": \"packages/core/src/checklist/security.ts\",\n          \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n          \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n          \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.ts.\",\n          \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n          \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        },\n        {\n          \"id\": \"workflow-permissions-0\",\n          \"code\": \"WORKFLOW_PERMISSIONS_0\",\n          \"mode\": \"security\",\n          \"severity\": \"info\",\n          \"classification\": \"warning\",\n          \"file_or_artifact\": \".github/workflows/ci.yml\",\n          \"file\": \".github/workflows/ci.yml\",\n          \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n          \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n          \"evidence\": \".github/workflows/ci.yml is a CI workflow without explicit top-level permissions.\",\n          \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n          \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n          \"next_command\": \"terrace security check\",\n          \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n          \"source\": \"terrace security check\"\n        }\n      ],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"tier_one_report\",\n      \"command\": \"terrace report update\",\n      \"passed\": false,\n      \"blocking\": [\n        {\n          \"code\": \"TIER_ONE_REPORT_WEAK\",\n          \"message\": \"Tier One report score is below 50.\",\n          \"why_blocked\": \"Release readiness requires enough project evidence to make the Tier One report meaningful.\",\n          \"next_command\": \"terrace report update\",\n          \"remediation\": \"Run terrace report update and complete the top next actions.\"\n        }\n      ],\n      \"warnings\": [\n        {\n          \"code\": \"TIER_ONE_GAPS\",\n          \"message\": \"Tier One report score is below strong readiness: 40.\",\n          \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n          \"next_command\": \"terrace report update\",\n          \"remediation\": \"Follow the report next actions.\"\n        }\n      ],\n      \"report_card\": {\n        \"score\": 40,\n        \"status_label\": \"planning_or_governance_weak\"\n      },\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"migration_readiness\",\n      \"command\": \"terrace migration readiness\",\n      \"passed\": true,\n      \"readiness\": null,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"senior_cycle\",\n      \"command\": \"terrace senior-cycle status terrace-corpus-smoke\",\n      \"passed\": true,\n      \"senior_cycle\": {\n        \"feature_id\": \"terrace-corpus-smoke\",\n        \"tier\": \"large\",\n        \"architecture_default\": \"sustainable\",\n        \"no_band_aid_rule\": true,\n        \"required_artifacts\": [\n          \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n          \"docs/terrace/codebase/MAP.md\",\n          \"docs/terrace/codebase/ARCHITECTURE.md\",\n          \"docs/terrace/codebase/RISKS.md\",\n          \"docs/terrace/codebase/TESTING.md\",\n          \"docs/terrace/codebase/OBSERVABILITY.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n          \"docs/testing/TEST-PLAN.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n          \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\"\n        ],\n        \"missing_artifacts\": [],\n        \"allowed\": {\n          \"execute\": true,\n          \"implement\": true,\n          \"ship\": true,\n          \"complete\": true\n        },\n        \"blockers\": [],\n        \"next_command\": \"terrace ship check\"\n      },\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"production_preflight\",\n      \"command\": \"terrace preflight terrace-corpus-smoke\",\n      \"passed\": false,\n      \"preflight\": null,\n      \"blocking\": [\n        {\n          \"code\": \"PREFLIGHT_REQUIRED\",\n          \"message\": \"Production preflight is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace preflight terrace-corpus-smoke\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"ai_review\",\n      \"command\": \"terrace review ai --feature terrace-corpus-smoke\",\n      \"passed\": false,\n      \"ai_review\": null,\n      \"blocking\": [\n        {\n          \"code\": \"AI_REVIEW_REQUIRED\",\n          \"message\": \"AI review is missing for active feature: terrace-corpus-smoke\",\n          \"remediation\": \"Run terrace review ai --mode architecture --feature terrace-corpus-smoke\"\n        }\n      ],\n      \"warnings\": [],\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"debt\",\n      \"command\": \"terrace debt audit\",\n      \"passed\": true,\n      \"blocking\": [],\n      \"warnings\": [],\n      \"audit\": {\n        \"open_count\": 0,\n        \"blockers\": [],\n        \"warnings\": [],\n        \"passed\": true\n      },\n      \"elapsed_ms\": 0\n    },\n    {\n      \"category\": \"waivers\",\n      \"command\": \"terrace waive\",\n      \"passed\": true,\n      \"waivers\": [],\n      \"blocking\": [],\n      \"warnings\": [],\n      \"elapsed_ms\": 1\n    },\n    {\n      \"category\": \"documentation\",\n      \"command\": \"terrace docu terrace-corpus-smoke\",\n      \"passed\": false,\n      \"documentation\": null,\n      \"blocking\": [\n        {\n          \"code\": \"DOCUMENTATION_REQUIRED\",\n          \"message\":\n\n[... truncated by Terrace corpus harness ...]\n\nhe project quality gate to pass.\",\n      \"next_command\": \"pnpm run build\",\n      \"remediation\": \"Run the command locally and fix the reported failures.\"\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"MISSING_PRESET_REGISTRY\",\n      \"message\": \"Missing .terrace/presets/registry.json\"\n    },\n    {\n      \"id\": \"react-html-injection-3\",\n      \"code\": \"REACT_HTML_INJECTION_3\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.test.ts\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.test.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"react-html-injection-4\",\n      \"code\": \"REACT_HTML_INJECTION_4\",\n      \"mode\": \"security\",\n      \"severity\": \"medium\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \"packages/core/src/checklist/security.ts\",\n      \"file\": \"packages/core/src/checklist/security.ts\",\n      \"claim\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"message\": \"React raw HTML rendering requires sanitization evidence.\",\n      \"evidence\": \"dangerouslySetInnerHTML appears in packages/core/src/checklist/security.ts.\",\n      \"recommended_fix\": \"Document sanitization or replace raw HTML rendering with safe structured rendering.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"id\": \"workflow-permissions-0\",\n      \"code\": \"WORKFLOW_PERMISSIONS_0\",\n      \"mode\": \"security\",\n      \"severity\": \"info\",\n      \"classification\": \"warning\",\n      \"file_or_artifact\": \".github/workflows/ci.yml\",\n      \"file\": \".github/workflows/ci.yml\",\n      \"claim\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"message\": \"GitHub Actions workflow should declare least-privilege permissions.\",\n      \"evidence\": \".github/workflows/ci.yml is a CI workflow without explicit top-level permissions.\",\n      \"recommended_fix\": \"Set explicit permissions and avoid printing secrets in build logs.\",\n      \"why_blocked\": \"Security findings should be reviewed before release even when they are not blocking.\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Set explicit permissions and avoid printing secrets in build logs. Then rerun `terrace security check`.\",\n      \"source\": \"terrace security check\"\n    },\n    {\n      \"code\": \"TIER_ONE_GAPS\",\n      \"message\": \"Tier One report score is below strong readiness: 40.\",\n      \"why_blocked\": \"The report is not blocking release, but it still shows readiness gaps.\",\n      \"next_command\": \"terrace report update\",\n      \"remediation\": \"Follow the report next actions.\"\n    },\n    {\n      \"code\": \"TEST_EVAL_MISSING\",\n      \"message\": \"No test-suite evaluation has been recorded.\"\n    },\n    {\n      \"code\": \"RULE_AUDIT_MISSING\",\n      \"message\": \"No rule audit has been recorded.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for coverage.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.test:coverage=\\\"vitest run --coverage or project equivalent\\\"\",\n      \"remediation\": \"Add a `test:coverage` script such as `vitest run --coverage or project equivalent` if this gate should be enforced.\"\n    },\n    {\n      \"code\": \"QUALITY_SCRIPT_MISSING\",\n      \"message\": \"No package script was found for package.\",\n      \"why_blocked\": \"Terrace could not enforce this optional quality signal because the script is missing.\",\n      \"next_command\": \"npm pkg set scripts.package:dry-run=\\\"npm pack --dry-run\\\"\",\n      \"remediation\": \"Add a `package:dry-run` script such as `npm pack --dry-run` if this gate should be enforced.\"\n    }\n  ],\n  \"top_blockers\": [\n    {\n      \"code\": \"SECRET_GITHUB_TOKEN_0\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\"\n    },\n    {\n      \"code\": \"SECRET_PRIVATE_KEY_1\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\"\n    },\n    {\n      \"code\": \"SECRET_GENERIC_ASSIGNMENT_2\",\n      \"message\": \"Potential secret material appears in a tracked text file.\",\n      \"file\": \"packages/core/src/checklist/security.test.ts\",\n      \"next_command\": \"terrace security check\",\n      \"remediation\": \"Rotate the credential if real, remove it from source, and add a safe fixture value. Then rerun `terrace security check`.\"\n    }\n  ],\n  \"next_command\": \"terrace security check\",\n  \"recheck_command\": \"terrace ship check --fast\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 30791,
+  "stderrBytes": 0,
+  "stdoutTruncated": true,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 85,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 10,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "repo": "remodelvision",
+  "repoType": "app-with-e2e",
+  "track": "migrated-gsd",
+  "key": "report-ceremony",
+  "category": "shipping-security",
+  "args": [
+    "report",
+    "ceremony",
+    "--json"
+  ],
+  "exitCode": 1,
+  "signal": null,
+  "durationMs": 125,
+  "classification": "expected-blocker",
+  "jsonValid": true,
+  "parsed": {
+    "type": "object",
+    "keys": [
+      "active_feature",
+      "tier",
+      "budget",
+      "artifact_count",
+      "markdown_word_count",
+      "artifacts",
+      "warnings",
+      "passed",
+      "top_blockers",
+      "next_command"
+    ],
+    "passed": false,
+    "next_command": "terrace cleanup terrace-corpus-smoke",
+    "top_blockers": {
+      "length": 3,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Merge or trim low-value generated artifacts, then rerun `terrace report ceremony`.",
+          "why_blocked": "Too many artifacts makes handoff and review harder for agents and humans."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Condense duplicated artifact text, then rerun `terrace report ceremony`.",
+          "why_blocked": "Large generated reports are harder to audit and less useful as release evidence."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "file",
+            "signals",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Replace placeholder sections in `docs/prd/PRD.md` or remove the stale artifact, then rerun `terrace report ceremony`.",
+          "why_blocked": "Placeholder artifacts do not provide enough evidence for reliable handoff or release review.",
+          "file": "docs/prd/PRD.md",
+          "artifact": "docs/prd/PRD.md"
+        }
+      ]
+    },
+    "warnings": {
+      "length": 6,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Merge or trim low-value generated artifacts, then rerun `terrace report ceremony`.",
+          "why_blocked": "Too many artifacts makes handoff and review harder for agents and humans."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Condense duplicated artifact text, then rerun `terrace report ceremony`.",
+          "why_blocked": "Large generated reports are harder to audit and less useful as release evidence."
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "file",
+            "signals",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Replace placeholder sections in `docs/prd/PRD.md` or remove the stale artifact, then rerun `terrace report ceremony`.",
+          "why_blocked": "Placeholder artifacts do not provide enough evidence for reliable handoff or release review.",
+          "file": "docs/prd/PRD.md",
+          "artifact": "docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "file",
+            "signals",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Replace placeholder sections in `docs/spec/COMPILED-SPEC.md` or remove the stale artifact, then rerun `terrace report ceremony`.",
+          "why_blocked": "Placeholder artifacts do not provide enough evidence for reliable handoff or release review.",
+          "file": "docs/spec/COMPILED-SPEC.md",
+          "artifact": "docs/spec/COMPILED-SPEC.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "code",
+            "message",
+            "artifact",
+            "file",
+            "signals",
+            "why_blocked",
+            "next_command",
+            "remediation"
+          ],
+          "next_command": "terrace cleanup terrace-corpus-smoke",
+          "remediation": "Replace placeholder sections in `docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md` or remove the stale artifact, then rerun `terrace report ceremony`.",
+          "why_blocked": "Placeholder artifacts do not provide enough evidence for reliable handoff or release review.",
+          "file": "docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md",
+          "artifact": "docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md"
+        }
+      ]
+    },
+    "artifacts": {
+      "length": 29,
+      "sample": [
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ],
+          "file": "docs/prd/PRD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ],
+          "file": "docs/spec/COMPILED-SPEC.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ],
+          "file": "docs/terrace/REPORT-CARD.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ],
+          "file": "docs/terrace/codebase/ARCHITECTURE.md"
+        },
+        {
+          "type": "object",
+          "keys": [
+            "file",
+            "words",
+            "weak_signals"
+          ],
+          "file": "docs/terrace/codebase/MAP.md"
+        }
+      ]
+    }
+  },
+  "stdout": "{\n  \"active_feature\": \"terrace-corpus-smoke\",\n  \"tier\": \"medium\",\n  \"budget\": {\n    \"max_artifacts\": 8,\n    \"max_words\": 3000\n  },\n  \"artifact_count\": 29,\n  \"markdown_word_count\": 6504,\n  \"artifacts\": [\n    {\n      \"file\": \"docs/prd/PRD.md\",\n      \"words\": 997,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/spec/COMPILED-SPEC.md\",\n      \"words\": 926,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/terrace/REPORT-CARD.md\",\n      \"words\": 201,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/ARCHITECTURE.md\",\n      \"words\": 67,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/MAP.md\",\n      \"words\": 97,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/OBSERVABILITY.md\",\n      \"words\": 11,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/RISKS.md\",\n      \"words\": 46,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/codebase/TESTING.md\",\n      \"words\": 51,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/ALIGNMENT.md\",\n      \"words\": 227,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/CLEANUP.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/DESIGN.md\",\n      \"words\": 113,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/INTERROGATION.md\",\n      \"words\": 254,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/OBSERVABILITY.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/RISK.md\",\n      \"words\": 234,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-DIFF.md\",\n      \"words\": 67,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-REFRESH.md\",\n      \"words\": 104,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/UI-STITCH.md\",\n      \"words\": 109,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/features/terrace-corpus-smoke/VALIDATION.md\",\n      \"words\": 74,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/PLAN.md\",\n      \"words\": 66,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/SUMMARY.md\",\n      \"words\": 35,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-1/VERIFICATION.md\",\n      \"words\": 12,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/quick/terrace-quick-2/PLAN.md\",\n      \"words\": 64,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-06-23T21-26-03-854Z.md\",\n      \"words\": 126,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-06-23T21-26-10-964Z.md\",\n      \"words\": 213,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/report-history/2026-06-23T21-26-13-051Z.md\",\n      \"words\": 201,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/terrace/security/SECURITY-CHECK.md\",\n      \"words\": 40,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/TEST-PLAN.md\",\n      \"words\": 107,\n      \"weak_signals\": []\n    },\n    {\n      \"file\": \"docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md\",\n      \"words\": 199,\n      \"weak_signals\": [\n        \"empty_section\"\n      ]\n    },\n    {\n      \"file\": \"docs/testing/gsd/01-session-persistence/01-VERIFICATION.md\",\n      \"words\": 1715,\n      \"weak_signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ]\n    }\n  ],\n  \"warnings\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\",\n      \"why_blocked\": \"Too many artifacts makes handoff and review harder for agents and humans.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Merge or trim low-value generated artifacts, then rerun `terrace report ceremony`.\"\n    },\n    {\n      \"code\": \"WORD_BUDGET_EXCEEDED\",\n      \"message\": \"Generated markdown word count exceeds the tier budget.\",\n      \"why_blocked\": \"Large generated reports are harder to audit and less useful as release evidence.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Condense duplicated artifact text, then rerun `terrace report ceremony`.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"message\": \"Artifact contains placeholder or low-density sections.\",\n      \"artifact\": \"docs/prd/PRD.md\",\n      \"file\": \"docs/prd/PRD.md\",\n      \"signals\": [\n        \"empty_section\"\n      ],\n      \"why_blocked\": \"Placeholder artifacts do not provide enough evidence for reliable handoff or release review.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Replace placeholder sections in `docs/prd/PRD.md` or remove the stale artifact, then rerun `terrace report ceremony`.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"message\": \"Artifact contains placeholder or low-density sections.\",\n      \"artifact\": \"docs/spec/COMPILED-SPEC.md\",\n      \"file\": \"docs/spec/COMPILED-SPEC.md\",\n      \"signals\": [\n        \"empty_section\"\n      ],\n      \"why_blocked\": \"Placeholder artifacts do not provide enough evidence for reliable handoff or release review.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Replace placeholder sections in `docs/spec/COMPILED-SPEC.md` or remove the stale artifact, then rerun `terrace report ceremony`.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"message\": \"Artifact contains placeholder or low-density sections.\",\n      \"artifact\": \"docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md\",\n      \"file\": \"docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md\",\n      \"signals\": [\n        \"empty_section\"\n      ],\n      \"why_blocked\": \"Placeholder artifacts do not provide enough evidence for reliable handoff or release review.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Replace placeholder sections in `docs/testing/gsd/01-session-persistence/01-HUMAN-UAT.md` or remove the stale artifact, then rerun `terrace report ceremony`.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"message\": \"Artifact contains placeholder or low-density sections.\",\n      \"artifact\": \"docs/testing/gsd/01-session-persistence/01-VERIFICATION.md\",\n      \"file\": \"docs/testing/gsd/01-session-persistence/01-VERIFICATION.md\",\n      \"signals\": [\n        \"placeholder_language\",\n        \"empty_section\"\n      ],\n      \"why_blocked\": \"Placeholder artifacts do not provide enough evidence for reliable handoff or release review.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Replace placeholder sections in `docs/testing/gsd/01-session-persistence/01-VERIFICATION.md` or remove the stale artifact, then rerun `terrace report ceremony`.\"\n    }\n  ],\n  \"passed\": false,\n  \"top_blockers\": [\n    {\n      \"code\": \"ARTIFACT_BUDGET_EXCEEDED\",\n      \"message\": \"Artifact count exceeds the tier budget.\",\n      \"why_blocked\": \"Too many artifacts makes handoff and review harder for agents and humans.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Merge or trim low-value generated artifacts, then rerun `terrace report ceremony`.\"\n    },\n    {\n      \"code\": \"WORD_BUDGET_EXCEEDED\",\n      \"message\": \"Generated markdown word count exceeds the tier budget.\",\n      \"why_blocked\": \"Large generated reports are harder to audit and less useful as release evidence.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Condense duplicated artifact text, then rerun `terrace report ceremony`.\"\n    },\n    {\n      \"code\": \"LOW_DENSITY_ARTIFACT\",\n      \"message\": \"Artifact contains placeholder or low-density sections.\",\n      \"artifact\": \"docs/prd/PRD.md\",\n      \"file\": \"docs/prd/PRD.md\",\n      \"signals\": [\n        \"empty_section\"\n      ],\n      \"why_blocked\": \"Placeholder artifacts do not provide enough evidence for reliable handoff or release review.\",\n      \"next_command\": \"terrace cleanup terrace-corpus-smoke\",\n      \"remediation\": \"Replace placeholder sections in `docs/prd/PRD.md` or remove the stale artifact, then rerun `terrace report ceremony`.\"\n    }\n  ],\n  \"next_command\": \"terrace cleanup terrace-corpus-smoke\"\n}\n",
+  "stderr": "",
+  "stdoutBytes": 8672,
+  "stderrBytes": 0,
+  "stdoutTruncated": false,
+  "stderrTruncated": false,
+  "changedFiles": [],
+  "score": {
+    "total": 87,
+    "reliability": 18,
+    "usefulness": 15,
+    "artifactQuality": 15,
+    "interrogationQuality": 10,
+    "repoFit": 12,
+    "safety": 15,
+    "ergonomics": 15
+  }
+}
