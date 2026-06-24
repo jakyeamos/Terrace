@@ -130,7 +130,7 @@ npx @jakyeamos33/terrace ship check --json
 - `terrace execute-phase-complete <id>` runs phase plan, execute, validate, review, and complete in order, stopping at blockers.
 - `terrace settings effort <fast|standard|thorough>` sets the default phase effort used in planning and execution artifacts.
 - `terrace settings show` prints the current Terrace settings.
-- `terrace commands discover` detects package manager, project scripts, and quality-gate command mapping.
+- `terrace commands discover` detects package manager, project scripts, quality-gate command mapping, and dead-code gate readiness.
 - `terrace align <feature>` writes `docs/terrace/features/<feature>/ALIGNMENT.md` with customer, problem, success metrics, risks, rollout, observability, validation, and cleanup intent.
 - `terrace interrogate <feature>` captures user-driven edge-case, assumption-challenge, and failure-mode interrogation; agent skills ask the questions inline before writing the artifact.
 - `terrace map-codebase` writes codebase map, architecture, risks, testing, and observability context under `docs/terrace/codebase/`.
@@ -154,7 +154,7 @@ npx @jakyeamos33/terrace ship check --json
 - `terrace quick complete <id>` writes a quick-task summary and marks it complete after verification evidence exists.
 - `terrace backlog list` lists backlog items.
 - `terrace backlog add <title>` appends a backlog item.
-- `terrace ship check` runs release-readiness checks, discovers available project scripts, enforces active Senior Cycle ship gates, treats missing optional scripts as warnings, and exits nonzero when an available quality gate fails.
+- `terrace ship check` runs release-readiness checks, discovers available project scripts, enforces active Senior Cycle ship gates, treats missing optional scripts as warnings, runs the dead-code gate when a script is discovered or configured, and exits nonzero when an available quality gate fails.
 - `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` from release-readiness results.
 - `terrace plan-phase <id>`, `terrace execute-phase <id>`, `terrace validate-phase <id>`, `terrace review-phase <id>`, and `terrace complete-phase <id>` are GSD-compatible aliases.
 - `terrace rule list` and `terrace rule explain <id>` inspect rule packs.
@@ -187,6 +187,35 @@ Terrace now has a senior-cycle artifact layer for adaptive rigor:
 
 See `docs/terrace/SENIOR-CYCLE.md` for the audit report, target workflow, artifact structure, enforcement rules, and implementation milestones. The no band-aid rule is the default: even `terrace quick` should choose maintainable architecture unless a short-term choice explicitly preserves future development and has a cleanup contract.
 
+## Dead-Code Gate
+
+`terrace ship check --full` looks for package scripts named `dead-code`, `deadcode`, `knip`, `unused`, `unused:check`, or `depcheck`. If one exists, Terrace runs it as the `dead_code` readiness category. If none exists, Terrace reports `DEAD_CODE_SCRIPT_MISSING` as a warning so repos can decide whether to enforce the signal.
+
+Repos can pin the script names in `.terrace/config.json`:
+
+```json
+{
+  "ship_gates": {
+    "dead_code": {
+      "scripts": ["unused:check"]
+    }
+  }
+}
+```
+
+When a dead-code script is configured but missing or failing, `terrace ship check --full` reports a blocker. To intentionally skip the gate, record the reason:
+
+```json
+{
+  "ship_gates": {
+    "dead_code": {
+      "enabled": false,
+      "reason": "Generated client repo; source pruning is tracked upstream."
+    }
+  }
+}
+```
+
 ## Troubleshooting
 
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
@@ -196,6 +225,7 @@ See `docs/terrace/SENIOR-CYCLE.md` for the audit report, target workflow, artifa
 - `terrace next` reports a blocked action after migration: complete or clear the migrated human action before treating the project as ready.
 - `terrace ship check` exits nonzero: inspect the failed category and run the listed command directly for detailed output.
 - `terrace ship check` reports `QUALITY_SCRIPT_MISSING`: add the suggested package script if that gate should be enforced for this project.
+- `terrace ship check` reports `DEAD_CODE_SCRIPT_MISSING`: add a package script with `pnpm pkg set scripts["dead-code"]="knip"` or configure/skip `ship_gates.dead_code` in `.terrace/config.json`.
 - `terrace do <intent>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
 - Typecheck errors from package dependencies usually mean the repo is not using the supported `Bundler` module resolution settings in `tsconfig.json`.
 

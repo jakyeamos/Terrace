@@ -529,7 +529,8 @@ describe('workflow parity core helpers', () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
       scripts: {
         lint: 'node -e "process.exit(0)"',
-        build: 'node -e "process.exit(0)"'
+        build: 'node -e "process.exit(0)"',
+        'dead-code': 'node -e "process.exit(0)"'
       }
     }, null, 2), 'utf-8');
     const discovered = discoverProjectCommands(tmpDir);
@@ -542,7 +543,13 @@ describe('workflow parity core helpers', () => {
         expect.objectContaining({ category: 'lint', exists: true }),
         expect.objectContaining({ category: 'build', exists: true }),
         expect.objectContaining({ category: 'typecheck', exists: false })
-      ])
+      ]),
+      dead_code: expect.objectContaining({
+        enabled: true,
+        exists: true,
+        script: 'dead-code',
+        command: 'npm run dead-code'
+      })
     });
     expect(result.categories).toContainEqual(expect.objectContaining({
       category: 'typecheck',
@@ -553,13 +560,110 @@ describe('workflow parity core helpers', () => {
       category: 'build',
       passed: true
     }));
+    expect(result.categories).toContainEqual(expect.objectContaining({
+      category: 'dead_code',
+      passed: true
+    }));
+  }, 120000);
+
+  it('supports configured dead-code scripts and intentional dead-code skips', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        'unused:check': 'node -e "process.exit(0)"'
+      }
+    }, null, 2), 'utf-8');
+    fs.mkdirSync(path.join(tmpDir, '.terrace'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.terrace', 'config.json'), JSON.stringify({
+      ship_gates: {
+        dead_code: {
+          scripts: ['unused:check']
+        }
+      }
+    }, null, 2) + '\n', 'utf-8');
+
+    const configured = shipCheck(tmpDir);
+
+    expect(configured.project_commands.dead_code).toMatchObject({
+      configured: true,
+      exists: true,
+      script: 'unused:check',
+      command: 'npm run unused:check'
+    });
+    expect(configured.categories).toContainEqual(expect.objectContaining({
+      category: 'dead_code',
+      passed: true
+    }));
+
+    fs.writeFileSync(path.join(tmpDir, '.terrace', 'config.json'), JSON.stringify({
+      ship_gates: {
+        dead_code: {
+          enabled: false,
+          reason: 'Generated client repo; source pruning is tracked upstream.'
+        }
+      }
+    }, null, 2) + '\n', 'utf-8');
+
+    const skipped = shipCheck(tmpDir);
+
+    expect(skipped.project_commands.dead_code).toMatchObject({
+      enabled: false,
+      skipped: true,
+      reason: 'Generated client repo; source pruning is tracked upstream.'
+    });
+    expect(skipped.categories).toContainEqual(expect.objectContaining({
+      category: 'dead_code',
+      passed: true,
+      skipped: true,
+      warnings: [expect.objectContaining({ code: 'DEAD_CODE_GATE_SKIPPED' })]
+    }));
+  }, 120000);
+
+  it('blocks when a configured dead-code script is missing or fails', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        'dead-code': 'node -e "process.exit(9)"'
+      }
+    }, null, 2), 'utf-8');
+    fs.mkdirSync(path.join(tmpDir, '.terrace'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.terrace', 'config.json'), JSON.stringify({
+      ship_gates: {
+        dead_code: {
+          scripts: ['missing-dead-code']
+        }
+      }
+    }, null, 2) + '\n', 'utf-8');
+
+    const missing = shipCheck(tmpDir);
+
+    expect(missing.categories).toContainEqual(expect.objectContaining({
+      category: 'dead_code',
+      passed: false,
+      blocking: [expect.objectContaining({ code: 'DEAD_CODE_SCRIPT_MISSING' })]
+    }));
+
+    fs.writeFileSync(path.join(tmpDir, '.terrace', 'config.json'), JSON.stringify({
+      ship_gates: {
+        dead_code: {
+          scripts: ['dead-code']
+        }
+      }
+    }, null, 2) + '\n', 'utf-8');
+
+    const failed = shipCheck(tmpDir);
+
+    expect(failed.categories).toContainEqual(expect.objectContaining({
+      category: 'dead_code',
+      passed: false,
+      blocking: [expect.objectContaining({ code: 'DEAD_CODE_GATE_FAILED' })]
+    }));
   }, 120000);
 
   it('supports a fast ship check mode that skips project scripts', () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
       scripts: {
         lint: 'node -e "process.exit(7)"',
-        test: 'node -e "process.exit(7)"'
+        test: 'node -e "process.exit(7)"',
+        'dead-code': 'node -e "process.exit(7)"'
       }
     }, null, 2), 'utf-8');
 
@@ -569,6 +673,7 @@ describe('workflow parity core helpers', () => {
     expect(result.timings.length).toBe(result.categories.length);
     expect(result.categories.map((category: { category: string }) => category.category)).not.toContain('lint');
     expect(result.categories.map((category: { category: string }) => category.category)).not.toContain('test');
+    expect(result.categories.map((category: { category: string }) => category.category)).not.toContain('dead_code');
     expect(result.categories).toContainEqual(expect.objectContaining({
       category: 'waivers',
       elapsed_ms: expect.any(Number)
@@ -654,6 +759,7 @@ describe('workflow parity core helpers', () => {
       'coverage',
       'package',
       'build',
+      'dead_code',
       'dirty_tree'
     ]);
     expect(result.blockers.length).toBeGreaterThan(0);

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "projectId": "Terrace",
+  "preCommitGates": [
+    "test_quality",
+    "pre_cr"
+  ],
+  "fullGates": [
+    "test_quality",
+    "pre_cr"
+  ]
+}

@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/corpus-eval.test.ts tests/expected-blocker-ergonomics.test.ts tests/implemented-placeholder-commands.test.ts --reporter=verbose && pnpm typecheck && pnpm lint && ./src/terrace-tools.cjs security check --json && ./src/terrace-tools.cjs corpus run --sample --json && ./src/terrace-tools.cjs corpus report --json
-lastVerifiedAt: "2026-06-23T17:38:13-04:00"
+lastVerifiedCommand: pnpm exec vitest run tests/workflow-helpers.test.ts tests/workflow-commands.test.ts --reporter=verbose && pnpm lint && pnpm typecheck && pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts
+lastVerifiedAt: "2026-06-23T22:50:40-04:00"
 ---
 
 ## Current State
@@ -131,6 +131,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - May 19: Added `terrace planning refresh` / `terrace planning init` to regenerate `.planning` from Terrace state and repo analysis with deterministic JSON output, plus Phase 1 planning-parity tests that verify repeated refreshes and `terrace port gsd --verify-parity`.
 - June 23: Refreshed the full sample corpus after the user-driven interrogate flow and planning refresh command; the run reports zero product weaknesses and zero harness/environment issues, with one additional expected security-check blocker from current npm dependency-audit findings in the Terrace package lock.
 - June 23: Rectified the Terrace-owned corpus blockers by making security checks production-dependency scoped plus generated-evidence aware, and by repairing migrated-GSD partial agent assets before final corpus classification. The latest sample improved to 767 passes and 138 expected blockers.
+- June 23: Added focused pure-helper coverage for workflow execution queue construction and senior-cycle artifact gates, then extracted those helpers from `packages/terrace-core/src/workflow.cjs` into `workflow-helpers.cjs` without changing CLI routing.
 
 ## Open Problems
 
@@ -167,6 +168,9 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Expected-blocker ergonomics focused tests:** `npm test -- tests/expected-blocker-ergonomics.test.ts tests/core-init.test.ts tests/corpus-eval.test.ts -- --runInBand` PASS, covering PRD overwrite guidance, spec validation guidance, ship/report/security blockers, partial agent assets, and corpus CLI commands
 - **Corpus CLI:** `node src/terrace-tools.cjs corpus run --dry-run-plan --sample --json` PASS; `node src/terrace-tools.cjs corpus report --json` PASS and returns run id, totals, report path, and evidence path
 - **Package:** `npm run package:dry-run` PASS after adding the corpus wrapper; package dry-run reported `@jakyeamos33/terrace@0.1.2`, 731.1 kB package size, 10.6 MB unpacked size, 2342 own files, and 2342 total files
+- **Workflow helper remediation:** `pnpm exec vitest run tests/workflow-helpers.test.ts tests/workflow-commands.test.ts --reporter=verbose` PASS, 2 files and 32 tests
+- **Current verification:** `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts` PASS, 38 files and 291 tests
+- **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 291 tests pass.
 - **Git status:** expected-blocker ergonomics implementation committed on `codex/expected-blocker-ergonomics`; truth file records the new state
 
 ## Next Concrete Steps

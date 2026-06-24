@@ -117,6 +117,22 @@ describe('expected blocker ergonomics', () => {
     }));
   });
 
+  it('surfaces dead-code readiness warnings in human ship-check output', () => {
+    initCore(tmpDir, { projectName: 'Ship UX' });
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "process.exit(0)"'
+      }
+    }, null, 2), 'utf-8');
+
+    const result = runTerrace(tmpDir, ['ship', 'check', '--full']);
+
+    expect(result.status).toBe(1);
+    expect(result.stdout).toContain('Warnings:');
+    expect(result.stdout).toContain('Dead code: warning - DEAD_CODE_SCRIPT_MISSING');
+    expect(result.stdout).toContain('ship_gates.dead_code');
+  });
+
   it('gives report ceremony cleanup guidance', () => {
     initCore(tmpDir, { projectName: 'Report UX' });
     fs.mkdirSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'demo'), { recursive: true });

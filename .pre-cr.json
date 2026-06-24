@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "coveragePaths": [
+    "coverage/lcov.info",
+    "coverage/coverage-final.json",
+    ".nyc_output/coverage.json",
+    "coverage.lcov",
+    "lcov.info",
+    "coverage.out"
+  ],
+  "coverageFormat": "auto",
+  "threshold": 80,
+  "checks": {
+    "coverage": true,
+    "security": true,
+    "checklist": true
+  },
+  "testCommand": "pnpm test -- --coverage"
+}

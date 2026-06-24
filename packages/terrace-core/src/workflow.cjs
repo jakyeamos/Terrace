@@ -4,7 +4,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
-const { phaseEffortDefault } = require('./config.cjs');
+const { phaseEffortDefault, readConfig } = require('./config.cjs');
 const { runAudit } = require('./audit.cjs');
 const { agentAssetStatus } = require('./agents.cjs');
 const { blocker, topBlockers, warning } = require('./guidance.cjs');
@@ -12,6 +12,15 @@ const { runDoctor } = require('./health.cjs');
 const { analyzeRepository, bulletList } = require('./repo-analysis.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
 const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
+const {
+  buildPhaseExecutionQueue,
+  featureRef,
+  normalizeFeatureId,
+  normalizeTier,
+  seniorArtifactRefs,
+  seniorRequirements,
+  seniorCycleGateStatus
+} = require('./workflow-helpers.cjs');
 const {
   reportUpdate,
   reportShipCheck,
@@ -207,21 +216,6 @@ function updatePhase(state, phaseId, fields) {
   };
 }
 
-function executionQueueForPhase(phase, context, discovered) {
-  const plans = context.plans.length > 0 ? context.plans : [{ id: phase.id + '-plan', title: phase.title, source_ref: phase.plan_ref || phase.source_ref || null }];
-  const commands = discovered.checks.filter((check) => check.exists).map((check) => check.command);
-  return plans.map((plan, index) => ({
-    id: plan.id || phase.id + '-task-' + String(index + 1),
-    title: plan.title || 'Execute ' + phase.title,
-    source_ref: plan.source_ref || null,
-    status: 'ready',
-    wave: index + 1,
-    likely_files: context.likely_files,
-    validation_commands: commands,
-    agent_prompt: 'Implement ' + (plan.title || phase.title) + ' for ' + phase.id + ', then run the listed validation commands and update Terrace state.'
-  }));
-}
-
 function executionLinesForPhase(phase, queue, discovered, effort) {
   return [
     '# Execution Queue: ' + phase.title,
@@ -318,6 +312,45 @@ function runCommandFor(packageManager, scriptName) {
   return [packageManager, 'run', scriptName];
 }
 
+function deadCodeGateConfig(cwd) {
+  const config = readConfig(cwd);
+  const gate = config.ship_gates && config.ship_gates.dead_code && typeof config.ship_gates.dead_code === 'object'
+    ? config.ship_gates.dead_code
+    : {};
+  const configuredScripts = Array.isArray(gate.scripts)
+    ? gate.scripts.filter((script) => typeof script === 'string' && script.trim()).map((script) => script.trim())
+    : typeof gate.script === 'string' && gate.script.trim()
+      ? [gate.script.trim()]
+      : [];
+  return {
+    enabled: gate.enabled !== false,
+    reason: typeof gate.reason === 'string' ? gate.reason : null,
+    configured: configuredScripts.length > 0,
+    scripts: configuredScripts.length > 0 ? configuredScripts : ['dead-code', 'deadcode', 'knip', 'unused', 'unused:check', 'depcheck']
+  };
+}
+
+function discoverDeadCodeGate(cwd, scripts, packageManager) {
+  const config = deadCodeGateConfig(cwd);
+  const foundScript = config.enabled
+    ? config.scripts.find((script) => Object.prototype.hasOwnProperty.call(scripts, script)) || null
+    : null;
+  return {
+    enabled: config.enabled,
+    configured: config.configured,
+    skipped: !config.enabled,
+    reason: config.reason,
+    scripts: config.scripts,
+    script: foundScript || config.scripts[0] || null,
+    exists: Boolean(foundScript),
+    command: foundScript ? runCommandFor(packageManager, foundScript).join(' ') : null
+  };
+}
+
+function pnpmSetScriptCommand(scriptName, command) {
+  return 'pnpm pkg set scripts["' + scriptName + '"]="' + command + '"';
+}
+
 function discoverProjectCommands(cwd) {
   const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
   const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
@@ -343,6 +376,7 @@ function discoverProjectCommands(cwd) {
     package_manager: packageManager,
     scripts,
     checks,
+    dead_code: discoverDeadCodeGate(cwd, scripts, packageManager),
     agent_assets: agentAssets,
     warnings: agentAssets.partial ? [warning({
       code: 'PARTIAL_AGENT_ASSETS',
@@ -351,44 +385,6 @@ function discoverProjectCommands(cwd) {
       next_command: 'terrace init',
       remediation: 'Run `terrace init`; it installs missing generated agent assets without overwriting user-owned files.'
     })] : []
-  };
-}
-
-function normalizeFeatureId(feature) {
-  const id = String(feature || '').trim().toLowerCase().replace(/[^a-z0-9_.-]+/g, '-').replace(/^-+|-+$/g, '');
-  if (!id || id.split(/[.-]+/).every((part) => part === '')) {
-    throw new Error('Usage: terrace <senior-cycle-command> <feature>');
-  }
-  return id;
-}
-
-function normalizeTier(tier) {
-  const normalized = String(tier || '').toLowerCase();
-  if (['small', 'medium', 'large'].includes(normalized)) {
-    return normalized;
-  }
-  return 'medium';
-}
-
-function featureRef(featureId) {
-  return 'docs/terrace/features/' + featureId;
-}
-
-function seniorArtifactRefs(featureId) {
-  const base = featureRef(featureId);
-  return {
-    alignment: base + '/ALIGNMENT.md',
-    interrogation: base + '/INTERROGATION.md',
-    design: base + '/DESIGN.md',
-    test_plan: 'docs/testing/TEST-PLAN.md',
-    observability: base + '/OBSERVABILITY.md',
-    validation: base + '/VALIDATION.md',
-    cleanup: base + '/CLEANUP.md',
-    codebase_map: 'docs/terrace/codebase/MAP.md',
-    codebase_architecture: 'docs/terrace/codebase/ARCHITECTURE.md',
-    codebase_risks: 'docs/terrace/codebase/RISKS.md',
-    codebase_testing: 'docs/terrace/codebase/TESTING.md',
-    codebase_observability: 'docs/terrace/codebase/OBSERVABILITY.md'
   };
 }
 
@@ -431,118 +427,12 @@ function recordSeniorArtifact(cwd, featureId, tier, artifactKey, artifactRef) {
   saveState(cwd, nextState);
 }
 
-function seniorRequirements(featureId, tier) {
-  const refs = seniorArtifactRefs(featureId);
-  const normalizedTier = normalizeTier(tier);
-  if (normalizedTier === 'small') {
-    return {
-      tier: normalizedTier,
-      execute: [refs.test_plan],
-      implement: [refs.test_plan],
-      ship: [],
-      complete: [],
-      all: [refs.test_plan]
-    };
-  }
-  if (normalizedTier === 'medium') {
-    return {
-      tier: normalizedTier,
-      execute: [refs.alignment, refs.test_plan],
-      implement: [refs.test_plan],
-      ship: [refs.observability, refs.validation],
-      complete: [refs.cleanup],
-      all: [refs.alignment, refs.test_plan, refs.observability, refs.validation, refs.cleanup]
-    };
-  }
-  return {
-    tier: normalizedTier,
-    execute: [
-      refs.alignment,
-      refs.interrogation,
-      refs.codebase_map,
-      refs.codebase_architecture,
-      refs.codebase_risks,
-      refs.design,
-      refs.test_plan
-    ],
-    implement: [refs.test_plan],
-    ship: [refs.observability, refs.validation],
-    complete: [refs.cleanup],
-    all: [
-      refs.alignment,
-      refs.interrogation,
-      refs.codebase_map,
-      refs.codebase_architecture,
-      refs.codebase_risks,
-      refs.codebase_testing,
-      refs.codebase_observability,
-      refs.design,
-      refs.test_plan,
-      refs.observability,
-      refs.validation,
-      refs.cleanup
-    ]
-  };
-}
-
-function blockerForArtifact(artifact) {
-  if (artifact.endsWith('/ALIGNMENT.md')) {
-    return { code: 'ALIGNMENT_REQUIRED', artifact, message: 'Tier 2+ work requires alignment before execution.' };
-  }
-  if (artifact.endsWith('/INTERROGATION.md')) {
-    return { code: 'INTERROGATION_REQUIRED', artifact, message: 'Large/risky work requires explicit edge-case and failure-mode interrogation.' };
-  }
-  if (artifact.includes('/codebase/')) {
-    return { code: 'CODEBASE_MAPPING_REQUIRED', artifact, message: 'Large/risky work requires codebase context before execution.' };
-  }
-  if (artifact.endsWith('/DESIGN.md')) {
-    return { code: 'DESIGN_REQUIRED', artifact, message: 'Large/risky work requires architecture and maintainability decisions before execution.' };
-  }
-  if (artifact.endsWith('/TEST-PLAN.md')) {
-    return { code: 'TEST_PLAN_REQUIRED', artifact, message: 'No implementation without a behavior-first test plan.' };
-  }
-  if (artifact.endsWith('/OBSERVABILITY.md')) {
-    return { code: 'OBSERVABILITY_REQUIRED', artifact, message: 'No ship without observability and debugging intent.' };
-  }
-  if (artifact.endsWith('/VALIDATION.md')) {
-    return { code: 'VALIDATION_REQUIRED', artifact, message: 'No ship without production validation and rollback conditions.' };
-  }
-  if (artifact.endsWith('/CLEANUP.md')) {
-    return { code: 'CLEANUP_REQUIRED', artifact, message: 'No completion without cleanup ownership.' };
-  }
-  return { code: 'SENIOR_ARTIFACT_REQUIRED', artifact, message: 'Required senior-cycle artifact is missing.' };
-}
-
-function missingArtifacts(cwd, artifacts) {
-  return artifacts.filter((artifact) => !artifactExists(cwd, artifact));
-}
-
 function seniorCycleStatus(cwd, feature, tier) {
   const featureId = normalizeFeatureId(feature);
   const normalizedTier = normalizeTier(tier);
   const requirements = seniorRequirements(featureId, normalizedTier);
-  const missingExecute = missingArtifacts(cwd, requirements.execute);
-  const missingImplement = missingArtifacts(cwd, requirements.implement);
-  const missingShip = missingArtifacts(cwd, requirements.ship);
-  const missingComplete = missingArtifacts(cwd, requirements.complete);
-  const blockers = Array.from(new Set([...missingExecute, ...missingImplement, ...missingShip, ...missingComplete]))
-    .map((artifact) => blockerForArtifact(artifact));
-  return {
-    feature_id: featureId,
-    tier: normalizedTier,
-    architecture_default: 'sustainable',
-    no_band_aid_rule: true,
-    required_artifacts: requirements.all,
-    missing_artifacts: Array.from(new Set([...missingExecute, ...missingImplement, ...missingShip, ...missingComplete])),
-    allowed: {
-      execute: missingExecute.length === 0,
-      implement: missingImplement.length === 0,
-      ship: missingShip.length === 0,
-      complete: missingComplete.length === 0
-    },
-    blockers,
-    next_command: blockers.length > 0 ? commandForMissingArtifact(featureId, blockers[0].artifact) : 'terrace ship check'
-  };
+  const existingArtifacts = requirements.all.filter((artifact) => artifactExists(cwd, artifact));
+  return seniorCycleGateStatus({ feature: featureId, tier: normalizedTier, existingArtifacts });
 }
 
 function seniorFeatureForState(state, featureId, fallbackTier) {
@@ -615,34 +505,6 @@ function verificationBlocker(artifact) {
     next_command: 'terrace quick complete <quick-task-id>',
     remediation: 'Write verification evidence before completing this quick task.'
   });
-}
-
-function commandForMissingArtifact(featureId, artifact) {
-  if (artifact.endsWith('/ALIGNMENT.md')) {
-    return 'terrace align ' + featureId;
-  }
-  if (artifact.endsWith('/INTERROGATION.md')) {
-    return 'terrace interrogate ' + featureId;
-  }
-  if (artifact.includes('/codebase/')) {
-    return 'terrace map-codebase';
-  }
-  if (artifact.endsWith('/DESIGN.md')) {
-    return 'terrace design ' + featureId;
-  }
-  if (artifact.endsWith('/TEST-PLAN.md')) {
-    return 'terrace test-plan ' + featureId;
-  }
-  if (artifact.endsWith('/OBSERVABILITY.md')) {
-    return 'terrace observe ' + featureId;
-  }
-  if (artifact.endsWith('/VALIDATION.md')) {
-    return 'terrace validate-prod ' + featureId;
-  }
-  if (artifact.endsWith('/CLEANUP.md')) {
-    return 'terrace cleanup ' + featureId;
-  }
-  return 'terrace next';
 }
 
 function alignFeature(cwd, feature, options) {
@@ -1068,7 +930,7 @@ function phaseExecute(cwd, phaseId) {
   const context = phaseContext(cwd, state, phase);
   const discovered = discoverProjectCommands(cwd);
   const effort = phaseEffortDefault(cwd);
-  const queue = executionQueueForPhase(phase, context, discovered);
+  const queue = buildPhaseExecutionQueue(phase, context, discovered);
   if (blockers.length > 0) {
     return {
       allowed: false,
@@ -1555,7 +1417,8 @@ function migrationReadinessCheck(cwd) {
   }
 }
 
-function commandCheck(cwd, command, category) {
+function commandCheck(cwd, command, category, options) {
+  const opts = options || {};
   try {
     if (process.platform === 'win32' && command[0] === 'npm') {
       execFileSync(command.join(' '), { cwd, stdio: 'ignore', shell: true });
@@ -1569,11 +1432,11 @@ function commandCheck(cwd, command, category) {
       command: command.join(' '),
       passed: false,
       blocking: [blocker({
-        code: 'QUALITY_GATE_FAILED',
-        message: command.join(' ') + ' failed.',
-        why_blocked: 'Release readiness requires the project quality gate to pass.',
+        code: opts.failure_code || 'QUALITY_GATE_FAILED',
+        message: opts.failure_message || command.join(' ') + ' failed.',
+        why_blocked: opts.why_blocked || 'Release readiness requires the project quality gate to pass.',
         next_command: command.join(' '),
-        remediation: 'Run the command locally and fix the reported failures.'
+        remediation: opts.remediation || 'Run the command locally and fix the reported failures.'
       })]
     };
   }
@@ -1601,6 +1464,57 @@ function scriptCheck(cwd, discovered, check) {
     return missingScriptCheck(check);
   }
   return commandCheck(cwd, runCommandFor(discovered.package_manager, check.script), check.category);
+}
+
+function deadCodeCheck(cwd, discovered) {
+  const check = discovered.dead_code;
+  if (!check.enabled) {
+    return {
+      category: 'dead_code',
+      command: null,
+      passed: true,
+      skipped: true,
+      blocking: [],
+      warnings: [warning({
+        code: 'DEAD_CODE_GATE_SKIPPED',
+        message: 'Dead-code readiness gate is intentionally skipped.',
+        why_blocked: 'Terrace did not enforce the dead-code signal because this repo disabled it in .terrace/config.json.',
+        next_command: 'terrace ship check --full',
+        remediation: 'Remove `ship_gates.dead_code.enabled: false` when the repo has a dead-code script to enforce.',
+        reason: check.reason
+      })]
+    };
+  }
+  if (!check.exists) {
+    const item = {
+      code: 'DEAD_CODE_SCRIPT_MISSING',
+      message: check.configured
+        ? 'Configured dead-code package script was not found: ' + check.script + '.'
+        : 'No package script was found for the dead-code readiness gate.',
+      why_blocked: check.configured
+        ? 'Terrace cannot enforce the configured dead-code gate until the package script exists.'
+        : 'Terrace could not enforce this optional dead-code signal because the script is missing.',
+      next_command: pnpmSetScriptCommand(check.script, 'knip or project dead-code command'),
+      remediation: check.configured
+        ? 'Add the configured `' + check.script + '` package script or update `ship_gates.dead_code.scripts` in `.terrace/config.json`.'
+        : 'Add a package script such as `dead-code`, `knip`, or configure `ship_gates.dead_code.scripts`; set `ship_gates.dead_code.enabled` to false with a reason to skip intentionally.',
+      scripts: check.scripts
+    };
+    return {
+      category: 'dead_code',
+      command: null,
+      passed: !check.configured,
+      skipped: !check.configured,
+      blocking: check.configured ? [blocker(item)] : [],
+      warnings: check.configured ? [] : [warning(item)]
+    };
+  }
+  return commandCheck(cwd, runCommandFor(discovered.package_manager, check.script), 'dead_code', {
+    failure_code: 'DEAD_CODE_GATE_FAILED',
+    failure_message: 'Dead-code readiness script failed: ' + check.command + '.',
+    why_blocked: 'Release readiness requires the configured dead-code gate to pass.',
+    remediation: 'Run the dead-code script locally and remove, justify, or configure the reported unused code.'
+  });
 }
 
 function timedCategory(factory) {
@@ -1642,6 +1556,7 @@ function shipCheck(cwd, options) {
     for (const check of discovered.checks) {
       factories.push(() => scriptCheck(cwd, discovered, check));
     }
+    factories.push(() => deadCodeCheck(cwd, discovered));
   }
   if (mode === 'local' || mode === 'full') {
     factories.push(() => commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree'));

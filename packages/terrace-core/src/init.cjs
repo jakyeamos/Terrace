@@ -29,6 +29,11 @@ function initCore(cwd, options) {
       default_mode: 'strict',
       allow_low_effort: true,
       phase_effort_default: 'standard'
+    },
+    ship_gates: {
+      dead_code: {
+        enabled: true
+      }
     }
   });
   created.push('.terrace/config.json');

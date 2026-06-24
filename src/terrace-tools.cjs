@@ -281,7 +281,8 @@ function humanBlockerOutput(data) {
     return null;
   }
   const blockers = Array.isArray(data.blockers) ? data.blockers : Array.isArray(data.blocking) ? data.blocking : [];
-  if (data.passed !== false && blockers.length === 0) {
+  const warnings = Array.isArray(data.warnings) ? data.warnings : [];
+  if (data.passed !== false && blockers.length === 0 && warnings.length === 0) {
     return null;
   }
   const lines = [];
@@ -292,6 +293,26 @@ function humanBlockerOutput(data) {
     lines.push('Mode: ' + data.mode);
   }
   lines.push('Blockers: ' + String(blockers.length));
+  lines.push('Warnings: ' + String(warnings.length));
+  if (Array.isArray(data.categories)) {
+    const deadCode = data.categories.find((category) => category && category.category === 'dead_code');
+    if (deadCode) {
+      const deadCodeBlocker = Array.isArray(deadCode.blocking) ? deadCode.blocking[0] : null;
+      const deadCodeWarning = Array.isArray(deadCode.warnings) ? deadCode.warnings[0] : null;
+      const signal = deadCodeBlocker || deadCodeWarning;
+      if (signal) {
+        lines.push('Dead code: ' + (deadCodeBlocker ? 'blocked' : 'warning') + ' - ' + (signal.code || 'DEAD_CODE') + ': ' + (signal.message || 'Dead-code readiness needs attention.'));
+        if (signal.remediation) {
+          lines.push('  Fix: ' + signal.remediation);
+        }
+        if (signal.next_command) {
+          lines.push('  Next: ' + signal.next_command);
+        }
+      } else {
+        lines.push('Dead code: ' + (deadCode.skipped ? 'skipped' : deadCode.passed ? 'passed' : 'failed'));
+      }
+    }
+  }
   for (const blocker of blockers.slice(0, 3)) {
     lines.push('- ' + (blocker.code || 'BLOCKED') + ': ' + (blocker.message || 'Terrace gate is blocked.'));
     if (blocker.file || blocker.artifact) {
@@ -302,6 +323,17 @@ function humanBlockerOutput(data) {
     }
     if (blocker.next_command) {
       lines.push('  Next: ' + blocker.next_command);
+    }
+  }
+  if (blockers.length === 0) {
+    for (const warning of warnings.slice(0, 3)) {
+      lines.push('- ' + (warning.code || 'WARNING') + ': ' + (warning.message || 'Terrace gate warning.'));
+      if (warning.remediation) {
+        lines.push('  Fix: ' + warning.remediation);
+      }
+      if (warning.next_command) {
+        lines.push('  Next: ' + warning.next_command);
+      }
     }
   }
   if (data.next_command) {
