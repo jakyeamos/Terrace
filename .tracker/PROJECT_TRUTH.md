@@ -84,6 +84,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Recent Progress
 
+- June 30: Removed the remaining stale generated-index ignore entry and neutralized historical generated-integration references in planning docs.
 - June 30: Converted Terrace to pnpm-first project commands and package metadata, replaced `package-lock.json` with `pnpm-lock.yaml`, centralized package-manager command rendering, and taught security checks to use pnpm lockfiles and pnpm audit output.
 - June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
 - June 30: Made `terrace port gsd` install non-overwriting repo-local agent assets by default and broadened migrated-GSD phase extraction so legacy plan evidence yields a usable roadmap phase target.
@@ -97,7 +98,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - April 28: Fixed coverage to measure `packages/terrace-core/src`; current coverage passes thresholds.
 - April 28: Added README, license, changelog, architecture, security, compatibility, contributing, and release docs.
 - April 28: Added GitHub CI and release dry-run workflows.
-- April 28: Removed tracked GitNexus skill artifacts and stale `.terrace/project-state.json`.
+- April 28: Removed tracked stale skill artifacts and stale `.terrace/project-state.json`.
 - April 28: Added `.terrace/state.json`, config, preset registry, events, and default rules for this repo.
 - April 28: Expanded rule domains and added guarded non-dry-run `terrace port gsd` migration.
 - April 28: Expanded `terrace port gsd` to convert core GSD artifacts, emit converted/skipped details, and produce an audit-healthy migrated fixture.

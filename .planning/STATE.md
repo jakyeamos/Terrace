@@ -16,7 +16,7 @@ Completed this slice:
 - Added npm CLI metadata, publish allowlist, README, license, changelog, support docs, CI, release dry-run workflow, and issue/PR templates.
 - Added `typecheck`, `lint`, `test`, `test:coverage`, `package:dry-run`, and `ci` scripts; `npm run ci` passes locally.
 - Initialized Terrace against this repo with `.terrace/state.json`, config, preset registry, events, and rule packs; removed stale `.terrace/project-state.json`.
-- Removed remaining tracked GitNexus skill artifacts from `.agents` and `.claude`.
+- Removed remaining tracked stale skill artifacts from `.agents` and `.claude`.
 - Added CLI `--help`/`--version`, expanded `terrace port gsd` from dry-run only to guarded migration, and populated architecture/pentest/maintainability rules.
 - Added product-readiness and GSD migration tests; current suite is 189 passing tests.
 - Expanded `terrace port gsd` to convert `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, and roadmap phase headings into Terrace docs/state, report unsupported artifacts, avoid doc overwrites without `--force`, and produce a review checklist.
