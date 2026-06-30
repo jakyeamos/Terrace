@@ -1693,6 +1693,10 @@ function routePlainText(cwd, text) {
   const state = loadState(cwd);
   const phase = findPhaseByText(state, input);
 
+  if (/\b(gsd\s+replacement|replace\s+gsd|replacing\s+gsd|workflow\s+parity|adoption\s+status|terrace\s+ready|is\s+terrace\s+ready)\b/.test(lowered)) {
+    const { adoptionStatus } = require('./adoption.cjs');
+    return { input, command: 'terrace adoption status', result: adoptionStatus(cwd) };
+  }
   if (/\/(?:terrace:)?execute-phase-complete\s+/i.test(input) && phase) {
     return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
   }

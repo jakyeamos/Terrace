@@ -71,7 +71,9 @@ describe('production lifecycle edge coverage', () => {
     const read = reportRead(tmpDir);
 
     expect(read.report_card.score).toBeGreaterThanOrEqual(85);
-    expect(read.report_card.status_label).toBe('tier_one_ready');
+    expect(read.report_card.status_label).toBe('baseline_ready');
+    expect(read.report_card.claim_scope).toBe('baseline_readiness');
+    expect(read.report_card.claim_scope_note).toContain('baseline governance health');
     expect(read.report_card.checks).toContainEqual(expect.objectContaining({
       id: 'production_preflight',
       passed: true,

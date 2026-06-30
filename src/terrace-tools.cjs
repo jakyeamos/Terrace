@@ -89,6 +89,7 @@ const {
   designSourceImport,
   designSourceDiff,
   runSecurityCheck,
+  adoptionStatus,
   settingsShow,
   settingsSetEffort,
   newProjectFromPrd,
@@ -115,6 +116,7 @@ const HELP_TEXT = [
   '  terrace security check       Run deterministic local security checks',
   '  terrace corpus run           Run the local Terrace corpus evaluator',
   '  terrace corpus report        Show the latest corpus report summary',
+  '  terrace adoption status      Report GSD replacement readiness',
   '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
   '  terrace planning refresh    Initialize or refresh .planning from Terrace state',
   '  terrace next                 Show the next workflow action',
@@ -1136,6 +1138,15 @@ async function main() {
         return;
       }
       fail('Unknown corpus subcommand: ' + sub + '. Use: run, report', { json });
+      return;
+    }
+    case 'adoption': {
+      const sub = args[1];
+      if (sub === 'status') {
+        output(adoptionStatus(cwd), { json });
+        return;
+      }
+      fail('Unknown adoption subcommand: ' + sub + '. Use: status', { json });
       return;
     }
     case 'spec': {

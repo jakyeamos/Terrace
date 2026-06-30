@@ -20,6 +20,7 @@ module.exports = {
   ...require('./workflow-helpers.cjs'),
   ...require('./workflow.cjs'),
   ...require('./lifecycle.cjs'),
+  ...require('./adoption.cjs'),
   ...require('./command-contracts.cjs'),
   ...require('./validate.cjs'),
   ...require('./presets.cjs'),

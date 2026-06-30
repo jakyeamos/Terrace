@@ -42,6 +42,7 @@ const {
   reviewAi,
   seniorCycleStatus,
   shipCheck,
+  adoptionStatus,
   settingsSetEffort,
   settingsShow
 } = require('../packages/terrace-core/src/index.cjs');
@@ -695,6 +696,17 @@ describe('workflow parity core helpers', () => {
   });
 
   it('routes natural-language intent and slash-shaped compatibility commands for agents', () => {
+    process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.0.0';
+    expect(routePlainText(tmpDir, 'how far is Terrace from replacing GSD')).toMatchObject({
+      command: 'terrace adoption status',
+      result: {
+        replacement: 'gsd',
+        checks: expect.arrayContaining([
+          expect.objectContaining({ name: 'version_alignment', passed: false })
+        ])
+      }
+    });
+    delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
     expect(routePlainText(tmpDir, 'plan phase 11')).toMatchObject({
       command: 'terrace phase plan phase-11-notifications',
       result: { phase_id: 'phase-11-notifications' }
@@ -733,6 +745,31 @@ describe('workflow parity core helpers', () => {
       command: 'terrace history'
     });
     expect(() => routePlainText(tmpDir, 'make the app better somehow')).toThrow(/Unsupported plain-text Terrace command/);
+  });
+
+  it('reports adoption readiness gaps without mutating project state', () => {
+    process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.0.0';
+    const before = fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8');
+
+    const status = adoptionStatus(tmpDir);
+
+    delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+    expect(status).toMatchObject({
+      command: 'terrace adoption status',
+      replacement: 'gsd',
+      ready: false,
+      blockers: expect.arrayContaining([
+        expect.objectContaining({ name: 'package_manager' }),
+        expect.objectContaining({ name: 'version_alignment' }),
+        expect.objectContaining({ name: 'agent_assets' })
+      ])
+    });
+    expect(status.checks).toContainEqual(expect.objectContaining({
+      name: 'report_claim_scope',
+      passed: true,
+      evidence: expect.objectContaining({ claim_scope: 'delivery_readiness' })
+    }));
+    expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(before);
   });
 
   it('reports failed ship checks as structured categories', () => {

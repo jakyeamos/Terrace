@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, and a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses.
+summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, and a read-only `terrace adoption status` command for GSD replacement readiness.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Review the remaining downstream corpus security findings in sampled repositories, then decide whether dead-code scanning belongs in the release gate.
 blockers: []
-lastUpdated: 2026-06-23
+lastUpdated: 2026-06-30
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: npm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/workflow-helpers.test.ts tests/workflow-commands.test.ts --reporter=verbose && pnpm lint && pnpm typecheck && pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts
-lastVerifiedAt: "2026-06-23T22:50:40-04:00"
+lastVerifiedCommand: pnpm exec vitest run tests/workflow-commands.test.ts tests/lifecycle-coverage.test.ts --reporter=verbose
+lastVerifiedAt: "2026-06-30T20:49:38-04:00"
 ---
 
 ## Current State
@@ -82,6 +82,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Recent Progress
 
+- June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
 - April 28: Added CLI `--help` and `--version`.
 - April 28: Added canonical scripts: lint, typecheck, test, coverage, package dry-run, and ci.
 - April 28: Fixed coverage to measure `packages/terrace-core/src`; current coverage passes thresholds.
@@ -170,6 +171,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Package:** `npm run package:dry-run` PASS after adding the corpus wrapper; package dry-run reported `@jakyeamos33/terrace@0.1.2`, 731.1 kB package size, 10.6 MB unpacked size, 2342 own files, and 2342 total files
 - **Workflow helper remediation:** `pnpm exec vitest run tests/workflow-helpers.test.ts tests/workflow-commands.test.ts --reporter=verbose` PASS, 2 files and 32 tests
 - **Current verification:** `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts` PASS, 38 files and 291 tests
+- **Adoption status focused verification:** `pnpm exec vitest run tests/workflow-commands.test.ts tests/lifecycle-coverage.test.ts --reporter=verbose` PASS, 34 tests
 - **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 291 tests pass.
 - **Git status:** expected-blocker ergonomics implementation committed on `codex/expected-blocker-ergonomics`; truth file records the new state
 

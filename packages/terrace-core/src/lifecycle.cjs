@@ -249,6 +249,15 @@ function buildReportCard(cwd, command) {
   const hasTestScripts = Boolean(scripts.test && scripts['test:coverage']);
   const hasRuleAudit = Array.isArray(state.rule_audits) && state.rule_audits.length > 0;
   const activeWaivers = waiverEntries(state).filter((entry) => entry.status !== 'resolved');
+  const roadmapPhases = state.roadmap && Array.isArray(state.roadmap.phases) ? state.roadmap.phases : [];
+  const completedOutcomeCount = inputs.completedPhases.length + inputs.completedQuickTasks.length;
+  const claimScope = hasActiveFeature
+    ? 'feature_readiness'
+    : completedOutcomeCount > 0
+      ? 'delivery_readiness'
+      : roadmapPhases.length > 0
+        ? 'roadmap_readiness'
+        : 'baseline_readiness';
   const checks = [
     reportCheck('senior_cycle', 'Senior Cycle artifacts', inputs.missingSeniorArtifacts.length === 0, 20, {
       active_feature: inputs.feature ? inputs.feature.feature_id : null,
@@ -290,6 +299,12 @@ function buildReportCard(cwd, command) {
     }, 'Run `terrace rule audit` when available.')
   ];
   const score = checks.reduce((sum, check) => sum + check.earned, 0);
+  const computedStatus = scoreStatus(score);
+  const statusLabel = claimScope === 'baseline_readiness' && score >= 95
+    ? 'baseline_ready'
+    : claimScope === 'roadmap_readiness' && score >= 95
+      ? 'roadmap_ready'
+      : computedStatus;
   const blockers = [
     ...inputs.missingSeniorArtifacts.map((artifact) => ({
       code: 'SENIOR_ARTIFACT_MISSING',
@@ -313,7 +328,13 @@ function buildReportCard(cwd, command) {
     last_updated_command: command || 'terrace report update',
     score,
     max_score: checks.reduce((sum, check) => sum + check.points, 0),
-    status_label: scoreStatus(score),
+    status_label: statusLabel,
+    claim_scope: claimScope,
+    claim_scope_note: claimScope === 'baseline_readiness'
+      ? 'No active feature, roadmap phase, or completed Terrace outcome is present; this score proves baseline governance health, not completed delivery readiness.'
+      : claimScope === 'roadmap_readiness'
+        ? 'Roadmap state exists, but no active feature or completed Terrace outcome is present yet.'
+        : 'Score is backed by active or completed Terrace workflow evidence.',
     current_feature: inputs.feature,
     blockers,
     warnings,
@@ -370,6 +391,8 @@ function reportMarkdown(card) {
     '## Status',
     '- Score: ' + String(card.score) + '/' + String(card.max_score),
     '- Label: ' + card.status_label,
+    '- Claim scope: ' + (card.claim_scope || 'unknown'),
+    '- Claim note: ' + (card.claim_scope_note || 'No claim-scope note recorded.'),
     '- Last updated: ' + card.updated_at,
     '- Last command: ' + card.last_updated_command,
     '',
