@@ -7,7 +7,7 @@ import * as path from 'path';
 const NODE_BIN = process.execPath;
 const TERRACE_CLI = path.resolve(process.cwd(), 'src/terrace-tools.cjs');
 const { runSecurityCheck, securityShipCheck } = require('../packages/terrace-core/src/index.cjs') as {
-  runSecurityCheck: (cwd: string) => { status: string; blocking: Array<{ id: string }>; warnings: Array<{ id: string }> };
+  runSecurityCheck: (cwd: string) => { status: string; dependency_audit?: { package_manager: string; file: string; lockfile_present: boolean }; findings: Array<{ id: string; file_or_artifact?: string; evidence?: string }>; blocking: Array<{ id: string }>; warnings: Array<{ id: string; file_or_artifact?: string; evidence?: string }> };
   securityShipCheck: (cwd: string) => { passed: boolean; blocking: Array<{ code?: string }>; warnings: Array<{ code?: string }> };
 };
 
@@ -75,6 +75,21 @@ describe('implemented placeholder command behavior', () => {
 
     fs.writeFileSync(path.join(tmpDir, '.terrace', 'security', 'latest.json'), '{', 'utf-8');
     expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_INVALID' }));
+  });
+
+  it('uses pnpm lockfiles for dependency audit evidence', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf-8'));
+    packageJson.packageManager = 'pnpm@11.7.0';
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify(packageJson, null, 2), 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'pnpm-lock.yaml'), 'lockfileVersion: 9.0\n', 'utf-8');
+
+    const result = runSecurityCheck(tmpDir);
+
+    expect(result.dependency_audit).toMatchObject({
+      package_manager: 'pnpm',
+      file: 'pnpm-lock.yaml',
+      lockfile_present: true
+    });
   });
 
   it('generates static and imported review findings with the stable schema', () => {

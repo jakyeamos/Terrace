@@ -12,6 +12,7 @@ const { runDoctor } = require('./health.cjs');
 const { analyzeRepository, bulletList } = require('./repo-analysis.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
 const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
+const { packageManagerFor, runCommandFor, setScriptCommand, packageDryRunCommand } = require('./package-manager.cjs');
 const {
   buildPhaseExecutionQueue,
   featureRef,
@@ -295,23 +296,6 @@ function findPhaseByText(state, text) {
   }) || null;
 }
 
-function packageManagerFor(cwd) {
-  if (fs.existsSync(path.resolve(cwd, 'pnpm-lock.yaml'))) {
-    return 'pnpm';
-  }
-  if (fs.existsSync(path.resolve(cwd, 'yarn.lock'))) {
-    return 'yarn';
-  }
-  return 'npm';
-}
-
-function runCommandFor(packageManager, scriptName) {
-  if (packageManager === 'yarn') {
-    return ['yarn', scriptName];
-  }
-  return [packageManager, 'run', scriptName];
-}
-
 function deadCodeGateConfig(cwd) {
   const config = readConfig(cwd);
   const gate = config.ship_gates && config.ship_gates.dead_code && typeof config.ship_gates.dead_code === 'object'
@@ -347,10 +331,6 @@ function discoverDeadCodeGate(cwd, scripts, packageManager) {
   };
 }
 
-function pnpmSetScriptCommand(scriptName, command) {
-  return 'pnpm pkg set scripts["' + scriptName + '"]="' + command + '"';
-}
-
 function discoverProjectCommands(cwd) {
   const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
   const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
@@ -358,9 +338,9 @@ function discoverProjectCommands(cwd) {
   const desired = [
     { category: 'typecheck', script: 'typecheck', required: false, suggested: 'tsc --noEmit' },
     { category: 'lint', script: 'lint', required: true, suggested: 'eslint .' },
-    { category: 'test', script: 'test', required: false, suggested: 'vitest run or npm test equivalent' },
+    { category: 'test', script: 'test', required: false, suggested: 'vitest run or project test equivalent' },
     { category: 'coverage', script: 'test:coverage', required: false, suggested: 'vitest run --coverage or project equivalent' },
-    { category: 'package', script: 'package:dry-run', required: false, suggested: 'npm pack --dry-run' },
+    { category: 'package', script: 'package:dry-run', required: false, suggested: packageDryRunCommand(packageManager) },
     { category: 'build', script: 'build', required: false, suggested: 'framework build command' }
   ];
   const checks = desired.map((item) => {
@@ -1442,10 +1422,10 @@ function commandCheck(cwd, command, category, options) {
   }
 }
 
-function missingScriptCheck(check) {
+function missingScriptCheck(discovered, check) {
   return {
     category: check.category,
-    command: check.script ? 'npm run ' + check.script : null,
+    command: check.script ? runCommandFor(discovered.package_manager, check.script).join(' ') : null,
     passed: true,
     skipped: true,
     blocking: [],
@@ -1453,7 +1433,7 @@ function missingScriptCheck(check) {
       code: 'QUALITY_SCRIPT_MISSING',
       message: 'No package script was found for ' + check.category + '.',
       why_blocked: 'Terrace could not enforce this optional quality signal because the script is missing.',
-      next_command: 'npm pkg set scripts.' + check.script + '="' + check.suggested + '"',
+      next_command: setScriptCommand(discovered.package_manager, check.script, check.suggested),
       remediation: 'Add a `' + check.script + '` script such as `' + check.suggested + '` if this gate should be enforced.'
     })]
   };
@@ -1461,7 +1441,7 @@ function missingScriptCheck(check) {
 
 function scriptCheck(cwd, discovered, check) {
   if (!check.exists) {
-    return missingScriptCheck(check);
+    return missingScriptCheck(discovered, check);
   }
   return commandCheck(cwd, runCommandFor(discovered.package_manager, check.script), check.category);
 }
@@ -1494,7 +1474,7 @@ function deadCodeCheck(cwd, discovered) {
       why_blocked: check.configured
         ? 'Terrace cannot enforce the configured dead-code gate until the package script exists.'
         : 'Terrace could not enforce this optional dead-code signal because the script is missing.',
-      next_command: pnpmSetScriptCommand(check.script, 'knip or project dead-code command'),
+      next_command: setScriptCommand(discovered.package_manager, check.script, 'knip or project dead-code command'),
       remediation: check.configured
         ? 'Add the configured `' + check.script + '` package script or update `ship_gates.dead_code.scripts` in `.terrace/config.json`.'
         : 'Add a package script such as `dead-code`, `knip`, or configure `ship_gates.dead_code.scripts`; set `ship_gates.dead_code.enabled` to false with a reason to skip intentionally.',

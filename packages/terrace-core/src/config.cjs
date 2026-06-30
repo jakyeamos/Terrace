@@ -2,25 +2,28 @@
 
 const fs = require('fs');
 const path = require('path');
+const { packageManagerFor, scriptCommand, testCommand } = require('./package-manager.cjs');
 
 function detectCommands(cwd) {
   const packagePath = path.resolve(cwd, 'package.json');
   if (fs.existsSync(packagePath)) {
     const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
     const scripts = pkg.scripts || {};
+    const packageManager = packageManagerFor(cwd);
     return {
-      test_command: scripts.test ? 'npm test' : null,
-      typecheck_command: scripts.typecheck ? 'npm run typecheck' : null,
-      lint_command: scripts.lint ? 'npm run lint' : null
+      package_manager: packageManager,
+      test_command: scripts.test ? testCommand(packageManager) : null,
+      typecheck_command: scripts.typecheck ? scriptCommand(packageManager, 'typecheck') : null,
+      lint_command: scripts.lint ? scriptCommand(packageManager, 'lint') : null
     };
   }
   if (fs.existsSync(path.resolve(cwd, 'pyproject.toml'))) {
-    return { test_command: 'pytest', typecheck_command: null, lint_command: null };
+    return { package_manager: null, test_command: 'pytest', typecheck_command: null, lint_command: null };
   }
   if (fs.existsSync(path.resolve(cwd, 'Cargo.toml'))) {
-    return { test_command: 'cargo test', typecheck_command: 'cargo check', lint_command: null };
+    return { package_manager: null, test_command: 'cargo test', typecheck_command: 'cargo check', lint_command: null };
   }
-  return { test_command: null, typecheck_command: null, lint_command: null };
+  return { package_manager: null, test_command: null, typecheck_command: null, lint_command: null };
 }
 
 function configPathFor(cwd) {

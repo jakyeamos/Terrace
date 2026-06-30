@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { analyzeRepository } = require('./repo-analysis.cjs');
+const { packageManagerFor, scriptCommand } = require('./package-manager.cjs');
 const { loadState } = require('./state.cjs');
 
 function slugify(value, fallback) {
@@ -38,29 +39,12 @@ function phaseDirectory(phase, index) {
   return number + '-' + slugify(title || phase.id, 'phase');
 }
 
-function packageManagerFor(cwd) {
-  if (fs.existsSync(path.resolve(cwd, 'pnpm-lock.yaml'))) {
-    return 'pnpm';
-  }
-  if (fs.existsSync(path.resolve(cwd, 'yarn.lock'))) {
-    return 'yarn';
-  }
-  return 'npm';
-}
-
-function commandFor(packageManager, script) {
-  if (packageManager === 'yarn') {
-    return 'yarn ' + script;
-  }
-  return packageManager + ' run ' + script;
-}
-
 function projectCommands(analysis, cwd) {
   const packageManager = packageManagerFor(cwd);
   const scripts = analysis.scripts || {};
   return Object.keys(scripts).sort().map((script) => ({
     script,
-    command: commandFor(packageManager, script)
+    command: scriptCommand(packageManager, script)
   }));
 }
 

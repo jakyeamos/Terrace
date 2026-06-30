@@ -9,6 +9,7 @@ const { analyzeRepository, bulletList, groupFilesByLane, readSmallText } = requi
 const { normalizeImportedFindings, staticReviewFindings } = require('./artifact-analysis.cjs');
 const { blocker, warning } = require('./guidance.cjs');
 const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
+const { packageManagerFor, testCommand } = require('./package-manager.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -1458,13 +1459,14 @@ function backfill(cwd, options) {
 function workstreamsPlan(cwd, feature) {
   const featureId = normalizeFeatureId(feature);
   const repo = analyzeRepository(cwd);
+  const packageManager = packageManagerFor(cwd);
   const grouped = groupFilesByLane(repo.changed_files.length > 0 ? repo.changed_files : repo.files);
   const lanes = ['product/spec', 'tests', 'frontend', 'backend', 'data/migrations', 'observability', 'docs', 'cleanup'].map((lane) => ({
     lane,
     owned_files: (grouped[lane] || []).slice(0, 20),
     dependencies: lane === 'frontend' ? repo.route_hints.slice(0, 8) : lane === 'backend' ? repo.imports.slice(0, 8).map((item) => item.source) : [],
     collision_risks: (grouped[lane] || []).filter((file) => /(schema|auth|billing|package\.json|index\.)/i.test(file)).slice(0, 8),
-    verification_commands: ['terrace ship check', lane === 'tests' ? 'npm test' : 'terrace test eval'],
+    verification_commands: ['terrace ship check', lane === 'tests' ? testCommand(packageManager) : 'terrace test eval'],
     parallel: lane !== 'data/migrations' && !(grouped[lane] || []).some((file) => /(schema|migration|package\.json)/i.test(file))
   }));
   const coordination_points = ['shared exports', 'schemas', 'auth', 'billing', 'migrations'];

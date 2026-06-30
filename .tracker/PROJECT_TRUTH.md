@@ -1,7 +1,7 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for npm publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, and a read-only `terrace adoption status` command for GSD replacement readiness.
+summary: Terrace 0.1.2 is prepared for pnpm-first package workflows and npm registry publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, and a read-only `terrace adoption status` command for GSD replacement readiness.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Review the remaining downstream corpus security findings in sampled repositories, then decide whether dead-code scanning belongs in the release gate.
@@ -29,19 +29,19 @@ quality:
   deadCode: not_configured
   structure: pass
 canonicalCommands:
-  install: npm install
+  install: pnpm install
   dev: unknown
-  lint: npm run lint
-  typecheck: npm run typecheck
-  test: npm test
-  coverage: npm run test:coverage
-  package: npm run package:dry-run
-  ci: npm run ci
-  audit: npm audit --audit-level=high
+  lint: pnpm run lint
+  typecheck: pnpm run typecheck
+  test: pnpm test
+  coverage: pnpm run test:coverage
+  package: pnpm run package:dry-run
+  ci: pnpm run ci
+  audit: pnpm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/workflow-commands.test.ts tests/lifecycle-coverage.test.ts --reporter=verbose
-lastVerifiedAt: "2026-06-30T20:49:38-04:00"
+lastVerifiedCommand: pnpm exec vitest run tests/core-init.test.ts tests/workflow-commands.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts --reporter=verbose
+lastVerifiedAt: "2026-06-30T21:00:05-04:00"
 ---
 
 ## Current State
@@ -50,7 +50,7 @@ Terrace now installs default non-overwriting agent integration assets during `te
 
 Terrace now also has `terrace agents install-global`, which installs non-overwriting global Codex skills into `~/.agents/skills` and global Claude Code skills/commands into `~/.claude/skills` and `~/.claude/commands`. The global installer writes a top-level `/terrace` entrypoint that routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next`, plus the full `/terrace-*` command-reference surface and manifests under both tool directories. The installer supports `TERRACE_GLOBAL_AGENTS_DIR` and `TERRACE_GLOBAL_CLAUDE_DIR` for deterministic tests and has been run against `/Users/jakyeamos/.agents` and `/Users/jakyeamos/.claude` so local Codex and Claude Code sessions can discover `/terrace` across repos after reload.
 
-Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace-corpus-eval.cjs`, exposed as both `npm run corpus:evaluate` and the public CLI commands `terrace corpus run` / `terrace corpus report`. The harness packages local Terrace once, installs the tarball into disposable real-repo worktrees and synthetic fixture repos, tests migrated-GSD, real scratch, and synthetic scratch tracks, captures per-command evidence, scores command behavior, and writes Markdown plus JSON reports under `docs/terrace/corpus/`. The latest sample run `2026-06-23T21-21-52-941Z` evaluated 962 command executions across eight real repos and five synthetic fixtures, with 767 passes, 138 expected blockers, 57 skips, zero product weaknesses, and zero harness/environment issues.
+Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace-corpus-eval.cjs`, exposed as both `pnpm run corpus:evaluate` and the public CLI commands `terrace corpus run` / `terrace corpus report`. The harness packages local Terrace once, installs the tarball into disposable real-repo worktrees and synthetic fixture repos, tests migrated-GSD, real scratch, and synthetic scratch tracks, captures per-command evidence, scores command behavior, and writes Markdown plus JSON reports under `docs/terrace/corpus/`. The latest sample run `2026-06-23T21-21-52-941Z` evaluated 962 command executions across eight real repos and five synthetic fixtures, with 767 passes, 138 expected blockers, 57 skips, zero product weaknesses, and zero harness/environment issues.
 
 Expected blockers now carry a shared guidance contract for both JSON and human CLI output where applicable: `code`, `message`, `file`, `why_blocked`, `next_command`, and `remediation`. PRD overwrite refusal now names the exact `--force` command and an inspect-first alternative. Spec validation, ship checks, report ceremony, and security checks now surface concrete next commands and artifact paths without weakening gate strictness. Ship checks summarize the top three blockers and keep `terrace ship check --fast` as the quick recheck path. `terrace doctor` and `terrace commands discover` detect stale partial generated agent assets and recommend non-overwriting `terrace init`.
 
@@ -64,7 +64,7 @@ The approved design spec and implementation plan remain at `docs/superpowers/spe
 
 Terrace is ready to publish as `@jakyeamos33/terrace@0.1.2`. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes PRD intake, default agent bootstrap assets, end-to-end phase routing, configurable phase effort defaults, intent-routing wording, and an isolated-cache package dry-run helper for release reliability.
 
-The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, ignores generated corpus-run evidence, honors explicit GitHub Actions permissions, audits production dependencies with `npm audit --omit=dev`, and records a zero-finding security check for the current repo.
+The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, ignores generated corpus-run evidence, honors explicit GitHub Actions permissions, audits production dependencies with the detected package manager, and records dependency audit metadata in security evidence.
 
 The `terrace port gsd` coding gap is now substantially mitigated: it converts core project files, roadmap phase headings, phase plans, phase summaries, research/context/UI specs, testing artifacts, debug/milestone archives, decisions, quick-task PLAN/SUMMARY history, backlog items, sessions, handoff state, and blocked human actions into Terrace state/docs while preserving source `.planning` files. Migration reports now include converted/skipped/writes, blockers, warnings, readiness, next command, review checklist, and validation commands.
 
@@ -82,6 +82,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Recent Progress
 
+- June 30: Converted Terrace to pnpm-first project commands and package metadata, replaced `package-lock.json` with `pnpm-lock.yaml`, centralized package-manager command rendering, and taught security checks to use pnpm lockfiles and pnpm audit output.
 - June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
 - April 28: Added CLI `--help` and `--version`.
 - April 28: Added canonical scripts: lint, typecheck, test, coverage, package dry-run, and ci.
@@ -172,6 +173,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Workflow helper remediation:** `pnpm exec vitest run tests/workflow-helpers.test.ts tests/workflow-commands.test.ts --reporter=verbose` PASS, 2 files and 32 tests
 - **Current verification:** `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts` PASS, 38 files and 291 tests
 - **Adoption status focused verification:** `pnpm exec vitest run tests/workflow-commands.test.ts tests/lifecycle-coverage.test.ts --reporter=verbose` PASS, 34 tests
+- **pnpm conversion focused verification:** `pnpm exec vitest run tests/core-init.test.ts tests/workflow-commands.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts --reporter=verbose` PASS, 4 files and 48 tests
 - **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 291 tests pass.
 - **Git status:** expected-blocker ergonomics implementation committed on `codex/expected-blocker-ergonomics`; truth file records the new state
 

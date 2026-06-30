@@ -7,14 +7,14 @@ Terrace is a strict-core workflow CLI for spec-driven, test-governed AI-assisted
 Terrace requires Node.js 22 or newer.
 
 ```sh
-npm install --save-dev @jakyeamos33/terrace
+pnpm add -D @jakyeamos33/terrace
 ```
 
-Run it with `npx @jakyeamos33/terrace` or through the installed `terrace` binary.
-If you want `terrace` available globally (no `npx`), install it globally:
+Run it with `pnpm exec terrace` after installation or with `pnpm dlx @jakyeamos33/terrace` for one-off use.
+If you want `terrace` available globally, install it globally:
 
 ```sh
-npm install --global @jakyeamos33/terrace
+pnpm add --global @jakyeamos33/terrace
 ```
 
 To make Terrace slash commands and skills available in Codex and Claude Code across local repos, install the global agent assets:
@@ -28,11 +28,11 @@ terrace agents install-global
 Run Terrace from the root of an existing repository:
 
 ```sh
-npx @jakyeamos33/terrace init
-npx @jakyeamos33/terrace doctor
-npx @jakyeamos33/terrace audit
-npx @jakyeamos33/terrace report
-npx @jakyeamos33/terrace ship check --json
+pnpm exec terrace init
+pnpm exec terrace doctor
+pnpm exec terrace audit
+pnpm exec terrace report
+pnpm exec terrace ship check --json
 ```
 
 `terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs release-readiness checks and exits nonzero when a blocking gate fails.
@@ -99,10 +99,10 @@ terrace prd import saved-search --file docs/input/SAVED-SEARCH-PRD.md
 Use these checks before publishing protected work:
 
 ```sh
-npm run ci
-npm audit --audit-level=moderate
-npm run package:dry-run
-npx @jakyeamos33/terrace ship check --json
+pnpm run ci
+pnpm audit --audit-level=moderate
+pnpm run package:dry-run
+pnpm exec terrace ship check --json
 ```
 
 `terrace ship check` is read-only. Use `terrace ship prepare` when you want Terrace to write a release-readiness summary under `docs/terrace/ship/`.
@@ -234,7 +234,7 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 Canonical local verification is:
 
 ```sh
-npm run ci
+pnpm run ci
 ```
 
 The publish allowlist is controlled by `package.json#files`; local planning, tests, and agent settings are not shipped.

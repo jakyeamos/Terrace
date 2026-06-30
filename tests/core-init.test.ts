@@ -18,6 +18,7 @@ describe('terrace-core init and events', () => {
 
   it('detects Node test commands from package.json once at init', () => {
     fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      packageManager: 'pnpm@11.7.0',
       scripts: {
         test: 'vitest run',
         typecheck: 'tsc --noEmit',
@@ -25,9 +26,10 @@ describe('terrace-core init and events', () => {
       }
     }), 'utf-8');
     const commands = detectCommands(tmpDir);
-    expect(commands.test_command).toBe('npm test');
-    expect(commands.typecheck_command).toBe('npm run typecheck');
-    expect(commands.lint_command).toBe('npm run lint');
+    expect(commands.package_manager).toBe('pnpm');
+    expect(commands.test_command).toBe('pnpm test');
+    expect(commands.typecheck_command).toBe('pnpm run typecheck');
+    expect(commands.lint_command).toBe('pnpm run lint');
   });
 
   it('initCore writes state, config, events, rules, and docs directories', () => {

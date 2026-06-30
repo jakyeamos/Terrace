@@ -3,6 +3,7 @@
   "version": "0.1.2",
   "description": "Spec-driven, test-governed AI development framework",
   "type": "commonjs",
+  "packageManager": "pnpm@11.7.0",
   "main": "src/terrace-tools.cjs",
   "bin": {
     "terrace": "src/terrace-tools.cjs"
@@ -22,15 +23,15 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "node scripts/lint.cjs",
-    "build": "npm run typecheck",
+    "build": "pnpm run typecheck",
     "test": "vitest run --reporter=verbose",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "package:dry-run": "node scripts/npm-pack-dry-run.cjs",
+    "package:dry-run": "node scripts/package-dry-run.cjs",
     "secret:scan": "node scripts/secret-scan.mjs",
-    "dependency:security": "npm audit --audit-level high",
+    "dependency:security": "pnpm audit --audit-level high",
     "corpus:evaluate": "node scripts/terrace-corpus-eval.cjs",
-    "ci": "npm run typecheck && npm run lint && npm test && npm run test:coverage && npm run package:dry-run"
+    "ci": "pnpm run typecheck && pnpm run lint && pnpm test && pnpm run test:coverage && pnpm run package:dry-run"
   },
   "dependencies": {
     "fast-glob": "^3.3.3",

@@ -5,7 +5,7 @@ Use a feature branch for non-trivial work. Keep commits scoped to one concern an
 Before opening a PR, run:
 
 ```sh
-npm run ci
+pnpm run ci
 ```
 
 Do not add generated local state, local agent settings, or planning archives to the npm package allowlist.

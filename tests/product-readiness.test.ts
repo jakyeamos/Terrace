@@ -8,8 +8,8 @@ const repoRoot = path.resolve(__dirname, '..');
 const cliPath = path.join(repoRoot, 'src', 'terrace-tools.cjs');
 const windowsShell = process.platform === 'win32';
 
-function npmExec(args: string[], options: { cwd: string; encoding: BufferEncoding; timeout?: number }) {
-  return execFileSync('npm', args, { ...options, shell: windowsShell });
+function pnpmExec(args: string[], options: { cwd: string; encoding: BufferEncoding; timeout?: number }) {
+  return execFileSync('pnpm', args, { ...options, shell: windowsShell });
 }
 
 function terraceExec(terraceBin: string, args: string[], options: { cwd: string; encoding: BufferEncoding }) {
@@ -17,7 +17,7 @@ function terraceExec(terraceBin: string, args: string[], options: { cwd: string;
 }
 
 describe('tier-one product readiness', () => {
-  it('exposes npm metadata for a publishable CLI package', () => {
+  it('exposes registry metadata for a publishable CLI package', () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
     expect(pkg.bin).toEqual({ terrace: 'src/terrace-tools.cjs' });
@@ -42,7 +42,7 @@ describe('tier-one product readiness', () => {
       expect(readme).toContain('## ' + heading);
     }
     expect(readme).toContain('terrace report` is read-only');
-    expect(readme).toContain('npm audit --audit-level=moderate');
+    expect(readme).toContain('pnpm audit --audit-level=moderate');
   });
 
   it('prints top-level CLI help and version without requiring a Terrace state file', () => {
@@ -81,14 +81,15 @@ describe('tier-one product readiness', () => {
     fs.mkdirSync(consumerDir, { recursive: true });
 
     try {
-      const packOutput = npmExec(['pack', '--pack-destination', packDir, '--cache', path.join(tmpRoot, 'npm-cache')], {
+      const packOutput = pnpmExec(['pack', '--pack-destination', packDir, '--config.node-linker=hoisted'], {
         cwd: repoRoot,
         encoding: 'utf8'
       }).trim();
-      const tarballPath = path.join(packDir, packOutput.split(/\r?\n/).pop() || '');
+      const packedFile = packOutput.split(/\r?\n/).pop() || '';
+      const tarballPath = path.isAbsolute(packedFile) ? packedFile : path.join(packDir, packedFile);
 
       fs.writeFileSync(path.join(consumerDir, 'package.json'), JSON.stringify({ name: 'terrace-consumer', private: true }), 'utf8');
-      npmExec(['install', '--ignore-scripts', '--prefer-offline', '--cache', path.join(tmpRoot, 'npm-cache'), tarballPath], {
+      pnpmExec(['add', '--ignore-scripts', tarballPath], {
         cwd: consumerDir,
         encoding: 'utf8',
         timeout: 60000

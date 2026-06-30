@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { analyzeRepository, readSmallText } = require('./repo-analysis.cjs');
 const { blocker, warning } = require('./guidance.cjs');
+const { auditCommandFor, packageManagerFor } = require('./package-manager.cjs');
 
 const SECRET_PATTERNS = [
   { code: 'SECRET_AWS_ACCESS_KEY', severity: 'critical', pattern: /AKIA[0-9A-Z]{16}/ },
@@ -126,50 +127,66 @@ function scanConfigFindings(cwd, repo) {
   return findings;
 }
 
-function npmAuditFindings(cwd) {
-  if (!fs.existsSync(path.join(cwd, 'package-lock.json'))) {
+function dependencyAuditFindings(cwd) {
+  const audit = dependencyAuditMetadata(cwd);
+  if (!fs.existsSync(path.join(cwd, audit.file))) {
     return [];
   }
   if (auditCache.has(cwd)) {
     return auditCache.get(cwd);
   }
   try {
-    const output = execFileSync('npm', ['audit', '--omit=dev', '--json'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 3000 });
+    const output = execFileSync(audit.command[0], audit.command.slice(1), { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 3000 });
     const parsed = JSON.parse(output || '{}');
-    const findings = auditJsonFindings(parsed);
+    const findings = auditJsonFindings(parsed, audit);
     auditCache.set(cwd, findings);
     return findings;
   } catch (error) {
     const text = error && error.stdout ? String(error.stdout) : '';
     if (text.trim().startsWith('{')) {
-      const findings = auditJsonFindings(JSON.parse(text));
+      const findings = auditJsonFindings(JSON.parse(text), audit);
       auditCache.set(cwd, findings);
       return findings;
     }
     const findings = [finding(
-      'npm-audit-unavailable',
+      audit.package_manager + '-audit-unavailable',
       'info',
-      'package-lock.json',
-      'npm audit could not produce dependency vulnerability data.',
-      error && error.message ? error.message : 'npm audit failed without JSON output.',
-      'Run npm audit --omit=dev locally when network access is available.'
+      audit.file,
+      audit.display + ' could not produce dependency vulnerability data.',
+      error && error.message ? error.message : audit.display + ' failed without JSON output.',
+      'Run ' + audit.display + ' locally when network access is available.'
     )];
     auditCache.set(cwd, findings);
     return findings;
   }
 }
 
-function auditJsonFindings(parsed) {
+function dependencyAuditMetadata(cwd) {
+  const packageManager = packageManagerFor(cwd);
+  const audit = auditCommandFor(packageManager);
+  return {
+    package_manager: packageManager,
+    file: audit.file,
+    command: audit.command,
+    display: audit.display,
+    lockfile_present: fs.existsSync(path.join(cwd, audit.file))
+  };
+}
+
+function auditJsonFindings(parsed, audit) {
   const vulnerabilities = parsed && parsed.vulnerabilities && typeof parsed.vulnerabilities === 'object' ? parsed.vulnerabilities : {};
-  return Object.entries(vulnerabilities).map(([name, item], index) => {
+  const advisories = parsed && parsed.advisories && typeof parsed.advisories === 'object' ? parsed.advisories : {};
+  const entries = Object.keys(vulnerabilities).length > 0 ? vulnerabilities : advisories;
+  return Object.entries(entries).map(([name, item], index) => {
     const severity = item && item.severity ? item.severity : 'medium';
+    const dependency = item && item.module_name ? item.module_name : name;
     return finding(
-      'npm-audit-' + name + '-' + String(index),
+      audit.command[0] + '-audit-' + dependency + '-' + String(index),
       severity === 'critical' || severity === 'high' ? severity : 'medium',
-      'package-lock.json',
-      'Dependency vulnerability reported for ' + name + '.',
-      'npm audit --omit=dev severity: ' + severity + '.',
-      'Upgrade or replace ' + name + ' and rerun terrace security check.'
+      audit.file,
+      'Dependency vulnerability reported for ' + dependency + '.',
+      audit.display + ' severity: ' + severity + '.',
+      'Upgrade or replace ' + dependency + ' and rerun terrace security check.'
     );
   });
 }
@@ -195,11 +212,12 @@ function securityMarkdown(result) {
 
 function runSecurityCheck(cwd) {
   const repo = analyzeRepository(cwd);
+  const dependencyAudit = dependencyAuditMetadata(cwd);
   const checks = ['secret-patterns', 'env-files', 'sensitive-logging', 'dependency-audit', 'deployment-config'];
   const findings = [
     ...scanTextFindings(cwd, repo),
     ...scanConfigFindings(cwd, repo),
-    ...npmAuditFindings(cwd)
+    ...dependencyAuditFindings(cwd)
   ];
   const blocking = findings.filter((item) => item.classification === 'blocking');
   const result = {
@@ -208,6 +226,7 @@ function runSecurityCheck(cwd) {
     artifact: '.terrace/security/latest.json',
     markdown: 'docs/terrace/security/SECURITY-CHECK.md',
     created_at: new Date().toISOString(),
+    dependency_audit: dependencyAudit,
     findings,
     blocking,
     warnings: findings.filter((item) => item.classification !== 'blocking')
