@@ -17,7 +17,7 @@ repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
 activeBranch: codex/global-agent-installer
-lastCommitDate: "2026-05-13"
+lastCommitDate: "2026-06-30"
 quality:
   lint: pass
   types: pass
@@ -37,11 +37,11 @@ canonicalCommands:
   coverage: pnpm run test:coverage
   package: pnpm package
   ci: pnpm run ci
-  audit: pnpm audit --audit-level=high
+  audit: pnpm audit --audit-level high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/core-init.test.ts tests/json-mode.test.ts tests/product-readiness.test.ts --reporter=verbose
-lastVerifiedAt: "2026-06-30T21:15:42-04:00"
+lastVerifiedCommand: node src/terrace-tools.cjs corpus run --dry-run-plan --sample --json
+lastVerifiedAt: "2026-06-30T21:18:08-04:00"
 ---
 
 ## Current State
@@ -90,6 +90,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - June 30: Added Terrace-native production workbench status/prepare commands and natural-language routing for ship-ready and handoff feature intents.
 - June 30: Added a `pnpm package` wrapper for the existing package dry-run gate so release verification matches the pnpm-first command surface.
 - June 30: Regenerated repo-local Codex/Claude command assets for corpus, adoption status, and production workbench commands; generated expectations are now 62 Codex skills, 62 Claude skills, and 62 Claude commands.
+- June 30: Completed final GSD-replacement/workbench verification with pnpm lint/typecheck/package, focused Vitest suites, the full Vitest suite excluding the known absent external `amos-saas` fixture, clean fast ship check, and sample corpus dry-run planning.
 - April 28: Added CLI `--help` and `--version`.
 - April 28: Added canonical scripts: lint, typecheck, test, coverage, package dry-run, and ci.
 - April 28: Fixed coverage to measure `packages/terrace-core/src`; current coverage passes thresholds.
@@ -177,18 +178,21 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Corpus CLI:** `node src/terrace-tools.cjs corpus run --dry-run-plan --sample --json` PASS; `node src/terrace-tools.cjs corpus report --json` PASS and returns run id, totals, report path, and evidence path
 - **Package:** `npm run package:dry-run` PASS after adding the corpus wrapper; package dry-run reported `@jakyeamos33/terrace@0.1.2`, 731.1 kB package size, 10.6 MB unpacked size, 2342 own files, and 2342 total files
 - **Workflow helper remediation:** `pnpm exec vitest run tests/workflow-helpers.test.ts tests/workflow-commands.test.ts --reporter=verbose` PASS, 2 files and 32 tests
-- **Current verification:** `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts` PASS, 38 files and 291 tests
+- **Current verification:** `pnpm lint` PASS, checking 4046 text files; `pnpm typecheck` PASS; `pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts` PASS, 38 files and 294 tests
 - **Adoption status focused verification:** `pnpm exec vitest run tests/workflow-commands.test.ts tests/lifecycle-coverage.test.ts --reporter=verbose` PASS, 34 tests
 - **pnpm conversion focused verification:** `pnpm exec vitest run tests/core-init.test.ts tests/workflow-commands.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts --reporter=verbose` PASS, 4 files and 48 tests
 - **Migrated-GSD readiness focused verification:** `pnpm exec vitest run tests/core-port-gsd-migration.test.ts tests/corpus-eval.test.ts --reporter=verbose` PASS, 2 files and 13 tests
 - **Production workbench focused verification:** `pnpm exec vitest run tests/lifecycle-coverage.test.ts tests/workflow-commands.test.ts --reporter=verbose` PASS, 2 files and 35 tests
 - **Package wrapper verification:** `pnpm package` PASS via `pnpm run package:dry-run`
 - **Agent asset regeneration verification:** `pnpm exec vitest run tests/core-init.test.ts tests/json-mode.test.ts tests/product-readiness.test.ts --reporter=verbose` PASS, 3 files and 18 tests
-- **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 291 tests pass.
-- **Git status:** expected-blocker ergonomics implementation committed on `codex/expected-blocker-ergonomics`; truth file records the new state
+- **Final package verification:** `pnpm package` PASS via `pnpm run package:dry-run`; dry-run reported `@jakyeamos33/terrace@0.1.2`
+- **Final ship verification:** `node src/terrace-tools.cjs ship check --fast --json` PASS, zero blockers, zero warnings, pnpm command rendering, and complete generated agent assets at 186/186
+- **Final corpus dry-run:** `node src/terrace-tools.cjs corpus run --dry-run-plan --sample --json` PASS and includes migrated-GSD roadmap commands with `<phase-id>` targets after porting
+- **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 294 tests pass.
+- **Git status:** GSD replacement and production workbench implementation committed on `codex/global-agent-installer`; truth file records the new state
 
 ## Next Concrete Steps
 
-1. Review the remaining downstream corpus security findings in sampled repositories or document fixture conventions for external repo findings.
-2. Configure dead-code scanning or explicitly document why it remains out of scope for the current release.
-3. Review whether the remaining intentional blocker language in `docs/terrace/corpus/REPORT.md` needs README/tutorial examples for public beta users.
+1. Refresh the separate global install from this local package and rerun `terrace agents install-global`.
+2. Review the remaining downstream corpus security findings in sampled repositories or document fixture conventions for external repo findings.
+3. Configure dead-code scanning or explicitly document why it remains out of scope for the current release.
