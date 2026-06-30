@@ -90,6 +90,8 @@ const {
   designSourceDiff,
   runSecurityCheck,
   adoptionStatus,
+  workbenchStatus,
+  workbenchPrepare,
   settingsShow,
   settingsSetEffort,
   newProjectFromPrd,
@@ -167,6 +169,8 @@ const HELP_TEXT = [
   '  terrace waive <gate>         Record a reviewed temporary waiver',
   '  terrace backfill             Write standards backfill spec',
   '  terrace workstreams plan <feature>',
+  '  terrace workbench status [--feature <id>]',
+  '  terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]',
   '  terrace design-source import <source> <feature> <ref>',
   '  terrace plan-phase <id>      GSD-compatible alias for phase plan',
   '  terrace execute-phase <id>   GSD-compatible alias for phase execute',
@@ -768,6 +772,23 @@ async function main() {
         return;
       }
       fail('Unknown workstreams subcommand: ' + sub + '. Use: plan', { json });
+      return;
+    }
+    case 'workbench': {
+      const sub = args[1];
+      if (sub === 'status') {
+        output(workbenchStatus(cwd, { feature: optionValue(rawArgs, '--feature') }), { json });
+        return;
+      }
+      if (sub === 'prepare') {
+        output(workbenchPrepare(cwd, {
+          feature: args[2],
+          tier: optionValue(rawArgs, '--tier'),
+          for: optionValue(rawArgs, '--for')
+        }), { json });
+        return;
+      }
+      fail('Unknown workbench subcommand: ' + sub + '. Use: status, prepare', { json });
       return;
     }
     case 'design-source': {

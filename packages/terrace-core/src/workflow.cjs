@@ -1677,6 +1677,20 @@ function routePlainText(cwd, text) {
     const { adoptionStatus } = require('./adoption.cjs');
     return { input, command: 'terrace adoption status', result: adoptionStatus(cwd) };
   }
+  if (/\b(production\s+workbench|ship-ready|ship\s+ready|handoff\s+this\s+feature|make\s+this\s+feature\s+ship-ready)\b/.test(lowered)) {
+    const { workbenchStatus, workbenchPrepare } = require('./workbench.cjs');
+    const featureId = state.senior_cycle && state.senior_cycle.active_feature
+      ? state.senior_cycle.active_feature
+      : state.workflow && state.workflow.active_feature
+        ? state.workflow.active_feature
+        : null;
+    const wantsPrepare = /\b(prepare|make|handoff)\b/.test(lowered);
+    if (wantsPrepare && featureId) {
+      const target = /\bhandoff\b/.test(lowered) ? 'generic' : null;
+      return { input, command: 'terrace workbench prepare ' + featureId, result: workbenchPrepare(cwd, { feature: featureId, for: target }) };
+    }
+    return { input, command: 'terrace workbench status' + (featureId ? ' --feature ' + featureId : ''), result: workbenchStatus(cwd, { feature: featureId }) };
+  }
   if (/\/(?:terrace:)?execute-phase-complete\s+/i.test(input) && phase) {
     return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
   }

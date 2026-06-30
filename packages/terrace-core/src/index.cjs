@@ -21,6 +21,7 @@ module.exports = {
   ...require('./workflow-helpers.cjs'),
   ...require('./workflow.cjs'),
   ...require('./lifecycle.cjs'),
+  ...require('./workbench.cjs'),
   ...require('./adoption.cjs'),
   ...require('./command-contracts.cjs'),
   ...require('./validate.cjs'),

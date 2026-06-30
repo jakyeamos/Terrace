@@ -230,6 +230,18 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Write a PR-ready release summary from ship check results.'
   },
   {
+    command: 'terrace workbench status [--feature <id>]',
+    category: 'shipping',
+    json: true,
+    purpose: 'Read release evidence, senior-cycle gaps, workstreams, debt, security, test eval, and report-card claim scope for one feature.'
+  },
+  {
+    command: 'terrace workbench prepare <feature>',
+    category: 'shipping',
+    json: true,
+    purpose: 'Write production workbench artifacts from existing Terrace primitives: preflight, runbook, release AI review, workstreams, and optional handoff.'
+  },
+  {
     command: 'terrace report ceremony',
     category: 'shipping',
     json: true,

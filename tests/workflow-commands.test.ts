@@ -741,6 +741,35 @@ describe('workflow parity core helpers', () => {
     expect(routePlainText(tmpDir, 'ship this')).toMatchObject({
       command: 'terrace ship check'
     });
+    const activeState = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
+    saveState(tmpDir, {
+      ...activeState,
+      workflow: {
+        ...activeState.workflow,
+        active_feature: 'billing-refresh'
+      },
+      senior_cycle: {
+        active_feature: 'billing-refresh',
+        features: {
+          'billing-refresh': {
+            feature_id: 'billing-refresh',
+            tier: 'medium',
+            artifacts: {}
+          }
+        }
+      }
+    });
+    expect(routePlainText(tmpDir, 'make this feature ship-ready')).toMatchObject({
+      command: 'terrace workbench prepare billing-refresh',
+      result: {
+        mode: 'prepare',
+        feature_id: 'billing-refresh',
+        artifacts: expect.objectContaining({
+          preflight: 'docs/terrace/features/billing-refresh/PREFLIGHT.md',
+          runbook: 'docs/terrace/features/billing-refresh/RUNBOOK.md'
+        })
+      }
+    });
     expect(routePlainText(tmpDir, 'show me history')).toMatchObject({
       command: 'terrace history'
     });

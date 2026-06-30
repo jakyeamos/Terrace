@@ -1,7 +1,7 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.1.2 is prepared for pnpm-first package workflows and npm registry publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, and a read-only `terrace adoption status` command for GSD replacement readiness.
+summary: Terrace 0.1.2 is prepared for pnpm-first package workflows and npm registry publish with PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness, and Terrace-native production workbench status/prepare commands.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Review the remaining downstream corpus security findings in sampled repositories, then decide whether dead-code scanning belongs in the release gate.
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/core-port-gsd-migration.test.ts tests/corpus-eval.test.ts --reporter=verbose
-lastVerifiedAt: "2026-06-30T21:03:09-04:00"
+lastVerifiedCommand: pnpm exec vitest run tests/lifecycle-coverage.test.ts tests/workflow-commands.test.ts --reporter=verbose
+lastVerifiedAt: "2026-06-30T21:10:24-04:00"
 ---
 
 ## Current State
@@ -72,6 +72,8 @@ Terrace also has GSD-style workflow continuity commands: `terrace next`, `terrac
 
 Terrace now also has Senior Cycle commands: `terrace align <feature>`, `terrace interrogate <feature>`, `terrace map-codebase`, `terrace design <feature>`, `terrace test-plan <feature>`, `terrace observe <feature>`, `terrace validate-prod <feature>`, `terrace cleanup <feature>`, `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>`. These generators now infer source areas, architecture hints, test strategy, workstream lanes, route/component hints, unresolved evidence, and concrete affected files from the repo instead of blank TODO placeholders.
 
+Terrace now has a production workbench layer above GSD parity: `terrace workbench status [--feature <id>]` is read-only and aggregates feature tier, missing senior-cycle gates, preflight, documentation, release AI review, workstreams, feature debt, security evidence, test evaluation, and report-card claim scope. `terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]` activates the feature and refreshes production evidence through existing Terrace primitives: preflight, runbook docs, release AI review, workstreams, and an optional agent handoff pack.
+
 Terrace now also supports PRD-first intake: `terrace new-project` preserves a source PRD, creates compiled spec, acceptance criteria, test plan, and initialization summary artifacts, and records intake state; `terrace prd import` does the same for later feature PRDs under `docs/terrace/features/<feature>/`.
 
 The latest adoption-risk mitigation pass adds `terrace ship check --fast|--local|--full` modes with per-category timings, `terrace report ceremony` for artifact-count and low-density evidence checks, `terrace port gsd --compare` and `--verify-parity` for migration confidence, `terrace rule audit --effectiveness` for rule maturity/metadata coverage, and `terrace waive <gate>` for explicit reviewed temporary overrides that remain visible in report and ship output.
@@ -85,6 +87,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - June 30: Converted Terrace to pnpm-first project commands and package metadata, replaced `package-lock.json` with `pnpm-lock.yaml`, centralized package-manager command rendering, and taught security checks to use pnpm lockfiles and pnpm audit output.
 - June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
 - June 30: Made `terrace port gsd` install non-overwriting repo-local agent assets by default and broadened migrated-GSD phase extraction so legacy plan evidence yields a usable roadmap phase target.
+- June 30: Added Terrace-native production workbench status/prepare commands and natural-language routing for ship-ready and handoff feature intents.
 - April 28: Added CLI `--help` and `--version`.
 - April 28: Added canonical scripts: lint, typecheck, test, coverage, package dry-run, and ci.
 - April 28: Fixed coverage to measure `packages/terrace-core/src`; current coverage passes thresholds.
@@ -176,6 +179,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Adoption status focused verification:** `pnpm exec vitest run tests/workflow-commands.test.ts tests/lifecycle-coverage.test.ts --reporter=verbose` PASS, 34 tests
 - **pnpm conversion focused verification:** `pnpm exec vitest run tests/core-init.test.ts tests/workflow-commands.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts --reporter=verbose` PASS, 4 files and 48 tests
 - **Migrated-GSD readiness focused verification:** `pnpm exec vitest run tests/core-port-gsd-migration.test.ts tests/corpus-eval.test.ts --reporter=verbose` PASS, 2 files and 13 tests
+- **Production workbench focused verification:** `pnpm exec vitest run tests/lifecycle-coverage.test.ts tests/workflow-commands.test.ts --reporter=verbose` PASS, 2 files and 35 tests
 - **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 291 tests pass.
 - **Git status:** expected-blocker ergonomics implementation committed on `codex/expected-blocker-ergonomics`; truth file records the new state
 

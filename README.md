@@ -156,13 +156,15 @@ pnpm exec terrace ship check --json
 - `terrace backlog add <title>` appends a backlog item.
 - `terrace ship check` runs release-readiness checks, discovers available project scripts, enforces active Senior Cycle ship gates, treats missing optional scripts as warnings, runs the dead-code gate when a script is discovered or configured, and exits nonzero when an available quality gate fails.
 - `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` from release-readiness results.
+- `terrace workbench status [--feature <id>]` reads feature release evidence, missing senior-cycle gates, preflight, docs, AI review, workstreams, debt, security, test eval, and report-card claim scope.
+- `terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]` writes production workbench artifacts from preflight, runbook docs, release AI review, workstreams, and optional handoff primitives.
 - `terrace plan-phase <id>`, `terrace execute-phase <id>`, `terrace validate-phase <id>`, `terrace review-phase <id>`, and `terrace complete-phase <id>` are GSD-compatible aliases.
 - `terrace rule list` and `terrace rule explain <id>` inspect rule packs.
 - `terrace preset list` and `terrace preset install <id>` manage presets.
 
 ## GSD Migration
 
-`terrace port gsd` preserves the source `.planning/` tree and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.
+`terrace port gsd` preserves the source `.planning/` tree, installs non-overwriting repo-local Terrace agent assets, and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `agents`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.
 
 Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Quick-task PLAN/SUMMARY files are archived under `docs/terrace-migration/quick/` and exposed through `terrace quick list` / `terrace quick show <id>`. Handoff remaining tasks and blocking human actions become backlog items so post-migration work is visible. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
 
@@ -175,7 +177,7 @@ Migrated state includes roadmap phases and plans, decisions, sessions, handoff c
 5. Run `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, and `terrace phase complete <id>` to preserve execution history.
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
 
-Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, or `terrace do "ship prepare"` when they have natural-language intent instead of a structured command. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
+Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, `terrace do "make this feature ship-ready"`, or `terrace do "ship prepare"` when they have natural-language intent instead of a structured command. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
 
 ## Senior Cycle
 

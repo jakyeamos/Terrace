@@ -29,6 +29,8 @@ const {
   ruleAdd,
   backfill,
   workstreamsPlan,
+  workbenchStatus,
+  workbenchPrepare,
   designSourceImport,
   designSourceDiff
 } = require('../packages/terrace-core/src/index.cjs');
@@ -200,4 +202,76 @@ describe('production lifecycle edge coverage', () => {
     expect(designSourceImport(tmpDir, 'unknown-source', 'settings-refresh', null).source).toBe('stitch');
     expect(designSourceDiff(tmpDir, 'existing-ui', 'billing-refresh', '/billing').artifact).toBe('docs/terrace/features/billing-refresh/UI-DIFF.md');
   }, 120000);
+
+  it('reports workbench status without writing and prepares production workbench artifacts', () => {
+    const state = loadState(tmpDir);
+    saveState(tmpDir, {
+      ...state,
+      workflow: {
+        ...state.workflow,
+        active_feature: 'billing-refresh'
+      },
+      senior_cycle: {
+        active_feature: 'billing-refresh',
+        features: {
+          'billing-refresh': {
+            feature_id: 'billing-refresh',
+            tier: 'large',
+            artifacts: {}
+          }
+        }
+      }
+    });
+    const beforeState = fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8');
+
+    const status = workbenchStatus(tmpDir, { feature: 'billing-refresh' });
+
+    expect(status).toMatchObject({
+      mode: 'status',
+      read_only: true,
+      feature_id: 'billing-refresh',
+      tier: 'large',
+      preflight: { present: false },
+      documentation: { present: false },
+      ai_review: { present: false },
+      workstreams: { present: false },
+      report_card: expect.objectContaining({ claim_scope: 'feature_readiness' })
+    });
+    expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(beforeState);
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'report-card.json'))).toBe(false);
+
+    const prepared = workbenchPrepare(tmpDir, { feature: 'billing-refresh', tier: 'large', for: 'codex' });
+
+    expect(prepared).toMatchObject({
+      mode: 'prepare',
+      feature_id: 'billing-refresh',
+      tier: 'large',
+      target: 'codex',
+      artifacts: expect.objectContaining({
+        preflight: 'docs/terrace/features/billing-refresh/PREFLIGHT.md',
+        runbook: 'docs/terrace/features/billing-refresh/RUNBOOK.md',
+        ai_review: 'docs/terrace/reviews/billing-refresh/release.json',
+        workstreams: 'docs/terrace/features/billing-refresh/WORKSTREAMS.md'
+      }),
+      status: expect.objectContaining({
+        preflight: expect.objectContaining({ present: true, artifact: 'docs/terrace/features/billing-refresh/PREFLIGHT.md' }),
+        documentation: expect.objectContaining({ present: true, artifact: 'docs/terrace/features/billing-refresh/RUNBOOK.md' }),
+        ai_review: expect.objectContaining({ present: true, mode: 'release', artifact: 'docs/terrace/reviews/billing-refresh/release.json' }),
+        workstreams: expect.objectContaining({ present: true, artifact: 'docs/terrace/features/billing-refresh/WORKSTREAMS.md' })
+      })
+    });
+    expect(prepared.artifacts.handoff).toMatch(/^docs\/terrace\/handoffs\/.+-billing-refresh\.md$/);
+    for (const artifact of [
+      prepared.artifacts.preflight,
+      prepared.artifacts.runbook,
+      prepared.artifacts.ai_review,
+      prepared.artifacts.ai_review_markdown,
+      prepared.artifacts.workstreams,
+      prepared.artifacts.workstreams_json,
+      prepared.artifacts.handoff,
+      prepared.artifacts.handoff_json
+    ]) {
+      expect(fs.existsSync(path.join(tmpDir, artifact))).toBe(true);
+    }
+  });
 });
