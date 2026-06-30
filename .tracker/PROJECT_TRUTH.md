@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/core-init.test.ts tests/workflow-commands.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts --reporter=verbose
-lastVerifiedAt: "2026-06-30T21:00:05-04:00"
+lastVerifiedCommand: pnpm exec vitest run tests/core-port-gsd-migration.test.ts tests/corpus-eval.test.ts --reporter=verbose
+lastVerifiedAt: "2026-06-30T21:03:09-04:00"
 ---
 
 ## Current State
@@ -54,7 +54,7 @@ Terrace now has a repeatable local corpus evaluation harness at `scripts/terrace
 
 Expected blockers now carry a shared guidance contract for both JSON and human CLI output where applicable: `code`, `message`, `file`, `why_blocked`, `next_command`, and `remediation`. PRD overwrite refusal now names the exact `--force` command and an inspect-first alternative. Spec validation, ship checks, report ceremony, and security checks now surface concrete next commands and artifact paths without weakening gate strictness. Ship checks summarize the top three blockers and keep `terrace ship check --fast` as the quick recheck path. `terrace doctor` and `terrace commands discover` detect stale partial generated agent assets and recommend non-overwriting `terrace init`.
 
-The corpus improvement pass fixed the two highest-priority report findings. `terrace port gsd --verify-parity` now treats preserved non-empty `.planning/STATE.md` evidence as mapped `state_details`, still extracts richer decisions/backlog concepts when present, and names the exact missing concept plus source file in parity remediation. Agent asset verification now uses generated expectations from Terrace templates, writes normal evidence records, treats migrated-GSD no-assets as not applicable, and repairs migrated-GSD partial generated agent assets by running non-overwriting `terrace init --json` before final verification. Scratch tracks remain strict product checks for missing generated assets.
+The corpus improvement pass fixed the two highest-priority report findings. `terrace port gsd --verify-parity` now treats preserved non-empty `.planning/STATE.md` evidence as mapped `state_details`, still extracts richer decisions/backlog concepts when present, and names the exact missing concept plus source file in parity remediation. Migrated-GSD phase extraction now recognizes roadmap IDs, handoff phase fields, migrated planning-refresh output, phase directories, and legacy plan fallbacks so roadmap commands have a target. `terrace port gsd` also installs repo-local Terrace agent assets by default with the same non-overwriting bootstrap as `terrace init`, and corpus agent verification treats missing migrated-GSD assets as a product weakness instead of not applicable.
 
 Terrace now has `terrace planning refresh` and its `terrace planning init` alias. The command regenerates the repo-local `.planning` package from canonical `.terrace/state.json` plus deterministic repository analysis, writing `PROJECT.md`, `REQUIREMENTS.md`, `ROADMAP.md`, `STATE.md`, `HANDOFF.json`, `config.json`, and phase plan artifacts. Its JSON output is stable across repeated refreshes, excludes generated `.planning` files from its analysis counts, and points agents back to `terrace port gsd --verify-parity` so Phase 1 planning-parity workflows can prove the generated planning package remains migration-readable.
 
@@ -84,6 +84,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 - June 30: Converted Terrace to pnpm-first project commands and package metadata, replaced `package-lock.json` with `pnpm-lock.yaml`, centralized package-manager command rendering, and taught security checks to use pnpm lockfiles and pnpm audit output.
 - June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
+- June 30: Made `terrace port gsd` install non-overwriting repo-local agent assets by default and broadened migrated-GSD phase extraction so legacy plan evidence yields a usable roadmap phase target.
 - April 28: Added CLI `--help` and `--version`.
 - April 28: Added canonical scripts: lint, typecheck, test, coverage, package dry-run, and ci.
 - April 28: Fixed coverage to measure `packages/terrace-core/src`; current coverage passes thresholds.
@@ -174,6 +175,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Current verification:** `pnpm lint` PASS; `pnpm typecheck` PASS; `pnpm exec vitest run --reporter=verbose --exclude tests/amos-saas-gsd-smoke.test.ts` PASS, 38 files and 291 tests
 - **Adoption status focused verification:** `pnpm exec vitest run tests/workflow-commands.test.ts tests/lifecycle-coverage.test.ts --reporter=verbose` PASS, 34 tests
 - **pnpm conversion focused verification:** `pnpm exec vitest run tests/core-init.test.ts tests/workflow-commands.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts --reporter=verbose` PASS, 4 files and 48 tests
+- **Migrated-GSD readiness focused verification:** `pnpm exec vitest run tests/core-port-gsd-migration.test.ts tests/corpus-eval.test.ts --reporter=verbose` PASS, 2 files and 13 tests
 - **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 291 tests pass.
 - **Git status:** expected-blocker ergonomics implementation committed on `codex/expected-blocker-ergonomics`; truth file records the new state
 

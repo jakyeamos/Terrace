@@ -25,13 +25,14 @@ describe('terrace corpus evaluation helpers', () => {
     });
   });
 
-  it('treats migrated-GSD repos with no agent assets as not applicable', () => {
+  it('treats migrated-GSD repos with no agent assets as a product weakness', () => {
     expect(classifyAgentAssetVerification('migrated-gsd', {
       present: false,
       complete: false
     })).toMatchObject({
-      classification: 'not-applicable',
-      skipped: true
+      classification: 'product-weakness',
+      skipped: false,
+      remediation: 'Expected terrace port gsd to install complete non-overwriting agent assets.'
     });
   });
 

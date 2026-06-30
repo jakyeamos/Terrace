@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { createDefaultState, saveState } = require('./state.cjs');
+const { installAgentBootstrap } = require('./agents.cjs');
 
 const COMMAND_STRATEGIES = {
   improved: ['gsd-new-project', 'gsd-discuss-phase', 'gsd-plan-phase', 'gsd-execute-phase', 'gsd-quick'],
@@ -71,25 +72,122 @@ function slugify(value) {
 }
 
 function extractRoadmapPhases(cwd) {
-  const roadmapPath = path.resolve(cwd, '.planning', 'ROADMAP.md');
-  if (!fs.existsSync(roadmapPath)) {
-    return [];
+  const phases = [];
+  const seen = new Set();
+
+  function addPhase(phase) {
+    const id = slugify(phase.id || phase.title);
+    if (seen.has(id)) {
+      return;
+    }
+    seen.add(id);
+    phases.push({
+      id,
+      title: phase.title || id,
+      status: phase.status || 'migrated',
+      source_ref: phase.source_ref,
+      plans: []
+    });
   }
 
-  const content = fs.readFileSync(roadmapPath, 'utf8');
-  const headings = content
-    .split(/\r?\n/)
-    .map((line) => line.match(/^#{2,}\s+(.+?)\s*$/))
-    .filter(Boolean)
-    .map((match) => match[1]);
+  const roadmapPath = path.resolve(cwd, '.planning', 'ROADMAP.md');
+  if (fs.existsSync(roadmapPath)) {
+    const content = fs.readFileSync(roadmapPath, 'utf8');
+    const lines = content.split(/\r?\n/);
+    let current = null;
 
-  return headings.map((title) => ({
-    id: slugify(title),
-    title,
-    status: 'migrated',
-    source_ref: '.planning/ROADMAP.md',
-    plans: []
-  }));
+    for (const line of lines) {
+      const heading = line.match(/^#{2,}\s+(.+?)\s*$/);
+      if (heading) {
+        current = {
+          title: heading[1],
+          id: null,
+          source_ref: '.planning/ROADMAP.md'
+        };
+        addPhase(current);
+        continue;
+      }
+
+      const id = line.match(/^\s*-\s*ID:\s*(.+?)\s*$/i);
+      if (id && current) {
+        const previousId = slugify(current.id || current.title);
+        const phase = phases.find((candidate) => candidate.id === previousId);
+        if (phase) {
+          seen.delete(phase.id);
+          phase.id = slugify(id[1]);
+          seen.add(phase.id);
+        }
+        current.id = id[1];
+        continue;
+      }
+
+      const inlinePhase = line.match(/^\s*[-*]\s+(Phase\s+\d+(?:\.\d+)?(?::\s*.+?)?)\s*$/i);
+      if (inlinePhase) {
+        addPhase({
+          title: inlinePhase[1],
+          source_ref: '.planning/ROADMAP.md'
+        });
+      }
+    }
+  }
+
+  if (phases.length > 0) {
+    return phases;
+  }
+
+  const handoff = readJsonIfExists(path.resolve(cwd, '.planning', 'HANDOFF.json'));
+  if (handoff && !handoff.parse_error) {
+    const handoffPhase = handoff.phase || handoff.phase_name || handoff.current_phase || handoff.active_phase || handoff.next_phase;
+    if (handoffPhase) {
+      addPhase({
+        title: String(handoffPhase),
+        source_ref: '.planning/HANDOFF.json'
+      });
+    }
+    if (Array.isArray(handoff.phases)) {
+      for (const phase of handoff.phases) {
+        if (phase && typeof phase === 'object') {
+          addPhase({
+            id: phase.id,
+            title: phase.title || phase.name || phase.id,
+            status: phase.status || 'migrated',
+            source_ref: '.planning/HANDOFF.json'
+          });
+        }
+      }
+    }
+  }
+
+  if (phases.length > 0) {
+    return phases;
+  }
+
+  const phaseDirs = [...new Set(listPlanningFiles(cwd)
+    .map((artifact) => artifact.match(/^\.planning\/phases\/([^/]+)\//))
+    .filter(Boolean)
+    .map((match) => match[1]))];
+  for (const phaseDir of phaseDirs) {
+    addPhase({
+      id: phaseDir,
+      title: phaseDir,
+      source_ref: '.planning/phases/' + phaseDir
+    });
+  }
+
+  if (phases.length > 0) {
+    return phases;
+  }
+
+  const legacyPlanFiles = listPlanningFiles(cwd).filter((artifact) => /(?:^|\/)(?:PLAN|.*-PLAN)\.md$/i.test(artifact));
+  if (legacyPlanFiles.length > 0) {
+    addPhase({
+      id: 'migrated-gsd-legacy-plan',
+      title: 'Migrated GSD Legacy Plan',
+      source_ref: legacyPlanFiles[0]
+    });
+  }
+
+  return phases;
 }
 
 function firstHeading(content, fallback) {
@@ -810,6 +908,18 @@ function portGsd(cwd, options) {
   writes.unshift('.terrace/state.json');
   const nextCommand = nextCommandForState(state);
   state.migration.next_command = nextCommand;
+  const agents = installAgentBootstrap(cwd);
+  state.migration.agents = {
+    manifest_path: agents.manifest_path,
+    written: agents.assets.filter((asset) => asset.status === 'written').length,
+    unchanged: agents.assets.filter((asset) => asset.status === 'unchanged').length,
+    skipped: agents.assets.filter((asset) => asset.status === 'skipped').length
+  };
+  for (const asset of agents.assets) {
+    if (asset.status === 'written') {
+      writes.push(asset.path);
+    }
+  }
   saveState(cwd, state);
   const warnings = skipped.map((item) => ({
     code: item.reason === 'target_exists' ? 'GSD_TARGET_EXISTS' : 'GSD_UNSUPPORTED_ARTIFACT',
@@ -825,6 +935,7 @@ function portGsd(cwd, options) {
     converted,
     skipped,
     writes: [...writes, '.terrace/migration/gsd-port-report.json'],
+    agents,
     blockers,
     warnings,
     readiness: {

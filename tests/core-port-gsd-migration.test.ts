@@ -7,7 +7,8 @@ const {
   portGsd,
   portGsdCompare,
   portGsdVerifyParity,
-  runAudit
+  runAudit,
+  agentAssetStatus
 } = require('../packages/terrace-core/src/index.cjs');
 
 describe('terrace port gsd migration', () => {
@@ -33,6 +34,7 @@ describe('terrace port gsd migration', () => {
     expect(result.mode).toBe('migration');
     expect(result.writes).toContain('.terrace/state.json');
     expect(result.writes).toContain('.terrace/migration/gsd-port-report.json');
+    expect(result.writes).toContain('.terrace/agents/manifest.json');
     expect(result.writes).toContain('docs/prd/PRD.md');
     expect(result.writes).toContain('docs/spec/COMPILED-SPEC.md');
     expect(result.writes).toContain('docs/terrace-migration/GSD-STATE.md');
@@ -46,6 +48,15 @@ describe('terrace port gsd migration', () => {
     expect(state.project.name).toBe(path.basename(tmpDir));
     expect(state.migration.source).toBe('gsd');
     expect(state.migration.artifacts).toContain('.planning/PROJECT.md');
+    expect(state.migration.agents).toMatchObject({
+      manifest_path: '.terrace/agents/manifest.json',
+      skipped: 0
+    });
+    expect(result.agents).toMatchObject({
+      enabled: true,
+      manifest_path: '.terrace/agents/manifest.json'
+    });
+    expect(agentAssetStatus(tmpDir).complete).toBe(true);
     expect(state.roadmap.phases).toEqual([
       { id: 'phase-1-bootstrap', title: 'Phase 1: Bootstrap', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] },
       { id: 'phase-2-release', title: 'Phase 2: Release', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] }
@@ -289,23 +300,25 @@ describe('terrace port gsd migration', () => {
     });
   });
 
-  it('still blocks parity when ROADMAP.md has no mapped phases', () => {
+  it('falls back to migrated phase-plan evidence when ROADMAP.md has no mapped phases', () => {
     fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap\n\nNo phase headings yet.\n', 'utf8');
 
-    const parity = portGsdVerifyParity(tmpDir);
+    const comparison = portGsdCompare(tmpDir);
+    const result = portGsd(tmpDir, { force: false });
+    const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
 
-    expect(parity).toMatchObject({
-      mode: 'verify-parity',
-      passed: false,
-      blocking: [
-        {
-          code: 'GSD_CONCEPT_UNMAPPED',
-          message: 'phases from .planning/ROADMAP.md was not mapped.'
-        }
-      ],
-      comparison: expect.objectContaining({
-        next_command: 'Review missing migration concepts before porting: phases from .planning/ROADMAP.md.'
+    expect(comparison).toMatchObject({
+      mode: 'compare',
+      passed: true,
+      concepts: expect.objectContaining({
+        phases: 1
       })
+    });
+    expect(result.next_command).toBe('terrace phase show 01-demo');
+    expect(state.roadmap.phases[0]).toMatchObject({
+      id: '01-demo',
+      title: '01-demo',
+      source_ref: '.planning/phases/01-demo'
     });
   });
 });

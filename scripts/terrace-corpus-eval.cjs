@@ -55,7 +55,7 @@ const FEATURE_PRD = [
 
 function usage() {
   return [
-    'Usage: npm run corpus:evaluate -- [--sample|--all-shadow] [--track migrated-gsd|scratch-real|scratch-synthetic|all] [--dry-run-plan] [--keep-worktrees]',
+    'Usage: pnpm run corpus:evaluate -- [--sample|--all-shadow] [--track migrated-gsd|scratch-real|scratch-synthetic|all] [--dry-run-plan] [--keep-worktrees]',
     '',
     'Options:',
     '  --sample              Run configured sample repositories and synthetic fixtures.',
@@ -695,7 +695,7 @@ function verifyAgentAssets(worktree) {
 }
 
 function repairMigratedAgentAssets(context, agentAssets) {
-  if (context.track !== 'migrated-gsd' || !agentAssets.present || agentAssets.complete) {
+  if (context.track !== 'migrated-gsd' || agentAssets.complete) {
     return null;
   }
   const raw = runProcess(context.terraceBin, ['init', '--json'], {
@@ -720,10 +720,10 @@ function repairMigratedAgentAssets(context, agentAssets) {
 function classifyAgentAssetVerification(track, agentAssets) {
   if (track === 'migrated-gsd' && !agentAssets.present) {
     return {
-      classification: 'not-applicable',
-      skipped: true,
-      skipReason: 'Agent asset verification requires an init/new-project track; migrated-GSD migration does not install slash assets.',
-      remediation: null
+      classification: 'product-weakness',
+      skipped: false,
+      skipReason: undefined,
+      remediation: 'Expected terrace port gsd to install complete non-overwriting agent assets.'
     };
   }
   if (agentAssets.complete) {
