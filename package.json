@@ -1,9 +1,24 @@
 {
   "name": "@jakyeamos33/terrace",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Spec-driven, test-governed AI development framework",
   "type": "commonjs",
   "packageManager": "pnpm@11.7.0",
+  "author": {
+    "name": "Jakye Amos"
+  },
+  "homepage": "https://github.com/jakyeamos/Terrace#readme",
+  "bugs": {
+    "url": "https://github.com/jakyeamos/Terrace/issues"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "cli",
+    "codex",
+    "governance",
+    "workflow"
+  ],
   "main": "src/terrace-tools.cjs",
   "bin": {
     "terrace": "src/terrace-tools.cjs"
@@ -29,8 +44,9 @@
     "test:watch": "vitest",
     "package": "pnpm run package:dry-run",
     "package:dry-run": "node scripts/package-dry-run.cjs",
+    "release:dry-run": "pnpm publish --dry-run --access public --no-git-checks --config.node-linker=hoisted",
     "secret:scan": "node scripts/secret-scan.mjs",
-    "dependency:security": "pnpm audit --audit-level high",
+    "dependency:security": "pnpm audit --audit-level moderate",
     "corpus:evaluate": "node scripts/terrace-corpus-eval.cjs",
     "ci": "pnpm run typecheck && pnpm run lint && pnpm test && pnpm run test:coverage && pnpm run package:dry-run"
   },
@@ -47,6 +63,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jakyeamos/terrace.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "license": "MIT",
   "devDependencies": {

@@ -31,6 +31,10 @@ describe('tier-one product readiness', () => {
       'docs/'
     ]);
     expect(pkg.license).toBe('MIT');
+    expect(pkg.author.name).toBe('Jakye Amos');
+    expect(pkg.homepage).toBe('https://github.com/jakyeamos/Terrace#readme');
+    expect(pkg.bugs.url).toBe('https://github.com/jakyeamos/Terrace/issues');
+    expect(pkg.publishConfig).toMatchObject({ access: 'public', provenance: true });
     expect(pkg.repository.type).toBe('git');
     expect(pkg.exports['.']).toBe('./packages/terrace-core/src/index.cjs');
   });
@@ -42,7 +46,8 @@ describe('tier-one product readiness', () => {
       expect(readme).toContain('## ' + heading);
     }
     expect(readme).toContain('terrace report` is read-only');
-    expect(readme).toContain('pnpm audit --audit-level=moderate');
+    expect(readme).toContain('pnpm audit --audit-level moderate');
+    expect(readme).toContain('pnpm run release:dry-run');
   });
 
   it('prints top-level CLI help and version without requiring a Terrace state file', () => {

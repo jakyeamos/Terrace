@@ -6,7 +6,7 @@ import * as path from 'path';
 const { portGsd } = require('../packages/terrace-core/src/index.cjs');
 
 const AMOS_PLANNING = '/Users/jakyeamos/projects/amos-saas/.planning';
-const hasAmosPlanning = fs.existsSync(AMOS_PLANNING);
+const hasAmosPlanning = fs.existsSync(path.join(AMOS_PLANNING, 'HANDOFF.json'));
 
 describe('amos-saas GSD migration smoke', () => {
   const tempDirs: string[] = [];

@@ -100,8 +100,9 @@ Use these checks before publishing protected work:
 
 ```sh
 pnpm run ci
-pnpm audit --audit-level=moderate
-pnpm run package:dry-run
+pnpm audit --audit-level moderate
+pnpm package
+pnpm run release:dry-run
 pnpm exec terrace ship check --json
 ```
 
@@ -239,4 +240,4 @@ Canonical local verification is:
 pnpm run ci
 ```
 
-The publish allowlist is controlled by `package.json#files`; local planning, tests, and agent settings are not shipped.
+The publish allowlist is controlled by `package.json#files`; local planning, tests, and agent settings are not shipped. Release publishing uses public package access and npm provenance through `publishConfig` plus the GitHub Release workflow.
