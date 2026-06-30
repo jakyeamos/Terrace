@@ -27,6 +27,7 @@
     "test": "vitest run --reporter=verbose",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
+    "package": "pnpm run package:dry-run",
     "package:dry-run": "node scripts/package-dry-run.cjs",
     "secret:scan": "node scripts/secret-scan.mjs",
     "dependency:security": "pnpm audit --audit-level high",

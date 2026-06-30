@@ -35,13 +35,13 @@ canonicalCommands:
   typecheck: pnpm run typecheck
   test: pnpm test
   coverage: pnpm run test:coverage
-  package: pnpm run package:dry-run
+  package: pnpm package
   ci: pnpm run ci
   audit: pnpm audit --audit-level=high
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/lifecycle-coverage.test.ts tests/workflow-commands.test.ts --reporter=verbose
-lastVerifiedAt: "2026-06-30T21:10:24-04:00"
+lastVerifiedCommand: pnpm package
+lastVerifiedAt: "2026-06-30T21:11:20-04:00"
 ---
 
 ## Current State
@@ -88,6 +88,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
 - June 30: Made `terrace port gsd` install non-overwriting repo-local agent assets by default and broadened migrated-GSD phase extraction so legacy plan evidence yields a usable roadmap phase target.
 - June 30: Added Terrace-native production workbench status/prepare commands and natural-language routing for ship-ready and handoff feature intents.
+- June 30: Added a `pnpm package` wrapper for the existing package dry-run gate so release verification matches the pnpm-first command surface.
 - April 28: Added CLI `--help` and `--version`.
 - April 28: Added canonical scripts: lint, typecheck, test, coverage, package dry-run, and ci.
 - April 28: Fixed coverage to measure `packages/terrace-core/src`; current coverage passes thresholds.
@@ -180,6 +181,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **pnpm conversion focused verification:** `pnpm exec vitest run tests/core-init.test.ts tests/workflow-commands.test.ts tests/implemented-placeholder-commands.test.ts tests/product-readiness.test.ts --reporter=verbose` PASS, 4 files and 48 tests
 - **Migrated-GSD readiness focused verification:** `pnpm exec vitest run tests/core-port-gsd-migration.test.ts tests/corpus-eval.test.ts --reporter=verbose` PASS, 2 files and 13 tests
 - **Production workbench focused verification:** `pnpm exec vitest run tests/lifecycle-coverage.test.ts tests/workflow-commands.test.ts --reporter=verbose` PASS, 2 files and 35 tests
+- **Package wrapper verification:** `pnpm package` PASS via `pnpm run package:dry-run`
 - **Known local fixture gap:** `pnpm test` currently fails only in `tests/amos-saas-gsd-smoke.test.ts` because `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` is absent; the remaining 291 tests pass.
 - **Git status:** expected-blocker ergonomics implementation committed on `codex/expected-blocker-ergonomics`; truth file records the new state
 
