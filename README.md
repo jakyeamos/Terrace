@@ -241,3 +241,4 @@ pnpm run ci
 ```
 
 The publish allowlist is controlled by `package.json#files`; local planning, tests, and agent settings are not shipped. Release publishing uses public package access and npm provenance through `publishConfig` plus the GitHub Release workflow.
+The GitHub Release workflow publishes through npm trusted publishing with OIDC, so release execution does not depend on local npm auth or an `NPM_TOKEN` secret.

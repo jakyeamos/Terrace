@@ -29,5 +29,3 @@ jobs:
       - run: pnpm audit --audit-level moderate
       - run: pnpm run release:dry-run
       - run: pnpm publish --access public --provenance --no-git-checks --config.node-linker=hoisted
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

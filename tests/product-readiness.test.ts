@@ -71,6 +71,22 @@ describe('tier-one product readiness', () => {
     expect(pkg.files).not.toContain('tests');
   });
 
+  it('publishes releases through GitHub trusted publishing instead of npm tokens', () => {
+    const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'release-publish.yml'), 'utf8');
+    const releaseDocs = fs.readFileSync(path.join(repoRoot, 'docs', 'RELEASE.md'), 'utf8');
+    const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+
+    expect(workflow).toContain('id-token: write');
+    expect(workflow).toContain('environment: npm');
+    expect(workflow).toContain('pnpm publish --access public --provenance --no-git-checks --config.node-linker=hoisted');
+    expect(workflow).not.toContain('NODE_AUTH_TOKEN');
+    expect(workflow).not.toContain('NPM_TOKEN');
+    expect(releaseDocs).toContain('npm trusted publishing');
+    expect(releaseDocs).not.toContain('pnpm whoami');
+    expect(releaseDocs).not.toContain('run `pnpm publish');
+    expect(readme).toContain('npm trusted publishing with OIDC');
+  });
+
   it('records explicit truth-file verification metadata', () => {
     const truth = fs.readFileSync(path.join(repoRoot, '.tracker', 'PROJECT_TRUTH.md'), 'utf8');
 

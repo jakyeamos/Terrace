@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, provenance-capable GitHub release automation, PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness, and Terrace-native production workbench status/prepare commands.
+summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, GitHub trusted publishing release automation, PRD intake, discoverable repo-local and global Codex/Claude agent commands, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness, and Terrace-native production workbench status/prepare commands.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Authenticate npm publishing for the `@jakyeamos33` scope, then create the reviewed `v0.2.0` release tag and GitHub Release.
+nextStep: Confirm npm trusted publishing is configured for the GitHub Release workflow, then create the reviewed `v0.2.0` GitHub Release.
 blockers: []
-lastUpdated: 2026-06-30
+lastUpdated: 2026-07-02
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -41,7 +41,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: pnpm run release:dry-run
-lastVerifiedAt: "2026-06-30T21:30:38-04:00"
+lastVerifiedAt: "2026-07-02T15:08:35-04:00"
 ---
 
 ## Current State
@@ -62,7 +62,7 @@ The first agent bootstrap version missed command discovery because it generated 
 
 The approved design spec and implementation plan remain at `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`.
 
-Terrace is prepared as the `@jakyeamos33/terrace@0.2.0` release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes GSD replacement readiness, pnpm-first command rendering, migrated-GSD agent and phase readiness, production workbench commands, refreshed agent assets, MIT license metadata, public npm publish configuration, and provenance-capable GitHub release automation. Local npm auth is not currently ready: `pnpm whoami` returns `401 Unauthorized`.
+Terrace is prepared as the `@jakyeamos33/terrace@0.2.0` release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes GSD replacement readiness, pnpm-first command rendering, migrated-GSD agent and phase readiness, production workbench commands, refreshed agent assets, MIT license metadata, public npm publish configuration, and GitHub trusted publishing automation. Publishing is intentionally routed through the GitHub Release workflow with OIDC and the `npm` environment; local npm auth and `NPM_TOKEN` are not part of the 0.2.0 release path.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, ignores generated corpus-run evidence, honors explicit GitHub Actions permissions, audits production dependencies with the detected package manager, and records dependency audit metadata in security evidence.
 
@@ -92,7 +92,8 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - June 30: Added a `pnpm package` wrapper for the existing package dry-run gate so release verification matches the pnpm-first command surface.
 - June 30: Regenerated repo-local Codex/Claude command assets for corpus, adoption status, and production workbench commands; generated expectations are now 62 Codex skills, 62 Claude skills, and 62 Claude commands.
 - June 30: Completed final GSD-replacement/workbench verification with pnpm lint/typecheck/package, focused Vitest suites, the full Vitest suite excluding the known absent external `amos-saas` fixture, clean fast ship check, and sample corpus dry-run planning.
-- June 30: Bumped the package to `0.2.0`, added author/homepage/bugs/keywords/publish metadata, aligned GitHub CI and release dry-run workflows to pnpm, added a provenance-capable release publish workflow, updated release docs, and made the incomplete local `amos-saas` fixture skip cleanly unless `HANDOFF.json` exists.
+- June 30: Bumped the package to `0.2.0`, added author/homepage/bugs/keywords/publish metadata, aligned GitHub CI and release dry-run workflows to pnpm, added a provenance-capable GitHub release publish workflow, updated release docs, and made the incomplete local `amos-saas` fixture skip cleanly unless `HANDOFF.json` exists.
+- July 2: Switched the 0.2.0 publish path to GitHub trusted publishing by removing `NPM_TOKEN` usage from the Release Publish workflow, updating release docs and README guidance, and adding a product-readiness regression test for OIDC publishing.
 - April 28: Added CLI `--help` and `--version`.
 - April 28: Added canonical scripts: lint, typecheck, test, coverage, package dry-run, and ci.
 - April 28: Fixed coverage to measure `packages/terrace-core/src`; current coverage passes thresholds.
@@ -149,7 +150,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - Feature tier selection still defaults to medium unless a feature records an explicit tier.
 - The corpus expected-blocker watchlist still contains intentional blockers, but they now include self-serve next-command guidance and are separated from product weaknesses in the report.
 - Dead-code scanning is not configured.
-- Local npm auth is not ready in this shell; `pnpm whoami` returns `401 Unauthorized`.
+- The npm package trusted-publishing connection must exist for the GitHub repository, `release-publish.yml` workflow, and `npm` environment before the GitHub Release is created.
 
 ## Quality Ladder Notes
 
@@ -196,13 +197,14 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **0.2.0 audit:** `pnpm audit --audit-level moderate` PASS, zero known vulnerabilities
 - **0.2.0 package:** `pnpm package` PASS via `pnpm run package:dry-run`; dry-run reported `@jakyeamos33/terrace@0.2.0`
 - **0.2.0 release dry-run:** `pnpm run release:dry-run` PASS with public access and hoisted node linker configuration; dry-run targeted `https://registry.npmjs.org/`
+- **Trusted publishing focused verification:** `pnpm exec vitest run tests/product-readiness.test.ts --reporter=verbose` PASS, 7 tests including the Release Publish workflow token-removal regression and packed-consumer smoke path.
 - **0.2.0 ship check pre-commit:** `node src/terrace-tools.cjs ship check --json` passed all functional categories and failed only the expected `dirty_tree` category because the release candidate changes were still uncommitted
-- **Npm auth check:** `pnpm whoami` FAIL, `401 Unauthorized`; publish requires npm login, `NPM_TOKEN`, or trusted publishing configuration before release execution
+- **Trusted publishing check:** release execution is GitHub-only through `release-publish.yml` with `id-token: write`, the `npm` environment, provenance publishing, and no `NODE_AUTH_TOKEN`/`NPM_TOKEN` environment.
 - **Known local fixture behavior:** `tests/amos-saas-gsd-smoke.test.ts` now skips unless `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` exists, so incomplete local external fixtures do not fail `pnpm run ci`.
 - **Git status:** 0.2.0 release candidate work is in progress on `codex/global-agent-installer`; truth file records the new state
 
 ## Next Concrete Steps
 
-1. Authenticate npm publishing for `@jakyeamos33` with `pnpm login` or configure `NPM_TOKEN`/trusted publishing for the GitHub Release workflow.
-2. Commit the 0.2.0 release candidate, rerun `node src/terrace-tools.cjs ship check --json` on the clean tree, tag `v0.2.0`, and push the branch plus tag.
+1. Confirm npm trusted publishing for `@jakyeamos33/terrace` is configured against the GitHub repository, `release-publish.yml` workflow, and `npm` environment.
+2. Commit the 0.2.0 release candidate, rerun `node src/terrace-tools.cjs ship check --json` on the clean tree, create the reviewed `v0.2.0` GitHub Release, and let the release workflow publish.
 3. Refresh the separate global install from this local package and rerun `terrace agents install-global`.
