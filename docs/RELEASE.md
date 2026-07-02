@@ -2,7 +2,7 @@
 
 1. Confirm npm trusted publishing is configured for `@jakyeamos33/terrace` with the GitHub repository, `release-publish.yml` workflow, and `npm` environment.
 2. Confirm the GitHub `npm` environment requires the intended reviewer before publish jobs can run.
-3. Run `pnpm run ci`.
+3. Run `pnpm run ci`; this includes the packed-consumer smoke test for `terrace agents install-global` and its generated global command assets.
 4. Run `pnpm audit --audit-level moderate`.
 5. Run `pnpm package` and confirm the package contains only runtime files and public docs.
 6. Run `pnpm run release:dry-run`.

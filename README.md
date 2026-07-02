@@ -107,6 +107,7 @@ pnpm exec terrace ship check --json
 ```
 
 `terrace ship check` is read-only. Use `terrace ship prepare` when you want Terrace to write a release-readiness summary under `docs/terrace/ship/`.
+`pnpm run ci` includes the packed-consumer smoke test that installs Terrace from the generated tarball and verifies `terrace agents install-global` writes usable `/terrace` and `/terrace-*` global assets into temporary agent directories.
 
 ## Command Reference
 
