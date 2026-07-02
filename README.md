@@ -121,6 +121,7 @@ pnpm exec terrace ship check --json
 - `terrace spec hash --file <path>` computes a stable spec hash.
 - `terrace audit` checks artifacts and protected baselines.
 - `terrace ci check [files...]` runs audit and protected-change enforcement.
+- `terrace adoption status` answers “Can Terrace replace GSD for me yet?” with a direct verdict, `replace_gsd` / `pilot_with_gsd_fallback` / `keep_gsd` mode, workflow evidence, blocking checks, and concrete next commands.
 - `terrace port gsd --dry-run` inventories legacy GSD artifacts.
 - `terrace port gsd` migrates supported legacy GSD artifacts into Terrace state.
 - `terrace next` reports the next workflow action from state, handoff data, and blockers.
@@ -168,6 +169,8 @@ pnpm exec terrace ship check --json
 `terrace port gsd` preserves the source `.planning/` tree, installs non-overwriting repo-local Terrace agent assets, and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `agents`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.
 
 Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Quick-task PLAN/SUMMARY files are archived under `docs/terrace-migration/quick/` and exposed through `terrace quick list` / `terrace quick show <id>`. Handoff remaining tasks and blocking human actions become backlog items so post-migration work is visible. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
+
+Use `terrace adoption status` after migration, corpus runs, or agent asset changes when the practical question is whether Terrace can replace GSD yet. The command is read-only and leads with a verdict, score, recommended mode, real workflow evidence, blockers, and next commands such as `terrace commands discover`, `terrace corpus run`, `terrace port gsd --dry-run`, `terrace init`, or `terrace report update`.
 
 ## Workflow Example
 

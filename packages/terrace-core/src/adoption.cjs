@@ -83,6 +83,162 @@ function check(name, passed, evidence, remediation) {
   };
 }
 
+function countItems(value) {
+  return Array.isArray(value) ? value.length : 0;
+}
+
+function checkPassed(checks, name) {
+  const found = checks.find((item) => item.name === name);
+  return Boolean(found && found.passed);
+}
+
+function knownGsdCompatibleCommands() {
+  return [
+    'terrace next',
+    'terrace resume',
+    'terrace history',
+    'terrace do "<intent>"',
+    'terrace phase plan <id>',
+    'terrace phase execute <id>',
+    'terrace phase validate <id>',
+    'terrace phase review <id>',
+    'terrace phase complete <id>',
+    'terrace execute-phase-complete <id>',
+    'terrace quick plan "<title>"',
+    'terrace quick execute <id>',
+    'terrace quick complete <id>',
+    'terrace backlog list',
+    'terrace backlog add "<title>"',
+    'terrace plan-phase <id>',
+    'terrace execute-phase <id>',
+    'terrace validate-phase <id>',
+    'terrace review-phase <id>',
+    'terrace complete-phase <id>',
+    'terrace ship check',
+    'terrace workbench status'
+  ];
+}
+
+function projectCommandEvidence(commands) {
+  const checks = Array.isArray(commands.checks) ? commands.checks : [];
+  const available = checks.filter((item) => item.exists).map((item) => ({
+    category: item.category,
+    command: item.command
+  }));
+  const missingRequired = checks.filter((item) => item.required && !item.exists).map((item) => ({
+    category: item.category,
+    suggested: item.suggested
+  }));
+  return {
+    package_manager: commands.package_manager,
+    available_quality_commands: available,
+    missing_required_quality_commands: missingRequired,
+    dead_code_gate: commands.dead_code || null,
+    passed: missingRequired.length === 0
+  };
+}
+
+function workflowEvidence(state, commands, agents, corpus, report) {
+  const phases = state.roadmap && Array.isArray(state.roadmap.phases) ? state.roadmap.phases : [];
+  const quickTasks = Array.isArray(state.quick_tasks) ? state.quick_tasks : [];
+  const backlogItems = state.backlog && Array.isArray(state.backlog.items) ? state.backlog.items : [];
+  const blockedActions = Array.isArray(state.blocked_actions) ? state.blocked_actions : [];
+  const sessions = Array.isArray(state.sessions) ? state.sessions : [];
+  const knownCommands = knownGsdCompatibleCommands();
+  return {
+    migrated_context: {
+      phase_count: phases.length,
+      quick_task_count: quickTasks.length,
+      backlog_item_count: backlogItems.length,
+      blocked_action_count: blockedActions.length,
+      session_count: sessions.length,
+      handoff_status: state.handoff && state.handoff.status ? state.handoff.status : null,
+      has_operational_history: phases.length > 0 || quickTasks.length > 0 || backlogItems.length > 0 || sessions.length > 0
+    },
+    command_surface: {
+      gsd_compatible_commands: knownCommands,
+      count: knownCommands.length,
+      has_phase_aliases: true,
+      has_quick_task_flow: true,
+      has_resume_history_next: true,
+      has_natural_language_router: true,
+      has_ship_readiness: true
+    },
+    agent_readiness: {
+      complete: agents.complete,
+      present: agents.present,
+      expected_total: agents.expected_total,
+      next_command: agents.next_command
+    },
+    project_gates: projectCommandEvidence(commands),
+    corpus_health: {
+      present: corpus.present,
+      run_id: corpus.run_id || null,
+      passed: corpus.passed,
+      totals: corpus.totals
+    },
+    report_card: {
+      status_label: report.status_label || null,
+      claim_scope: report.claim_scope || null
+    }
+  };
+}
+
+function nextCommandForCheck(name, evidence) {
+  if (name === 'doctor') return 'terrace doctor';
+  if (name === 'audit') return 'terrace audit';
+  if (name === 'package_manager') return 'terrace commands discover';
+  if (name === 'version_alignment') return 'terrace --version';
+  if (name === 'corpus_health') return 'terrace corpus run';
+  if (name === 'migrated_gsd_phase_coverage') return 'terrace port gsd --dry-run';
+  if (name === 'agent_assets') return 'terrace init';
+  if (name === 'report_claim_scope') return 'terrace report update';
+  return 'terrace adoption status';
+}
+
+function nextSteps(blockers, replacementReady, statusLabel) {
+  if (replacementReady) {
+    return [{
+      command: 'terrace next',
+      why: 'Start using Terrace as the default workflow entrypoint.',
+      fixes: []
+    }, {
+      command: 'terrace ship check',
+      why: 'Recheck release readiness before protected work ships.',
+      fixes: []
+    }];
+  }
+  const steps = blockers.slice(0, 5).map((item) => ({
+    command: nextCommandForCheck(item.name, item.evidence),
+    why: item.remediation,
+    fixes: [item.name]
+  }));
+  if (statusLabel === 'pilot_ready_with_gaps') {
+    steps.push({
+      command: 'terrace next',
+      why: 'Pilot Terrace for day-to-day workflow while resolving the remaining replacement blockers.',
+      fixes: []
+    });
+  }
+  return steps;
+}
+
+function replacementAnswer(replacementReady, score) {
+  if (replacementReady) {
+    return 'Yes. Terrace has the local workflow, agent, migration, corpus, and governance evidence needed to replace GSD as the default workflow.';
+  }
+  if (score >= 75) {
+    return 'Not fully yet. Terrace is usable as the pilot workflow, but the listed blockers should be cleared before retiring GSD fallback paths.';
+  }
+  return 'No. Keep GSD available until Terrace clears the blocking readiness checks below.';
+}
+
+function readinessMode(replacementReady, score) {
+  if (replacementReady) return 'replace_gsd';
+  if (score >= 75) return 'pilot_with_gsd_fallback';
+  return 'keep_gsd';
+}
+
 function adoptionStatus(cwd) {
   const doctor = runDoctor(cwd);
   const audit = runAudit(cwd);
@@ -122,17 +278,32 @@ function adoptionStatus(cwd) {
   const blockers = checks.filter((item) => !item.passed);
   const score = Math.round((checks.length - blockers.length) / checks.length * 100);
   const replacementReady = blockers.length === 0;
+  const statusLabel = replacementReady ? 'replacement_ready' : score >= 75 ? 'pilot_ready_with_gaps' : 'not_ready';
+  const evidence = workflowEvidence(state, commands, agents, corpus, report);
+  const steps = nextSteps(blockers, replacementReady, statusLabel);
   return {
     command: 'terrace adoption status',
     replacement: 'gsd',
+    question: 'Can Terrace replace GSD for me yet?',
+    answer: replacementAnswer(replacementReady, score),
     ready: replacementReady,
     score,
-    status_label: replacementReady ? 'replacement_ready' : score >= 75 ? 'pilot_ready_with_gaps' : 'not_ready',
+    status_label: statusLabel,
+    recommended_mode: readinessMode(replacementReady, score),
+    evidence,
+    readiness_summary: {
+      workflow_continuity: evidence.migrated_context.has_operational_history,
+      gsd_command_surface: evidence.command_surface.count,
+      project_gates_detected: countItems(evidence.project_gates.available_quality_commands),
+      agent_assets_complete: agents.complete,
+      corpus_passed: corpus.passed,
+      doctor_passed: checkPassed(checks, 'doctor'),
+      audit_passed: checkPassed(checks, 'audit')
+    },
     checks,
     blockers,
-    next_commands: blockers.length > 0
-      ? blockers.slice(0, 3).map((item) => item.remediation)
-      : ['Use Terrace as the default workflow entrypoint for explicit phase, quick, ship, and workbench commands.']
+    next_steps: steps,
+    next_commands: steps.map((item) => item.command)
   };
 }
 

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { execFileSync } from 'child_process';
 
 const {
   saveState,
@@ -786,12 +787,51 @@ describe('workflow parity core helpers', () => {
     expect(status).toMatchObject({
       command: 'terrace adoption status',
       replacement: 'gsd',
+      question: 'Can Terrace replace GSD for me yet?',
       ready: false,
+      recommended_mode: 'keep_gsd',
+      answer: expect.stringContaining('No. Keep GSD available'),
+      readiness_summary: expect.objectContaining({
+        workflow_continuity: true,
+        gsd_command_surface: expect.any(Number),
+        agent_assets_complete: false,
+        doctor_passed: true,
+        audit_passed: true
+      }),
+      evidence: expect.objectContaining({
+        migrated_context: expect.objectContaining({
+          phase_count: 1,
+          quick_task_count: 1,
+          backlog_item_count: 1,
+          blocked_action_count: 1,
+          has_operational_history: true
+        }),
+        command_surface: expect.objectContaining({
+          has_phase_aliases: true,
+          has_quick_task_flow: true,
+          has_natural_language_router: true
+        })
+      }),
       blockers: expect.arrayContaining([
         expect.objectContaining({ name: 'package_manager' }),
         expect.objectContaining({ name: 'version_alignment' }),
         expect.objectContaining({ name: 'agent_assets' })
-      ])
+      ]),
+      next_steps: expect.arrayContaining([
+        expect.objectContaining({
+          command: 'terrace commands discover',
+          fixes: ['package_manager']
+        }),
+        expect.objectContaining({
+          command: 'terrace --version',
+          fixes: ['version_alignment']
+        }),
+        expect.objectContaining({
+          command: 'terrace init',
+          fixes: ['agent_assets']
+        })
+      ]),
+      next_commands: expect.arrayContaining(['terrace commands discover', 'terrace --version', 'terrace init'])
     });
     expect(status.checks).toContainEqual(expect.objectContaining({
       name: 'report_claim_scope',
@@ -799,6 +839,29 @@ describe('workflow parity core helpers', () => {
       evidence: expect.objectContaining({ claim_scope: 'delivery_readiness' })
     }));
     expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(before);
+  });
+
+  it('prints adoption status as a practical replacement verdict', () => {
+    process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.0.0';
+    const output = execFileSync('node', [
+      path.join(__dirname, '..', 'src', 'terrace-tools.cjs'),
+      'adoption',
+      'status'
+    ], {
+      cwd: tmpDir,
+      encoding: 'utf8'
+    });
+    delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+
+    expect(output).toContain('Can Terrace replace GSD for me yet?');
+    expect(output).toContain('Answer: No. Keep GSD available');
+    expect(output).toContain('Mode: keep_gsd');
+    expect(output).toContain('Evidence:');
+    expect(output).toContain('Workflow continuity: yes');
+    expect(output).toContain('Next commands:');
+    expect(output).toContain('terrace commands discover');
+    expect(output).toContain('terrace --version');
+    expect(output).toContain('terrace init');
   });
 
   it('reports failed ship checks as structured categories', () => {

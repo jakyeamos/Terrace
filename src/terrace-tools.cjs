@@ -253,6 +253,50 @@ function output(data, options) {
   process.stdout.write(JSON.stringify(data, null, 2) + '\n');
 }
 
+function humanAdoptionOutput(data) {
+  if (!data || data.command !== 'terrace adoption status') {
+    return null;
+  }
+  const lines = [
+    data.question || 'Can Terrace replace GSD for me yet?',
+    'Answer: ' + (data.answer || (data.ready ? 'Yes.' : 'No.')),
+    'Mode: ' + (data.recommended_mode || data.status_label || 'unknown'),
+    'Score: ' + String(data.score) + '/100',
+    'Ready: ' + String(data.ready)
+  ];
+  const summary = data.readiness_summary || {};
+  lines.push('');
+  lines.push('Evidence:');
+  lines.push('- Workflow continuity: ' + (summary.workflow_continuity ? 'yes' : 'no'));
+  if (Object.prototype.hasOwnProperty.call(summary, 'gsd_command_surface')) {
+    lines.push('- GSD-compatible command surface: ' + String(summary.gsd_command_surface) + ' commands');
+  }
+  if (Object.prototype.hasOwnProperty.call(summary, 'project_gates_detected')) {
+    lines.push('- Project gates detected: ' + String(summary.project_gates_detected));
+  }
+  lines.push('- Agent assets complete: ' + String(Boolean(summary.agent_assets_complete)));
+  lines.push('- Corpus passed: ' + String(Boolean(summary.corpus_passed)));
+  lines.push('- Doctor passed: ' + String(Boolean(summary.doctor_passed)));
+  lines.push('- Audit passed: ' + String(Boolean(summary.audit_passed)));
+
+  const blockers = Array.isArray(data.blockers) ? data.blockers : [];
+  lines.push('');
+  lines.push('Blockers: ' + String(blockers.length));
+  for (const blocker of blockers.slice(0, 5)) {
+    lines.push('- ' + blocker.name + ': ' + (blocker.remediation || 'Resolve this readiness check.'));
+  }
+
+  const nextSteps = Array.isArray(data.next_steps) ? data.next_steps : [];
+  if (nextSteps.length > 0) {
+    lines.push('');
+    lines.push('Next commands:');
+    for (const step of nextSteps.slice(0, 5)) {
+      lines.push('- ' + step.command + (step.why ? ' - ' + step.why : ''));
+    }
+  }
+  return lines.join('\n');
+}
+
 function fail(message, options) {
   const opts = options || {};
   if (opts.json) {
@@ -285,6 +329,10 @@ function fail(message, options) {
 function humanBlockerOutput(data) {
   if (!data || typeof data !== 'object') {
     return null;
+  }
+  const adoption = humanAdoptionOutput(data);
+  if (adoption) {
+    return adoption;
   }
   const blockers = Array.isArray(data.blockers) ? data.blockers : Array.isArray(data.blocking) ? data.blocking : [];
   const warnings = Array.isArray(data.warnings) ? data.warnings : [];
