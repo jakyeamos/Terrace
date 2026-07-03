@@ -7,9 +7,10 @@
 5. Run `pnpm package` and confirm the package contains only runtime files and public docs.
 6. Run `pnpm run release:dry-run`.
 7. Run `node src/terrace-tools.cjs ship check --json` and confirm it does not dirty the working tree.
-8. Update `CHANGELOG.md`.
-9. Bump `package.json` to the reviewed version.
-10. Tag the release after review with `git tag v<version>`.
-11. Publish by creating a GitHub Release for that tag. The Release Publish workflow uses GitHub OIDC trusted publishing and must not require local npm auth or an `NPM_TOKEN` secret.
+8. Run `node src/terrace-tools.cjs release-preflight --target-version 0.2.0 --json` and confirm the JSON summary has no blockers.
+9. Update `CHANGELOG.md`.
+10. Bump `package.json` to the reviewed version.
+11. Tag the release after review with `git tag v<version>`.
+12. Publish by creating a GitHub Release for that tag. The Release Publish workflow uses GitHub OIDC trusted publishing and must not require local registry auth secrets.
 
 Rollback: deprecate the npm version with a clear replacement message, then ship a patch release.

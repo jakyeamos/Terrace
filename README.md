@@ -104,9 +104,11 @@ pnpm audit --audit-level moderate
 pnpm package
 pnpm run release:dry-run
 pnpm exec terrace ship check --json
+pnpm exec terrace release-preflight --target-version 0.2.0 --json
 ```
 
 `terrace ship check` is read-only. Use `terrace ship prepare` when you want Terrace to write a release-readiness summary under `docs/terrace/ship/`.
+`terrace release-preflight` runs the release flow and returns one JSON summary for CI, audit, package, release dry-run, ship-check status, trusted-publishing prerequisites, tag/version alignment, and stale npm-era release instructions.
 `pnpm run ci` includes the packed-consumer smoke test that installs Terrace from the generated tarball and verifies `terrace agents install-global` writes usable `/terrace` and `/terrace-*` global assets into temporary agent directories.
 
 ## Command Reference
@@ -159,6 +161,7 @@ pnpm exec terrace ship check --json
 - `terrace backlog add <title>` appends a backlog item.
 - `terrace ship check` runs release-readiness checks, discovers available project scripts, enforces active Senior Cycle ship gates, treats missing optional scripts as warnings, runs the dead-code gate when a script is discovered or configured, and exits nonzero when an available quality gate fails.
 - `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` from release-readiness results.
+- `terrace release-preflight [--target-version <version>] [--static]` summarizes the Terrace 0.2.0 release flow, trusted-publishing prerequisites, tag/version mismatches, and stale npm-era release artifacts as JSON.
 - `terrace workbench status [--feature <id>]` reads feature release evidence, missing senior-cycle gates, preflight, docs, AI review, workstreams, debt, security, test eval, and report-card claim scope.
 - `terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]` writes production workbench artifacts from preflight, runbook docs, release AI review, workstreams, and optional handoff primitives.
 - `terrace plan-phase <id>`, `terrace execute-phase <id>`, `terrace validate-phase <id>`, `terrace review-phase <id>`, and `terrace complete-phase <id>` are GSD-compatible aliases.
@@ -245,4 +248,4 @@ pnpm run ci
 ```
 
 The publish allowlist is controlled by `package.json#files`; local planning, tests, and agent settings are not shipped. Release publishing uses public package access and npm provenance through `publishConfig` plus the GitHub Release workflow.
-The GitHub Release workflow publishes through npm trusted publishing with OIDC, so release execution does not depend on local npm auth or an `NPM_TOKEN` secret.
+The GitHub Release workflow publishes through npm trusted publishing with OIDC, so release execution does not depend on local registry auth secrets.

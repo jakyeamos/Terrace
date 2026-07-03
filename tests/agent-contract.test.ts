@@ -38,6 +38,7 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ui diff <feature>', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace quick list', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace ship check', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace release-preflight', json: true }));
   });
 
   it('terrace-autonomous generated skill carries autonomous workflow guardrails', () => {

@@ -66,6 +66,7 @@ const {
   uiPlanRefresh,
   uiDiff,
   shipCheck,
+  releasePreflight,
   reportRead,
   reportUpdate,
   reportOpen,
@@ -157,6 +158,7 @@ const HELP_TEXT = [
   '  terrace backlog add <title>  Add a backlog item',
   '  terrace ship check           Run release readiness checks',
   '  terrace ship prepare         Write PR/release readiness summary',
+  '  terrace release-preflight    Run Terrace 0.2.0 release preflight summary',
   '  terrace report [update|open|history|ceremony]',
   '  terrace handoff create [--feature <id>] [--for codex|claude|generic]',
   '  terrace debt add|list|audit|resolve',
@@ -174,6 +176,9 @@ const HELP_TEXT = [
   '  terrace design-source import <source> <feature> <ref>',
   '  terrace plan-phase <id>      GSD-compatible alias for phase plan',
   '  terrace execute-phase <id>   GSD-compatible alias for phase execute',
+  '  terrace validate-phase <id>  GSD-compatible alias for phase validate',
+  '  terrace review-phase <id>    GSD-compatible alias for phase review',
+  '  terrace complete-phase <id>  GSD-compatible alias for phase complete',
   '  terrace rule list            List installed rule packs',
   '  terrace rule explain <id>    Explain a rule',
   '  terrace preset list          List installed presets',
@@ -1081,6 +1086,23 @@ async function main() {
         return;
       }
       fail('Unknown backlog subcommand: ' + sub + '. Use: list, add', { json });
+      return;
+    }
+    case 'release-preflight':
+    case 'release': {
+      if (command === 'release' && args[1] !== 'preflight') {
+        fail('Unknown release subcommand: ' + args[1] + '. Use: preflight', { json });
+      }
+      const result = releasePreflight(cwd, {
+        targetVersion: optionValue(rawArgs, '--target-version'),
+        runCommands: !hasFlag(rawArgs, '--static'),
+        shipMode: optionValue(rawArgs, '--mode') ||
+          (hasFlag(rawArgs, '--fast') ? 'fast' : hasFlag(rawArgs, '--local') ? 'local' : hasFlag(rawArgs, '--full') ? 'full' : undefined)
+      });
+      output(result, { json });
+      if (!result.passed) {
+        process.exitCode = 1;
+      }
       return;
     }
     case 'ship': {

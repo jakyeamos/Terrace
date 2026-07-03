@@ -230,6 +230,12 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Write a PR-ready release summary from ship check results.'
   },
   {
+    command: 'terrace release-preflight',
+    category: 'shipping',
+    json: true,
+    purpose: 'Run the Terrace 0.2.0 release preflight flow and summarize trusted publishing, version tags, and stale release instructions.'
+  },
+  {
     command: 'terrace workbench status [--feature <id>]',
     category: 'shipping',
     json: true,

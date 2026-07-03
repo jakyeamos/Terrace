@@ -43,6 +43,7 @@ const {
   reviewAi,
   seniorCycleStatus,
   shipCheck,
+  releasePreflight,
   adoptionStatus,
   settingsSetEffort,
   settingsShow
@@ -90,6 +91,72 @@ describe('workflow parity core helpers', () => {
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
+
+  function writeReleasePreflightFixtures(version = '0.2.0', releaseDocsExtra = '') {
+    fs.mkdirSync(path.join(tmpDir, '.github', 'workflows'), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, 'docs'), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, 'scripts'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      name: '@jakyeamos33/terrace',
+      version,
+      packageManager: 'pnpm@11.7.0',
+      scripts: {
+        ci: 'pnpm run typecheck && pnpm run lint && pnpm test && pnpm run test:coverage && pnpm run package:dry-run',
+        package: 'pnpm run package:dry-run',
+        'package:dry-run': 'node scripts/package-dry-run.cjs',
+        'release:dry-run': 'pnpm publish --dry-run --access public --no-git-checks --config.node-linker=hoisted'
+      },
+      publishConfig: {
+        access: 'public',
+        provenance: true
+      }
+    }, null, 2), 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'scripts', 'package-dry-run.cjs'), "'use strict';\n", 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.github', 'workflows', 'ci.yml'), [
+      'name: CI',
+      'permissions:',
+      '  contents: read',
+      'jobs:',
+      '  verify:',
+      '    steps:',
+      '      - run: pnpm run ci',
+      '      - run: pnpm audit --audit-level moderate'
+    ].join('\n') + '\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.github', 'workflows', 'release-dry-run.yml'), [
+      'name: Release Dry Run',
+      'jobs:',
+      '  release-dry-run:',
+      '    steps:',
+      '      - run: pnpm run ci',
+      '      - run: pnpm audit --audit-level moderate',
+      '      - run: pnpm run release:dry-run'
+    ].join('\n') + '\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.github', 'workflows', 'release-publish.yml'), [
+      'name: Release Publish',
+      'permissions:',
+      '  contents: read',
+      '  id-token: write',
+      'jobs:',
+      '  publish:',
+      '    environment: npm',
+      '    steps:',
+      '      - run: pnpm run ci',
+      '      - run: pnpm audit --audit-level moderate',
+      '      - run: pnpm run release:dry-run',
+      '      - run: pnpm publish --access public --provenance --no-git-checks --config.node-linker=hoisted'
+    ].join('\n') + '\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'docs', 'RELEASE.md'), [
+      '# Release Checklist',
+      '',
+      '1. Confirm npm trusted publishing with GitHub OIDC.',
+      '2. Run `pnpm run ci`.',
+      '3. Run `pnpm audit --audit-level moderate`.',
+      '4. Run `pnpm package`.',
+      '5. Run `pnpm run release:dry-run`.',
+      '6. Run `node src/terrace-tools.cjs ship check --json`.',
+      releaseDocsExtra
+    ].filter(Boolean).join('\n') + '\n', 'utf-8');
+  }
 
   it('lists, shows, resumes, and computes next workflow action from state', () => {
     expect(phaseList(tmpDir).phases).toHaveLength(1);
@@ -680,6 +747,67 @@ describe('workflow parity core helpers', () => {
       category: 'waivers',
       elapsed_ms: expect.any(Number)
     }));
+  });
+
+  it('summarizes the Terrace 0.2.0 release preflight flow in static JSON', () => {
+    writeReleasePreflightFixtures('0.2.0');
+
+    const result = releasePreflight(tmpDir, {
+      targetVersion: '0.2.0',
+      runCommands: false,
+      shipMode: 'fast'
+    });
+
+    expect(result).toMatchObject({
+      command: 'terrace release-preflight',
+      release: '0.2.0',
+      flow: expect.arrayContaining([
+        expect.objectContaining({ name: 'ci', command: 'pnpm run ci', present: true, ran: false, passed: true }),
+        expect.objectContaining({ name: 'dependency_audit', command: 'pnpm audit --audit-level moderate', present: true }),
+        expect.objectContaining({ name: 'package', command: 'pnpm package', present: true }),
+        expect.objectContaining({ name: 'release_dry_run', command: 'pnpm run release:dry-run', present: true }),
+        expect.objectContaining({ name: 'ship_check', command: 'terrace ship check --json', present: true })
+      ]),
+      trusted_publishing: expect.objectContaining({ passed: true }),
+      tag_version: expect.objectContaining({
+        package_version: '0.2.0',
+        target_version: '0.2.0',
+        expected_tag: 'v0.2.0',
+        passed: true
+      }),
+      stale_release_artifacts: expect.objectContaining({ passed: true, findings: [] }),
+      ship_check: expect.objectContaining({ mode: 'fast' })
+    });
+    expect(result.warnings).toContainEqual(expect.objectContaining({ code: 'TRUSTED_PUBLISHING_MANUAL_REVIEW' }));
+  });
+
+  it('blocks release preflight on version mismatches and old npm-era release instructions', () => {
+    writeReleasePreflightFixtures('0.1.0', '7. Run npm publish with NPM_TOKEN after npm whoami.');
+
+    const result = releasePreflight(tmpDir, {
+      targetVersion: '0.2.0',
+      runCommands: false,
+      shipMode: 'fast'
+    });
+
+    expect(result.tag_version).toMatchObject({
+      passed: false,
+      package_version: '0.1.0',
+      target_version: '0.2.0',
+      mismatches: [expect.objectContaining({ code: 'TARGET_VERSION_MISMATCH' })]
+    });
+    expect(result.stale_release_artifacts).toMatchObject({
+      passed: false,
+      findings: expect.arrayContaining([
+        expect.objectContaining({ code: 'NPM_TOKEN_REFERENCE', file: 'docs/RELEASE.md' }),
+        expect.objectContaining({ code: 'NPM_PUBLISH_INSTRUCTION', file: 'docs/RELEASE.md' }),
+        expect.objectContaining({ code: 'NPM_LOGIN_INSTRUCTION', file: 'docs/RELEASE.md' })
+      ])
+    });
+    expect(result.blockers).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'TARGET_VERSION_MISMATCH' }),
+      expect.objectContaining({ code: 'STALE_NPM_RELEASE_INSTRUCTION' })
+    ]));
   });
 
   it('runs an autonomous planning pass and stops at blockers', () => {

@@ -16,6 +16,99 @@ function terraceExec(terraceBin: string, args: string[], options: { cwd: string;
   return execFileSync(terraceBin, args, { ...options, shell: windowsShell });
 }
 
+type GlobalCommandSurface = {
+  name: string;
+  help?: string;
+};
+
+type AgentAsset = {
+  path: string;
+  type: string;
+  status: string;
+};
+
+const globalCommandSurface: GlobalCommandSurface[] = [
+  { name: 'terrace-help' },
+  { name: 'terrace-version' },
+  { name: 'terrace-init', help: 'terrace init' },
+  { name: 'terrace-agents-install-global', help: 'terrace agents install-global' },
+  { name: 'terrace-new-project', help: 'terrace new-project <name> --prd <file>|--paste-prd' },
+  { name: 'terrace-prd-import', help: 'terrace prd import <feature> --file <file>|--paste' },
+  { name: 'terrace-doctor', help: 'terrace doctor' },
+  { name: 'terrace-spec-validate', help: 'terrace spec validate' },
+  { name: 'terrace-spec-hash', help: 'terrace spec hash --file <path>' },
+  { name: 'terrace-audit', help: 'terrace audit' },
+  { name: 'terrace-ci-check', help: 'terrace ci check [files...]' },
+  { name: 'terrace-security-check', help: 'terrace security check' },
+  { name: 'terrace-corpus-run', help: 'terrace corpus run' },
+  { name: 'terrace-corpus-report', help: 'terrace corpus report' },
+  { name: 'terrace-adoption-status', help: 'terrace adoption status' },
+  { name: 'terrace-port-gsd-dry-run', help: 'terrace port gsd [--dry-run]' },
+  { name: 'terrace-port-gsd', help: 'terrace port gsd [--dry-run]' },
+  { name: 'terrace-planning-refresh', help: 'terrace planning refresh' },
+  { name: 'terrace-next', help: 'terrace next' },
+  { name: 'terrace-resume', help: 'terrace resume' },
+  { name: 'terrace-history', help: 'terrace history' },
+  { name: 'terrace-do', help: 'terrace do <intent>' },
+  { name: 'terrace-autonomous', help: 'terrace autonomous' },
+  { name: 'terrace-execute-phase-complete', help: 'terrace execute-phase-complete <id>' },
+  { name: 'terrace-settings-show', help: 'terrace settings show' },
+  { name: 'terrace-settings-effort', help: 'terrace settings effort <fast|standard|thorough>' },
+  { name: 'terrace-commands-discover', help: 'terrace commands discover' },
+  { name: 'terrace-align', help: 'terrace align <feature>' },
+  { name: 'terrace-interrogate', help: 'terrace interrogate <feature>' },
+  { name: 'terrace-map-codebase', help: 'terrace map-codebase' },
+  { name: 'terrace-design', help: 'terrace design <feature>' },
+  { name: 'terrace-test-plan', help: 'terrace test-plan <feature>' },
+  { name: 'terrace-observe', help: 'terrace observe <feature>' },
+  { name: 'terrace-validate-prod', help: 'terrace validate-prod <feature>' },
+  { name: 'terrace-cleanup', help: 'terrace cleanup <feature>' },
+  { name: 'terrace-ui-import-stitch', help: 'terrace ui import-stitch <feature>' },
+  { name: 'terrace-ui-plan-refresh', help: 'terrace ui plan-refresh <feature>' },
+  { name: 'terrace-ui-diff', help: 'terrace ui diff <feature>' },
+  { name: 'terrace-phase-list', help: 'terrace phase list' },
+  { name: 'terrace-phase-show', help: 'terrace phase show <id>' },
+  { name: 'terrace-phase-plan', help: 'terrace phase plan <id>' },
+  { name: 'terrace-phase-execute', help: 'terrace phase execute <id>' },
+  { name: 'terrace-phase-validate', help: 'terrace phase validate <id>' },
+  { name: 'terrace-phase-review', help: 'terrace phase review <id>' },
+  { name: 'terrace-phase-complete', help: 'terrace phase complete <id>' },
+  { name: 'terrace-quick-list', help: 'terrace quick list' },
+  { name: 'terrace-quick-show', help: 'terrace quick show <id>' },
+  { name: 'terrace-quick-plan', help: 'terrace quick plan <title>' },
+  { name: 'terrace-quick-execute', help: 'terrace quick execute <id>' },
+  { name: 'terrace-quick-complete', help: 'terrace quick complete <id>' },
+  { name: 'terrace-backlog-list', help: 'terrace backlog list' },
+  { name: 'terrace-backlog-add', help: 'terrace backlog add <title>' },
+  { name: 'terrace-ship-check', help: 'terrace ship check' },
+  { name: 'terrace-ship-prepare', help: 'terrace ship prepare' },
+  { name: 'terrace-release-preflight', help: 'terrace release-preflight' },
+  { name: 'terrace-report', help: 'terrace report [update|open|history|ceremony]' },
+  { name: 'terrace-handoff-create', help: 'terrace handoff create [--feature <id>] [--for codex|claude|generic]' },
+  { name: 'terrace-debt', help: 'terrace debt add|list|audit|resolve' },
+  { name: 'terrace-preflight', help: 'terrace preflight <feature>' },
+  { name: 'terrace-docu', help: 'terrace docu <feature>' },
+  { name: 'terrace-test-eval', help: 'terrace test eval' },
+  { name: 'terrace-review-ai', help: 'terrace review ai --mode <mode>' },
+  { name: 'terrace-rule-add', help: 'terrace rule add <domain> <rule-id>' },
+  { name: 'terrace-rule-audit', help: 'terrace rule audit' },
+  { name: 'terrace-waive', help: 'terrace waive <gate>' },
+  { name: 'terrace-backfill', help: 'terrace backfill' },
+  { name: 'terrace-workstreams-plan', help: 'terrace workstreams plan <feature>' },
+  { name: 'terrace-workbench-status', help: 'terrace workbench status [--feature <id>]' },
+  { name: 'terrace-workbench-prepare', help: 'terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]' },
+  { name: 'terrace-design-source-import', help: 'terrace design-source import <source> <feature> <ref>' },
+  { name: 'terrace-plan-phase', help: 'terrace plan-phase <id>' },
+  { name: 'terrace-execute-phase', help: 'terrace execute-phase <id>' },
+  { name: 'terrace-validate-phase', help: 'terrace validate-phase <id>' },
+  { name: 'terrace-review-phase', help: 'terrace review-phase <id>' },
+  { name: 'terrace-complete-phase', help: 'terrace complete-phase <id>' },
+  { name: 'terrace-rule-list', help: 'terrace rule list' },
+  { name: 'terrace-rule-explain', help: 'terrace rule explain <id>' },
+  { name: 'terrace-preset-list', help: 'terrace preset list' },
+  { name: 'terrace-preset-install', help: 'terrace preset install <id>' }
+];
+
 describe('tier-one product readiness', () => {
   it('exposes registry metadata for a publishable CLI package', () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
@@ -148,6 +241,11 @@ describe('tier-one product readiness', () => {
         global_claude_dir: globalClaudeDir,
         next_command: '/terrace'
       });
+      for (const command of globalCommandSurface) {
+        if (command.help) {
+          expect(help).toContain(command.help);
+        }
+      }
       expect(globalInstall.assets).toEqual(expect.arrayContaining([
         expect.objectContaining({ path: 'skills/terrace/SKILL.md', status: 'written' }),
         expect.objectContaining({ path: 'skills/terrace-next/SKILL.md', status: 'written' }),
@@ -163,10 +261,34 @@ describe('tier-one product readiness', () => {
         expect.objectContaining({ path: 'commands/terrace-workbench-prepare.md', status: 'written' }),
         expect.objectContaining({ path: 'terrace/manifest.json', status: 'written' })
       ]));
-      expect(globalInstall.assets.filter((asset: { path: string }) => asset.path.startsWith('skills/terrace-'))).toHaveLength(
-        globalInstall.claude_assets.filter((asset: { path: string }) => asset.path.startsWith('commands/terrace-')).length
-      );
-      expect(globalInstall.assets.filter((asset: { path: string }) => asset.path.startsWith('skills/terrace-')).length).toBeGreaterThan(50);
+      const codexManifest = JSON.parse(fs.readFileSync(path.join(globalAgentsDir, 'terrace', 'manifest.json'), 'utf8')) as { schema_version: string; generated_by: string; assets: AgentAsset[] };
+      const claudeManifest = JSON.parse(fs.readFileSync(path.join(globalClaudeDir, 'terrace', 'manifest.json'), 'utf8')) as { schema_version: string; generated_by: string; assets: AgentAsset[] };
+      const codexAssetPaths = new Set((globalInstall.assets as AgentAsset[]).map((asset) => asset.path));
+      const claudeAssetPaths = new Set((globalInstall.claude_assets as AgentAsset[]).map((asset) => asset.path));
+      const codexManifestPaths = new Set(codexManifest.assets.map((asset) => asset.path));
+      const claudeManifestPaths = new Set(claudeManifest.assets.map((asset) => asset.path));
+
+      expect(codexManifest).toMatchObject({ schema_version: '1.0', generated_by: 'terrace agents install-global' });
+      expect(claudeManifest).toMatchObject({ schema_version: '1.0', generated_by: 'terrace agents install-global' });
+      expect(codexManifest.assets).toEqual((globalInstall.assets as AgentAsset[]).filter((asset) => asset.path !== 'terrace/manifest.json'));
+      expect(claudeManifest.assets).toEqual((globalInstall.claude_assets as AgentAsset[]).filter((asset) => asset.path !== 'terrace/manifest.json'));
+      expect((globalInstall.assets as AgentAsset[]).filter((asset) => asset.type === 'codex-global-skill')).toHaveLength(globalCommandSurface.length + 1);
+      expect((globalInstall.claude_assets as AgentAsset[]).filter((asset) => asset.type === 'claude-global-skill')).toHaveLength(globalCommandSurface.length + 1);
+      expect((globalInstall.claude_assets as AgentAsset[]).filter((asset) => asset.type === 'claude-global-command')).toHaveLength(globalCommandSurface.length + 1);
+      for (const command of globalCommandSurface) {
+        const codexSkillPath = `skills/${command.name}/SKILL.md`;
+        const claudeSkillPath = `skills/${command.name}/SKILL.md`;
+        const claudeCommandPath = `commands/${command.name}.md`;
+        expect(codexAssetPaths.has(codexSkillPath)).toBe(true);
+        expect(claudeAssetPaths.has(claudeSkillPath)).toBe(true);
+        expect(claudeAssetPaths.has(claudeCommandPath)).toBe(true);
+        expect(codexManifestPaths.has(codexSkillPath)).toBe(true);
+        expect(claudeManifestPaths.has(claudeSkillPath)).toBe(true);
+        expect(claudeManifestPaths.has(claudeCommandPath)).toBe(true);
+        expect(fs.readFileSync(path.join(globalAgentsDir, codexSkillPath), 'utf8')).toContain(`name: ${command.name}`);
+        expect(fs.readFileSync(path.join(globalClaudeDir, claudeSkillPath), 'utf8')).toContain(`name: ${command.name}`);
+        expect(fs.readFileSync(path.join(globalClaudeDir, claudeCommandPath), 'utf8')).toContain('Run `terrace');
+      }
       const codexTerraceEntrypoint = fs.readFileSync(path.join(globalAgentsDir, 'skills', 'terrace', 'SKILL.md'), 'utf8');
       const codexTerraceNext = fs.readFileSync(path.join(globalAgentsDir, 'skills', 'terrace-next', 'SKILL.md'), 'utf8');
       const claudeTerraceEntrypoint = fs.readFileSync(path.join(globalClaudeDir, 'commands', 'terrace.md'), 'utf8');
@@ -176,8 +298,6 @@ describe('tier-one product readiness', () => {
       expect(codexTerraceNext).toContain('Run `terrace next`.');
       expect(claudeTerraceEntrypoint).toContain('description: Route Terrace workflow intent through the local Terrace CLI.');
       expect(claudeTerraceEntrypoint).toContain('terrace do "$ARGUMENTS"');
-      expect(fs.existsSync(path.join(globalAgentsDir, 'terrace', 'manifest.json'))).toBe(true);
-      expect(fs.existsSync(path.join(globalClaudeDir, 'terrace', 'manifest.json'))).toBe(true);
       expect(init.created).toContain('.terrace/state.json');
       expect(terraceRoute.command).toBe('terrace next');
       expect(terraceRoute.result.command).toBe(terraceNext.command);
