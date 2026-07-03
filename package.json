@@ -39,7 +39,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "node scripts/lint.cjs",
     "build": "pnpm run typecheck",
-    "test": "vitest run --reporter=verbose",
+    "test": "node scripts/vitest-run.cjs",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "package": "pnpm run package:dry-run",

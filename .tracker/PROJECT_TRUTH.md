@@ -6,7 +6,7 @@ healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Confirm npm trusted publishing is configured for the GitHub Release workflow, then create the reviewed `v0.2.0` GitHub Release.
 blockers: []
-lastUpdated: 2026-07-02
+lastUpdated: 2026-07-03
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -16,8 +16,8 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: codex/global-agent-installer
-lastCommitDate: "2026-06-30"
+activeBranch: codex/focused-test-filter
+lastCommitDate: "2026-07-03"
 quality:
   lint: pass
   types: pass
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm run ci
-lastVerifiedAt: "2026-07-02T15:11:58-04:00"
+lastVerifiedCommand: pnpm run lint; pnpm run typecheck; pnpm test -- tests/vitest-runner.test.ts; pnpm test -- tests/workflow-commands.test.ts; pnpm test
+lastVerifiedAt: "2026-07-03T15:44:27-04:00"
 ---
 
 ## Current State
@@ -86,6 +86,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Recent Progress
 
+- July 3: Fixed pnpm forwarded test-file arguments by routing `pnpm test` through a small Vitest runner that strips pnpm's script separator before invoking Vitest, and added a focused-run regression proving `pnpm test -- <file>` no longer falls back to the full suite.
 - June 30: Removed the remaining stale generated-index ignore entry and neutralized historical generated-integration references in planning docs.
 - June 30: Converted Terrace to pnpm-first project commands and package metadata, replaced `package-lock.json` with `pnpm-lock.yaml`, centralized package-manager command rendering, and taught security checks to use pnpm lockfiles and pnpm audit output.
 - June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
