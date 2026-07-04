@@ -1620,12 +1620,11 @@ function currentReleaseTags(cwd) {
   }
 }
 
-function gitTagExists(cwd, tag) {
+function gitCommitRef(cwd, ref) {
   try {
-    execFileSync('git', ['rev-parse', '--verify', '--quiet', 'refs/tags/' + tag], { cwd, stdio: 'ignore' });
-    return true;
+    return execFileSync('git', ['rev-parse', '--verify', ref], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   } catch (error) {
-    return false;
+    return null;
   }
 }
 
@@ -1634,6 +1633,8 @@ function releaseVersionTagCheck(cwd, targetVersion) {
   const expectedTag = targetVersion ? 'v' + targetVersion : version ? 'v' + version : null;
   const currentTags = currentReleaseTags(cwd);
   const semverTagsAtHead = currentTags.filter((tag) => /^v\d+\.\d+\.\d+(?:[-+].+)?$/.test(tag));
+  const headCommit = gitCommitRef(cwd, 'HEAD');
+  const expectedTagTarget = expectedTag ? gitCommitRef(cwd, 'refs/tags/' + expectedTag) : null;
   const mismatches = [];
   const warnings = [];
   if (!version) {
@@ -1658,7 +1659,16 @@ function releaseVersionTagCheck(cwd, targetVersion) {
       tags_at_head: semverTagsAtHead
     });
   }
-  if (expectedTag && !gitTagExists(cwd, expectedTag)) {
+  if (expectedTag && expectedTagTarget && headCommit && expectedTagTarget !== headCommit) {
+    mismatches.push({
+      code: 'RELEASE_TAG_NOT_AT_HEAD',
+      message: 'Expected release tag exists but does not point at HEAD: ' + expectedTag + '.',
+      expected_tag: expectedTag,
+      tag_target: expectedTagTarget,
+      head: headCommit
+    });
+  }
+  if (expectedTag && !expectedTagTarget) {
     warnings.push(warning({
       code: 'RELEASE_TAG_NOT_FOUND',
       message: 'Expected release tag does not exist yet: ' + expectedTag + '.',
@@ -1672,7 +1682,8 @@ function releaseVersionTagCheck(cwd, targetVersion) {
     target_version: targetVersion || version,
     expected_tag: expectedTag,
     tags_at_head: currentTags,
-    tag_exists: expectedTag ? gitTagExists(cwd, expectedTag) : false,
+    tag_exists: Boolean(expectedTagTarget),
+    tag_target: expectedTagTarget,
     passed: mismatches.length === 0,
     mismatches,
     warnings,
@@ -1683,7 +1694,9 @@ function releaseVersionTagCheck(cwd, targetVersion) {
       next_command: 'terrace release-preflight --target-version ' + (targetVersion || version || '<version>') + ' --json',
       remediation: 'Align package.json, the reviewed target version, and any release tag at HEAD before publishing.',
       expected_tag: item.expected_tag,
-      tags_at_head: item.tags_at_head
+      tags_at_head: item.tags_at_head,
+      tag_target: item.tag_target,
+      head: item.head
     }))
   };
 }

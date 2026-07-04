@@ -10,6 +10,7 @@
 - Add production workbench status and prepare commands for feature release evidence, handoff artifacts, and ship-readiness workflows.
 - Refresh generated Codex and Claude command assets for corpus, adoption, and workbench commands.
 - Add release metadata, npm publish configuration, and GitHub release automation for provenance-capable public package releases.
+- Block release preflight when the expected release tag already exists away from `HEAD`, so stale local tags cannot be mistaken for reviewed release tags.
 
 ## 0.1.2
 
