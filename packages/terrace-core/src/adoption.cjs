@@ -232,7 +232,7 @@ function nextCommandForCheck(name, evidence) {
   if (name === 'corpus_health') return 'terrace corpus run';
   if (name === 'migrated_gsd_phase_coverage') {
     if (evidence && evidence.planning_phase_count > 0 && evidence.executable_phase_targets === false) {
-      return 'terrace port gsd --verify-parity';
+      return 'terrace port gsd --import-roadmap';
     }
     return 'terrace port gsd --dry-run';
   }

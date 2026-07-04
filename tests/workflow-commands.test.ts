@@ -1059,7 +1059,7 @@ describe('workflow parity core helpers', () => {
         planning_parity_passed: true
       })
     }));
-    expect(status.next_commands).toContain('terrace port gsd --verify-parity');
+    expect(status.next_commands).toContain('terrace port gsd --import-roadmap');
   });
 
   it('prints adoption status as a practical replacement verdict', () => {

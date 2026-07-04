@@ -7,6 +7,7 @@ const {
   portGsd,
   portGsdCompare,
   portGsdVerifyParity,
+  portGsdImportRoadmap,
   runAudit,
   agentAssetStatus
 } = require('../packages/terrace-core/src/index.cjs');
@@ -112,6 +113,58 @@ describe('terrace port gsd migration', () => {
     expect(result.next_command).toBe('terrace phase show phase-1-bootstrap');
     expect(state.roadmap.phases).toEqual([
       { id: 'phase-1-bootstrap', title: 'Phase 1: Bootstrap', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] },
+      { id: 'phase-2-release', title: 'Phase 2: Release', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] }
+    ]);
+  });
+
+  it('imports legacy roadmap phases into existing Terrace state without overwriting phases', () => {
+    fs.mkdirSync(path.join(tmpDir, '.terrace'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.terrace', 'state.json'), JSON.stringify({
+      schema_version: '1.0',
+      project: { name: 'existing', created_at: '2026-01-01T00:00:00.000Z' },
+      workflow: { status: 'initialized', mode: 'strict', active_feature: null },
+      roadmap: {
+        phases: [{
+          id: 'phase-1-bootstrap',
+          title: 'Phase 1: Existing Bootstrap',
+          status: 'planned',
+          source_ref: '.terrace/state.json',
+          plans: [{ id: 'custom-plan', title: 'Keep me' }]
+        }]
+      },
+      red_gate: { status: 'not_started', evidence: [] },
+      green_gate: { status: 'not_started', evidence: [] },
+      protected_tests: [],
+      decisions: [],
+      sessions: []
+    }, null, 2) + '\n', 'utf8');
+
+    const first = portGsdImportRoadmap(tmpDir);
+    const second = portGsdImportRoadmap(tmpDir);
+    const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
+
+    expect(first).toMatchObject({
+      mode: 'roadmap-import',
+      candidates: 2,
+      imported: [
+        { id: 'phase-2-release', title: 'Phase 2: Release', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] }
+      ],
+      unchanged: [
+        { id: 'phase-1-bootstrap', title: 'Phase 1: Bootstrap', reason: 'already_exists' }
+      ],
+      writes: ['.terrace/state.json'],
+      next_command: 'terrace phase show phase-2-release'
+    });
+    expect(second.imported).toEqual([]);
+    expect(second.writes).toEqual([]);
+    expect(state.roadmap.phases).toEqual([
+      {
+        id: 'phase-1-bootstrap',
+        title: 'Phase 1: Existing Bootstrap',
+        status: 'planned',
+        source_ref: '.terrace/state.json',
+        plans: [{ id: 'custom-plan', title: 'Keep me' }]
+      },
       { id: 'phase-2-release', title: 'Phase 2: Release', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] }
     ]);
   });

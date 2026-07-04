@@ -82,6 +82,30 @@ describe('strict core CLI delegation', () => {
     });
   });
 
+  it('imports GSD roadmap phases into existing state through the CLI', () => {
+    runTerrace(tmpDir, ['core', 'init', '--json']);
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap\n\n## Phase 1: Bootstrap\n\n## Phase 2: Release\n', 'utf-8');
+
+    const result = runTerrace(tmpDir, ['port', 'gsd', '--import-roadmap', '--json']);
+    const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf-8'));
+
+    expect(result).toMatchObject({
+      mode: 'roadmap-import',
+      candidates: 2,
+      imported: [
+        expect.objectContaining({ id: 'phase-1-bootstrap' }),
+        expect.objectContaining({ id: 'phase-2-release' })
+      ],
+      writes: ['.terrace/state.json'],
+      next_command: 'terrace phase show phase-1-bootstrap'
+    });
+    expect(state.roadmap.phases.map((phase: { id: string }) => phase.id)).toEqual([
+      'phase-1-bootstrap',
+      'phase-2-release'
+    ]);
+  });
+
   it('supports migrated GSD daily workflow commands', () => {
     fs.mkdirSync(path.join(tmpDir, '.planning', 'phases', '11-notifications'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap\n\n## Phase 11: Notifications\n', 'utf-8');

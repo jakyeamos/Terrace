@@ -32,6 +32,7 @@ const {
   portGsd,
   portGsdCompare,
   portGsdVerifyParity,
+  portGsdImportRoadmap,
   phaseList,
   phaseShow,
   phasePlan,
@@ -120,7 +121,7 @@ const HELP_TEXT = [
   '  terrace corpus run           Run the local Terrace corpus evaluator',
   '  terrace corpus report        Show the latest corpus report summary',
   '  terrace adoption status      Report GSD replacement readiness',
-  '  terrace port gsd [--dry-run] Migrate or inventory legacy GSD artifacts',
+  '  terrace port gsd [--dry-run|--compare|--verify-parity|--import-roadmap]',
   '  terrace planning refresh    Initialize or refresh .planning from Terrace state',
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
@@ -673,6 +674,10 @@ async function main() {
           if (!result.passed) {
             process.exitCode = 1;
           }
+          return;
+        }
+        if (hasFlag(rawArgs, '--import-roadmap')) {
+          output(portGsdImportRoadmap(cwd), { json });
           return;
         }
         if (!dryRun) {
