@@ -17,7 +17,7 @@ repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
 activeBranch: codex/focused-test-filter
-lastCommitDate: "2026-07-03"
+lastCommitDate: "2026-07-04"
 quality:
   lint: pass
   types: pass
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm test -- tests/workflow-commands.test.ts; pnpm test -- tests/product-readiness.test.ts; node src/terrace-tools.cjs ship check --json; node src/terrace-tools.cjs release-preflight --static --fast --target-version 0.2.0 --json; pnpm audit --audit-level moderate; pnpm run release:dry-run
-lastVerifiedAt: "2026-07-04T01:08:13-04:00"
+lastVerifiedCommand: pnpm run ci
+lastVerifiedAt: "2026-07-04T02:06:36-04:00"
 ---
 
 ## Current State
@@ -86,6 +86,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Recent Progress
 
+- July 4: Clarified README install guidance so npm `latest` remains documented as `0.1.1` while local `0.2.0` commands are treated as release-candidate verification until publication; `pnpm run ci` passed.
 - July 4: Added a deterministic `trusted_publishing` category to `terrace ship check` for `@jakyeamos33/terrace@0.2.0`, reusing release-preflight's trusted-publishing verifier, surfacing manual npm/GitHub admin confirmations, and updating release docs plus focused readiness regressions.
 - July 3: Hardened `terrace agents install-global` by expanding generated global assets to the missing help-surface commands, advertising the remaining GSD-compatible phase aliases in CLI help, and strengthening the packed-consumer smoke to verify every expected Codex skill, Claude skill, Claude slash command, and manifest entry from a fresh consumer setup.
 - July 3: Added `terrace release-preflight` for the 0.2.0 release candidate, combining the current CI/audit/package/release-dry-run/ship-check flow with trusted-publishing prerequisites, tag/version checks, and stale npm-era release artifact detection in a single JSON summary.
