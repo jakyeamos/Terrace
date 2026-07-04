@@ -2,7 +2,8 @@
 
 ## 0.2.0
 
-- Add `terrace adoption status` for GSD replacement readiness and route replacement/parity questions through `terrace do`.
+- Add objective `terrace adoption status` replacement measurement for GSD parity with a direct verdict, score, ready flag, recommended mode, workflow evidence, blockers, and next commands.
+- Add merge-safe `terrace port gsd --import-roadmap` to append missing executable legacy `.planning` roadmap phases into existing Terrace state without replacing current phase objects.
 - Make Terrace pnpm-first across scripts, docs, command discovery, package guidance, and dependency audit handling.
 - Improve migrated-GSD readiness by installing non-overwriting agent assets during `terrace port gsd` and extracting usable roadmap phase IDs from legacy planning evidence.
 - Add report-card claim scope so baseline governance health does not overclaim full delivery readiness.

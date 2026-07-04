@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: terrace adoption status && terrace next --json && terrace ship check --fast --json
-lastVerifiedAt: "2026-07-04T14:00:37-04:00"
+lastVerifiedCommand: terrace release-preflight --target-version 0.2.0 --json && pnpm audit --audit-level moderate && terrace adoption status --json && terrace ship check --fast --json
+lastVerifiedAt: "2026-07-04T14:16:17-04:00"
 ---
 
 ## Current State
@@ -87,6 +87,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 ## Recent Progress
 
 - July 4: Ran `terrace port gsd --import-roadmap` against Terrace itself, importing 9 executable roadmap phases into `.terrace/state.json`; refreshed the active global `terrace` binary to 0.2.0 via pnpm in the nvm global prefix; `terrace adoption status` now reports `replace_gsd`, 100/100, ready true, with zero blockers.
+- July 4: Prepared the 0.2.0 release scope for the GSD replacement milestone by updating release notes/checklist evidence; full `terrace release-preflight --target-version 0.2.0 --json` passed CI, package, release dry-run, full ship check, trusted-publishing repo checks, tag/version checks, and stale-artifact checks but reported a transient `pnpm audit` flow failure that passed immediately on direct rerun.
 - July 4: Added merge-safe `terrace port gsd --import-roadmap`, exposed it through CLI help, command contracts, generated Codex/Claude assets, README guidance, and adoption-status next commands; focused GSD migration/CLI/adoption/product-readiness tests plus typecheck and lint passed.
 - July 4: Dogfooded `terrace adoption status` locally, corrected GSD roadmap parsing so subsection headings no longer inflate phase evidence, and made adoption readiness separate 8 legacy `.planning` phase concepts from 0 executable `.terrace/state.json` phase targets; current objective replacement measure is 75/100, `pilot_with_gsd_fallback`, blocked by stale global `terrace` 0.1.1 and missing executable roadmap state.
 - July 4: Clarified README install guidance so npm `latest` remains documented as `0.1.1` while local `0.2.0` commands are treated as release-candidate verification until publication; `pnpm run ci` passed.
@@ -213,16 +214,19 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Trusted publishing focused verification:** `pnpm exec vitest run tests/product-readiness.test.ts --reporter=verbose` PASS, 7 tests including the Release Publish workflow token-removal regression and packed-consumer smoke path.
 - **Packed global installer smoke:** `pnpm exec vitest run tests/product-readiness.test.ts --reporter=verbose` PASS, including tarball pack, fresh consumer install, temp global Codex/Claude asset installation, `/terrace` content checks, and installed-binary route usability.
 - **Current CI:** `pnpm run ci` PASS, including typecheck, lint, 296 passing tests with 1 skipped external fixture, coverage, and package dry-run.
+- **0.2.0 release preflight:** `terrace release-preflight --target-version 0.2.0 --json` PASS for CI, package, release dry-run, full ship check, trusted-publishing repo checks, tag/version checks, and stale release artifacts; the release flow reported `pnpm audit --audit-level moderate` failed, and immediate direct rerun of `pnpm audit --audit-level moderate` PASS found zero known vulnerabilities.
+- **0.2.0 GSD replacement evidence:** `terrace adoption status --json` PASS with `ready: true`, `score: 100`, `recommended_mode: replace_gsd`, 9 migrated executable phases, complete 240/240 agent assets, and zero blockers.
+- **0.2.0 fast ship recheck:** `terrace ship check --fast --json` PASS with zero blockers and the expected manual trusted-publishing confirmation warning.
 - **0.2.0 ship check pre-commit:** `node src/terrace-tools.cjs ship check --json` passed all functional categories and failed only the expected `dirty_tree` category because the release candidate changes were still uncommitted
 - **Trusted publishing check:** release execution is GitHub-only through `release-publish.yml` with `id-token: write`, the `npm` environment, provenance publishing, and no `NODE_AUTH_TOKEN`/`NPM_TOKEN` environment.
 - **Known local fixture behavior:** `tests/amos-saas-gsd-smoke.test.ts` now skips unless `/Users/jakyeamos/projects/amos-saas/.planning/HANDOFF.json` exists, so incomplete local external fixtures do not fail `pnpm run ci`.
-- **Git status:** 0.2.0 release candidate work is in progress on `codex/global-agent-installer`; truth file records the new state
+- **Git status:** 0.2.0 release candidate work is on `codex/terrace-adoption-measure`; truth file records the current release-prep state
 
 ## Next Concrete Steps
 
 1. Confirm npm trusted publishing for `@jakyeamos33/terrace` is configured against the GitHub repository, `release-publish.yml` workflow, and `npm` environment.
-2. Commit the 0.2.0 release candidate, rerun `node src/terrace-tools.cjs ship check --json` on the clean tree, create the reviewed `v0.2.0` GitHub Release, and let the release workflow publish.
-3. Refresh the separate global install from this local package and rerun `terrace agents install-global`.
+2. Rerun `terrace release-preflight --target-version 0.2.0 --json` on the clean reviewed tree and confirm no blockers.
+3. Create the reviewed `v0.2.0` GitHub Release and let the release workflow publish.
 
 ## QR Remediation Planning
 
