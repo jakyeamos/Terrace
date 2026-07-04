@@ -71,6 +71,10 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '') || 'phase';
 }
 
+function isRoadmapPhaseTitle(value) {
+  return /^Phase\s+\d+(?:\.\d+)?(?:\b|[\s:.-])/i.test(String(value).trim());
+}
+
 function extractRoadmapPhases(cwd) {
   const phases = [];
   const seen = new Set();
@@ -102,20 +106,33 @@ function extractRoadmapPhases(cwd) {
         current = {
           title: heading[1],
           id: null,
-          source_ref: '.planning/ROADMAP.md'
+          source_ref: '.planning/ROADMAP.md',
+          added: false
         };
-        addPhase(current);
+        if (isRoadmapPhaseTitle(current.title)) {
+          addPhase(current);
+          current.added = true;
+        }
         continue;
       }
 
       const id = line.match(/^\s*-\s*ID:\s*(.+?)\s*$/i);
       if (id && current) {
-        const previousId = slugify(current.id || current.title);
-        const phase = phases.find((candidate) => candidate.id === previousId);
-        if (phase) {
-          seen.delete(phase.id);
-          phase.id = slugify(id[1]);
-          seen.add(phase.id);
+        if (!current.added) {
+          addPhase({
+            id: id[1],
+            title: current.title,
+            source_ref: current.source_ref
+          });
+          current.added = true;
+        } else {
+          const previousId = slugify(current.id || current.title);
+          const phase = phases.find((candidate) => candidate.id === previousId);
+          if (phase) {
+            seen.delete(phase.id);
+            phase.id = slugify(id[1]);
+            seen.add(phase.id);
+          }
         }
         current.id = id[1];
         continue;

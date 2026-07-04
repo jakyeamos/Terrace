@@ -8,6 +8,7 @@ const { runAudit } = require('./audit.cjs');
 const { runDoctor } = require('./health.cjs');
 const { readJson } = require('./json.cjs');
 const { reportRead } = require('./lifecycle.cjs');
+const { portGsdCompare } = require('./port-gsd.cjs');
 const { loadState } = require('./state.cjs');
 const { discoverProjectCommands } = require('./workflow.cjs');
 
@@ -59,18 +60,57 @@ function latestCorpusSummary(cwd) {
   };
 }
 
-function migratedPhaseCoverage(state, corpus) {
+function planningPhaseCoverage(cwd) {
+  try {
+    const comparison = portGsdCompare(cwd);
+    return {
+      present: comparison.source_files > 0,
+      source_files: comparison.source_files,
+      phase_count: comparison.concepts && Number.isFinite(Number(comparison.concepts.phases)) ? Number(comparison.concepts.phases) : 0,
+      parity_passed: comparison.passed,
+      missing: Array.isArray(comparison.missing) ? comparison.missing : []
+    };
+  } catch (error) {
+    return {
+      present: false,
+      source_files: 0,
+      phase_count: 0,
+      parity_passed: false,
+      missing: [],
+      error: error && error.message ? error.message : String(error)
+    };
+  }
+}
+
+function migratedPhaseCoverage(cwd, state, corpus) {
   const phases = state.roadmap && Array.isArray(state.roadmap.phases) ? state.roadmap.phases : [];
+  const planning = planningPhaseCoverage(cwd);
+  const hasPhaseTarget = phases.length > 0;
+  const warnings = [];
+  if (!hasPhaseTarget && planning.phase_count > 0) {
+    warnings.push({
+      code: 'TERRACE_PHASE_TARGET_NOT_IMPORTED',
+      message: 'Legacy planning has phase concepts, but Terrace state has no executable roadmap phases.'
+    });
+  } else if (!hasPhaseTarget && corpus.present) {
+    warnings.push({
+      code: 'MIGRATED_PHASE_TARGET_MISSING',
+      message: 'No Terrace roadmap phase is available for migrated-GSD phase commands.'
+    });
+  }
   const totals = corpus.totals || {};
   return {
     phase_count: phases.length,
-    has_phase_target: phases.length > 0,
+    state_phase_count: phases.length,
+    planning_phase_count: planning.phase_count,
+    planning_parity_passed: planning.parity_passed,
+    planning_source_files: planning.source_files,
+    planning_missing: planning.missing,
+    has_phase_target: hasPhaseTarget,
+    executable_phase_targets: hasPhaseTarget,
     corpus_skips: Number(totals.skipped || 0),
-    passed: phases.length > 0 || !corpus.present,
-    warnings: phases.length > 0 || !corpus.present ? [] : [{
-      code: 'MIGRATED_PHASE_TARGET_MISSING',
-      message: 'No Terrace roadmap phase is available for migrated-GSD phase commands.'
-    }]
+    passed: hasPhaseTarget || !corpus.present,
+    warnings
   };
 }
 
@@ -190,7 +230,12 @@ function nextCommandForCheck(name, evidence) {
   if (name === 'package_manager') return 'terrace commands discover';
   if (name === 'version_alignment') return 'terrace --version';
   if (name === 'corpus_health') return 'terrace corpus run';
-  if (name === 'migrated_gsd_phase_coverage') return 'terrace port gsd --dry-run';
+  if (name === 'migrated_gsd_phase_coverage') {
+    if (evidence && evidence.planning_phase_count > 0 && evidence.executable_phase_targets === false) {
+      return 'terrace port gsd --verify-parity';
+    }
+    return 'terrace port gsd --dry-run';
+  }
   if (name === 'agent_assets') return 'terrace init';
   if (name === 'report_claim_scope') return 'terrace report update';
   return 'terrace adoption status';
@@ -249,7 +294,7 @@ function adoptionStatus(cwd) {
   const report = reportRead(cwd).report_card;
   const agents = agentAssetStatus(cwd);
   const corpus = latestCorpusSummary(cwd);
-  const migrated = migratedPhaseCoverage(state, corpus);
+  const migrated = migratedPhaseCoverage(cwd, state, corpus);
   const packageAligned = commands.package_manager === 'pnpm';
   const versionAligned = !installedVersion || installedVersion === localVersion;
   const reportScoped = report.claim_scope !== 'baseline_readiness' || report.status_label === 'baseline_ready';
@@ -268,7 +313,7 @@ function adoptionStatus(cwd) {
       installed_version: installedVersion
     }, 'Refresh the installed Terrace binary so terrace --version matches the local package.'),
     check('corpus_health', corpus.passed, corpus, 'Run terrace corpus run and address product weaknesses or harness issues.'),
-    check('migrated_gsd_phase_coverage', migrated.passed, migrated, 'Run terrace port gsd or planning refresh so migrated roadmap commands have a phase target.'),
+    check('migrated_gsd_phase_coverage', migrated.passed, migrated, 'Import or author Terrace roadmap phases so migrated roadmap commands have executable phase targets.'),
     check('agent_assets', agents.complete, agents, 'Run terrace init or terrace agents install-global to repair generated agent command assets.'),
     check('report_claim_scope', reportScoped, {
       status_label: report.status_label,

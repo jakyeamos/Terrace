@@ -77,6 +77,45 @@ describe('terrace port gsd migration', () => {
     expect(() => portGsd(tmpDir, { force: false })).toThrow(/already exists/);
   });
 
+  it('does not treat roadmap subsection headings as phases', () => {
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), [
+      '# Terrace Roadmap',
+      '',
+      '## Milestone: Comparable workflow',
+      '',
+      '### Goal',
+      '',
+      'Explain the milestone.',
+      '',
+      '## Phase 1: Bootstrap',
+      '',
+      '### Goal',
+      '',
+      'Create the first phase.',
+      '',
+      '### Deliverables',
+      '',
+      '- One thing.',
+      '',
+      '## Phase 2: Release',
+      '',
+      '### Success Criteria',
+      '',
+      '- Ready to ship.'
+    ].join('\n'), 'utf8');
+
+    const comparison = portGsdCompare(tmpDir);
+    const result = portGsd(tmpDir, { force: false });
+    const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
+
+    expect(comparison.concepts.phases).toBe(2);
+    expect(result.next_command).toBe('terrace phase show phase-1-bootstrap');
+    expect(state.roadmap.phases).toEqual([
+      { id: 'phase-1-bootstrap', title: 'Phase 1: Bootstrap', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] },
+      { id: 'phase-2-release', title: 'Phase 2: Release', status: 'migrated', source_ref: '.planning/ROADMAP.md', plans: [] }
+    ]);
+  });
+
   it('does not overwrite migrated docs without force and reports the skipped target', () => {
     fs.mkdirSync(path.join(tmpDir, 'docs', 'prd'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, 'docs', 'prd', 'PRD.md'), 'existing prd\n', 'utf8');

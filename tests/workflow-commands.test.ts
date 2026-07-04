@@ -1011,6 +1011,57 @@ describe('workflow parity core helpers', () => {
     expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(before);
   });
 
+  it('separates legacy planning phases from executable Terrace state phases', () => {
+    process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.2.0';
+    const state = createDefaultState({ projectName: 'workflow-test' });
+    saveState(tmpDir, state);
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), [
+      '# Roadmap',
+      '',
+      '## Phase 1: Bootstrap',
+      '',
+      '### Goal',
+      '',
+      'Create the initial workflow.',
+      '',
+      '## Phase 2: Release',
+      '',
+      '### Deliverables',
+      '',
+      '- Release it.'
+    ].join('\n'), 'utf-8');
+    fs.mkdirSync(path.join(tmpDir, 'docs', 'terrace', 'corpus'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, 'docs', 'terrace', 'corpus', 'latest-results.json'), JSON.stringify({
+      summary: {
+        runId: 'test-run',
+        totals: {
+          commands: 2,
+          pass: 2,
+          expectedBlockers: 0,
+          productWeaknesses: 0,
+          harnessIssues: 0,
+          skipped: 0
+        }
+      }
+    }), 'utf-8');
+
+    const status = adoptionStatus(tmpDir);
+    delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+
+    expect(status.checks).toContainEqual(expect.objectContaining({
+      name: 'migrated_gsd_phase_coverage',
+      passed: false,
+      evidence: expect.objectContaining({
+        state_phase_count: 0,
+        planning_phase_count: 2,
+        executable_phase_targets: false,
+        planning_parity_passed: true
+      })
+    }));
+    expect(status.next_commands).toContain('terrace port gsd --verify-parity');
+  });
+
   it('prints adoption status as a practical replacement verdict', () => {
     process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.0.0';
     const output = execFileSync('node', [
