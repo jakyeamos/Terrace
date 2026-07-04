@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, GitHub trusted publishing release automation, PRD intake, discoverable repo-local and global Codex/Claude agent commands, release-blocking packed-consumer smoke coverage for the global agent installer, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness, and Terrace-native production workbench status/prepare commands.
+summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, GitHub trusted publishing release automation, a `terrace ship check` trusted-publishing guard for repo-owned and manual npm release prerequisites, PRD intake, discoverable repo-local and global Codex/Claude agent commands, release-blocking packed-consumer smoke coverage for the global agent installer, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness, and Terrace-native production workbench status/prepare commands.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Confirm npm trusted publishing is configured for the GitHub Release workflow, then create the reviewed `v0.2.0` GitHub Release.
 blockers: []
-lastUpdated: 2026-07-03
+lastUpdated: 2026-07-04
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm run ci; node src/terrace-tools.cjs release-preflight --static --fast --target-version 0.2.0 --json
-lastVerifiedAt: "2026-07-03T16:08:53-04:00"
+lastVerifiedCommand: pnpm test -- tests/workflow-commands.test.ts; pnpm test -- tests/product-readiness.test.ts; node src/terrace-tools.cjs ship check --json; node src/terrace-tools.cjs release-preflight --static --fast --target-version 0.2.0 --json; pnpm audit --audit-level moderate; pnpm run release:dry-run
+lastVerifiedAt: "2026-07-04T01:08:13-04:00"
 ---
 
 ## Current State
@@ -62,7 +62,7 @@ The first agent bootstrap version missed command discovery because it generated 
 
 The approved design spec and implementation plan remain at `docs/superpowers/specs/2026-05-05-agent-slash-command-integration-design.md` and `docs/superpowers/plans/2026-05-05-agent-init-integration.md`.
 
-Terrace is prepared as the `@jakyeamos33/terrace@0.2.0` release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes GSD replacement readiness, pnpm-first command rendering, migrated-GSD agent and phase readiness, production workbench commands, refreshed agent assets, MIT license metadata, public npm publish configuration, and GitHub trusted publishing automation. Publishing is intentionally routed through the GitHub Release workflow with OIDC and the `npm` environment; local registry auth secrets are not part of the 0.2.0 release path. `terrace release-preflight` now summarizes the CI, audit, package, release dry-run, and ship-check flow with trusted-publishing prerequisites, tag/version alignment, and stale npm-era release artifact findings in one JSON result.
+Terrace is prepared as the `@jakyeamos33/terrace@0.2.0` release candidate. The package identity is scoped as `@jakyeamos33/terrace` to match npm ownership and prevent name collisions, while the CLI binary remains `terrace` so local/global workflows stay unchanged. The latest release includes GSD replacement readiness, pnpm-first command rendering, migrated-GSD agent and phase readiness, production workbench commands, refreshed agent assets, MIT license metadata, public npm publish configuration, and GitHub trusted publishing automation. Publishing is intentionally routed through the GitHub Release workflow with OIDC and the `npm` environment; local registry auth secrets are not part of the 0.2.0 release path. `terrace ship check` now includes a `trusted_publishing` category for the Terrace npm release candidate, verifying repo-owned trusted-publishing prerequisites and surfacing the npm/GitHub admin confirmations that remain manual. `terrace release-preflight` summarizes the CI, audit, package, release dry-run, and ship-check flow with trusted-publishing prerequisites, tag/version alignment, and stale npm-era release artifact findings in one JSON result.
 
 The latest hardening pass records release evidence for security, test-suite evaluation, rule audit, and the Tier One report card. `terrace security check` now avoids self-referential generated-artifact findings, ignores generated corpus-run evidence, honors explicit GitHub Actions permissions, audits production dependencies with the detected package manager, and records dependency audit metadata in security evidence.
 
@@ -86,6 +86,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Recent Progress
 
+- July 4: Added a deterministic `trusted_publishing` category to `terrace ship check` for `@jakyeamos33/terrace@0.2.0`, reusing release-preflight's trusted-publishing verifier, surfacing manual npm/GitHub admin confirmations, and updating release docs plus focused readiness regressions.
 - July 3: Hardened `terrace agents install-global` by expanding generated global assets to the missing help-surface commands, advertising the remaining GSD-compatible phase aliases in CLI help, and strengthening the packed-consumer smoke to verify every expected Codex skill, Claude skill, Claude slash command, and manifest entry from a fresh consumer setup.
 - July 3: Added `terrace release-preflight` for the 0.2.0 release candidate, combining the current CI/audit/package/release-dry-run/ship-check flow with trusted-publishing prerequisites, tag/version checks, and stale npm-era release artifact detection in a single JSON summary.
 - July 3: Fixed pnpm forwarded test-file arguments by routing `pnpm test` through a small Vitest runner that strips pnpm's script separator before invoking Vitest, and added a focused-run regression proving `pnpm test -- <file>` no longer falls back to the full suite.
