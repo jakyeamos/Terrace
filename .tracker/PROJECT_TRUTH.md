@@ -41,7 +41,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: terrace release-preflight --target-version 0.2.0 --json && pnpm audit --audit-level moderate && terrace adoption status --json && terrace ship check --fast --json
-lastVerifiedAt: "2026-07-04T14:16:17-04:00"
+lastVerifiedAt: "2026-07-04T14:28:20-04:00"
 ---
 
 ## Current State
@@ -87,7 +87,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 ## Recent Progress
 
 - July 4: Ran `terrace port gsd --import-roadmap` against Terrace itself, importing 9 executable roadmap phases into `.terrace/state.json`; refreshed the active global `terrace` binary to 0.2.0 via pnpm in the nvm global prefix; `terrace adoption status` now reports `replace_gsd`, 100/100, ready true, with zero blockers.
-- July 4: Prepared the 0.2.0 release scope for the GSD replacement milestone by updating release notes/checklist evidence; full `terrace release-preflight --target-version 0.2.0 --json` passed CI, package, release dry-run, full ship check, trusted-publishing repo checks, tag/version checks, and stale-artifact checks but reported a transient `pnpm audit` flow failure that passed immediately on direct rerun.
+- July 4: Prepared the 0.2.0 release scope for the GSD replacement milestone by updating release notes/checklist evidence; clean-tree `terrace release-preflight --target-version 0.2.0 --json` passed after allowing registry access for the embedded `pnpm audit` step.
 - July 4: Added merge-safe `terrace port gsd --import-roadmap`, exposed it through CLI help, command contracts, generated Codex/Claude assets, README guidance, and adoption-status next commands; focused GSD migration/CLI/adoption/product-readiness tests plus typecheck and lint passed.
 - July 4: Dogfooded `terrace adoption status` locally, corrected GSD roadmap parsing so subsection headings no longer inflate phase evidence, and made adoption readiness separate 8 legacy `.planning` phase concepts from 0 executable `.terrace/state.json` phase targets; current objective replacement measure is 75/100, `pilot_with_gsd_fallback`, blocked by stale global `terrace` 0.1.1 and missing executable roadmap state.
 - July 4: Clarified README install guidance so npm `latest` remains documented as `0.1.1` while local `0.2.0` commands are treated as release-candidate verification until publication; `pnpm run ci` passed.
@@ -214,7 +214,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - **Trusted publishing focused verification:** `pnpm exec vitest run tests/product-readiness.test.ts --reporter=verbose` PASS, 7 tests including the Release Publish workflow token-removal regression and packed-consumer smoke path.
 - **Packed global installer smoke:** `pnpm exec vitest run tests/product-readiness.test.ts --reporter=verbose` PASS, including tarball pack, fresh consumer install, temp global Codex/Claude asset installation, `/terrace` content checks, and installed-binary route usability.
 - **Current CI:** `pnpm run ci` PASS, including typecheck, lint, 296 passing tests with 1 skipped external fixture, coverage, and package dry-run.
-- **0.2.0 release preflight:** `terrace release-preflight --target-version 0.2.0 --json` PASS for CI, package, release dry-run, full ship check, trusted-publishing repo checks, tag/version checks, and stale release artifacts; the release flow reported `pnpm audit --audit-level moderate` failed, and immediate direct rerun of `pnpm audit --audit-level moderate` PASS found zero known vulnerabilities.
+- **0.2.0 release preflight:** `terrace release-preflight --target-version 0.2.0 --json` PASS for CI, dependency audit, package, release dry-run, full ship check, trusted-publishing repo checks, tag/version checks, and stale release artifacts after registry access was available to the embedded `pnpm audit` step.
 - **0.2.0 GSD replacement evidence:** `terrace adoption status --json` PASS with `ready: true`, `score: 100`, `recommended_mode: replace_gsd`, 9 migrated executable phases, complete 240/240 agent assets, and zero blockers.
 - **0.2.0 fast ship recheck:** `terrace ship check --fast --json` PASS with zero blockers and the expected manual trusted-publishing confirmation warning.
 - **0.2.0 ship check pre-commit:** `node src/terrace-tools.cjs ship check --json` passed all functional categories and failed only the expected `dirty_tree` category because the release candidate changes were still uncommitted
