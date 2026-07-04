@@ -221,3 +221,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 1. Confirm npm trusted publishing for `@jakyeamos33/terrace` is configured against the GitHub repository, `release-publish.yml` workflow, and `npm` environment.
 2. Commit the 0.2.0 release candidate, rerun `node src/terrace-tools.cjs ship check --json` on the clean tree, create the reviewed `v0.2.0` GitHub Release, and let the release workflow publish.
 3. Refresh the separate global install from this local package and rerun `terrace agents install-global`.
+
+## QR Remediation Planning
+
+- 2026-07-04: Added GSD Phase 10 for QR remediation from qr-fleet-continue-20260704-terrace; 2 plan(s) created from terrace.md. Execution has not started.

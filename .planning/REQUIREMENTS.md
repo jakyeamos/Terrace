@@ -165,3 +165,6 @@ Must support:
 3. Operator visibility
 4. Execution safety and worktree coordination
 5. Optional UX polish after the workflow model is solid
+## QR Remediation Requirements
+
+- [ ] **QR-TERRACE**: Resolve the Quality Runner advisory clusters from run qr-fleet-continue-20260704-terrace for terrace without changing intended behavior, then verify with focused repo checks and a post-remediation QR comparison.
