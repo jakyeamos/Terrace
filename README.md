@@ -6,6 +6,8 @@ Terrace is a strict-core workflow CLI for spec-driven, test-governed AI-assisted
 
 Terrace requires Node.js 22 or newer.
 
+The published npm package is `@jakyeamos33/terrace`; npm `latest` is currently `0.1.1`. This repository is prepared at `0.2.0`, so treat `0.2.0` commands as release-candidate verification until that version is published.
+
 ```sh
 pnpm add -D @jakyeamos33/terrace
 ```
@@ -97,6 +99,8 @@ terrace prd import saved-search --file docs/input/SAVED-SEARCH-PRD.md
 ## Release Readiness
 
 Use these checks before publishing protected work:
+
+The commands below verify the local `0.2.0` release candidate; they do not imply npm `latest` has moved until the release workflow completes.
 
 ```sh
 pnpm run ci
