@@ -1524,6 +1524,7 @@ function shipCheck(cwd, options) {
     () => reportShipCheck(cwd),
     () => migrationReadinessCheck(cwd),
     () => seniorCycleShipCheck(cwd),
+    ...(opts.includeTrustedPublishing !== false && terracePackageReleaseTarget(cwd) ? [() => trustedPublishingShipCheck(cwd)] : []),
     () => preflightShipCheck(cwd),
     () => aiReviewShipCheck(cwd),
     () => debtShipCheck(cwd),
@@ -1695,6 +1696,14 @@ function trustedPublishingCheck(cwd) {
   const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
   const workflow = readSmallText(cwd, '.github/workflows/release-publish.yml', 250000) || '';
   const releaseDocs = readSmallText(cwd, 'docs/RELEASE.md', 250000) || '';
+  const packageName = typeof packageJson.name === 'string' ? packageJson.name : null;
+  const version = typeof packageJson.version === 'string' ? packageJson.version : null;
+  const releaseTarget = packageName && version ? packageName + '@' + version : packageName || null;
+  const manualPrerequisites = [
+    'npm package trusted publishing is configured for @jakyeamos33/terrace and the GitHub repository before publishing v0.2.0.',
+    'GitHub environment `npm` has the intended reviewer protection before publish jobs can run.',
+    'The GitHub Release is created for the reviewed v0.2.0 tag.'
+  ];
   const requirements = [
     {
       code: 'PUBLISH_CONFIG_PUBLIC',
@@ -1739,13 +1748,12 @@ function trustedPublishingCheck(cwd) {
   ];
   const missing = requirements.filter((item) => !item.passed);
   return {
+    package_name: packageName,
+    package_version: version,
+    release_target: releaseTarget,
     passed: missing.length === 0,
     requirements,
-    manual_prerequisites: [
-      'npm package trusted publishing is configured for @jakyeamos33/terrace and this GitHub repository.',
-      'GitHub environment `npm` has the intended reviewer protection before publish jobs can run.',
-      'The GitHub Release is created for the reviewed v<version> tag.'
-    ],
+    manual_prerequisites: manualPrerequisites,
     blocking: missing.map((item) => blocker({
       code: item.code,
       message: 'Trusted-publishing prerequisite is missing: ' + item.code + '.',
@@ -1759,8 +1767,31 @@ function trustedPublishingCheck(cwd) {
       message: 'npm trusted-publishing package settings and GitHub environment reviewers cannot be verified from repo files.',
       why_blocked: 'Local preflight can verify repo-owned prerequisites only.',
       next_command: 'terrace release-preflight --json',
-      remediation: 'Confirm npm trusted publishing and GitHub environment reviewer settings in their admin UIs before publishing.'
+      remediation: 'Confirm npm trusted publishing and GitHub environment reviewer settings in their admin UIs before publishing.',
+      manual_prerequisites: manualPrerequisites
     })]
+  };
+}
+
+function terracePackageReleaseTarget(cwd) {
+  const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
+  return packageJson.name === '@jakyeamos33/terrace' && packageJson.version === '0.2.0';
+}
+
+function trustedPublishingShipCheck(cwd) {
+  const result = trustedPublishingCheck(cwd);
+  return {
+    category: 'trusted_publishing',
+    command: 'terrace release-preflight --json',
+    passed: result.passed,
+    package_name: result.package_name,
+    package_version: result.package_version,
+    release_target: result.release_target,
+    requirements: result.requirements,
+    manual_confirmation_required: result.manual_prerequisites.length > 0,
+    manual_prerequisites: result.manual_prerequisites,
+    blocking: result.blocking,
+    warnings: result.warnings
   };
 }
 
@@ -1862,7 +1893,7 @@ function releasePreflight(cwd, options) {
   const targetVersion = typeof opts.targetVersion === 'string' && opts.targetVersion.trim() ? opts.targetVersion.trim() : packageVersion(cwd);
   const runCommands = opts.runCommands !== false;
   const flow = releaseFlowChecks(cwd).map((item) => releaseFlowCommandResult(cwd, item, runCommands));
-  const ship = shipCheck(cwd, { mode: opts.shipMode || 'full' });
+  const ship = shipCheck(cwd, { mode: opts.shipMode || 'full', includeTrustedPublishing: false });
   const trustedPublishing = trustedPublishingCheck(cwd);
   const tagVersion = releaseVersionTagCheck(cwd, targetVersion);
   const staleArtifacts = staleReleaseArtifactsCheck(cwd);

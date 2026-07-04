@@ -6,7 +6,7 @@
 4. Run `pnpm audit --audit-level moderate`.
 5. Run `pnpm package` and confirm the package contains only runtime files and public docs.
 6. Run `pnpm run release:dry-run`.
-7. Run `node src/terrace-tools.cjs ship check --json` and confirm it does not dirty the working tree.
+7. Run `node src/terrace-tools.cjs ship check --json`, confirm it does not dirty the working tree, and confirm the `trusted_publishing` category reports repo-owned prerequisites as passed while listing the manual npm/GitHub admin confirmations for `@jakyeamos33/terrace@0.2.0`.
 8. Run `node src/terrace-tools.cjs release-preflight --target-version 0.2.0 --json` and confirm the JSON summary has no blockers.
 9. Update `CHANGELOG.md`.
 10. Bump `package.json` to the reviewed version.

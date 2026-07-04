@@ -749,6 +749,48 @@ describe('workflow parity core helpers', () => {
     }));
   });
 
+  it('includes trusted-publishing release guard for the Terrace npm release candidate', () => {
+    writeReleasePreflightFixtures('0.2.0');
+
+    const result = shipCheck(tmpDir, { mode: 'fast' });
+
+    expect(result.categories).toContainEqual(expect.objectContaining({
+      category: 'trusted_publishing',
+      passed: true,
+      release_target: '@jakyeamos33/terrace@0.2.0',
+      manual_confirmation_required: true,
+      manual_prerequisites: expect.arrayContaining([
+        'npm package trusted publishing is configured for @jakyeamos33/terrace and the GitHub repository before publishing v0.2.0.',
+        'GitHub environment `npm` has the intended reviewer protection before publish jobs can run.',
+        'The GitHub Release is created for the reviewed v0.2.0 tag.'
+      ]),
+      warnings: [expect.objectContaining({ code: 'TRUSTED_PUBLISHING_MANUAL_REVIEW' })]
+    }));
+  });
+
+  it('blocks the Terrace npm release candidate when trusted-publishing repo prerequisites are missing', () => {
+    writeReleasePreflightFixtures('0.2.0');
+    fs.writeFileSync(path.join(tmpDir, '.github', 'workflows', 'release-publish.yml'), [
+      'name: Release Publish',
+      'permissions:',
+      '  contents: read',
+      'jobs:',
+      '  publish:',
+      '    environment: npm',
+      '    steps:',
+      '      - run: pnpm publish --access public --provenance --no-git-checks --config.node-linker=hoisted'
+    ].join('\n') + '\n', 'utf-8');
+
+    const result = shipCheck(tmpDir, { mode: 'fast' });
+
+    expect(result.categories).toContainEqual(expect.objectContaining({
+      category: 'trusted_publishing',
+      passed: false,
+      blocking: [expect.objectContaining({ code: 'OIDC_PERMISSION' })]
+    }));
+    expect(result.blockers).toContainEqual(expect.objectContaining({ code: 'OIDC_PERMISSION' }));
+  });
+
   it('summarizes the Terrace 0.2.0 release preflight flow in static JSON', () => {
     writeReleasePreflightFixtures('0.2.0');
 

@@ -175,6 +175,8 @@ describe('tier-one product readiness', () => {
     expect(workflow).not.toContain('NODE_AUTH_TOKEN');
     expect(workflow).not.toContain('NPM_TOKEN');
     expect(releaseDocs).toContain('npm trusted publishing');
+    expect(releaseDocs).toContain('trusted_publishing');
+    expect(releaseDocs).toContain('@jakyeamos33/terrace@0.2.0');
     expect(releaseDocs).not.toContain('pnpm whoami');
     expect(releaseDocs).not.toContain('run `pnpm publish');
     expect(readme).toContain('npm trusted publishing with OIDC');
