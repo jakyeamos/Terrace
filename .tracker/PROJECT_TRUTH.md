@@ -4,7 +4,7 @@ projectName: Terrace
 summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, GitHub trusted publishing release automation, a `terrace ship check` trusted-publishing guard for repo-owned and manual npm release prerequisites, PRD intake, discoverable repo-local and global Codex/Claude agent commands, release-blocking packed-consumer smoke coverage for the global agent installer, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness with executable phase-target evidence, merge-safe `terrace port gsd --import-roadmap`, and Terrace-native production workbench status/prepare commands.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Run `terrace port gsd --import-roadmap` locally, refresh the installed local `terrace` binary to 0.2.0, and rerun `terrace adoption status` before retiring GSD fallback paths.
+nextStep: Use `terrace next` as the default local workflow entrypoint and run `terrace ship check` before protected work ships.
 blockers: []
 lastUpdated: 2026-07-04
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/core-port-gsd-migration.test.ts tests/core-cli.test.ts tests/workflow-commands.test.ts tests/product-readiness.test.ts && pnpm run typecheck && pnpm run lint
-lastVerifiedAt: "2026-07-04T13:58:04-04:00"
+lastVerifiedCommand: terrace adoption status && terrace next --json && terrace ship check --fast --json
+lastVerifiedAt: "2026-07-04T14:00:37-04:00"
 ---
 
 ## Current State
@@ -86,6 +86,7 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 
 ## Recent Progress
 
+- July 4: Ran `terrace port gsd --import-roadmap` against Terrace itself, importing 9 executable roadmap phases into `.terrace/state.json`; refreshed the active global `terrace` binary to 0.2.0 via pnpm in the nvm global prefix; `terrace adoption status` now reports `replace_gsd`, 100/100, ready true, with zero blockers.
 - July 4: Added merge-safe `terrace port gsd --import-roadmap`, exposed it through CLI help, command contracts, generated Codex/Claude assets, README guidance, and adoption-status next commands; focused GSD migration/CLI/adoption/product-readiness tests plus typecheck and lint passed.
 - July 4: Dogfooded `terrace adoption status` locally, corrected GSD roadmap parsing so subsection headings no longer inflate phase evidence, and made adoption readiness separate 8 legacy `.planning` phase concepts from 0 executable `.terrace/state.json` phase targets; current objective replacement measure is 75/100, `pilot_with_gsd_fallback`, blocked by stale global `terrace` 0.1.1 and missing executable roadmap state.
 - July 4: Clarified README install guidance so npm `latest` remains documented as `0.1.1` while local `0.2.0` commands are treated as release-candidate verification until publication; `pnpm run ci` passed.
