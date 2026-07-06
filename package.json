@@ -46,7 +46,7 @@
     "package:dry-run": "node scripts/package-dry-run.cjs",
     "release:dry-run": "pnpm publish --dry-run --access public --no-git-checks --config.node-linker=hoisted",
     "secret:scan": "node scripts/secret-scan.mjs",
-    "dependency:security": "pnpm audit --audit-level moderate",
+    "dependency:security": "node scripts/dependency-security.mjs",
     "corpus:evaluate": "node scripts/terrace-corpus-eval.cjs",
     "ci": "pnpm run typecheck && pnpm run lint && pnpm test && pnpm run test:coverage && pnpm run package:dry-run"
   },
