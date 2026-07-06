@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, GitHub trusted publishing release automation, a `terrace ship check` trusted-publishing guard for repo-owned and manual npm release prerequisites, PRD intake, discoverable repo-local and global Codex/Claude agent commands, release-blocking packed-consumer smoke coverage for the global agent installer, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness with executable phase-target evidence, merge-safe `terrace port gsd --import-roadmap`, and Terrace-native production workbench status/prepare commands.
+summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, GitHub trusted publishing release automation, a `terrace ship check` trusted-publishing guard for repo-owned and manual npm release prerequisites, PRD intake, discoverable repo-local and global Codex/Claude agent commands, release-blocking packed-consumer smoke coverage for the global agent installer, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness with executable phase-target evidence, merge-safe `terrace port gsd --import-roadmap`, and Terrace-native production workbench status/prepare commands. The dependency:security check now runs scripts/dependency-security.mjs, which fails only on real moderate+ advisories and skips (exit 0) on registry/network errors so offline commit gates no longer false-block.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Use `terrace next` as the default local workflow entrypoint and run `terrace ship check` before protected work ships.
+nextStep: Keep the local workflow entrypoint and release-readiness guard in regular use before protected work ships.
 blockers: []
-lastUpdated: 2026-07-04
+lastUpdated: 2026-07-05
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
