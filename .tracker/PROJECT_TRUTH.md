@@ -6,7 +6,7 @@ healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Keep the local workflow entrypoint and release-readiness guard in regular use before protected work ships.
 blockers: []
-lastUpdated: 2026-07-05
+lastUpdated: 2026-07-13
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -17,7 +17,7 @@ repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
 activeBranch: codex/terrace-adoption-measure
-lastCommitDate: "2026-07-04"
+lastCommitDate: "2026-07-13"
 quality:
   lint: pass
   types: pass
@@ -40,13 +40,15 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm exec vitest run tests/workflow-commands.test.ts --reporter=verbose && pnpm lint && node src/terrace-tools.cjs release-preflight --target-version 0.2.0 --json
-lastVerifiedAt: "2026-07-04T14:37:22-04:00"
+lastVerifiedCommand: pnpm run lint && pnpm run secret:scan && pnpm exec terrace --version
+lastVerifiedAt: "2026-07-13T09:37:42-04:00"
 ---
 
 ## Current State
 
 Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 79 Codex skills and 79 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, `/terrace-execute-phase-complete`, `/terrace-corpus-run`, `/terrace-corpus-report`, `/terrace-adoption-status`, `/terrace-release-preflight`, `/terrace-report`, `/terrace-security-check`, `/terrace-workbench-status`, and `/terrace-workbench-prepare`. The `terrace-autonomous` generated skill now carries a GSD-style autonomous workflow contract with JSON-first command execution, explicit implementation/verification loop guidance, allowed tools metadata, and stop conditions for blockers, human judgment, release readiness, and failed verification.
+
+Terrace now also has a repo-local Codex skill artifact under `skills/terrace/`, documenting the `@jakyeamos33/terrace@0.2.0` CLI/core surface, command workflows, public import boundary, safety rules, and release-candidate validation commands for future agent use.
 
 _(5 older entries trimmed)_
 
@@ -77,6 +79,7 @@ Shadow test branch refs named `codex/terrace-shadow-test` were created in every 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
 ## Recent Progress
+- July 13: Added the source-backed `skills/terrace` Codex skill artifact for the Terrace 0.2.0 CLI/core surface; `pnpm run lint`, `pnpm run secret:scan`, and `pnpm exec terrace --version` passed.
 - July 4: Ran `terrace port gsd --import-roadmap` against Terrace itself, importing 9 executable roadmap phases into `.terrace/state.json`; refreshed the active global `terrace` binary to 0.2.0 via pnpm in the nvm global prefix; `terrace adoption status` now reports `replace_gsd`, 100/100, ready true, with zero blockers.
 - July 4: Hardened `terrace release-preflight` so an expected release tag that exists away from `HEAD` blocks with `RELEASE_TAG_NOT_AT_HEAD`; removed the stale local-only `v0.2.0` tag so the reviewed release tag can be created at the current release-prepared commit.
 - July 4: Prepared the 0.2.0 release scope for the GSD replacement milestone by updating release notes/checklist evidence; clean-tree `terrace release-preflight --target-version 0.2.0 --json` passed after allowing registry access for the embedded `pnpm audit` step.
