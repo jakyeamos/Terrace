@@ -6,6 +6,7 @@ type CatalogCommand = {
   help: { usage: string; summary: string } | null;
   agent: { template_id: string; invocation: string } | null;
   variants: Array<{ when: string; effect: string }>;
+  route_argv: Array<string | { kind: string; name: string; flag?: string }>;
   contracts: Array<{ command_id: string; command: string; category: string; json: boolean; purpose: string }>;
 };
 
@@ -22,6 +23,8 @@ const {
   listCommandCatalog,
   listCommandContracts,
   listHelpCommands,
+  listIntentCommands,
+  renderCommandArgv,
   renderCliHelp,
   validateCommandCatalog
 } = require('../packages/terrace-core/src/index.cjs') as {
@@ -30,6 +33,8 @@ const {
   listCommandCatalog: () => CatalogCommand[];
   listCommandContracts: () => Contract[];
   listHelpCommands: () => Array<{ id: string; usage: string; summary: string }>;
+  listIntentCommands: () => Array<{ id: string; command_id: string }>;
+  renderCommandArgv: (id: string, parameters?: Record<string, string | null>) => string[];
   renderCliHelp: () => string;
   validateCommandCatalog: () => {
     valid: boolean;
@@ -92,6 +97,30 @@ describe('command catalog', () => {
       effect: 'executes_project'
     }));
     expect(listCommandContracts()).toContainEqual(expect.objectContaining({ command: 'terrace ship check --fast' }));
+  });
+
+  it('renders routed intent argv as arrays from catalog-owned parameter shapes', () => {
+    const catalog = listCommandCatalog();
+    const intentCommandIds = listIntentCommands().map((intent) => intent.command_id);
+
+    for (const id of intentCommandIds) {
+      expect(catalog.find((entry) => entry.id === id)?.route_argv.length).toBeGreaterThan(0);
+    }
+    expect(renderCommandArgv('phase.plan', { phase_id: 'phase-11' })).toEqual(['phase', 'plan', 'phase-11']);
+    expect(renderCommandArgv('workbench.status', { feature_id: null })).toEqual(['workbench', 'status']);
+    expect(renderCommandArgv('workbench.prepare', { feature_id: 'billing', target: 'generic' })).toEqual([
+      'workbench',
+      'prepare',
+      'billing',
+      '--for',
+      'generic'
+    ]);
+    expect(renderCommandArgv('quick.plan', { title: 'fix login; no shell interpolation' })).toEqual([
+      'quick',
+      'plan',
+      'fix login; no shell interpolation'
+    ]);
+    expect(() => renderCommandArgv('phase.plan', {})).toThrow(/Missing route parameter phase_id/);
   });
 
   it('returns defensive projections instead of mutable catalog records', () => {

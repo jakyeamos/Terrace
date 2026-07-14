@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 2 command-safety foundation is complete; canonical command-catalog consolidation remains.
+**Phase:** Milestone 2 catalog core is complete; generated-asset reconciliation and dispatcher/domain seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** derive the public CLI, help, agent, contract, and README command surfaces from one canonical catalog.
+**Immediate implementation priority:** reconcile tracked generated assets from the catalog without overwriting bespoke or user-owned guidance, then extract the dispatcher/domain seam.
 
 ## Evidence recorded
 
@@ -34,10 +34,11 @@
 - State-mutating natural-language routes hold the existing managed-artifact lock from revision validation through execution. `ship prepare` is deliberately self-managed so its full clean-snapshot check does not see its own lock as an untracked change.
 - `terrace audit` is read-only and preserves existing report-card artifacts. Agent drift, including root `AGENTS.md` and `CLAUDE.md`, is visible without overwriting user-owned guidance.
 - Adoption status no longer invokes an ambient `terrace` executable. A separately supplied installed version is compared explicitly; otherwise the comparison is reported as unverified rather than passing tautologically.
+- The command catalog now owns 106 command forms and drives CLI help, generated-agent metadata, published contracts, a generated README index, packed-consumer assertions, and natural-language plan argv arrays. `port gsd --compare`, `port gsd --verify-parity`, and `design-source diff` are now explicit catalog entries rather than drifted dispatch-only behavior.
 
 ## Next action
 
-Build the authoritative command catalog, then reconcile generated agent asset drift in a dedicated reviewable unit.
+Reconcile tracked generated agent assets through a pure source-generation/check path, preserving bespoke governance skills and never using Terrace's installer to modify Terrace itself.
 
 ## Known blockers
 

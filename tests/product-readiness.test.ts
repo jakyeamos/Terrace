@@ -27,8 +27,9 @@ type AgentAsset = {
   status: string;
 };
 
-const { listProductReadinessSurface } = require('../packages/terrace-core/src/index.cjs') as {
+const { listProductReadinessSurface, renderReadmeCommandIndex } = require('../packages/terrace-core/src/index.cjs') as {
   listProductReadinessSurface: () => GlobalCommandSurface[];
+  renderReadmeCommandIndex: () => string;
 };
 
 const globalCommandSurface = listProductReadinessSurface();
@@ -66,6 +67,18 @@ describe('tier-one product readiness', () => {
     expect(readme).toContain('pnpm audit --audit-level moderate');
     expect(readme).toContain('pnpm run release:dry-run');
     expect(readme).toContain('terrace init --force --yes');
+  });
+
+  it('keeps the README command index generated from the catalog', () => {
+    const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+    const startMarker = '<!-- terrace-command-catalog:start -->';
+    const endMarker = '<!-- terrace-command-catalog:end -->';
+    const start = readme.indexOf(startMarker);
+    const end = readme.indexOf(endMarker);
+
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    expect(readme.slice(start, end + endMarker.length)).toBe(renderReadmeCommandIndex());
   });
 
   it('prints top-level CLI help and version without requiring a Terrace state file', () => {

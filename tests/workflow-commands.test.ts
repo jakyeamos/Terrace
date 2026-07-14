@@ -1182,8 +1182,9 @@ describe('workflow parity core helpers', () => {
   });
 
   it('plans write-capable natural-language intent before applying it', () => {
-    const intents: Array<{ id: string; command_template: string; effect: string; writes: string[]; execution: string[] }> = listIntentCommands();
+    const intents: Array<{ id: string; command_id: string; effect: string; writes: string[]; execution: string[] }> = listIntentCommands();
     expect(new Set(intents.map((intent) => intent.id)).size).toBe(intents.length);
+    expect(intents.every((intent) => intent.command_id.length > 0)).toBe(true);
     expect(intents).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'phase_plan', effect: 'write' }),
       expect.objectContaining({ id: 'ship_check', effect: 'read' }),
@@ -1233,6 +1234,8 @@ describe('workflow parity core helpers', () => {
     expect(phasePreview).toMatchObject({
       intent_id: 'phase_plan',
       command: 'terrace phase plan phase-11-notifications',
+      command_id: 'phase.plan',
+      argv: ['phase', 'plan', 'phase-11-notifications'],
       mode: 'plan',
       requires_apply: true,
       writes: expect.arrayContaining([
@@ -1287,6 +1290,8 @@ describe('workflow parity core helpers', () => {
     const quickPreview = routePlainText(tmpDir, 'create quick task refresh beta copy');
     expect(quickPreview).toMatchObject({
       command: 'terrace quick plan refresh beta copy',
+      command_id: 'quick.plan',
+      argv: ['quick', 'plan', 'refresh beta copy'],
       mode: 'plan',
       requires_apply: true
     });
@@ -1336,6 +1341,8 @@ describe('workflow parity core helpers', () => {
     const workbenchPreview = routePlainText(tmpDir, 'make this feature ship-ready');
     expect(workbenchPreview).toMatchObject({
       command: 'terrace workbench prepare billing-refresh',
+      command_id: 'workbench.prepare',
+      argv: ['workbench', 'prepare', 'billing-refresh'],
       mode: 'plan',
       requires_apply: true
     });

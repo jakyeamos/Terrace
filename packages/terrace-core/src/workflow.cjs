@@ -2275,6 +2275,8 @@ function buildPlainTextIntentPlan(input, intentId, parameters, stateRevision) {
   const plan = {
     input,
     intent_id: intent.id,
+    command_id: intent.command_id,
+    argv: intent.argv,
     command: intent.command,
     effect: intent.effect,
     parameters: params,
@@ -2327,13 +2329,11 @@ function planPlainTextIntent(cwd, text) {
       const target = /\bhandoff\b/.test(lowered) ? 'generic' : null;
       return plannedIntent('workbench_prepare', {
         feature_id: featureId,
-        target,
-        target_option: target ? ' --for ' + target : ''
+        target
       });
     }
     return plannedIntent('workbench_status', {
-      feature_id: featureId,
-      feature_option: featureId ? ' --feature ' + featureId : ''
+      feature_id: featureId
     });
   }
   if (/\/(?:terrace:)?execute-phase-complete\s+/i.test(input) && phase) {

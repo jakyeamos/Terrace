@@ -23,6 +23,14 @@ function help(usage, summary) {
   return Object.freeze({ visible: true, usage, summary });
 }
 
+function parameter(name) {
+  return Object.freeze({ kind: 'parameter', name });
+}
+
+function option(name, flag) {
+  return Object.freeze({ kind: 'option', name, flag });
+}
+
 function command(id, argvPattern, options) {
   const opts = options || {};
   return Object.freeze({
@@ -36,12 +44,15 @@ function command(id, argvPattern, options) {
     agent: opts.agent || null,
     writes: freezeList(opts.writes),
     execution: freezeList(opts.execution),
-    variants: freezeList(opts.variants)
+    variants: freezeList(opts.variants),
+    route_argv: freezeList(opts.route)
   });
 }
 
 const A = agent;
 const H = help;
+const P = parameter;
+const O = option;
 
 const COMMAND_CATALOG = Object.freeze([
   command('help', ['--help'], {
@@ -119,6 +130,7 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('adoption.status', ['adoption', 'status'], {
     effect: 'read',
+    route: ['adoption', 'status'],
     help: H('terrace adoption status', 'Report GSD replacement readiness'),
     agent: A('terrace-adoption-status', 'terrace adoption status', '', 'Report GSD replacement readiness and remaining adoption gaps.')
   }),
@@ -152,16 +164,19 @@ const COMMAND_CATALOG = Object.freeze([
 
   command('next', ['next'], {
     effect: 'read',
+    route: ['next'],
     help: H('terrace next', 'Show the next workflow action'),
     agent: A('terrace-next', 'terrace next', '', 'Find and follow the next Terrace workflow action.')
   }),
   command('resume', ['resume'], {
     effect: 'read',
+    route: ['resume'],
     help: H('terrace resume', 'Reconstruct paused workflow context'),
     agent: A('terrace-resume', 'terrace resume', '', 'Reconstruct paused Terrace workflow context.')
   }),
   command('history', ['history'], {
     effect: 'read',
+    route: ['history'],
     help: H('terrace history', 'Summarize migrated operational history'),
     agent: A('terrace-history', 'terrace history', '', 'Summarize migrated phases, sessions, decisions, and quick tasks.')
   }),
@@ -172,11 +187,13 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('autonomous', ['autonomous'], {
     effect: 'write',
+    route: ['autonomous'],
     help: H('terrace autonomous', 'Plan next phase and stop at blocker or handoff'),
     agent: A('terrace-autonomous', 'terrace autonomous', '', 'Plan the next phase and stop at blockers or agent handoff.')
   }),
   command('phase.execute-complete', ['execute-phase-complete', '<id>'], {
     effect: 'write',
+    route: ['execute-phase-complete', P('phase_id')],
     help: H('terrace execute-phase-complete <id>', 'Plan, execute, validate, review, and complete one phase'),
     agent: A('terrace-execute-phase-complete', 'terrace execute-phase-complete $ARGUMENTS', '<phase-id>', 'Run a complete Terrace phase lifecycle from planning through completion.')
   }),
@@ -187,7 +204,7 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('settings.effort', ['settings', 'effort', '<fast|standard|thorough>'], {
     effect: 'write',
-    help: H('terrace settings effort <fast|standard|thorough>', ''),
+    help: H('terrace settings effort <fast|standard|thorough>', 'Set the default phase-planning effort'),
     agent: A('terrace-settings-effort', 'terrace settings effort $ARGUMENTS', '<fast|standard|thorough>', 'Set the default phase effort used in planning and execution artifacts.')
   }),
   command('commands.discover', ['commands', 'discover'], {
@@ -253,12 +270,12 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('workstreams.plan', ['workstreams', 'plan', '<feature>'], {
     effect: 'write',
-    help: H('terrace workstreams plan <feature>', ''),
+    help: H('terrace workstreams plan <feature>', 'Plan feature workstreams for production delivery'),
     agent: A('terrace-workstreams-plan', 'terrace workstreams plan $ARGUMENTS', '<feature>', 'Plan feature workstreams for production delivery.')
   }),
   command('design-source.import', ['design-source', 'import', '<source>', '<feature>', '<ref>'], {
     effect: 'write',
-    help: H('terrace design-source import <source> <feature> <ref>', ''),
+    help: H('terrace design-source import <source> <feature> <ref>', 'Import design-source context for a feature'),
     agent: A('terrace-design-source-import', 'terrace design-source import $ARGUMENTS', '<source> <feature> <ref>', 'Import design-source context for a feature.')
   }),
   command('design-source.diff', ['design-source', 'diff', '<source>', '<feature>', '<ref>'], {
@@ -279,26 +296,31 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('phase.plan', ['phase', 'plan', '<id>'], {
     effect: 'write',
+    route: ['phase', 'plan', P('phase_id')],
     help: H('terrace phase plan <id>', 'Generate a phase plan artifact'),
     agent: A('terrace-phase-plan', 'terrace phase plan $ARGUMENTS', '<phase-id>', 'Write a migrated-context phase plan artifact.')
   }),
   command('phase.execute', ['phase', 'execute', '<id>'], {
     effect: 'write',
+    route: ['phase', 'execute', P('phase_id')],
     help: H('terrace phase execute <id>', 'Enter RED-gate execution for a phase'),
     agent: A('terrace-phase-execute', 'terrace phase execute $ARGUMENTS', '<phase-id>', 'Enter RED-gate execution for a phase after blockers are clear.')
   }),
   command('phase.validate', ['phase', 'validate', '<id>'], {
     effect: 'write',
+    route: ['phase', 'validate', P('phase_id')],
     help: H('terrace phase validate <id>', 'Generate validation artifact'),
     agent: A('terrace-phase-validate', 'terrace phase validate $ARGUMENTS', '<phase-id>', 'Write a phase validation artifact.')
   }),
   command('phase.review', ['phase', 'review', '<id>'], {
     effect: 'write',
+    route: ['phase', 'review', P('phase_id')],
     help: H('terrace phase review <id>', 'Generate review artifact'),
     agent: A('terrace-phase-review', 'terrace phase review $ARGUMENTS', '<phase-id>', 'Write a phase review artifact.')
   }),
   command('phase.complete', ['phase', 'complete', '<id>'], {
     effect: 'write',
+    route: ['phase', 'complete', P('phase_id')],
     help: H('terrace phase complete <id>', 'Complete a phase with summary artifact'),
     agent: A('terrace-phase-complete', 'terrace phase complete $ARGUMENTS', '<phase-id>', 'Write a phase summary and mark the phase complete.')
   }),
@@ -335,6 +357,7 @@ const COMMAND_CATALOG = Object.freeze([
 
   command('quick.list', ['quick', 'list'], {
     effect: 'read',
+    route: ['quick', 'list'],
     help: H('terrace quick list', 'List migrated quick-task history'),
     agent: A('terrace-quick-list', 'terrace quick list', '', 'List migrated GSD quick-task history.')
   }),
@@ -345,6 +368,7 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('quick.plan', ['quick', 'plan', '<title>'], {
     effect: 'write',
+    route: ['quick', 'plan', P('title')],
     help: H('terrace quick plan <title>', 'Create a stateful quick-task plan'),
     agent: A('terrace-quick-plan', 'terrace quick plan "$ARGUMENTS"', '<title>', 'Create a stateful quick-task plan.')
   }),
@@ -371,12 +395,14 @@ const COMMAND_CATALOG = Object.freeze([
 
   command('ship.check', ['ship', 'check', '[--fast|--local|--full]'], {
     effect: 'read',
+    route: ['ship', 'check'],
     help: H('terrace ship check [--fast|--local|--full]', 'Run release readiness checks'),
     agent: A('terrace-ship-check', 'terrace ship check', '', 'Run read-only release readiness checks; use --full only to execute project scripts.'),
     variants: [{ when: '--full', effect: 'executes_project', execution: ['Runs discovered project quality scripts outside Terrace artifact ownership.'] }]
   }),
   command('ship.prepare', ['ship', 'prepare', '[--fast|--local|--full]'], {
     effect: 'write',
+    route: ['ship', 'prepare'],
     help: H('terrace ship prepare [--fast|--local|--full]', 'Write PR/release readiness summary'),
     agent: A('terrace-ship-prepare', 'terrace ship prepare', '', 'Write a full release-readiness summary; use --fast for a read-only snapshot.')
   }),
@@ -388,17 +414,17 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('report', ['report', '[update|open|history|ceremony]'], {
     effect: 'mixed',
-    help: H('terrace report [update|open|history|ceremony]', ''),
+    help: H('terrace report [update|open|history|ceremony]', 'Read or update report-card evidence'),
     agent: A('terrace-report', 'terrace report $ARGUMENTS', '[update|open|history|ceremony]', 'Read or update the Terrace report card and report history.')
   }),
   command('handoff.create', ['handoff', 'create', '[--feature', '<id>]', '[--for', 'codex|claude|generic]'], {
     effect: 'write',
-    help: H('terrace handoff create [--feature <id>] [--for codex|claude|generic]', ''),
+    help: H('terrace handoff create [--feature <id>] [--for codex|claude|generic]', 'Create an agent or session handoff pack'),
     agent: A('terrace-handoff-create', 'terrace handoff create $ARGUMENTS', '[--feature <id>] [--for codex|claude|generic]', 'Create a Terrace handoff pack for another agent or session.')
   }),
   command('debt', ['debt', 'add|list|audit|resolve'], {
     effect: 'mixed',
-    help: H('terrace debt add|list|audit|resolve', ''),
+    help: H('terrace debt add|list|audit|resolve', 'Manage production debt entries and release gates'),
     agent: A('terrace-debt', 'terrace debt $ARGUMENTS', 'add|list|audit|resolve', 'Manage production debt entries and release debt gates.')
   }),
   command('preflight', ['preflight', '<feature>'], {
@@ -418,7 +444,7 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('review.ai', ['review', 'ai', '--mode', '<mode>'], {
     effect: 'write',
-    help: H('terrace review ai --mode <mode>', ''),
+    help: H('terrace review ai --mode <mode>', 'Run an AI release-review evidence pass'),
     agent: A('terrace-review-ai', 'terrace review ai $ARGUMENTS', '--mode <mode>', 'Run an AI release review evidence pass.')
   }),
   command('waive', ['waive', '<gate>'], {
@@ -428,24 +454,26 @@ const COMMAND_CATALOG = Object.freeze([
   }),
   command('workbench.status', ['workbench', 'status', '[--feature', '<id>]'], {
     effect: 'read',
-    help: H('terrace workbench status [--feature <id>]', ''),
+    route: ['workbench', 'status', O('feature_id', '--feature')],
+    help: H('terrace workbench status [--feature <id>]', 'Read production workbench readiness'),
     agent: A('terrace-workbench-status', 'terrace workbench status $ARGUMENTS', '[--feature <id>]', 'Read production workbench readiness for a feature.')
   }),
   command('workbench.prepare', ['workbench', 'prepare', '<feature>', '[--tier', 'small|medium|large]', '[--for', 'codex|claude|generic]'], {
     effect: 'write',
-    help: H('terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]', ''),
+    route: ['workbench', 'prepare', P('feature_id'), O('target', '--for')],
+    help: H('terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]', 'Prepare production workbench evidence'),
     agent: A('terrace-workbench-prepare', 'terrace workbench prepare $ARGUMENTS', '<feature> [--tier small|medium|large] [--for codex|claude|generic]', 'Prepare production workbench evidence and optional handoff artifacts.')
   }),
 
   command('rule.add', ['rule', 'add', '<domain>', '<rule-id>'], {
     effect: 'write',
     aliases: [{ id: 'add.rule', argv_pattern: ['add', 'rule', '<domain>', '<rule-id>'], visibility: 'compatibility' }],
-    help: H('terrace rule add <domain> <rule-id>', ''),
+    help: H('terrace rule add <domain> <rule-id>', 'Add a rule to the project rule pack'),
     agent: A('terrace-rule-add', 'terrace rule add $ARGUMENTS', '<domain> <rule-id>', 'Add a Terrace rule to the project rule pack.')
   }),
   command('rule.audit', ['rule', 'audit', '[--effectiveness]'], {
     effect: 'read',
-    help: H('terrace rule audit', ''),
+    help: H('terrace rule audit', 'Audit installed rule packs and evidence'),
     agent: A('terrace-rule-audit', 'terrace rule audit $ARGUMENTS', '[--effectiveness]', 'Audit installed Terrace rules and rule evidence.')
   }),
   command('rule.list', ['rule', 'list'], {
@@ -568,6 +596,10 @@ function cloneAliases(aliases) {
   return aliases.map((alias) => ({ ...alias, argv_pattern: [...alias.argv_pattern] }));
 }
 
+function cloneRouteArgv(routeArgv) {
+  return routeArgv.map((token) => typeof token === 'string' ? token : { ...token });
+}
+
 function cloneCommand(entry) {
   return {
     ...entry,
@@ -578,6 +610,7 @@ function cloneCommand(entry) {
     writes: [...entry.writes],
     execution: [...entry.execution],
     variants: entry.variants.map((variant) => ({ ...variant, execution: [...(variant.execution || [])] })),
+    route_argv: cloneRouteArgv(entry.route_argv),
     contracts: CONTRACTS.filter((contract) => contract.command_id === entry.id).map((contract) => ({ ...contract }))
   };
 }
@@ -589,6 +622,44 @@ function listCommandCatalog() {
 function commandById(id) {
   const entry = CATALOG_BY_ID.get(id);
   return entry ? cloneCommand(entry) : null;
+}
+
+function renderCommandArgv(commandId, parameters) {
+  const entry = CATALOG_BY_ID.get(commandId);
+  if (!entry) {
+    throw new Error('Unknown Terrace command catalog id: ' + commandId);
+  }
+  if (entry.route_argv.length === 0) {
+    throw new Error('Terrace command catalog id has no intent-safe argv shape: ' + commandId);
+  }
+  const values = parameters || {};
+  const argv = [];
+  for (const token of entry.route_argv) {
+    if (typeof token === 'string') {
+      argv.push(token);
+      continue;
+    }
+    const value = values[token.name];
+    if (token.kind === 'option') {
+      if (value === undefined || value === null || value === '') continue;
+      argv.push(token.flag, String(value));
+      continue;
+    }
+    if (token.kind === 'parameter') {
+      if (value === undefined || value === null || value === '') {
+        throw new Error('Missing route parameter ' + token.name + ' for command catalog id: ' + commandId);
+      }
+      argv.push(String(value));
+      continue;
+    }
+    throw new Error('Unsupported command route token for catalog id: ' + commandId);
+  }
+  return argv;
+}
+
+function formatCommandDisplay(argv) {
+  // Compatibility display only; callers execute the argv array, never this text.
+  return ['terrace', ...argv].join(' ');
 }
 
 function listHelpCommands() {
@@ -615,6 +686,16 @@ function renderCliHelp() {
     '',
     'Global options:',
     ...GLOBAL_OPTIONS.map(([option, description]) => '  ' + option.padEnd(18) + description)
+  ].join('\n');
+}
+
+function renderReadmeCommandIndex() {
+  return [
+    '<!-- terrace-command-catalog:start -->',
+    ...listHelpCommands().map((entry) => '- `' + entry.usage + '`' + (entry.summary ? ' — ' + entry.summary + '.' : '')),
+    '',
+    'Global options: `--help`, `--version`, `--json`, and `--apply`.',
+    '<!-- terrace-command-catalog:end -->'
   ].join('\n');
 }
 
@@ -681,11 +762,14 @@ function validateCommandCatalog() {
 module.exports = {
   CATALOG_SCHEMA_VERSION,
   commandById,
+  formatCommandDisplay,
   listAgentCommands,
   listCommandCatalog,
   listCommandContracts,
   listHelpCommands,
   listProductReadinessSurface,
+  renderCommandArgv,
   renderCliHelp,
+  renderReadmeCommandIndex,
   validateCommandCatalog
 };
