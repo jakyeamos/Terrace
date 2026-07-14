@@ -5,6 +5,7 @@ module.exports = {
   ...require('./events.cjs'),
   ...require('./config.cjs'),
   ...require('./package-manager.cjs'),
+  ...require('./command-catalog.cjs'),
   ...require('./agents.cjs'),
   ...require('./rules.cjs'),
   ...require('./init.cjs'),
