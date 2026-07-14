@@ -1,18 +1,19 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, safe autonomous handoffs, fail-closed current security evidence, and read-only default ship checks; broader Milestone 1 modernization remains active.
-healthScore: 78
-statusLabel: modernization_in_progress_release_integrity_hardened
-nextStep: Regenerate current security evidence for a release candidate, then take the next approved vertical modernization slice.
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, and read-only audits; command-catalog consolidation remains active.
+healthScore: 80
+statusLabel: modernization_in_progress_command_safety_hardened
+nextStep: Build one canonical public command catalog, then reconcile generated agent asset drift in a dedicated reviewable unit.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
+  - Existing tracked generated agent assets differ from current templates and need deliberate reconciliation before full agent-surface parity can be claimed.
 risks:
   - A hostile same-user process with direct directory write access can still race a final filesystem pathname replacement; the managed lock is not an isolation boundary.
   - Runtime CommonJS remains outside the TypeScript gate.
 lastUpdated: 2026-07-14
 tags: [framework, ai-tooling, governance, cli, modernization]
-areas: [cli, packaging, state, lifecycle, security, docs]
+areas: [cli, packaging, state, lifecycle, security, command-routing, agents, docs]
 goals:
   - Keep Terrace installable, recoverable, and honest about readiness.
   - Preserve public CLI, JSON, artifact, agent, and GSD migration contracts through modernization.
@@ -25,13 +26,13 @@ lastCommitDate: "2026-07-14"
 quality:
   lint: pass
   types: pass_commonjs_outside_typecheck
-  tests: pass_385_with_1_skipped
+  tests: pass_full_ci_after_3f113f4
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer
   auditHigh: pass
   auditModerate: pass
   deadCode: not_configured
-  structure: milestone_1_release_integrity_hardened
+  structure: milestone_2_command_safety_foundation
 canonicalCommands:
   install: pnpm install
   dev: unknown
@@ -45,7 +46,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: pnpm run ci
-lastVerifiedAt: "2026-07-14T14:59:19-04:00"
+lastVerifiedAt: "2026-07-14T16:31:45-04:00"
 ---
 
 ## Current State
@@ -62,8 +63,11 @@ Autonomous routing now preserves active work. A gate-complete active senior feat
 
 Release integrity now fails closed on current, schema-versioned security evidence. The source/configuration/lockfile fingerprint covers Docker and Git ignore rules, scans incrementally without retaining the whole repository in memory, rejects symlink escapes, and treats unavailable dependency-audit JSON as blocking. Plain `ship check` is read-only and fast; `--local` adds Git status, while `--full` runs project scripts only after a clean Git snapshot. Dynamic release preflight also skips release-flow commands on a dirty checkout, and `ship prepare` remains the explicit, writing full-check path.
 
+Natural-language routing now previews every write-capable route with a state-bound local apply token, exact known Terrace artifact scope, and any external execution effects. Only `terrace do --apply <token>` invokes a routed write; the exported route helper remains preview-only for writes. State-mutating routes retain the managed-artifact lock through revision validation and execution, while `ship prepare` runs its full check before its brief managed write so the lock cannot make its own Git snapshot dirty. Audit no longer refreshes report artifacts, root instruction-file drift is reported without overwriting user guidance, and adoption no longer probes an ambient `terrace` executable. A missing independent installation comparison is surfaced as unverified rather than a false aligned pass.
+
 ## Recent Progress
 
+- July 14: Committed `3f113f4`; natural-language writes now require state-bound explicit apply, audit is read-only, agent drift is visible, ship prepare avoids self-dirtying, and adoption avoids ambient self-invocation. `pnpm run ci` passed.
 - July 14: Committed `05369a4`; release integrity now requires fresh source-scoped security evidence, uses a read-only default ship check, and gates full/release execution behind a clean Git snapshot. `pnpm run ci` passed: 385 tests / 1 skipped, coverage, and package dry run.
 - July 14: Committed `cd44e3b`; autonomous routing now stops safely on active features, avoids unrelated phase writes, and preserves migration precedence. Three direct regression tests plus `pnpm run ci` passed.
 - July 14: Committed `43da5a8`; added managed/project artifact path safety, recovery-aware serialization, atomic persistence, transaction recovery, and 79 focused regression tests. `pnpm run ci` passed: 373 tests / 1 skipped, coverage, and package dry run.
@@ -76,6 +80,8 @@ Release integrity now fails closed on current, schema-versioned security evidenc
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
+- Command metadata remains duplicated across the CLI help, agent templates, contracts, README, and tests; Milestone 2 must consolidate it behind one canonical catalog.
+- The tracked generated agent assets contain pre-existing drift. Reconcile them deliberately in a separate generated-artifact review instead of overwriting user-owned guidance.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
@@ -85,7 +91,7 @@ Release integrity now fails closed on current, schema-versioned security evidenc
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS: 385 passed / 1 skipped; coverage and fresh-consumer package smoke pass. |
+| Tests | `pnpm run ci` PASS after `3f113f4`; coverage and fresh-consumer package smoke pass. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Security evidence | Missing, legacy, incomplete, or source/config/lock-stale evidence blocks release readiness; `terrace security check` is the explicit writer. |
@@ -93,6 +99,6 @@ Release integrity now fails closed on current, schema-versioned security evidenc
 
 ## Next Concrete Steps
 
-1. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.
-2. Extend semantic/runtime coverage beyond the current TypeScript boundary.
-3. Continue through the approved vertical modernization plan in `docs/modernization/EXEC_PLAN.md`.
+1. Build one canonical command catalog and derive the public command surfaces from it.
+2. Reconcile the tracked generated agent assets in a dedicated reviewable unit, preserving user-owned guidance rules.
+3. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.

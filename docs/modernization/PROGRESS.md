@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 1 managed-artifact hardening, adversarial review, and full verification are complete.
+**Phase:** Milestone 2 command-safety foundation is complete; canonical command-catalog consolidation remains.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** address the remaining Milestone 1 release-integrity risks outside the managed-artifact boundary.
+**Immediate implementation priority:** derive the public CLI, help, agent, contract, and README command surfaces from one canonical catalog.
 
 ## Evidence recorded
 
@@ -30,11 +30,16 @@
 - Terrace's planning gates are now satisfied; this records implementation readiness, not permission to skip the documented RED-gate tests or P0 containment work.
 - The package-containment commit is complete and the safe-init vertical slice passed independent recovery review.
 - During baseline inspection, `terrace ship check --fast` refreshed report-card/history artifacts despite documentation presenting ship checks as read-only. That P1 behavior is now removed: the default check is read-only, `ship check` project-script execution requires `--full`, and its report gate is computed in memory. The explicitly writing `ship prepare` command retains a full check by default.
+- Natural-language write routes now preview a state-bound local apply capability, including explicit artifact scope and external execution effects. The CLI applies only the returned token; its public router no longer exposes a direct write bypass.
+- State-mutating natural-language routes hold the existing managed-artifact lock from revision validation through execution. `ship prepare` is deliberately self-managed so its full clean-snapshot check does not see its own lock as an untracked change.
+- `terrace audit` is read-only and preserves existing report-card artifacts. Agent drift, including root `AGENTS.md` and `CLAUDE.md`, is visible without overwriting user-owned guidance.
+- Adoption status no longer invokes an ambient `terrace` executable. A separately supplied installed version is compared explicitly; otherwise the comparison is reported as unverified rather than passing tautologically.
 
 ## Next action
 
-Verify the fresh-evidence and read-only ship-check contract, then advance the next Milestone 1 release-integrity slice.
+Build the authoritative command catalog, then reconcile generated agent asset drift in a dedicated reviewable unit.
 
 ## Known blockers
 
 - A release now requires a newly generated security evidence artifact after source or lockfile changes; the current legacy artifact cannot be treated as passing evidence.
+- Existing tracked generated agent assets still differ from their current templates; they must be reconciled deliberately rather than overwritten.
