@@ -1021,11 +1021,11 @@ describe('workflow parity core helpers', () => {
           fixes: ['version_alignment']
         }),
         expect.objectContaining({
-          command: 'terrace init',
+          command: 'terrace agents repair',
           fixes: ['agent_assets']
         })
       ]),
-      next_commands: expect.arrayContaining(['terrace commands discover', 'terrace --version', 'terrace init'])
+      next_commands: expect.arrayContaining(['terrace commands discover', 'terrace --version', 'terrace agents repair'])
     });
     expect(status.checks).toContainEqual(expect.objectContaining({
       name: 'report_claim_scope',
@@ -1106,7 +1106,7 @@ describe('workflow parity core helpers', () => {
     expect(output).toContain('Next commands:');
     expect(output).toContain('terrace commands discover');
     expect(output).toContain('terrace --version');
-    expect(output).toContain('terrace init');
+    expect(output).toContain('terrace agents repair');
   });
 
   it('reports failed ship checks as structured categories', () => {

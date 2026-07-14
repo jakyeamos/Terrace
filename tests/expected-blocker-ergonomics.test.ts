@@ -196,11 +196,11 @@ describe('expected blocker ergonomics', () => {
 
     expect(runDoctor(tmpDir).warnings).toContainEqual(expect.objectContaining({
       code: 'PARTIAL_AGENT_ASSETS',
-      next_command: 'terrace init'
+      next_command: 'terrace agents repair'
     }));
     expect(discoverProjectCommands(tmpDir).warnings).toContainEqual(expect.objectContaining({
       code: 'PARTIAL_AGENT_ASSETS',
-      next_command: 'terrace init'
+      next_command: 'terrace agents repair'
     }));
   });
 

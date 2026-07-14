@@ -46,6 +46,69 @@ describe('strict core CLI delegation', () => {
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.json'))).toBe(true);
   });
 
+  it('requires paired reset flags and exposes backup metadata through both init aliases', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const before = fs.readFileSync(statePath, 'utf-8');
+
+    const rejectedForce = runTerraceResult(tmpDir, ['init', '--force', '--json']);
+    const rejectedYes = runTerraceResult(tmpDir, ['core', 'init', '--yes', '--json']);
+
+    expect(rejectedForce.status).toBe(1);
+    expect(rejectedForce.json.error).toContain('--force --yes');
+    expect(rejectedYes.status).toBe(1);
+    expect(rejectedYes.json.error).toContain('--force --yes');
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(before);
+
+    const reset = runTerrace(tmpDir, ['core', 'init', '--force', '--yes', '--json']);
+
+    expect(reset).toMatchObject({
+      mode: 'reset',
+      reset: expect.objectContaining({
+        backup_path: expect.stringMatching(/^\.terrace\/backups\//)
+      })
+    });
+    expect(fs.readFileSync(path.join(tmpDir, reset.reset.backup_path, 'state.json'), 'utf-8')).toBe(before);
+  });
+
+  it('backs up residual agent manifests through the top-level init alias', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    fs.rmSync(path.join(tmpDir, '.terrace'), { recursive: true, force: true });
+    fs.rmSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true, force: true });
+    const manifestPath = path.join(tmpDir, '.terrace', 'agents', 'manifest.json');
+    const manifestBefore = '{"generated_by":"older Terrace"}\n';
+    fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+    fs.writeFileSync(manifestPath, manifestBefore, 'utf-8');
+
+    const reset = runTerrace(tmpDir, ['init', '--force', '--yes', '--json']);
+
+    expect(reset).toMatchObject({
+      mode: 'reset',
+      reset: expect.objectContaining({
+        backed_up: expect.arrayContaining(['.terrace/agents/manifest.json']),
+        overwritten: expect.arrayContaining(['.terrace/agents/manifest.json'])
+      })
+    });
+    expect(fs.readFileSync(path.join(tmpDir, reset.reset.backup_path, 'agents', 'manifest.json'), 'utf-8')).toBe(manifestBefore);
+  });
+
+  it('repairs missing agent assets without changing core state', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const eventsPath = path.join(tmpDir, '.terrace', 'events.jsonl');
+    const stateBefore = fs.readFileSync(statePath, 'utf-8');
+    const eventsBefore = fs.readFileSync(eventsPath, 'utf-8');
+    fs.rmSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true });
+
+    const result = runTerrace(tmpDir, ['agents', 'repair', '--json']);
+
+    expect(result.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: '.agents/skills/terrace-next/SKILL.md', status: 'written' })
+    ]));
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBefore);
+    expect(fs.readFileSync(eventsPath, 'utf-8')).toBe(eventsBefore);
+  });
+
   it('explains core rules through the CLI', () => {
     runTerrace(tmpDir, ['core', 'init', '--json']);
     const result = runTerrace(tmpDir, ['rule', 'explain', 'testing-trust', '--json']);

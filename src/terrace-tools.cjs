@@ -98,6 +98,7 @@ const {
   settingsSetEffort,
   newProjectFromPrd,
   importFeaturePrd,
+  installAgentBootstrap,
   installGlobalAgentBootstrap,
   refreshPlanningPackage
 } = require('../packages/terrace-core/src/index.cjs');
@@ -108,7 +109,8 @@ const HELP_TEXT = [
   'Usage: terrace <command> [options]',
   '',
   'Commands:',
-  '  terrace init                 Initialize Terrace state in this repo',
+  '  terrace init                 Initialize or safely repair Terrace state in this repo',
+  '  terrace agents repair        Repair missing repo-local Terrace agent assets',
   '  terrace agents install-global Install Terrace Codex skills into ~/.agents',
   '  terrace new-project <name> --prd <file>|--paste-prd',
   '  terrace prd import <feature> --file <file>|--paste',
@@ -560,7 +562,7 @@ async function main() {
     case 'core': {
       const sub = args[1];
       if (sub === 'init') {
-        output(initCore(cwd, { projectName: path.basename(cwd) }), { json });
+        output(initCore(cwd, { projectName: path.basename(cwd), force, yes }), { json });
         return;
       }
       fail('Unknown core subcommand: ' + sub + '. Use: init', { json });
@@ -568,11 +570,15 @@ async function main() {
     }
     case 'agents': {
       const sub = args[1];
+      if (sub === 'repair') {
+        output(installAgentBootstrap(cwd), { json });
+        return;
+      }
       if (sub === 'install-global') {
         output(installGlobalAgentBootstrap(), { json });
         return;
       }
-      fail('Unknown agents subcommand: ' + sub + '. Use: install-global', { json });
+      fail('Unknown agents subcommand: ' + sub + '. Use: repair, install-global', { json });
       return;
     }
     case 'rule': {

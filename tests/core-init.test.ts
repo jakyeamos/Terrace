@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -130,6 +130,204 @@ describe('terrace-core init and events', () => {
     ]));
     expect(result.created).not.toContain('AGENTS.md');
     expect(result.created).not.toContain('CLAUDE.md');
+  });
+
+  it('preserves existing core artifacts byte-for-byte on repeated init', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const configPath = path.join(tmpDir, '.terrace', 'config.json');
+    const registryPath = path.join(tmpDir, '.terrace', 'presets', 'registry.json');
+    const eventsPath = path.join(tmpDir, '.terrace', 'events.jsonl');
+    const rulePaths = ['testing-trust', 'security', 'architecture', 'pentest', 'maintainability']
+      .map((name) => path.join(tmpDir, '.terrace', 'rules', name + '.json'));
+
+    fs.writeFileSync(statePath, 'not valid JSON\n', 'utf-8');
+    fs.writeFileSync(configPath, '{"custom":true}\n', 'utf-8');
+    fs.writeFileSync(registryPath, '{"version":"custom","presets":["keep"]}\n', 'utf-8');
+    fs.writeFileSync(eventsPath, '{"event_id":"keep","command":"custom"}\n', 'utf-8');
+    for (const rulePath of rulePaths) {
+      fs.writeFileSync(rulePath, '{"custom":true}\n', 'utf-8');
+    }
+    const before = new Map([statePath, configPath, registryPath, eventsPath, ...rulePaths]
+      .map((filePath) => [filePath, fs.readFileSync(filePath, 'utf-8')]));
+
+    const result = initCore(tmpDir, { projectName: 'demo' }) as {
+      mode: string;
+      created: string[];
+      preserved: string[];
+    };
+
+    expect(result.mode).toBe('already_initialized');
+    expect(result.created).toEqual([]);
+    expect(result.preserved).toEqual(expect.arrayContaining([
+      '.terrace/state.json',
+      '.terrace/config.json',
+      '.terrace/presets/registry.json',
+      '.terrace/events.jsonl',
+      '.terrace/rules/testing-trust.json'
+    ]));
+    for (const [filePath, content] of before) {
+      expect(fs.readFileSync(filePath, 'utf-8')).toBe(content);
+    }
+  });
+
+  it('repairs only missing core and agent artifacts without changing established state', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const eventsPath = path.join(tmpDir, '.terrace', 'events.jsonl');
+    const stateBefore = fs.readFileSync(statePath, 'utf-8');
+    const eventsBefore = fs.readFileSync(eventsPath, 'utf-8');
+
+    fs.rmSync(path.join(tmpDir, '.terrace', 'config.json'));
+    fs.rmSync(path.join(tmpDir, '.terrace', 'presets', 'registry.json'));
+    fs.rmSync(path.join(tmpDir, '.terrace', 'rules', 'security.json'));
+    fs.rmSync(path.join(tmpDir, 'docs', 'spec'), { recursive: true });
+    fs.rmSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true });
+
+    const result = initCore(tmpDir, { projectName: 'demo' }) as {
+      mode: string;
+      created: string[];
+    };
+
+    expect(result.mode).toBe('repaired');
+    expect(result.created).toEqual(expect.arrayContaining([
+      '.terrace/config.json',
+      '.terrace/presets/registry.json',
+      '.terrace/rules/security.json',
+      'docs/spec',
+      '.agents/skills/terrace-next/SKILL.md'
+    ]));
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBefore);
+    expect(fs.readFileSync(eventsPath, 'utf-8')).toBe(eventsBefore);
+  });
+
+  it('requires force and yes together before resetting, then preserves a backup', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const configPath = path.join(tmpDir, '.terrace', 'config.json');
+    const customRulePath = path.join(tmpDir, '.terrace', 'rules', 'custom.json');
+    const customAgentPath = path.join(tmpDir, 'AGENTS.md');
+    const stateBefore = JSON.stringify({ workflow: { status: 'handoff_ready' }, preserved: true }, null, 2) + '\n';
+    const configBefore = '{"custom":true}\n';
+    fs.writeFileSync(statePath, stateBefore, 'utf-8');
+    fs.writeFileSync(configPath, configBefore, 'utf-8');
+    fs.writeFileSync(customRulePath, '{"rule":"keep"}\n', 'utf-8');
+    fs.writeFileSync(customAgentPath, '# User-owned instructions\n', 'utf-8');
+
+    expect(() => initCore(tmpDir, { projectName: 'demo', force: true })).toThrow(/--force --yes/);
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBefore);
+    expect(fs.readFileSync(configPath, 'utf-8')).toBe(configBefore);
+
+    const result = initCore(tmpDir, { projectName: 'demo', force: true, yes: true }) as {
+      mode: string;
+      reset: { backup_path: string; overwritten: string[] };
+    };
+
+    expect(result.mode).toBe('reset');
+    expect(result.reset.overwritten).toEqual(expect.arrayContaining([
+      '.terrace/state.json',
+      '.terrace/config.json'
+    ]));
+    expect(fs.readFileSync(path.join(tmpDir, result.reset.backup_path, 'state.json'), 'utf-8')).toBe(stateBefore);
+    expect(fs.readFileSync(path.join(tmpDir, result.reset.backup_path, 'config.json'), 'utf-8')).toBe(configBefore);
+    expect(fs.readFileSync(statePath, 'utf-8')).not.toBe(stateBefore);
+    expect(fs.readFileSync(customRulePath, 'utf-8')).toBe('{"rule":"keep"}\n');
+    expect(fs.readFileSync(customAgentPath, 'utf-8')).toBe('# User-owned instructions\n');
+    expect(readEvents(tmpDir)).toEqual([
+      expect.objectContaining({
+        command: 'terrace init --force --yes',
+        from_state: 'handoff_ready',
+        to_state: 'initialized'
+      })
+    ]);
+  });
+
+  it('backs up a managed agent manifest before a forced reset repairs partial assets', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    fs.rmSync(path.join(tmpDir, '.terrace'), { recursive: true, force: true });
+    fs.rmSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true, force: true });
+    const manifestPath = path.join(tmpDir, '.terrace', 'agents', 'manifest.json');
+    const manifestBefore = '{"generated_by":"older Terrace"}\n';
+    fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+    fs.writeFileSync(manifestPath, manifestBefore, 'utf-8');
+
+    const result = initCore(tmpDir, { projectName: 'demo', force: true, yes: true }) as {
+      mode: string;
+      reset: { backup_path: string; backed_up: string[]; overwritten: string[] };
+    };
+
+    expect(result.mode).toBe('reset');
+    expect(result.reset.backed_up).toContain('.terrace/agents/manifest.json');
+    expect(result.reset.overwritten).toContain('.terrace/agents/manifest.json');
+    expect(fs.readFileSync(path.join(tmpDir, result.reset.backup_path, 'agents', 'manifest.json'), 'utf-8')).toBe(manifestBefore);
+    expect(fs.readFileSync(manifestPath, 'utf-8')).not.toBe(manifestBefore);
+    expect(fs.existsSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md'))).toBe(true);
+  });
+
+  it('does not partially reset state when reset configuration cannot be prepared', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const configPath = path.join(tmpDir, '.terrace', 'config.json');
+    const stateBefore = '{"workflow":{"status":"handoff_ready"}}\n';
+    const configBefore = '{"custom":true}\n';
+    fs.writeFileSync(statePath, stateBefore, 'utf-8');
+    fs.writeFileSync(configPath, configBefore, 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{not valid json\n', 'utf-8');
+
+    expect(() => initCore(tmpDir, { projectName: 'demo', force: true, yes: true })).toThrow();
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBefore);
+    expect(fs.readFileSync(configPath, 'utf-8')).toBe(configBefore);
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'backups'))).toBe(false);
+  });
+
+  it('restores managed artifacts from backup when a forced reset fails after writing', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const configPath = path.join(tmpDir, '.terrace', 'config.json');
+    const registryPath = path.join(tmpDir, '.terrace', 'presets', 'registry.json');
+    const eventsPath = path.join(tmpDir, '.terrace', 'events.jsonl');
+    const manifestPath = path.join(tmpDir, '.terrace', 'agents', 'manifest.json');
+    const missingAgentPath = path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md');
+    const rulePaths = ['testing-trust', 'security', 'architecture', 'pentest', 'maintainability']
+      .map((name) => path.join(tmpDir, '.terrace', 'rules', name + '.json'));
+    const originals = new Map<string, string>([
+      [statePath, '{"workflow":{"status":"handoff_ready"}}\n'],
+      [configPath, '{"custom":true}\n'],
+      [registryPath, '{"version":"custom","presets":["keep"]}\n'],
+      [eventsPath, '{"event_id":"keep","command":"custom"}\n'],
+      [manifestPath, fs.readFileSync(manifestPath, 'utf-8')],
+      ...rulePaths.map((rulePath) => [rulePath, '{"custom":true}\n'] as [string, string])
+    ]);
+    for (const [filePath, content] of originals) {
+      fs.writeFileSync(filePath, content, 'utf-8');
+    }
+    fs.rmSync(path.dirname(missingAgentPath), { recursive: true, force: true });
+    const mutableFs = require('fs') as typeof fs;
+    const appendFailure = vi.spyOn(mutableFs, 'appendFileSync').mockImplementationOnce(() => {
+      throw new Error('simulated reset event failure');
+    });
+    let resetError: { details?: { code?: string; backup_path?: string } } | null = null;
+
+    try {
+      try {
+        initCore(tmpDir, { projectName: 'demo', force: true, yes: true });
+      } catch (error) {
+        resetError = error as { details?: { code?: string; backup_path?: string } };
+      }
+    } finally {
+      appendFailure.mockRestore();
+    }
+
+    expect(resetError).toMatchObject({
+      details: expect.objectContaining({
+        code: 'INIT_RESET_ROLLED_BACK',
+        backup_path: expect.stringMatching(/^\.terrace\/backups\//)
+      })
+    });
+    for (const [filePath, content] of originals) {
+      expect(fs.readFileSync(filePath, 'utf-8')).toBe(content);
+    }
+    expect(fs.existsSync(missingAgentPath)).toBe(false);
   });
 
   it('installs global Codex and Claude Terrace skills without overwriting user-owned files', () => {

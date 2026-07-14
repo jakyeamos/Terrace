@@ -31,6 +31,7 @@ const globalCommandSurface: GlobalCommandSurface[] = [
   { name: 'terrace-help' },
   { name: 'terrace-version' },
   { name: 'terrace-init', help: 'terrace init' },
+  { name: 'terrace-agents-repair', help: 'terrace agents repair' },
   { name: 'terrace-agents-install-global', help: 'terrace agents install-global' },
   { name: 'terrace-new-project', help: 'terrace new-project <name> --prd <file>|--paste-prd' },
   { name: 'terrace-prd-import', help: 'terrace prd import <feature> --file <file>|--paste' },
@@ -142,6 +143,7 @@ describe('tier-one product readiness', () => {
     expect(readme).toContain('terrace report` is read-only');
     expect(readme).toContain('pnpm audit --audit-level moderate');
     expect(readme).toContain('pnpm run release:dry-run');
+    expect(readme).toContain('terrace init --force --yes');
   });
 
   it('prints top-level CLI help and version without requiring a Terrace state file', () => {
@@ -227,6 +229,15 @@ describe('tier-one product readiness', () => {
         }
       }));
       const init = JSON.parse(terraceExec(terraceBin, ['init', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      const statePath = path.join(consumerDir, '.terrace', 'state.json');
+      const eventsPath = path.join(consumerDir, '.terrace', 'events.jsonl');
+      const stateBeforeRepeat = fs.readFileSync(statePath, 'utf8');
+      const eventsBeforeRepeat = fs.readFileSync(eventsPath, 'utf8');
+      const repeatedInit = JSON.parse(terraceExec(terraceBin, ['init', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      fs.rmSync(path.join(consumerDir, '.agents', 'skills', 'terrace-next'), { recursive: true });
+      const agentRepair = JSON.parse(terraceExec(terraceBin, ['agents', 'repair', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      expect(fs.readFileSync(statePath, 'utf8')).toBe(stateBeforeRepeat);
+      expect(fs.readFileSync(eventsPath, 'utf8')).toBe(eventsBeforeRepeat);
       const terraceRoute = JSON.parse(terraceExec(terraceBin, ['do', 'what next', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const terraceNext = JSON.parse(terraceExec(terraceBin, ['next', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const doctor = JSON.parse(terraceExec(terraceBin, ['doctor', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
@@ -302,6 +313,10 @@ describe('tier-one product readiness', () => {
       expect(claudeTerraceEntrypoint).toContain('description: Route Terrace workflow intent through the local Terrace CLI.');
       expect(claudeTerraceEntrypoint).toContain('terrace do "$ARGUMENTS"');
       expect(init.created).toContain('.terrace/state.json');
+      expect(repeatedInit).toMatchObject({ mode: 'already_initialized', created: [] });
+      expect(agentRepair.assets).toEqual(expect.arrayContaining([
+        expect.objectContaining({ path: '.agents/skills/terrace-next/SKILL.md', status: 'written' })
+      ]));
       expect(terraceRoute.command).toBe('terrace next');
       expect(terraceRoute.result.command).toBe(terraceNext.command);
       expect(doctor.healthy).toBe(true);

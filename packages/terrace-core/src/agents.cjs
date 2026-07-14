@@ -70,7 +70,8 @@ function commandContent(description, argumentHint, bodyLines) {
 const TERRACE_COMMANDS = [
   ['terrace-help', 'terrace --help', '', 'Show the top-level Terrace command list.'],
   ['terrace-version', 'terrace --version', '', 'Print the installed Terrace package version.'],
-  ['terrace-init', 'terrace init', '', 'Initialize Terrace state and non-overwriting agent bootstrap assets.'],
+  ['terrace-init', 'terrace init', '', 'Initialize or safely repair Terrace state and non-overwriting agent bootstrap assets.'],
+  ['terrace-agents-repair', 'terrace agents repair', '', 'Repair missing repo-local Terrace agent assets without changing workflow state.'],
   ['terrace-agents-install-global', 'terrace agents install-global', '', 'Install non-overwriting global Codex and Claude Code Terrace assets.'],
   ['terrace-new-project', 'terrace new-project $ARGUMENTS', '<name> --prd <file>|--paste-prd', 'Initialize Terrace from a source PRD and write project artifacts.'],
   ['terrace-prd-import', 'terrace prd import $ARGUMENTS', '<feature> --file <file>|--paste', 'Import a feature PRD into an existing Terrace project.'],
@@ -352,7 +353,14 @@ function writeManifest(cwd, assetResults) {
   };
   const content = JSON.stringify(manifest, null, 2) + '\n';
   fs.mkdirSync(path.dirname(target), { recursive: true });
+  const shouldRefresh = !fs.existsSync(target) || assetResults.some((asset) => asset.status === 'written');
+  if (!shouldRefresh) {
+    return { path: relPath, type: 'manifest', status: 'unchanged' };
+  }
   const status = fs.existsSync(target) && fs.readFileSync(target, 'utf8') === content ? 'unchanged' : 'written';
+  if (status === 'unchanged') {
+    return { path: relPath, type: 'manifest', status };
+  }
   fs.writeFileSync(target, content, 'utf8');
   return { path: relPath, type: 'manifest', status };
 }
@@ -469,9 +477,9 @@ function agentAssetStatus(cwd) {
     expected_total: expectedTotal,
     complete,
     partial: present > 0 && !complete,
-    next_command: present > 0 && !complete ? 'terrace init' : null,
+    next_command: present > 0 && !complete ? 'terrace agents repair' : null,
     remediation: present > 0 && !complete
-      ? 'Run `terrace init`; Terrace writes missing generated agent assets and does not overwrite user-owned files.'
+      ? 'Run `terrace agents repair`; it writes missing generated agent assets without changing workflow state or overwriting user-owned files.'
       : null
   };
 }

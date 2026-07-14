@@ -41,7 +41,7 @@ pnpm exec terrace ship check --json
 
 ## What Terrace Creates
 
-`terrace init` writes only repo-local governance state and docs scaffolding:
+`terrace init` writes only missing repo-local governance state and docs scaffolding. Re-running it preserves existing state, configuration, preset registry, rules, and event history byte-for-byte while repairing missing core or agent assets.
 
 - `.terrace/state.json`
 - `.terrace/config.json`
@@ -62,7 +62,7 @@ Report artifacts are explicit: `terrace report` is read-only, while `terrace rep
 
 ## Agent Integration
 
-`terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance.
+`terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance. Use `terrace agents repair` when only generated repo-local agent assets are missing; it never changes workflow state.
 
 - Codex reads `AGENTS.md` and gets repo skills under `.agents/skills/` for the README command-reference surface, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, and `/terrace-ship-check`.
 - Claude Code reads `CLAUDE.md` and gets project skills plus project commands under `.claude/skills/` and `.claude/commands/` for the same command-reference surface.
@@ -119,7 +119,8 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 
 - `terrace --help` shows the top-level command list.
 - `terrace --version` prints the package version.
-- `terrace init` initializes Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent.
+- `terrace init` initializes or safely repairs Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent. `terrace init --force --yes` first stores managed pre-reset files under `.terrace/backups/`, then resets the default Terrace state, configuration, preset registry, rules, and event ledger while continuing to add only missing agent assets. If that reset fails after writing, Terrace restores the managed files from that retained backup.
+- `terrace agents repair` installs missing repo-local Terrace agent assets without changing `.terrace/state.json`, configuration, rules, or event history.
 - `terrace agents install-global` installs non-overwriting global Codex and Claude Code assets, including `/terrace` and the full `/terrace-*` command-reference surface.
 - `terrace new-project <name> --prd <file>` or `--paste-prd` initializes Terrace from a source PRD and writes project artifacts.
 - `terrace prd import <feature> --file <file>` or `--paste` imports a feature PRD into an existing Terrace project.
@@ -236,6 +237,8 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 ## Troubleshooting
 
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
+- `terrace init` needs to restart an existing workflow: use `terrace init --force --yes` only when you intend to reset managed Terrace state; restore files from the reported `.terrace/backups/` path if needed.
+- Repo-local `/terrace-*` assets are incomplete: run `terrace agents repair`.
 - `/terrace` or `/terrace-*` is missing in another local repo: run `terrace agents install-global`, then reload the Codex or Claude Code session.
 - `Protected file changed without DECISION-LOG.md`: add a spec-linked decision before committing.
 - `terrace port gsd` refuses to overwrite state: run `terrace port gsd --import-roadmap` when only missing executable phase targets need to be merged; use `--force` only after preserving existing `.terrace/state.json`.

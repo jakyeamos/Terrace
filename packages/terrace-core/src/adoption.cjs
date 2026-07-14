@@ -236,7 +236,7 @@ function nextCommandForCheck(name, evidence) {
     }
     return 'terrace port gsd --dry-run';
   }
-  if (name === 'agent_assets') return 'terrace init';
+  if (name === 'agent_assets') return 'terrace agents repair';
   if (name === 'report_claim_scope') return 'terrace report update';
   return 'terrace adoption status';
 }
@@ -314,7 +314,7 @@ function adoptionStatus(cwd) {
     }, 'Refresh the installed Terrace binary so terrace --version matches the local package.'),
     check('corpus_health', corpus.passed, corpus, 'Run terrace corpus run and address product weaknesses or harness issues.'),
     check('migrated_gsd_phase_coverage', migrated.passed, migrated, 'Import or author Terrace roadmap phases so migrated roadmap commands have executable phase targets.'),
-    check('agent_assets', agents.complete, agents, 'Run terrace init or terrace agents install-global to repair generated agent command assets.'),
+    check('agent_assets', agents.complete, agents, 'Run terrace agents repair or terrace agents install-global to repair generated agent command assets.'),
     check('report_claim_scope', reportScoped, {
       status_label: report.status_label,
       claim_scope: report.claim_scope || null

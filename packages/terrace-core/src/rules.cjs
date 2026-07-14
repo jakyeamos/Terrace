@@ -80,12 +80,27 @@ function defaultRuleFiles() {
   return Object.keys(DEFAULT_RULES).map((domain) => '.terrace/rules/' + domain + '.json');
 }
 
-function writeDefaultRules(cwd) {
+function writeRuleFiles(cwd, onlyMissing) {
   const rulesDir = path.resolve(cwd, '.terrace', 'rules');
   fs.mkdirSync(rulesDir, { recursive: true });
+  const written = [];
   for (const [domain, rules] of Object.entries(DEFAULT_RULES)) {
-    fs.writeFileSync(path.join(rulesDir, domain + '.json'), JSON.stringify({ schema_version: '1.0', domain, rules }, null, 2) + '\n', 'utf8');
+    const filePath = path.join(rulesDir, domain + '.json');
+    if (onlyMissing && fs.existsSync(filePath)) {
+      continue;
+    }
+    fs.writeFileSync(filePath, JSON.stringify({ schema_version: '1.0', domain, rules }, null, 2) + '\n', 'utf8');
+    written.push('.terrace/rules/' + domain + '.json');
   }
+  return written;
+}
+
+function writeDefaultRules(cwd) {
+  return writeRuleFiles(cwd, false);
+}
+
+function ensureDefaultRules(cwd) {
+  return writeRuleFiles(cwd, true);
 }
 
 function loadRules(cwd) {
@@ -146,6 +161,7 @@ module.exports = {
   DEFAULT_RULES,
   defaultRuleFiles,
   writeDefaultRules,
+  ensureDefaultRules,
   loadRules,
   explainRule,
   checkRules
