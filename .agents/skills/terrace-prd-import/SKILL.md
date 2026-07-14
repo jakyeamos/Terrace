@@ -1,6 +1,7 @@
 ---
 name: terrace-prd-import
 description: Import a feature PRD into an existing Terrace project.
+argument-hint: <feature> --file <file>|--paste
 ---
 
 # Terrace Prd Import

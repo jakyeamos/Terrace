@@ -1,6 +1,7 @@
 ---
 name: terrace-validate-phase
 description: Run the GSD-compatible phase validation alias.
+argument-hint: <phase-id>
 ---
 
 # Terrace Validate Phase

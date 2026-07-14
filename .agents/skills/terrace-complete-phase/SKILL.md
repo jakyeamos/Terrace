@@ -1,6 +1,7 @@
 ---
 name: terrace-complete-phase
 description: Run the GSD-compatible phase completion alias.
+argument-hint: <phase-id>
 ---
 
 # Terrace Complete Phase

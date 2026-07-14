@@ -1,6 +1,7 @@
 ---
 name: terrace-backlog-add
 description: Append a backlog item.
+argument-hint: <title>
 ---
 
 # Terrace Backlog Add

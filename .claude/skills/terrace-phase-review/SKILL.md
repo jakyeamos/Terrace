@@ -1,6 +1,7 @@
 ---
 name: terrace-phase-review
 description: Write a phase review artifact.
+argument-hint: <phase-id>
 ---
 
 # Terrace Phase Review

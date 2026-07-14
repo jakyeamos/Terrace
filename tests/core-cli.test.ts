@@ -333,10 +333,16 @@ describe('strict core CLI delegation', () => {
       command_alias: 'terrace phase plan phase-11-notifications',
       result: { phase_id: 'phase-11-notifications' }
     });
-    expect(runTerrace(tmpDir, ['do', 'plan phase 11', '--json'])).toMatchObject({
+    const naturalLanguagePlan = runTerrace(tmpDir, ['do', 'plan phase 11', '--json']);
+    expect(naturalLanguagePlan).toMatchObject({
       command: 'terrace phase plan phase-11-notifications',
-      result: { phase_id: 'phase-11-notifications' }
+      mode: 'plan',
+      requires_apply: true,
+      apply: expect.objectContaining({
+        plan_token: expect.any(String)
+      })
     });
+    expect(naturalLanguagePlan.result).toBeUndefined();
     expect(runTerrace(tmpDir, ['do', '/gsd:plan-phase 11', '--json'])).toMatchObject({
       command: 'terrace phase plan phase-11-notifications'
     });

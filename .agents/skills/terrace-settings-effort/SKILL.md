@@ -1,6 +1,7 @@
 ---
 name: terrace-settings-effort
 description: Set the default phase effort used in planning and execution artifacts.
+argument-hint: <fast|standard|thorough>
 ---
 
 # Terrace Settings Effort

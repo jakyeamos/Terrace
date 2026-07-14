@@ -1,6 +1,7 @@
 ---
 name: terrace-interrogate
 description: Gather user input for edge-case, assumption-challenge, and failure-mode interrogation.
+argument-hint: <feature>
 ---
 
 # Terrace Interrogate

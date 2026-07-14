@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 
 describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07, AGNT-08)', () => {
   let tmpDir: string;
@@ -69,6 +70,86 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
       expect(asset?.content).toContain('--apply <plan-token>');
       expect(fs.readFileSync(path.resolve(process.cwd(), assetPath), 'utf-8')).toBe(asset?.content);
     }
+  });
+
+  it('keeps source-owned generated assets distinct from consumer bootstrap templates', () => {
+    const {
+      repoGeneratedAssetStatus,
+      repoGeneratedTemplateAssets,
+      templateAssets,
+      listAgentCommands
+    } = require('../packages/terrace-core/src/index.cjs') as {
+      repoGeneratedAssetStatus: (cwd: string) => {
+        scope: string;
+        expected_total: number;
+        missing: string[];
+        stale: string[];
+        complete: boolean;
+        remediation: string | null;
+      };
+      repoGeneratedTemplateAssets: () => Array<{ path: string; scope: string; content: string }>;
+      templateAssets: () => Array<{ path: string; scope: string }>;
+      listAgentCommands: () => Array<{ name: string }>;
+    };
+    const sourceAssets = repoGeneratedTemplateAssets();
+    const allAssets = templateAssets();
+    const status = repoGeneratedAssetStatus(process.cwd());
+
+    expect(sourceAssets).toHaveLength(listAgentCommands().length * 3);
+    expect(sourceAssets.every((asset) => asset.scope === 'repo_generated')).toBe(true);
+    expect(sourceAssets.some((asset) => asset.path === 'AGENTS.md' || asset.path === 'CLAUDE.md')).toBe(false);
+    expect(allAssets.filter((asset) => asset.scope === 'consumer_bootstrap').map((asset) => asset.path)).toEqual(['AGENTS.md', 'CLAUDE.md']);
+    expect(status).toMatchObject({
+      scope: 'repo_generated',
+      expected_total: sourceAssets.length,
+      missing: [],
+      stale: [],
+      complete: true,
+      remediation: null
+    });
+  });
+
+  it('reports source-owned drift without overwriting a consumer asset', () => {
+    const {
+      initCore,
+      repoGeneratedAssetStatus
+    } = require('../packages/terrace-core/src/index.cjs') as {
+      initCore: (cwd: string, options: { projectName: string }) => unknown;
+      repoGeneratedAssetStatus: (cwd: string) => { stale: string[]; missing: string[]; complete: boolean };
+    };
+    initCore(tmpDir, { projectName: 'source-parity-read-only' });
+    const stalePath = path.join(tmpDir, '.agents', 'skills', 'terrace-next', 'SKILL.md');
+    const missingPath = path.join(tmpDir, '.claude', 'commands', 'terrace-next.md');
+    const staleContent = '# Consumer-owned override\n';
+    fs.writeFileSync(stalePath, staleContent, 'utf-8');
+    fs.rmSync(missingPath);
+
+    const status = repoGeneratedAssetStatus(tmpDir);
+
+    expect(status).toMatchObject({
+      complete: false,
+      stale: ['.agents/skills/terrace-next/SKILL.md'],
+      missing: ['.claude/commands/terrace-next.md']
+    });
+    expect(fs.readFileSync(stalePath, 'utf-8')).toBe(staleContent);
+    expect(fs.existsSync(missingPath)).toBe(false);
+  });
+
+  it('runs the source-only parity check without invoking Terrace', () => {
+    const result = spawnSync('node', ['tools/check-repo-agent-assets.cjs'], {
+      cwd: process.cwd(),
+      encoding: 'utf-8'
+    });
+
+    expect(result.status).toBe(0);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      scope: 'repo_generated',
+      complete: true,
+      missing_count: 0,
+      stale_count: 0,
+      source_tracking_checked: true,
+      untracked_source_assets: []
+    });
   });
 
   it('reports outdated generated agent assets without overwriting user-owned files', () => {

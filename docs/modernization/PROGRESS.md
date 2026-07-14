@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 2 catalog core is complete; generated-asset reconciliation and dispatcher/domain seams remain.
+**Phase:** Milestone 2 command-catalog consolidation is complete; dispatcher/domain seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** reconcile tracked generated assets from the catalog without overwriting bespoke or user-owned guidance, then extract the dispatcher/domain seam.
+**Immediate implementation priority:** extract the project-command discovery seam to break the adoption/workflow dependency cycle without changing public behavior.
 
 ## Evidence recorded
 
@@ -35,12 +35,13 @@
 - `terrace audit` is read-only and preserves existing report-card artifacts. Agent drift, including root `AGENTS.md` and `CLAUDE.md`, is visible without overwriting user-owned guidance.
 - Adoption status no longer invokes an ambient `terrace` executable. A separately supplied installed version is compared explicitly; otherwise the comparison is reported as unverified rather than passing tautologically.
 - The command catalog now owns 106 command forms and drives CLI help, generated-agent metadata, published contracts, a generated README index, packed-consumer assertions, and natural-language plan argv arrays. `port gsd --compare`, `port gsd --verify-parity`, and `design-source diff` are now explicit catalog entries rather than drifted dispatch-only behavior.
+- All 252 catalog-owned repository agent assets now pass a source-only content and Git-tracking parity check. The check preserves consumer bootstrap guidance and bespoke governance skills, and never invokes Terrace to modify Terrace.
+- Full CI passed after reconciliation: typecheck, lint, source parity/tracking, 398 tests with 1 existing skip, coverage, and the network-enabled fresh packed-consumer/package dry run.
 
 ## Next action
 
-Reconcile tracked generated agent assets through a pure source-generation/check path, preserving bespoke governance skills and never using Terrace's installer to modify Terrace itself.
+Extract the project-command discovery seam from `workflow.cjs`, retain its compatibility export, and make `adoption.cjs` depend on the lower-level module instead of the workflow orchestrator.
 
 ## Known blockers
 
 - A release now requires a newly generated security evidence artifact after source or lockfile changes; the current legacy artifact cannot be treated as passing evidence.
-- Existing tracked generated agent assets still differ from their current templates; they must be reconciled deliberately rather than overwritten.

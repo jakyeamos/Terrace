@@ -1,6 +1,7 @@
 ---
 name: terrace-quick-show
 description: Show one migrated quick task.
+argument-hint: <quick-task-id>
 ---
 
 # Terrace Quick Show

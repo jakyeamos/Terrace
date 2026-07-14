@@ -1,6 +1,7 @@
 ---
 name: terrace-quick-plan
 description: Create a stateful quick-task plan.
+argument-hint: <title>
 ---
 
 # Terrace Quick Plan

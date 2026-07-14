@@ -1,6 +1,7 @@
 ---
 name: terrace-quick-execute
 description: Enter RED-gate execution for a quick task.
+argument-hint: <quick-task-id>
 ---
 
 # Terrace Quick Execute

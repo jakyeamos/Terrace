@@ -1,6 +1,7 @@
 ---
 name: terrace-design
 description: Record architecture decisions, tradeoffs, maintainability, and no-band-aid intent.
+argument-hint: <feature>
 ---
 
 # Terrace Design

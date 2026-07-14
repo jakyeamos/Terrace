@@ -1,6 +1,7 @@
 ---
 name: terrace-align
 description: Write senior-cycle alignment intent for a feature.
+argument-hint: <feature>
 ---
 
 # Terrace Align

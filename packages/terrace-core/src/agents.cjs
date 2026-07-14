@@ -212,24 +212,31 @@ const TERRACE_GLOBAL_ENTRYPOINT = {
 
 function templateAssets() {
   return [
-    { path: 'AGENTS.md', type: 'codex-instructions', content: AGENTS_MD },
-    { path: 'CLAUDE.md', type: 'claude-instructions', content: CLAUDE_MD },
+    { path: 'AGENTS.md', type: 'codex-instructions', scope: 'consumer_bootstrap', content: AGENTS_MD },
+    { path: 'CLAUDE.md', type: 'claude-instructions', scope: 'consumer_bootstrap', content: CLAUDE_MD },
     ...TERRACE_WORKFLOWS.map((workflow) => ({
       path: '.agents/skills/' + workflow.name + '/SKILL.md',
       type: 'codex-skill',
+      scope: 'repo_generated',
       content: skillContent(workflow.name, workflow.description, workflow.body, workflow)
     })),
     ...TERRACE_WORKFLOWS.map((workflow) => ({
       path: '.claude/skills/' + workflow.name + '/SKILL.md',
       type: 'claude-skill',
+      scope: 'repo_generated',
       content: skillContent(workflow.name, workflow.description, workflow.body, workflow)
     })),
     ...TERRACE_WORKFLOWS.map((workflow) => ({
       path: '.claude/commands/' + workflow.name + '.md',
       type: 'claude-command',
+      scope: 'repo_generated',
       content: commandContent(workflow.description, workflow.argumentHint, workflow.body)
     }))
   ];
+}
+
+function repoGeneratedTemplateAssets() {
+  return templateAssets().filter((asset) => asset.scope === 'repo_generated');
 }
 
 function globalTemplateAssets() {
@@ -688,6 +695,41 @@ function agentAssetStatus(cwd) {
   };
 }
 
+function repoGeneratedAssetStatus(cwd) {
+  const assets = repoGeneratedTemplateAssets();
+  const current = [];
+  const missing = [];
+  const stale = [];
+
+  for (const asset of assets) {
+    const existing = existingRepoAssetResult(cwd, asset);
+    if (!existing) {
+      missing.push(asset.path);
+      continue;
+    }
+    if (existing.status === 'unchanged') {
+      current.push(asset.path);
+      continue;
+    }
+    stale.push(asset.path);
+  }
+
+  return {
+    scope: 'repo_generated',
+    expected_total: assets.length,
+    current,
+    missing,
+    stale,
+    current_count: current.length,
+    missing_count: missing.length,
+    stale_count: stale.length,
+    complete: missing.length === 0 && stale.length === 0,
+    remediation: missing.length === 0 && stale.length === 0
+      ? null
+      : 'Regenerate only the source-owned repo_generated assets through the source parity workflow; do not use consumer bootstrap repair to modify Terrace itself.'
+  };
+}
+
 module.exports = {
   agentAssetStatus,
   agentAssetExpectations,
@@ -696,5 +738,7 @@ module.exports = {
   preflightAgentBootstrap,
   globalClaudeTemplateAssets,
   globalTemplateAssets,
+  repoGeneratedAssetStatus,
+  repoGeneratedTemplateAssets,
   templateAssets
 };

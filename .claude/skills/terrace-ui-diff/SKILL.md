@@ -1,6 +1,7 @@
 ---
 name: terrace-ui-diff
 description: Write UI source and target diff context.
+argument-hint: <feature>
 ---
 
 # Terrace Ui Diff

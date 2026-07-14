@@ -19,6 +19,8 @@ describe('terrace corpus evaluation helpers', () => {
     const assets = templateAssets();
 
     expect(agentAssetExpectations()).toEqual({
+      codexInstructions: assets.filter((asset: { type: string }) => asset.type === 'codex-instructions').length,
+      claudeInstructions: assets.filter((asset: { type: string }) => asset.type === 'claude-instructions').length,
       codexSkills: assets.filter((asset: { type: string }) => asset.type === 'codex-skill').length,
       claudeSkills: assets.filter((asset: { type: string }) => asset.type === 'claude-skill').length,
       claudeCommands: assets.filter((asset: { type: string }) => asset.type === 'claude-command').length

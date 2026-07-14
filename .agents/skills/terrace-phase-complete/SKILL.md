@@ -1,6 +1,7 @@
 ---
 name: terrace-phase-complete
 description: Write a phase summary and mark the phase complete.
+argument-hint: <phase-id>
 ---
 
 # Terrace Phase Complete

@@ -1,5 +1,5 @@
 ---
-description: Initialize Terrace state and non-overwriting agent bootstrap assets.
+description: Initialize or safely repair Terrace state and non-overwriting agent bootstrap assets.
 ---
 
 # Terrace Init

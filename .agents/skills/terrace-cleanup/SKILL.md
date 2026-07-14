@@ -1,6 +1,7 @@
 ---
 name: terrace-cleanup
 description: Write cleanup contract for flags, temporary code, and docs.
+argument-hint: <feature>
 ---
 
 # Terrace Cleanup
