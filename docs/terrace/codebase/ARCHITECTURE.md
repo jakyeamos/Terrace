@@ -10,6 +10,7 @@
 - `debt-assessment.cjs` owns unresolved-debt policy; lifecycle and workbench adapters preserve their distinct public result shapes.
 - `release-preflight.cjs` owns release, tag, trusted-publishing, and artifact policy. Workflow supplies only dirty-tree and ship-check adapters, preserving the public CLI/API boundary without a reverse import.
 - `ship-readiness.cjs` owns fast/local/full readiness policy, project-script gates, category aggregation, and ship-summary artifacts. It receives senior-cycle and release-specific evidence through injected callbacks while workflow preserves the existing public API and composes release preflight; their shared modes live below both modules.
+- `senior-cycle.cjs` owns senior artifact generation, state recording, gate evaluation, and ship evidence. It imports only lower-level services; workflow preserves the existing public facade and keeps phase, quick-task, and autonomous orchestration separate.
 
 ## Target Architecture
 

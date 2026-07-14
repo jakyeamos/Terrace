@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, and ship-readiness policy are extracted, and the adoption/workflow cycle is removed; dispatcher and remaining orchestration seams remain.
+**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, ship-readiness, and senior-cycle domains are extracted, and the adoption/workflow cycle is removed; dispatcher and remaining orchestration seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** extract senior-cycle artifacts and gates behind a bounded compatibility boundary without changing public behavior.
+**Immediate implementation priority:** choose the next bounded reporting/readiness or phase-dispatch seam without changing public behavior.
 
 ## Evidence recorded
 
@@ -41,10 +41,11 @@
 - Unresolved-debt policy now has one pure owner. Lifecycle, report, and ship checks retain remediation guidance, while feature-scoped workbench status preserves its lean blocker contract; direct tests cover ordering, resolved entries, feature scoping, and each projection.
 - Release-preflight policy now lives below workflow with injected dirty-tree and ship-check boundaries. The public workflow/CLI API is unchanged; fresh-process and injected-contract tests prove the module does not initialize orchestration or execute static-invalid paths.
 - Ship-readiness policy now lives below workflow with an injected senior-cycle check. Fast/local/full behavior, script and dead-code gates, timings, and `ship prepare` artifacts retain their existing workflow/CLI contracts; focused parity tests, typecheck, lint, and source-agent checks passed.
+- Senior-cycle artifact generation, persisted feature evidence, gate evaluation, and ship evidence now live below workflow. The workflow facade remains identity-compatible; direct large-tier, read-only ship-check, and fresh-process import tests preserve the boundary.
 
 ## Next action
 
-Extract the senior-cycle artifact and gate domain with a workflow compatibility facade, then reassess the remaining report and CLI-dispatch seams independently.
+Select the next independently verifiable report/readiness or phase-dispatch seam, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher rewrite before each extraction is independently verified.
 
 ## Known blockers
 
