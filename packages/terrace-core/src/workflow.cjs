@@ -1118,6 +1118,7 @@ function resumeWorkflow(cwd) {
 function nextWorkflow(cwd) {
   const state = loadState(cwd);
   const blockers = (state.blocked_actions || []).filter((item) => item.blocking);
+  const migrationCommand = state.migration && state.migration.next_command;
   const seniorFeature = activeSeniorFeature(state);
   if (seniorFeature) {
     const seniorGate = seniorCycleStatus(cwd, seniorFeature.feature_id, seniorFeature.tier);
@@ -1130,9 +1131,37 @@ function nextWorkflow(cwd) {
         senior_cycle: seniorGate
       };
     }
+    if (!migrationCommand && seniorFeature.opted_in) {
+      const activePhase = phasesFromState(state).find((phase) => phase.id === seniorFeature.feature_id);
+      const nextCommand = activePhase
+        ? 'terrace phase show ' + activePhase.id
+        : 'terrace workbench status --feature ' + seniorFeature.feature_id;
+      const activeFeatureHandoff = blocker({
+        code: activePhase ? 'ACTIVE_FEATURE_REQUIRES_EXPLICIT_PHASE_ACTION' : 'ACTIVE_FEATURE_NOT_ROADMAP_PHASE',
+        feature_id: seniorFeature.feature_id,
+        message: activePhase
+          ? 'The active senior-cycle feature is a roadmap phase and requires an explicit phase action.'
+          : 'The active senior-cycle feature is not a roadmap phase, so automatic phase execution is unavailable.',
+        why_blocked: activePhase
+          ? 'Automatically replanning the active phase could overwrite its lifecycle state or artifacts.'
+          : 'Selecting the first roadmap phase would replace the active feature and could write unrelated planning artifacts.',
+        next_command: nextCommand,
+        remediation: activePhase
+          ? 'Review the active phase, then use an explicit phase command when a mutation is intended.'
+          : 'Use the feature workbench or explicitly select a roadmap phase before running autonomous phase execution.'
+      });
+      return {
+        command: nextCommand,
+        blocked: true,
+        blockers: [...blockers, activeFeatureHandoff],
+        next_action: state.handoff && state.handoff.next_action ? state.handoff.next_action : null,
+        senior_cycle: seniorGate,
+        active_feature_handoff: activeFeatureHandoff
+      };
+    }
   }
-  const nextCommand = state.migration && state.migration.next_command
-    ? state.migration.next_command
+  const nextCommand = migrationCommand
+    ? migrationCommand
     : inferNextCommand(state);
   return {
     command: nextCommand,
@@ -1983,6 +2012,16 @@ function phaseIdFromCommand(command) {
 
 function autonomousWorkflow(cwd) {
   const next = nextWorkflow(cwd);
+  if (next.active_feature_handoff) {
+    return {
+      status: 'blocked',
+      next,
+      blockers: next.blockers,
+      active_feature_handoff: next.active_feature_handoff,
+      required_action: next.active_feature_handoff.remediation,
+      next_command: next.command
+    };
+  }
   const state = loadState(cwd);
   const seniorPhase = next.senior_cycle
     ? phasesFromState(state).find((phase) => phase.id === next.senior_cycle.feature_id)

@@ -160,6 +160,21 @@ describe('workflow parity core helpers', () => {
     ].filter(Boolean).join('\n') + '\n', 'utf-8');
   }
 
+  function writeMediumSeniorArtifacts(featureId: string): void {
+    const artifactPaths = [
+      path.join('docs', 'terrace', 'features', featureId, 'ALIGNMENT.md'),
+      path.join('docs', 'testing', 'TEST-PLAN.md'),
+      path.join('docs', 'terrace', 'features', featureId, 'OBSERVABILITY.md'),
+      path.join('docs', 'terrace', 'features', featureId, 'VALIDATION.md'),
+      path.join('docs', 'terrace', 'features', featureId, 'CLEANUP.md')
+    ];
+    for (const artifactPath of artifactPaths) {
+      const fullPath = path.join(tmpDir, artifactPath);
+      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+      fs.writeFileSync(fullPath, '# Fixture\n', 'utf-8');
+    }
+  }
+
   it('lists, shows, resumes, and computes next workflow action from state', () => {
     expect(phaseList(tmpDir).phases).toHaveLength(1);
     expect(phaseShow(tmpDir, 'phase-11-notifications').phase.plans).toHaveLength(1);
@@ -502,6 +517,127 @@ describe('workflow parity core helpers', () => {
         allowed: expect.objectContaining({ execute: false })
       })
     });
+  });
+
+  it('keeps a gate-complete active senior feature outside the roadmap as a non-mutating handoff', () => {
+    const state = loadState(tmpDir);
+    state.blocked_actions = [];
+    state.workflow = {
+      ...state.workflow,
+      active_feature: 'gpt56-modernization'
+    };
+    state.senior_cycle = {
+      active_feature: 'gpt56-modernization',
+      features: {
+        'gpt56-modernization': {
+          feature_id: 'gpt56-modernization',
+          tier: 'medium',
+          artifacts: {}
+        }
+      }
+    };
+    replaceState(tmpDir, state);
+    writeMediumSeniorArtifacts('gpt56-modernization');
+
+    const stateFile = path.join(tmpDir, '.terrace', 'state.json');
+    const unrelatedPlan = path.join(tmpDir, 'docs', 'terrace', 'phases', 'phase-11-notifications', 'PLAN.md');
+    const before = fs.readFileSync(stateFile, 'utf8');
+
+    expect(nextWorkflow(tmpDir)).toMatchObject({
+      command: 'terrace workbench status --feature gpt56-modernization',
+      blocked: true,
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_NOT_ROADMAP_PHASE',
+        feature_id: 'gpt56-modernization'
+      })
+    });
+    expect(autonomousWorkflow(tmpDir)).toMatchObject({
+      status: 'blocked',
+      next_command: 'terrace workbench status --feature gpt56-modernization',
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_NOT_ROADMAP_PHASE'
+      })
+    });
+    expect(fs.readFileSync(stateFile, 'utf8')).toBe(before);
+    expect(fs.existsSync(unrelatedPlan)).toBe(false);
+  });
+
+  it('keeps a gate-complete active roadmap phase as a non-mutating handoff', () => {
+    const state = loadState(tmpDir);
+    state.blocked_actions = [];
+    state.workflow = {
+      ...state.workflow,
+      active_feature: 'phase-12-settings'
+    };
+    state.senior_cycle = {
+      active_feature: 'phase-12-settings',
+      features: {
+        'phase-12-settings': {
+          feature_id: 'phase-12-settings',
+          tier: 'medium',
+          artifacts: {}
+        }
+      }
+    };
+    state.roadmap.phases.push({
+      id: 'phase-12-settings',
+      title: 'Phase 12: Settings',
+      status: 'completed',
+      source_ref: '.planning/ROADMAP.md',
+      plans: []
+    });
+    replaceState(tmpDir, state);
+    writeMediumSeniorArtifacts('phase-12-settings');
+
+    const stateFile = path.join(tmpDir, '.terrace', 'state.json');
+    const activePlan = path.join(tmpDir, 'docs', 'terrace', 'phases', 'phase-12-settings', 'PLAN.md');
+    const before = fs.readFileSync(stateFile, 'utf8');
+
+    expect(nextWorkflow(tmpDir)).toMatchObject({
+      command: 'terrace phase show phase-12-settings',
+      blocked: true,
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_REQUIRES_EXPLICIT_PHASE_ACTION',
+        feature_id: 'phase-12-settings'
+      })
+    });
+    expect(autonomousWorkflow(tmpDir)).toMatchObject({
+      status: 'blocked',
+      next_command: 'terrace phase show phase-12-settings',
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_REQUIRES_EXPLICIT_PHASE_ACTION'
+      })
+    });
+    expect(fs.readFileSync(stateFile, 'utf8')).toBe(before);
+    expect(fs.existsSync(activePlan)).toBe(false);
+  });
+
+  it('keeps an explicit migration next command ahead of active-feature routing', () => {
+    const state = loadState(tmpDir);
+    state.blocked_actions = [];
+    state.workflow = {
+      ...state.workflow,
+      active_feature: 'gpt56-modernization'
+    };
+    state.senior_cycle = {
+      active_feature: 'gpt56-modernization',
+      features: {
+        'gpt56-modernization': {
+          feature_id: 'gpt56-modernization',
+          tier: 'medium',
+          artifacts: {}
+        }
+      }
+    };
+    state.migration = { next_command: 'terrace port gsd dry-run' };
+    replaceState(tmpDir, state);
+    writeMediumSeniorArtifacts('gpt56-modernization');
+
+    expect(nextWorkflow(tmpDir)).toMatchObject({
+      command: 'terrace port gsd dry-run',
+      blocked: false
+    });
+    expect(nextWorkflow(tmpDir)).not.toHaveProperty('active_feature_handoff');
   });
 
   it('blocks phase completion until cleanup exists for Tier 2+ work', () => {
