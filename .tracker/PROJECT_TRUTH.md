@@ -1,7 +1,7 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, and a shared managed-artifact boundary; remaining Milestone 1 risks are evidence freshness and ship-check side effects.
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, and safe autonomous handoffs; remaining Milestone 1 risks are evidence freshness and ship-check side effects.
 healthScore: 72
 statusLabel: modernization_in_progress_with_release_blockers
 nextStep: Resolve stale security/readiness evidence and make ship-check behavior match its read-only contract.
@@ -22,11 +22,11 @@ repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: JavaScript CommonJS with TypeScript tests/configuration
 activeBranch: codex/gpt56-modernization
-lastCommitDate: "2026-07-13"
+lastCommitDate: "2026-07-14"
 quality:
   lint: pass
   types: misleading_pass
-  tests: pass_373_with_1_skipped
+  tests: pass_376_with_1_skipped
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer
   auditHigh: pass
@@ -46,7 +46,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: pnpm run ci
-lastVerifiedAt: "2026-07-14T13:27:26-04:00"
+lastVerifiedAt: "2026-07-14T13:57:59-04:00"
 ---
 
 ## Current State
@@ -59,8 +59,11 @@ State schema `1.1` is validated at runtime. Historical `1.0` state is promoted i
 
 Configuration, rules, policy, presets, events, manifests, sessions, security evidence, migration reports, lifecycle JSON, and project-generated artifacts now use a shared managed-artifact boundary. It pins directories, rejects unsafe paths, serializes cooperative writers, writes atomically, and recovers prepared preset transactions. The independent review also closed global-root ancestor symlink handling, failed-init lock scaffolding, and decision-log authorization gaps.
 
+Autonomous routing now preserves active work. A gate-complete active senior feature returns a structured, read-only handoff—phase inspection when it maps to the roadmap and workbench status when it does not—rather than silently planning the first roadmap phase. Explicit migration commands retain precedence, and phase mutation still requires an explicit command.
+
 ## Recent Progress
 
+- July 14: Committed `cd44e3b`; autonomous routing now stops safely on active features, avoids unrelated phase writes, and preserves migration precedence. Three direct regression tests plus `pnpm run ci` passed.
 - July 14: Committed `43da5a8`; added managed/project artifact path safety, recovery-aware serialization, atomic persistence, transaction recovery, and 79 focused regression tests. `pnpm run ci` passed: 373 tests / 1 skipped, coverage, and package dry run.
 - July 14: Committed `03bd2ab`; schema `1.1` state store adds atomic writes, validation, revision conflicts, recovery-aware locking, and safe reset preflight.
 - July 14: `pnpm run ci` passed: typecheck, lint, 329 tests / 1 skipped, coverage gate, and package dry run.
@@ -81,7 +84,7 @@ Configuration, rules, policy, presets, events, manifests, sessions, security evi
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS: 373 passed / 1 skipped; coverage and fresh-consumer package smoke pass. |
+| Tests | `pnpm run ci` PASS: 376 passed / 1 skipped; coverage and fresh-consumer package smoke pass. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Secret scan | PASS, with source-selection/CI scope still to improve. |
