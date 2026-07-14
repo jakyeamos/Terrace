@@ -1,6 +1,5 @@
 'use strict';
 
-const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { agentAssetStatus } = require('./agents.cjs');
@@ -18,20 +17,8 @@ function packageVersion() {
   return pkg.version || null;
 }
 
-function installedTerraceVersion(cwd) {
-  if (process.env.TERRACE_ADOPTION_INSTALLED_VERSION) {
-    return process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
-  }
-  try {
-    return execFileSync('terrace', ['--version'], {
-      cwd,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 1500
-    }).trim() || null;
-  } catch (error) {
-    return null;
-  }
+function installedTerraceVersion() {
+  return process.env.TERRACE_ADOPTION_INSTALLED_VERSION || null;
 }
 
 function latestCorpusSummary(cwd) {
@@ -120,6 +107,15 @@ function check(name, passed, evidence, remediation) {
     passed,
     evidence,
     remediation: passed ? null : remediation
+  };
+}
+
+function unverifiedCheck(name, evidence, remediation) {
+  return {
+    name,
+    passed: null,
+    evidence,
+    remediation
   };
 }
 
@@ -289,14 +285,25 @@ function adoptionStatus(cwd) {
   const audit = runAudit(cwd);
   const commands = discoverProjectCommands(cwd);
   const localVersion = packageVersion();
-  const installedVersion = installedTerraceVersion(cwd);
+  const installedVersion = installedTerraceVersion();
   const state = loadState(cwd);
   const report = reportRead(cwd).report_card;
   const agents = agentAssetStatus(cwd);
   const corpus = latestCorpusSummary(cwd);
   const migrated = migratedPhaseCoverage(cwd, state, corpus);
   const packageAligned = commands.package_manager === 'pnpm';
-  const versionAligned = !installedVersion || installedVersion === localVersion;
+  const versionCheck = installedVersion
+    ? check('version_alignment', installedVersion === localVersion, {
+      local_version: localVersion,
+      installed_version: installedVersion,
+      verification: 'explicit_external_version'
+    }, 'Refresh the installed Terrace binary so terrace --version matches the local package.')
+    : unverifiedCheck('version_alignment', {
+      local_version: localVersion,
+      runtime_version: localVersion,
+      installed_version: null,
+      verification: 'not_independently_verified'
+    }, 'The running Terrace package is known, but no separate installed binary version was supplied for comparison.');
   const reportScoped = report.claim_scope !== 'baseline_readiness' || report.status_label === 'baseline_ready';
   const checks = [
     check('doctor', doctor.healthy === true, doctor, 'Run terrace doctor and resolve blocking diagnostics.'),
@@ -308,10 +315,7 @@ function adoptionStatus(cwd) {
       package_manager: commands.package_manager,
       expected: 'pnpm'
     }, 'Use pnpm lockfiles and pnpm scripts for Terrace JavaScript workflows.'),
-    check('version_alignment', versionAligned, {
-      local_version: localVersion,
-      installed_version: installedVersion
-    }, 'Refresh the installed Terrace binary so terrace --version matches the local package.'),
+    versionCheck,
     check('corpus_health', corpus.passed, corpus, 'Run terrace corpus run and address product weaknesses or harness issues.'),
     check('migrated_gsd_phase_coverage', migrated.passed, migrated, 'Import or author Terrace roadmap phases so migrated roadmap commands have executable phase targets.'),
     check('agent_assets', agents.complete, agents, 'Run terrace agents repair or terrace agents install-global to repair generated agent command assets.'),
@@ -320,8 +324,10 @@ function adoptionStatus(cwd) {
       claim_scope: report.claim_scope || null
     }, 'Refresh the report card so baseline state is not reported as full Tier One delivery readiness.')
   ];
-  const blockers = checks.filter((item) => !item.passed);
-  const score = Math.round((checks.length - blockers.length) / checks.length * 100);
+  const blockers = checks.filter((item) => item.passed === false);
+  const unverifiedChecks = checks.filter((item) => item.passed === null);
+  const scoredChecks = checks.filter((item) => item.passed !== null);
+  const score = Math.round((scoredChecks.length - blockers.length) / scoredChecks.length * 100);
   const replacementReady = blockers.length === 0;
   const statusLabel = replacementReady ? 'replacement_ready' : score >= 75 ? 'pilot_ready_with_gaps' : 'not_ready';
   const evidence = workflowEvidence(state, commands, agents, corpus, report);
@@ -347,6 +353,7 @@ function adoptionStatus(cwd) {
     },
     checks,
     blockers,
+    unverified_checks: unverifiedChecks,
     next_steps: steps,
     next_commands: steps.map((item) => item.command)
   };

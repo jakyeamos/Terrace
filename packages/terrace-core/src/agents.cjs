@@ -28,7 +28,7 @@ const AGENTS_MD = lines([
   'Use Terrace as the workflow authority for this repository.',
   '',
   '- Start by running `terrace next` when the next workflow step is unclear.',
-  '- Route natural-language workflow requests through `terrace do "<intent>"`.',
+  '- Route natural-language workflow requests through `terrace do "<intent>"`; inspect the returned plan, then run its returned `apply.argv` only to authorize a write-capable route.',
   '- Use `terrace quick plan`, `terrace quick execute`, and `terrace quick complete` for small scoped work.',
   '- Use `terrace phase plan`, `terrace phase execute`, `terrace phase validate`, `terrace phase review`, and `terrace phase complete` for roadmap phase work.',
   '- Use `terrace execute-phase-complete <id>` only when the user wants a full phase lifecycle and Terrace gates allow it.',
@@ -45,7 +45,7 @@ const CLAUDE_MD = lines([
   'Use Terrace as the workflow authority for this repository.',
   '',
   '- Run `terrace next` to identify the next workflow action.',
-  '- Route natural-language requests through `terrace do "<intent>"` when a stable Terrace command is not obvious.',
+  '- Route natural-language requests through `terrace do "<intent>"` when a stable Terrace command is not obvious; inspect its plan before running its returned `apply.argv` for a write-capable route.',
   '- Use the repo-local `/terrace-*` project commands when available; they mirror the README command reference.',
   '- Preserve spec intent, behavior-first tests, validation evidence, and release gates.',
   '- Do not overwrite Terrace state or bypass `terrace ship check` for protected work.',
@@ -100,7 +100,7 @@ const TERRACE_COMMANDS = [
   ['terrace-next', 'terrace next', '', 'Find and follow the next Terrace workflow action.'],
   ['terrace-resume', 'terrace resume', '', 'Reconstruct paused Terrace workflow context.'],
   ['terrace-history', 'terrace history', '', 'Summarize migrated phases, sessions, decisions, and quick tasks.'],
-  ['terrace-do', 'terrace do "$ARGUMENTS"', '<intent>', 'Route natural-language agent intent to stable Terrace commands.'],
+  ['terrace-do', 'terrace do "$ARGUMENTS"', '<intent> | --apply <plan-token>', 'Preview natural-language intent; apply only the state-bound plan token returned for a reviewed write.'],
   ['terrace-autonomous', 'terrace autonomous', '', 'Plan the next phase and stop at blockers or agent handoff.'],
   ['terrace-execute-phase-complete', 'terrace execute-phase-complete $ARGUMENTS', '<phase-id>', 'Run a complete Terrace phase lifecycle from planning through completion.'],
   ['terrace-settings-effort', 'terrace settings effort $ARGUMENTS', '<fast|standard|thorough>', 'Set the default phase effort used in planning and execution artifacts.'],
@@ -169,6 +169,20 @@ function titleFromName(name) {
 
 function workflowFromCommand(entry) {
   const [name, command, argumentHint, description] = entry;
+  if (name === 'terrace-do') {
+    return {
+      name,
+      description,
+      argumentHint,
+      body: [
+        '# Terrace Do',
+        '',
+        'Run `terrace do "$ARGUMENTS"` to resolve the intent. If it returns `requires_apply: true`, inspect the planned command, writes, and execution scope, then run the returned `apply.argv` exactly when that mutation is authorized.',
+        '',
+        'Inspect Terrace blockers, warnings, generated files, and next-command output before continuing. Do not bypass Terrace gates or claim success when the command reports blockers.'
+      ]
+    };
+  }
   if (name === 'terrace-autonomous') {
     return {
       name,
@@ -267,7 +281,9 @@ const TERRACE_GLOBAL_ENTRYPOINT = {
   body: [
     '# Terrace',
     '',
-    'Run `terrace do "$ARGUMENTS"` when arguments are provided.',
+    'Run `terrace do "$ARGUMENTS"` when arguments are provided. It returns a read-only result or a plan for a write-capable route.',
+    '',
+    'If the result has `requires_apply: true`, inspect the command, writes, and execution scope, then run the returned `apply.argv` exactly only when that write is authorized.',
     '',
     'If no arguments are provided, run `terrace next` to identify the next workflow action.',
     '',
@@ -322,7 +338,7 @@ function globalClaudeTemplateAssets() {
     {
       path: 'commands/terrace.md',
       type: 'claude-global-command',
-      content: commandContent(TERRACE_GLOBAL_ENTRYPOINT.description, '<intent>', TERRACE_GLOBAL_ENTRYPOINT.body)
+      content: commandContent(TERRACE_GLOBAL_ENTRYPOINT.description, '<intent> | --apply <plan-token>', TERRACE_GLOBAL_ENTRYPOINT.body)
     },
     ...TERRACE_WORKFLOWS.map((workflow) => ({
       path: 'skills/' + workflow.name + '/SKILL.md',
@@ -686,6 +702,8 @@ function installGlobalAgentBootstrap(options) {
 function agentAssetExpectations() {
   const assets = templateAssets();
   return {
+    codexInstructions: assets.filter((asset) => asset.type === 'codex-instructions').length,
+    claudeInstructions: assets.filter((asset) => asset.type === 'claude-instructions').length,
     codexSkills: assets.filter((asset) => asset.type === 'codex-skill').length,
     claudeSkills: assets.filter((asset) => asset.type === 'claude-skill').length,
     claudeCommands: assets.filter((asset) => asset.type === 'claude-command').length
@@ -696,34 +714,58 @@ function agentAssetStatus(cwd) {
   const assets = templateAssets();
   const expected = agentAssetExpectations();
   const counts = {
+    codexInstructions: 0,
+    claudeInstructions: 0,
     codexSkills: 0,
     claudeSkills: 0,
     claudeCommands: 0
   };
+  const countKeyForType = {
+    'codex-instructions': 'codexInstructions',
+    'claude-instructions': 'claudeInstructions',
+    'codex-skill': 'codexSkills',
+    'claude-skill': 'claudeSkills',
+    'claude-command': 'claudeCommands'
+  };
+  const outdated = [];
   for (const asset of assets) {
-    if (!fs.existsSync(path.resolve(cwd, asset.path))) {
+    const countKey = countKeyForType[asset.type];
+    if (!countKey) {
       continue;
     }
-    if (asset.type === 'codex-skill') counts.codexSkills += 1;
-    if (asset.type === 'claude-skill') counts.claudeSkills += 1;
-    if (asset.type === 'claude-command') counts.claudeCommands += 1;
+    const existing = existingRepoAssetResult(cwd, asset);
+    if (!existing) continue;
+    counts[countKey] += 1;
+    if (existing.status === 'skipped') {
+      outdated.push(asset.path);
+    }
   }
-  const present = counts.codexSkills + counts.claudeSkills + counts.claudeCommands;
-  const expectedTotal = expected.codexSkills + expected.claudeSkills + expected.claudeCommands;
-  const complete = counts.codexSkills === expected.codexSkills
+  const present = Object.values(counts).reduce((total, count) => total + count, 0);
+  const expectedTotal = Object.values(expected).reduce((total, count) => total + count, 0);
+  const missingCount = expectedTotal - present;
+  const complete = counts.codexInstructions === expected.codexInstructions
+    && counts.claudeInstructions === expected.claudeInstructions
+    && counts.codexSkills === expected.codexSkills
     && counts.claudeSkills === expected.claudeSkills
-    && counts.claudeCommands === expected.claudeCommands;
+    && counts.claudeCommands === expected.claudeCommands
+    && outdated.length === 0;
+  const hasMissing = missingCount > 0;
   return {
     expected,
     counts,
     present,
     expected_total: expectedTotal,
+    missing_count: missingCount,
+    outdated,
+    outdated_count: outdated.length,
     complete,
     partial: present > 0 && !complete,
-    next_command: present > 0 && !complete ? 'terrace agents repair' : null,
-    remediation: present > 0 && !complete
-      ? 'Run `terrace agents repair`; it writes missing generated agent assets without changing workflow state or overwriting user-owned files.'
-      : null
+    next_command: hasMissing ? 'terrace agents repair' : null,
+    remediation: outdated.length > 0
+      ? 'Generated Terrace agent assets differ from the installed templates. Terrace will not overwrite user-owned files; compare each outdated path with the current template and merge the preview/apply guidance manually.'
+      : hasMissing
+        ? 'Run `terrace agents repair`; it writes missing generated agent assets without changing workflow state or overwriting user-owned files.'
+        : null
   };
 }
 

@@ -51,7 +51,7 @@ const globalCommandSurface: GlobalCommandSurface[] = [
   { name: 'terrace-next', help: 'terrace next' },
   { name: 'terrace-resume', help: 'terrace resume' },
   { name: 'terrace-history', help: 'terrace history' },
-  { name: 'terrace-do', help: 'terrace do <intent>' },
+  { name: 'terrace-do', help: 'terrace do <intent> | --apply <plan-token>' },
   { name: 'terrace-autonomous', help: 'terrace autonomous' },
   { name: 'terrace-execute-phase-complete', help: 'terrace execute-phase-complete <id>' },
   { name: 'terrace-settings-show', help: 'terrace settings show' },
@@ -242,8 +242,9 @@ describe('tier-one product readiness', () => {
       const terraceNext = JSON.parse(terraceExec(terraceBin, ['next', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const doctor = JSON.parse(terraceExec(terraceBin, ['doctor', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const audit = JSON.parse(terraceExec(terraceBin, ['audit', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
-      const report = JSON.parse(terraceExec(terraceBin, ['report', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const reportPath = path.join(consumerDir, '.terrace', 'report-card.json');
+      expect(fs.existsSync(reportPath)).toBe(false);
+      const report = JSON.parse(terraceExec(terraceBin, ['report', 'update', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const reportMtime = fs.statSync(reportPath).mtimeMs;
       const ship = spawnSync(terraceBin, ['ship', 'check', '--json'], { cwd: consumerDir, encoding: 'utf8', shell: windowsShell });
 
@@ -311,6 +312,7 @@ describe('tier-one product readiness', () => {
       expect(codexTerraceEntrypoint).toContain('terrace next');
       expect(codexTerraceNext).toContain('Run `terrace next`.');
       expect(claudeTerraceEntrypoint).toContain('description: Route Terrace workflow intent through the local Terrace CLI.');
+      expect(claudeTerraceEntrypoint).toContain('argument-hint: <intent> | --apply <plan-token>');
       expect(claudeTerraceEntrypoint).toContain('terrace do "$ARGUMENTS"');
       expect(init.created).toContain('.terrace/state.json');
       expect(repeatedInit).toMatchObject({ mode: 'already_initialized', created: [] });
@@ -321,6 +323,7 @@ describe('tier-one product readiness', () => {
       expect(terraceRoute.result.command).toBe(terraceNext.command);
       expect(doctor.healthy).toBe(true);
       expect(audit.healthy).toBe(true);
+      expect(audit.read_only).toBe(true);
       expect(report.artifact).toBe('.terrace/report-card.json');
       expect(JSON.parse(ship.stdout).categories.map((category: { category: string }) => category.category)).toContain('tier_one_report');
       expect(ship.stdout).not.toContain(repoRoot);

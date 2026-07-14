@@ -54,6 +54,69 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     expect(fs.readFileSync(localPath, 'utf-8')).toBe(asset?.content);
   });
 
+  it('terrace-do generated assets match the state-bound preview/apply contract', () => {
+    const { templateAssets } = require('../packages/terrace-core/src/agents.cjs') as { templateAssets: () => Array<{ path: string; content: string }> };
+    const paths = [
+      '.agents/skills/terrace-do/SKILL.md',
+      '.claude/skills/terrace-do/SKILL.md',
+      '.claude/commands/terrace-do.md'
+    ];
+
+    for (const assetPath of paths) {
+      const asset = templateAssets().find((item) => item.path === assetPath);
+      expect(asset?.content).toContain('requires_apply');
+      expect(asset?.content).toContain('apply.argv');
+      expect(asset?.content).toContain('--apply <plan-token>');
+      expect(fs.readFileSync(path.resolve(process.cwd(), assetPath), 'utf-8')).toBe(asset?.content);
+    }
+  });
+
+  it('reports outdated generated agent assets without overwriting user-owned files', () => {
+    const { agentAssetStatus, initCore, runDoctor } = require('../packages/terrace-core/src/index.cjs') as {
+      agentAssetStatus: (cwd: string) => { complete: boolean; outdated: string[]; outdated_count: number; remediation: string | null };
+      initCore: (cwd: string, options: { projectName: string }) => unknown;
+      runDoctor: (cwd: string) => { warnings: Array<{ code: string }> };
+    };
+    initCore(tmpDir, { projectName: 'agent-drift' });
+    const stalePath = path.join(tmpDir, '.agents', 'skills', 'terrace-do', 'SKILL.md');
+    const staleContent = '# Older Terrace Do\n';
+    fs.writeFileSync(stalePath, staleContent, 'utf-8');
+
+    const status = agentAssetStatus(tmpDir);
+
+    expect(status).toMatchObject({
+      complete: false,
+      outdated_count: 1,
+      outdated: ['.agents/skills/terrace-do/SKILL.md'],
+      remediation: expect.stringContaining('will not overwrite user-owned files')
+    });
+    expect(fs.readFileSync(stalePath, 'utf-8')).toBe(staleContent);
+    expect(runDoctor(tmpDir).warnings).toContainEqual(expect.objectContaining({ code: 'OUTDATED_AGENT_ASSETS' }));
+  });
+
+  it('reports outdated root instruction files without overwriting user-owned guidance', () => {
+    const { agentAssetStatus, initCore, runDoctor } = require('../packages/terrace-core/src/index.cjs') as {
+      agentAssetStatus: (cwd: string) => { complete: boolean; outdated: string[]; outdated_count: number; remediation: string | null };
+      initCore: (cwd: string, options: { projectName: string }) => unknown;
+      runDoctor: (cwd: string) => { warnings: Array<{ code: string }> };
+    };
+    initCore(tmpDir, { projectName: 'root-guidance-drift' });
+    const rootInstructions = path.join(tmpDir, 'AGENTS.md');
+    const customContent = '# Team-owned instructions\n';
+    fs.writeFileSync(rootInstructions, customContent, 'utf-8');
+
+    const status = agentAssetStatus(tmpDir);
+
+    expect(status).toMatchObject({
+      complete: false,
+      outdated_count: 1,
+      outdated: ['AGENTS.md'],
+      remediation: expect.stringContaining('will not overwrite user-owned files')
+    });
+    expect(fs.readFileSync(rootInstructions, 'utf-8')).toBe(customContent);
+    expect(runDoctor(tmpDir).warnings).toContainEqual(expect.objectContaining({ code: 'OUTDATED_AGENT_ASSETS' }));
+  });
+
   it('terrace-spec-interrogator agent directory exists at .agents/skills/terrace-spec-interrogator/ (AGNT-01)', () => {
     const agentDir = path.resolve(process.cwd(), '.agents/skills/terrace-spec-interrogator');
     expect(fs.existsSync(agentDir)).toBe(true);

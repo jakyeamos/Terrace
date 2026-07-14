@@ -19,6 +19,7 @@ module.exports = {
   ...require('./policy.cjs'),
   ...require('./session.cjs'),
   ...require('./workflow-helpers.cjs'),
+  ...require('./intent-catalog.cjs'),
   ...require('./workflow.cjs'),
   ...require('./lifecycle.cjs'),
   ...require('./workbench.cjs'),

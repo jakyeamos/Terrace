@@ -83,13 +83,21 @@ function runDoctor(cwd) {
   }
 
   const agentAssets = agentAssetStatus(cwd);
-  if (agentAssets.partial) {
+  if (agentAssets.missing_count > 0) {
     warnings.push(warning({
       code: 'PARTIAL_AGENT_ASSETS',
       message: 'Generated Terrace agent assets are partially installed.',
       why_blocked: 'Codex or Claude may only discover a subset of Terrace commands until missing generated assets are installed.',
       next_command: 'terrace agents repair',
       remediation: 'Run `terrace agents repair`; it installs missing generated agent assets without changing workflow state or overwriting user-owned files.'
+    }));
+  }
+  if (agentAssets.outdated_count > 0) {
+    warnings.push(warning({
+      code: 'OUTDATED_AGENT_ASSETS',
+      message: 'Generated Terrace agent assets differ from the installed templates.',
+      why_blocked: 'Existing agent entrypoints can retain older command semantics even when all files are present.',
+      remediation: agentAssets.remediation
     }));
   }
 

@@ -53,6 +53,7 @@ const {
   quickComplete,
   shipPrepare,
   routePlainText,
+  applyPlainTextIntentPlan,
   autonomousWorkflow,
   discoverProjectCommands,
   alignFeature,
@@ -129,7 +130,7 @@ const HELP_TEXT = [
   '  terrace next                 Show the next workflow action',
   '  terrace resume               Reconstruct paused workflow context',
   '  terrace history              Summarize migrated operational history',
-  '  terrace do <intent>          Route natural-language intent to a Terrace command',
+  '  terrace do <intent> | --apply <plan-token> Preview a route or apply its reviewed plan',
   '  terrace autonomous           Plan next phase and stop at blocker or handoff',
   '  terrace execute-phase-complete <id> Plan, execute, validate, review, and complete one phase',
   '  terrace settings show        Show Terrace settings',
@@ -191,7 +192,8 @@ const HELP_TEXT = [
   'Global options:',
   '  --help, -h       Show this help',
   '  --version, -v    Print Terrace version',
-  '  --json           Print machine-readable JSON where supported'
+  '  --json           Print machine-readable JSON where supported',
+  '  --apply          Apply a state-bound natural-language plan token from terrace do'
 ].join('\n');
 
 function hasFlag(args, flag) {
@@ -512,9 +514,10 @@ async function main() {
   const force = hasFlag(rawArgs, '--force');
   const yes = hasFlag(rawArgs, '--yes');
   const dryRun = hasFlag(rawArgs, '--dry-run');
+  const apply = hasFlag(rawArgs, '--apply');
   const help = hasFlag(rawArgs, '--help') || hasFlag(rawArgs, '-h') || rawArgs[0] === 'help';
   const version = hasFlag(rawArgs, '--version') || hasFlag(rawArgs, '-v');
-  const args = stripFlags(rawArgs, ['--json', '--force', '--yes', '--dry-run', '--help', '-h', '--version', '-v']);
+  const args = stripFlags(rawArgs, ['--json', '--force', '--yes', '--dry-run', '--apply', '--help', '-h', '--version', '-v']);
 
   if (version) {
     output(packageJson.version, { json });
@@ -527,6 +530,10 @@ async function main() {
 
   const command = args[0];
   const cwd = process.cwd();
+
+  if (apply && command !== 'do') {
+    fail('--apply is only supported with terrace do --apply <plan-token>.', { json });
+  }
 
   switch (command) {
     case 'new-project': {
@@ -958,9 +965,9 @@ async function main() {
     case 'do': {
       const text = args.slice(1).join(' ');
       if (!text) {
-        fail('Usage: terrace do <intent>', { json });
+        fail('Usage: terrace do <intent> | terrace do --apply <plan-token>', { json });
       }
-      const result = routePlainText(cwd, text);
+      const result = apply ? applyPlainTextIntentPlan(cwd, text) : routePlainText(cwd, text);
       output(result, { json });
       if (result.result && result.result.passed === false) {
         process.exitCode = 1;
@@ -1181,12 +1188,7 @@ async function main() {
     }
     case 'audit': {
       const result = runAudit(cwd, {});
-      try {
-        reportUpdate(cwd, { command: 'terrace audit' });
-      } catch (error) {
-        result.report_refresh_skipped = error && error.message ? error.message : String(error);
-      }
-      output(result, { json });
+      output({ ...result, read_only: true }, { json });
       return;
     }
     case 'ci': {

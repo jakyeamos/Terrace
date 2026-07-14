@@ -20,10 +20,10 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Summarize migrated operational history across phases, sessions, decisions, and quick tasks.'
   },
   {
-    command: 'terrace do <intent>',
+    command: 'terrace do <intent> | --apply <plan-token>',
     category: 'workflow',
     json: true,
-    purpose: 'Route natural-language agent intent to stable Terrace commands.'
+    purpose: 'Preview natural-language intent by default; --apply accepts only the state-bound token returned for a reviewed write-capable route.'
   },
   {
     command: 'terrace autonomous',

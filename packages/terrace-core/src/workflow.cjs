@@ -7,7 +7,7 @@ const { loadState, saveState } = require('./state.cjs');
 const { phaseEffortDefault, readConfig } = require('./config.cjs');
 const { runAudit } = require('./audit.cjs');
 const { agentAssetStatus } = require('./agents.cjs');
-const { blocker, topBlockers, warning } = require('./guidance.cjs');
+const { blocker, guidanceError, topBlockers, warning } = require('./guidance.cjs');
 const { runDoctor } = require('./health.cjs');
 const { analyzeRepository, bulletList, listProjectFiles, readSmallText } = require('./repo-analysis.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
@@ -22,7 +22,7 @@ const {
   seniorRequirements,
   seniorCycleGateStatus
 } = require('./workflow-helpers.cjs');
-const { preflightProjectArtifacts, writeProjectText } = require('./managed-artifacts.cjs');
+const { preflightProjectArtifacts, withManagedArtifactLock, writeProjectText } = require('./managed-artifacts.cjs');
 const {
   reportUpdate,
   reportShipCheck,
@@ -34,6 +34,7 @@ const {
   ruleAuditShipCheck,
   waiverShipCheck
 } = require('./lifecycle.cjs');
+const { resolveIntentCommand } = require('./intent-catalog.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -354,13 +355,21 @@ function discoverProjectCommands(cwd) {
     checks,
     dead_code: discoverDeadCodeGate(cwd, scripts, packageManager),
     agent_assets: agentAssets,
-    warnings: agentAssets.partial ? [warning({
-      code: 'PARTIAL_AGENT_ASSETS',
-      message: 'Generated Terrace agent assets are partially installed.',
-      why_blocked: 'Codex or Claude may only discover a subset of Terrace commands until missing generated assets are installed.',
-      next_command: 'terrace agents repair',
-      remediation: 'Run `terrace agents repair`; it installs missing generated agent assets without changing workflow state or overwriting user-owned files.'
-    })] : []
+    warnings: [
+      ...(agentAssets.missing_count > 0 ? [warning({
+        code: 'PARTIAL_AGENT_ASSETS',
+        message: 'Generated Terrace agent assets are partially installed.',
+        why_blocked: 'Codex or Claude may only discover a subset of Terrace commands until missing generated assets are installed.',
+        next_command: 'terrace agents repair',
+        remediation: 'Run `terrace agents repair`; it installs missing generated agent assets without changing workflow state or overwriting user-owned files.'
+      })] : []),
+      ...(agentAssets.outdated_count > 0 ? [warning({
+        code: 'OUTDATED_AGENT_ASSETS',
+        message: 'Generated Terrace agent assets differ from the installed templates.',
+        why_blocked: 'Existing agent entrypoints can retain older command semantics even when all files are present.',
+        remediation: agentAssets.remediation
+      })] : [])
+    ]
   };
 }
 
@@ -438,7 +447,7 @@ function seniorCycleShipCheck(cwd) {
     if (!feature) {
       return {
         category: 'senior_cycle',
-        command: 'terrace senior-cycle status',
+        command: 'terrace workbench status',
         passed: true,
         skipped: true,
         blocking: [],
@@ -451,7 +460,7 @@ function seniorCycleShipCheck(cwd) {
     });
     return {
       category: 'senior_cycle',
-      command: 'terrace senior-cycle status ' + feature.feature_id,
+      command: 'terrace workbench status --feature ' + feature.feature_id,
       passed: blocking.length === 0,
       senior_cycle: status,
       blocking,
@@ -460,7 +469,7 @@ function seniorCycleShipCheck(cwd) {
   } catch (error) {
     return {
       category: 'senior_cycle',
-      command: 'terrace senior-cycle status',
+      command: 'terrace workbench status',
       passed: false,
       blocking: [{
         code: 'SENIOR_CYCLE_UNAVAILABLE',
@@ -2212,7 +2221,89 @@ function phaseCompleteWorkflow(cwd, phaseId) {
   };
 }
 
-function routePlainText(cwd, text) {
+function encodePlainTextIntentPlan(plan) {
+  return Buffer.from(JSON.stringify({
+    version: 1,
+    input: plan.input,
+    intent_id: plan.intent_id,
+    parameters: plan.parameters,
+    state_revision: plan.state_revision
+  }), 'utf8').toString('base64url');
+}
+
+function decodePlainTextIntentPlan(token) {
+  if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{1,16384}$/.test(token)) {
+    throw guidanceError('Terrace needs a plan token returned by `terrace do <intent>` before it can apply a natural-language write.', {
+      code: 'INTENT_PLAN_TOKEN_INVALID',
+      next_command: 'terrace do <intent>',
+      remediation: 'Preview the intended natural-language route again and pass its returned plan token to `terrace do --apply <plan-token>`.'
+    });
+  }
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
+  } catch {
+    throw guidanceError('Terrace could not read the natural-language plan token.', {
+      code: 'INTENT_PLAN_TOKEN_INVALID',
+      next_command: 'terrace do <intent>',
+      remediation: 'Preview the intended natural-language route again and use the returned plan token unchanged.'
+    });
+  }
+  if (!payload || payload.version !== 1 || typeof payload.input !== 'string' || typeof payload.intent_id !== 'string'
+    || !payload.parameters || typeof payload.parameters !== 'object' || Array.isArray(payload.parameters)
+    || !Number.isInteger(payload.state_revision) || payload.state_revision < 0) {
+    throw guidanceError('Terrace received an invalid natural-language plan token.', {
+      code: 'INTENT_PLAN_TOKEN_INVALID',
+      next_command: 'terrace do <intent>',
+      remediation: 'Preview the intended natural-language route again and use the returned plan token unchanged.'
+    });
+  }
+  const intent = resolveIntentCommand(payload.intent_id, payload.parameters);
+  if (intent.effect !== 'write') {
+    throw guidanceError('Only write-capable natural-language plans can be applied.', {
+      code: 'INTENT_PLAN_NOT_WRITABLE',
+      next_command: 'terrace do <intent>',
+      remediation: 'Run the read-only command directly, or preview a write-capable route before applying it.'
+    });
+  }
+  return payload;
+}
+
+function buildPlainTextIntentPlan(input, intentId, parameters, stateRevision) {
+  const params = { ...(parameters || {}) };
+  const intent = resolveIntentCommand(intentId, params);
+  const plan = {
+    input,
+    intent_id: intent.id,
+    command: intent.command,
+    effect: intent.effect,
+    parameters: params,
+    state_revision: stateRevision,
+    writes: intent.writes,
+    execution: intent.execution,
+    lock: intent.lock
+  };
+  if (intent.effect === 'write') {
+    const token = encodePlainTextIntentPlan(plan);
+    return {
+      ...plan,
+      mode: 'plan',
+      requires_apply: true,
+      apply: {
+        plan_token: token,
+        argv: ['do', '--apply', token],
+        command: 'terrace do --apply ' + token
+      }
+    };
+  }
+  return {
+    ...plan,
+    mode: 'read',
+    read_only: true
+  };
+}
+
+function planPlainTextIntent(cwd, text) {
   const input = String(text || '').trim();
   if (!input) {
     throw new Error('Usage: terrace do <intent>');
@@ -2220,13 +2311,12 @@ function routePlainText(cwd, text) {
   const lowered = input.toLowerCase();
   const state = loadState(cwd);
   const phase = findPhaseByText(state, input);
+  const plannedIntent = (intentId, parameters) => buildPlainTextIntentPlan(input, intentId, parameters, state.state_revision);
 
   if (/\b(gsd\s+replacement|replace\s+gsd|replacing\s+gsd|workflow\s+parity|adoption\s+status|terrace\s+ready|is\s+terrace\s+ready)\b/.test(lowered)) {
-    const { adoptionStatus } = require('./adoption.cjs');
-    return { input, command: 'terrace adoption status', result: adoptionStatus(cwd) };
+    return plannedIntent('adoption_status');
   }
   if (/\b(production\s+workbench|ship-ready|ship\s+ready|handoff\s+this\s+feature|make\s+this\s+feature\s+ship-ready)\b/.test(lowered)) {
-    const { workbenchStatus, workbenchPrepare } = require('./workbench.cjs');
     const featureId = state.senior_cycle && state.senior_cycle.active_feature
       ? state.senior_cycle.active_feature
       : state.workflow && state.workflow.active_feature
@@ -2235,66 +2325,76 @@ function routePlainText(cwd, text) {
     const wantsPrepare = /\b(prepare|make|handoff)\b/.test(lowered);
     if (wantsPrepare && featureId) {
       const target = /\bhandoff\b/.test(lowered) ? 'generic' : null;
-      return { input, command: 'terrace workbench prepare ' + featureId, result: workbenchPrepare(cwd, { feature: featureId, for: target }) };
+      return plannedIntent('workbench_prepare', {
+        feature_id: featureId,
+        target,
+        target_option: target ? ' --for ' + target : ''
+      });
     }
-    return { input, command: 'terrace workbench status' + (featureId ? ' --feature ' + featureId : ''), result: workbenchStatus(cwd, { feature: featureId }) };
+    return plannedIntent('workbench_status', {
+      feature_id: featureId,
+      feature_option: featureId ? ' --feature ' + featureId : ''
+    });
   }
   if (/\/(?:terrace:)?execute-phase-complete\s+/i.test(input) && phase) {
-    return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
+    return plannedIntent('phase_complete_workflow', { phase_id: phase.id });
   }
   if (/\/(?:terrace:)?goal\b/i.test(input)) {
     const goal = input.replace(/^.*?\/(?:terrace:)?goal\b\s*/i, '').trim();
     if (goal) {
-      return routePlainText(cwd, goal);
+      const nestedPlan = planPlainTextIntent(cwd, goal);
+      return nestedPlan.effect === 'write'
+        ? buildPlainTextIntentPlan(input, nestedPlan.intent_id, nestedPlan.parameters, nestedPlan.state_revision)
+        : { ...nestedPlan, input };
     }
   }
   if (/\/gsd:plan-phase\s+/i.test(input) && phase) {
-    return { input, command: 'terrace phase plan ' + phase.id, result: phasePlan(cwd, phase.id) };
+    return plannedIntent('phase_plan', { phase_id: phase.id });
   }
   if (/\/gsd:execute-phase\s+/i.test(input) && phase) {
-    return { input, command: 'terrace phase execute ' + phase.id, result: phaseExecute(cwd, phase.id) };
+    return plannedIntent('phase_execute', { phase_id: phase.id });
   }
   if (/\/gsd:quick\b/i.test(input)) {
     const title = input.replace(/^.*?\/gsd:quick\b\s*/i, '').trim();
     if (title) {
-      return { input, command: 'terrace quick plan ' + title, result: quickPlan(cwd, title) };
+      return plannedIntent('quick_plan', { title });
     }
   }
   if (/\/gsd:ship\b/i.test(input)) {
-    return { input, command: 'terrace ship prepare', result: shipPrepare(cwd) };
+    return plannedIntent('ship_prepare');
   }
   if (/\b(run|execute|start)\s+the\s+next\s+phase\b/.test(lowered) || /\bautonomous\b/.test(lowered)) {
-    return { input, command: 'terrace autonomous', result: autonomousWorkflow(cwd) };
+    return plannedIntent('autonomous');
   }
   if (phase && /\b(end[-\s]?to[-\s]?end|complete\s+workflow|full\s+phase|execute\s+phase\s+complete|phase\s+complete\s+workflow)\b/.test(lowered)) {
-    return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
+    return plannedIntent('phase_complete_workflow', { phase_id: phase.id });
   }
   if (/\b(next|what next|continue)\b/.test(lowered)) {
-    return { input, command: 'terrace next', result: nextWorkflow(cwd) };
+    return plannedIntent('next');
   }
   if (/\bresume\b/.test(lowered)) {
-    return { input, command: 'terrace resume', result: resumeWorkflow(cwd) };
+    return plannedIntent('resume');
   }
   if (/\bhistory\b/.test(lowered)) {
-    return { input, command: 'terrace history', result: historySummary(cwd) };
+    return plannedIntent('history');
   }
   if (phase && /\b(plan|planning|\/gsd:plan-phase)\b/.test(lowered)) {
-    return { input, command: 'terrace phase plan ' + phase.id, result: phasePlan(cwd, phase.id) };
+    return plannedIntent('phase_plan', { phase_id: phase.id });
   }
   if (phase && /\b(execute|executing|\/gsd:execute-phase)\b/.test(lowered)) {
-    return { input, command: 'terrace phase execute ' + phase.id, result: phaseExecute(cwd, phase.id) };
+    return plannedIntent('phase_execute', { phase_id: phase.id });
   }
   if (phase && /\b(validate|validation|\/gsd:validate-phase)\b/.test(lowered)) {
-    return { input, command: 'terrace phase validate ' + phase.id, result: phaseValidate(cwd, phase.id) };
+    return plannedIntent('phase_validate', { phase_id: phase.id });
   }
   if (phase && /\b(review|\/gsd:review)\b/.test(lowered)) {
-    return { input, command: 'terrace phase review ' + phase.id, result: phaseReview(cwd, phase.id) };
+    return plannedIntent('phase_review', { phase_id: phase.id });
   }
   if (phase && /\b(complete|finish|done)\b/.test(lowered)) {
-    return { input, command: 'terrace phase complete ' + phase.id, result: phaseComplete(cwd, phase.id) };
+    return plannedIntent('phase_complete', { phase_id: phase.id });
   }
   if (/\bquick\b/.test(lowered) && /\b(list|show)\b/.test(lowered)) {
-    return { input, command: 'terrace quick list', result: quickList(cwd) };
+    return plannedIntent('quick_list');
   }
   if (/\bquick\b/.test(lowered)) {
     const title = input
@@ -2302,16 +2402,99 @@ function routePlainText(cwd, text) {
       .replace(/^(plan|create|add|execute|run|fix)\s+/i, '')
       .trim();
     if (title) {
-      return { input, command: 'terrace quick plan ' + title, result: quickPlan(cwd, title) };
+      return plannedIntent('quick_plan', { title });
     }
   }
   if (/\bship\b/.test(lowered) && /\b(prepare|pr|release)\b/.test(lowered)) {
-    return { input, command: 'terrace ship prepare', result: shipPrepare(cwd) };
+    return plannedIntent('ship_prepare');
   }
   if (/\bship\b/.test(lowered)) {
-    return { input, command: 'terrace ship check', result: shipCheck(cwd) };
+    return plannedIntent('ship_check');
   }
   throw new Error('Unsupported plain-text Terrace command: ' + input);
+}
+
+function executePlainTextIntent(cwd, plan) {
+  const parameters = plan.parameters || {};
+  switch (plan.intent_id) {
+    case 'adoption_status': {
+      const { adoptionStatus } = require('./adoption.cjs');
+      return adoptionStatus(cwd);
+    }
+    case 'workbench_status': {
+      const { workbenchStatus } = require('./workbench.cjs');
+      return workbenchStatus(cwd, { feature: parameters.feature_id });
+    }
+    case 'workbench_prepare': {
+      const { workbenchPrepare } = require('./workbench.cjs');
+      return workbenchPrepare(cwd, { feature: parameters.feature_id, for: parameters.target });
+    }
+    case 'phase_complete_workflow':
+      return phaseCompleteWorkflow(cwd, parameters.phase_id);
+    case 'phase_plan':
+      return phasePlan(cwd, parameters.phase_id);
+    case 'phase_execute':
+      return phaseExecute(cwd, parameters.phase_id);
+    case 'phase_validate':
+      return phaseValidate(cwd, parameters.phase_id);
+    case 'phase_review':
+      return phaseReview(cwd, parameters.phase_id);
+    case 'phase_complete':
+      return phaseComplete(cwd, parameters.phase_id);
+    case 'quick_plan':
+      return quickPlan(cwd, parameters.title);
+    case 'quick_list':
+      return quickList(cwd);
+    case 'ship_prepare':
+      return shipPrepare(cwd);
+    case 'ship_check':
+      return shipCheck(cwd);
+    case 'autonomous':
+      return autonomousWorkflow(cwd);
+    case 'next':
+      return nextWorkflow(cwd);
+    case 'resume':
+      return resumeWorkflow(cwd);
+    case 'history':
+      return historySummary(cwd);
+    default:
+      throw new Error('Unsupported plain-text Terrace intent: ' + plan.intent_id);
+  }
+}
+
+function applyPlainTextIntentPlan(cwd, token) {
+  const payload = decodePlainTextIntentPlan(token);
+  const intent = resolveIntentCommand(payload.intent_id, payload.parameters);
+  const apply = () => {
+    const state = loadState(cwd);
+    if (state.state_revision !== payload.state_revision) {
+      throw guidanceError('The natural-language plan is stale because Terrace state changed after it was previewed.', {
+        code: 'INTENT_PLAN_STALE',
+        next_command: 'terrace do <intent>',
+        remediation: 'Preview the route again, review its updated write scope, and apply the new plan token.'
+      });
+    }
+    const plan = buildPlainTextIntentPlan(payload.input, payload.intent_id, payload.parameters, state.state_revision);
+    const result = executePlainTextIntent(cwd, plan);
+    const { apply, ...appliedPlan } = plan;
+    return {
+      ...appliedPlan,
+      mode: 'applied',
+      requires_apply: false,
+      applied: true,
+      result
+    };
+  };
+  return intent.lock === 'managed' ? withManagedArtifactLock(cwd, apply) : apply();
+}
+
+function routePlainText(cwd, text) {
+  const plan = planPlainTextIntent(cwd, text);
+  if (plan.effect === 'write') {
+    return plan;
+  }
+  const result = executePlainTextIntent(cwd, plan);
+  return { ...plan, result };
 }
 
 module.exports = {
@@ -2334,6 +2517,8 @@ module.exports = {
   quickExecute,
   quickComplete,
   shipPrepare,
+  planPlainTextIntent,
+  applyPlainTextIntentPlan,
   routePlainText,
   autonomousWorkflow,
   discoverProjectCommands,

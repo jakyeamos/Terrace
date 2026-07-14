@@ -28,6 +28,8 @@ const {
   quickExecute,
   quickComplete,
   shipPrepare,
+  listIntentCommands,
+  applyPlainTextIntentPlan,
   routePlainText,
   autonomousWorkflow,
   discoverProjectCommands,
@@ -720,6 +722,7 @@ describe('workflow parity core helpers', () => {
 
     expect(result.categories).toContainEqual(expect.objectContaining({
       category: 'senior_cycle',
+      command: 'terrace workbench status --feature billing-refresh',
       passed: false,
       blocking: expect.arrayContaining([
         expect.objectContaining({ code: 'OBSERVABILITY_REQUIRED' }),
@@ -956,10 +959,22 @@ describe('workflow parity core helpers', () => {
     }, null, 2), 'utf-8');
     commitGitSnapshot();
 
-    const prepared = shipPrepare(tmpDir);
+    const preview = routePlainText(tmpDir, 'ship prepare');
+    expect(preview).toMatchObject({
+      lock: 'self_managed',
+      execution: expect.arrayContaining([
+        expect.stringContaining('may write arbitrary project files')
+      ])
+    });
+    const prepared = applyPlainTextIntentPlan(tmpDir, preview.apply.plan_token);
 
-    expect(prepared.mode).toBe('full');
-    expect(prepared.ship_ref).toBe('docs/terrace/ship/SHIP.md');
+    expect(prepared).toMatchObject({
+      mode: 'applied',
+      result: {
+        mode: 'full',
+        ship_ref: 'docs/terrace/ship/SHIP.md'
+      }
+    });
     expect(fs.existsSync(sentinel)).toBe(true);
   }, 120000);
 
@@ -1166,10 +1181,45 @@ describe('workflow parity core helpers', () => {
     });
   });
 
-  it('routes natural-language intent and slash-shaped compatibility commands for agents', () => {
+  it('plans write-capable natural-language intent before applying it', () => {
+    const intents: Array<{ id: string; command_template: string; effect: string; writes: string[]; execution: string[] }> = listIntentCommands();
+    expect(new Set(intents.map((intent) => intent.id)).size).toBe(intents.length);
+    expect(intents).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'phase_plan', effect: 'write' }),
+      expect.objectContaining({ id: 'ship_check', effect: 'read' }),
+      expect.objectContaining({ id: 'workbench_prepare', effect: 'write' })
+    ]));
+    expect(intents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'workbench_prepare',
+        writes: expect.arrayContaining([
+          '.terrace/state.json',
+          '.terrace/report-card.json',
+          '.terrace/workstreams/{feature_id}.json',
+          'docs/terrace/features/{feature_id}/PREFLIGHT.md',
+          'docs/terrace/features/{feature_id}/RUNBOOK.md',
+          'docs/terrace/features/{feature_id}/WORKSTREAMS.md',
+          'docs/terrace/reviews/{feature_id}/release.json',
+          'docs/terrace/reviews/{feature_id}/release.md',
+          'docs/terrace/REPORT-CARD.md',
+          'docs/terrace/report-history/**'
+        ])
+      }),
+      expect.objectContaining({
+        id: 'phase_complete',
+        writes: expect.arrayContaining([
+          '.terrace/report-card.json',
+          'docs/terrace/REPORT-CARD.md',
+          'docs/terrace/report-history/**'
+        ])
+      })
+    ]));
+
     process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.0.0';
     expect(routePlainText(tmpDir, 'how far is Terrace from replacing GSD')).toMatchObject({
       command: 'terrace adoption status',
+      mode: 'read',
+      read_only: true,
       result: {
         replacement: 'gsd',
         checks: expect.arrayContaining([
@@ -1178,39 +1228,92 @@ describe('workflow parity core helpers', () => {
       }
     });
     delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
-    expect(routePlainText(tmpDir, 'plan phase 11')).toMatchObject({
+    const stateBeforePreview = fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8');
+    const phasePreview = routePlainText(tmpDir, 'plan phase 11');
+    expect(phasePreview).toMatchObject({
+      intent_id: 'phase_plan',
       command: 'terrace phase plan phase-11-notifications',
+      mode: 'plan',
+      requires_apply: true,
+      writes: expect.arrayContaining([
+        '.terrace/state.json',
+        'docs/terrace/phases/phase-11-notifications/PLAN.md'
+      ]),
+      apply: expect.objectContaining({
+        argv: ['do', '--apply', expect.any(String)]
+      })
+    });
+    expect(phasePreview.result).toBeUndefined();
+    expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(stateBeforePreview);
+    expect(routePlainText(tmpDir, 'plan phase 11', { apply: true })).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'plan',
+      requires_apply: true
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, phasePreview.apply.plan_token)).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'applied',
+      applied: true,
       result: { phase_id: 'phase-11-notifications' }
     });
     expect(routePlainText(tmpDir, '/gsd:plan-phase 11')).toMatchObject({
-      command: 'terrace phase plan phase-11-notifications'
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'plan',
+      requires_apply: true
     });
     expect(routePlainText(tmpDir, '/execute-phase-complete 11')).toMatchObject({
       command: 'terrace execute-phase-complete phase-11-notifications',
-      result: {
-        status: 'blocked',
-        phase_id: 'phase-11-notifications'
-      }
+      mode: 'plan',
+      requires_apply: true
     });
     expect(routePlainText(tmpDir, '/goal plan phase 11')).toMatchObject({
-      command: 'terrace phase plan phase-11-notifications'
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'plan',
+      requires_apply: true,
+      apply: expect.objectContaining({
+        argv: ['do', '--apply', expect.any(String)]
+      })
     });
     expect(routePlainText(tmpDir, 'run the next phase')).toMatchObject({
-      command: 'terrace autonomous'
+      command: 'terrace autonomous',
+      mode: 'plan',
+      requires_apply: true
     });
     expect(routePlainText(tmpDir, 'show quick tasks')).toMatchObject({
-      command: 'terrace quick list'
+      command: 'terrace quick list',
+      mode: 'read',
+      read_only: true
     });
-    expect(routePlainText(tmpDir, 'create quick task refresh beta copy')).toMatchObject({
+    const quickPreview = routePlainText(tmpDir, 'create quick task refresh beta copy');
+    expect(quickPreview).toMatchObject({
       command: 'terrace quick plan refresh beta copy',
+      mode: 'plan',
+      requires_apply: true
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, quickPreview.apply.plan_token)).toMatchObject({
+      command: 'terrace quick plan refresh beta copy',
+      mode: 'applied',
       result: { item: expect.objectContaining({ title: 'refresh beta copy' }) }
     });
-    expect(routePlainText(tmpDir, 'ship prepare')).toMatchObject({
+    const shipPreview = routePlainText(tmpDir, 'ship prepare');
+    expect(shipPreview).toMatchObject({
       command: 'terrace ship prepare',
+      mode: 'plan',
+      requires_apply: true,
+      writes: ['docs/terrace/ship/SHIP.md'],
+      execution: expect.arrayContaining([
+        expect.stringContaining('Runs the full ship check')
+      ])
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, shipPreview.apply.plan_token)).toMatchObject({
+      command: 'terrace ship prepare',
+      mode: 'applied',
       result: { ship_ref: 'docs/terrace/ship/SHIP.md' }
     });
     expect(routePlainText(tmpDir, 'ship this')).toMatchObject({
-      command: 'terrace ship check'
+      command: 'terrace ship check',
+      mode: 'read',
+      read_only: true
     });
     const activeState = loadState(tmpDir);
     saveState(tmpDir, {
@@ -1230,8 +1333,15 @@ describe('workflow parity core helpers', () => {
         }
       }
     });
-    expect(routePlainText(tmpDir, 'make this feature ship-ready')).toMatchObject({
+    const workbenchPreview = routePlainText(tmpDir, 'make this feature ship-ready');
+    expect(workbenchPreview).toMatchObject({
       command: 'terrace workbench prepare billing-refresh',
+      mode: 'plan',
+      requires_apply: true
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, workbenchPreview.apply.plan_token)).toMatchObject({
+      command: 'terrace workbench prepare billing-refresh',
+      mode: 'applied',
       result: {
         mode: 'prepare',
         feature_id: 'billing-refresh',
@@ -1242,7 +1352,9 @@ describe('workflow parity core helpers', () => {
       }
     });
     expect(routePlainText(tmpDir, 'show me history')).toMatchObject({
-      command: 'terrace history'
+      command: 'terrace history',
+      mode: 'read',
+      read_only: true
     });
     expect(() => routePlainText(tmpDir, 'make the app better somehow')).toThrow(/Unsupported plain-text Terrace command/);
   });
@@ -1309,6 +1421,50 @@ describe('workflow parity core helpers', () => {
       evidence: expect.objectContaining({ claim_scope: 'delivery_readiness' })
     }));
     expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(before);
+  });
+
+  it('uses the loaded package version without invoking an ambient Terrace executable', () => {
+    const binDir = path.join(tmpDir, 'ambient-bin');
+    const sentinel = path.join(tmpDir, 'ambient-terrace-invoked.txt');
+    const fakeTerrace = path.join(binDir, 'terrace');
+    const previousPath = process.env.PATH;
+    const previousVersion = process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+    fs.mkdirSync(binDir, { recursive: true });
+    fs.writeFileSync(fakeTerrace, [
+      '#!/usr/bin/env node',
+      'require("node:fs").writeFileSync(' + JSON.stringify(sentinel) + ', "invoked\\n");',
+      'process.stdout.write("999.0.0\\n");'
+    ].join('\n'), 'utf8');
+    fs.chmodSync(fakeTerrace, 0o755);
+    delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+    process.env.PATH = binDir + path.delimiter + (previousPath || '');
+
+    try {
+      const status = adoptionStatus(tmpDir);
+      const version = status.checks.find((check: { name: string }) => check.name === 'version_alignment');
+      expect(version).toMatchObject({
+        passed: null,
+        evidence: expect.objectContaining({
+          local_version: expect.any(String),
+          runtime_version: expect.any(String),
+          installed_version: null,
+          verification: 'not_independently_verified'
+        })
+      });
+      expect(status.unverified_checks).toContainEqual(version);
+      expect(fs.existsSync(sentinel)).toBe(false);
+    } finally {
+      if (previousPath === undefined) {
+        delete process.env.PATH;
+      } else {
+        process.env.PATH = previousPath;
+      }
+      if (previousVersion === undefined) {
+        delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+      } else {
+        process.env.TERRACE_ADOPTION_INSTALLED_VERSION = previousVersion;
+      }
+    }
   });
 
   it('separates legacy planning phases from executable Terrace state phases', () => {

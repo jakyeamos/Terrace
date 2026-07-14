@@ -6,6 +6,7 @@ import * as path from 'path';
 
 const NODE_BIN = process.execPath;
 const TERRACE_CLI = path.resolve(process.cwd(), 'src/terrace-tools.cjs');
+const { loadState, saveState } = require('../packages/terrace-core/src/index.cjs');
 
 function runTerrace(tmpDir: string, args: string[]) {
   const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8' });
@@ -44,6 +45,107 @@ describe('strict core CLI delegation', () => {
 
     expect(result.created).toContain('.terrace/state.json');
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.json'))).toBe(true);
+  });
+
+  it('previews natural-language writes with a state-bound token and keeps audit read-only', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    const initialized = loadState(tmpDir);
+    saveState(tmpDir, {
+      ...initialized,
+      roadmap: {
+        ...initialized.roadmap,
+        phases: [{
+          id: 'phase-11-notifications',
+          title: 'Phase 11: Notifications',
+          status: 'migrated',
+          source_ref: '.planning/ROADMAP.md',
+          plans: []
+        }]
+      }
+    });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const planPath = path.join(tmpDir, 'docs', 'terrace', 'phases', 'phase-11-notifications', 'PLAN.md');
+    const reportPath = path.join(tmpDir, '.terrace', 'report-card.json');
+    const stateBefore = fs.readFileSync(statePath, 'utf-8');
+
+    const preview = runTerrace(tmpDir, ['do', 'plan phase 11', '--json']);
+
+    expect(preview).toMatchObject({
+      intent_id: 'phase_plan',
+      command: 'terrace phase plan phase-11-notifications',
+      effect: 'write',
+      mode: 'plan',
+      requires_apply: true,
+      writes: expect.arrayContaining([
+        '.terrace/state.json',
+        'docs/terrace/phases/phase-11-notifications/PLAN.md'
+      ]),
+      execution: [],
+      apply: expect.objectContaining({
+        argv: ['do', '--apply', expect.any(String)],
+        plan_token: expect.any(String)
+      })
+    });
+    expect(preview.result).toBeUndefined();
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBefore);
+    expect(fs.existsSync(planPath)).toBe(false);
+
+    const planToken = preview.apply.plan_token as string;
+    const applied = runTerrace(tmpDir, ['do', '--apply', planToken, '--json']);
+
+    expect(applied).toMatchObject({
+      intent_id: 'phase_plan',
+      mode: 'applied',
+      requires_apply: false,
+      applied: true,
+      result: { phase_id: 'phase-11-notifications' }
+    });
+    expect(fs.existsSync(planPath)).toBe(true);
+
+    const stalePreview = runTerrace(tmpDir, ['do', 'create quick task stale token fixture', '--json']);
+    const staleToken = stalePreview.apply.plan_token as string;
+    const stateForStalePlan = loadState(tmpDir);
+    saveState(tmpDir, {
+      ...stateForStalePlan,
+      workflow: {
+        ...stateForStalePlan.workflow,
+        active_feature: 'stale-token-fixture'
+      }
+    });
+    const staleApply = runTerraceResult(tmpDir, ['do', '--apply', staleToken, '--json']);
+    expect(staleApply.status).toBe(1);
+    expect(staleApply.json.error).toContain('plan is stale');
+    expect(staleApply.json.details).toMatchObject({
+      code: 'INTENT_PLAN_STALE',
+      next_command: 'terrace do <intent>'
+    });
+
+    const stateBeforeAudit = fs.readFileSync(statePath, 'utf-8');
+    const audit = runTerrace(tmpDir, ['audit', '--json']);
+
+    expect(audit.read_only).toBe(true);
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBeforeAudit);
+    expect(fs.existsSync(reportPath)).toBe(false);
+
+    runTerrace(tmpDir, ['report', 'update', '--json']);
+    const reportDocPath = path.join(tmpDir, 'docs', 'terrace', 'REPORT-CARD.md');
+    const reportHistoryPath = path.join(tmpDir, 'docs', 'terrace', 'report-history');
+    const reportCardBefore = fs.readFileSync(reportPath, 'utf-8');
+    const reportDocBefore = fs.readFileSync(reportDocPath, 'utf-8');
+    const reportHistoryBefore = fs.readdirSync(reportHistoryPath).sort();
+    const stateBeforePersistedAudit = fs.readFileSync(statePath, 'utf-8');
+
+    const persistedAudit = runTerrace(tmpDir, ['audit', '--json']);
+
+    expect(persistedAudit.read_only).toBe(true);
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBeforePersistedAudit);
+    expect(fs.readFileSync(reportPath, 'utf-8')).toBe(reportCardBefore);
+    expect(fs.readFileSync(reportDocPath, 'utf-8')).toBe(reportDocBefore);
+    expect(fs.readdirSync(reportHistoryPath).sort()).toEqual(reportHistoryBefore);
+
+    const misplacedApply = runTerraceResult(tmpDir, ['next', '--apply', '--json']);
+    expect(misplacedApply.status).toBe(1);
+    expect(misplacedApply.json.error).toContain('--apply is only supported');
   });
 
   it('rejects static full and missing ship modes before package scripts execute', () => {

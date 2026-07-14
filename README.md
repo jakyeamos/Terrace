@@ -80,9 +80,9 @@ Preset installation journals its coupled policy and registry update under `.terr
 - Claude Code reads `CLAUDE.md` and gets project skills plus project commands under `.claude/skills/` and `.claude/commands/` for the same command-reference surface.
 - `.terrace/agents/manifest.json` records which assets were written, skipped, or unchanged during the latest init run.
 
-If `AGENTS.md`, `CLAUDE.md`, or a matching Codex skill, Claude skill, or Claude command already exists, Terrace does not overwrite it. Merge the generated guidance manually if your project already has custom agent instructions.
+If `AGENTS.md`, `CLAUDE.md`, or a matching Codex skill, Claude skill, or Claude command already exists, Terrace does not overwrite it. `terrace doctor` reports generated agent assets that differ from the current template; merge those updates manually so Terrace does not overwrite user-owned guidance.
 
-For global local discovery, `terrace agents install-global` writes Codex skills under `~/.agents/skills/`, Claude Code skills under `~/.claude/skills/`, Claude Code slash commands under `~/.claude/commands/`, and manifests under each tool directory when absent. It preserves existing global skills and commands and reports them as skipped. The `/terrace` entry routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next` when no arguments are provided.
+For global local discovery, `terrace agents install-global` writes Codex skills under `~/.agents/skills/`, Claude Code skills under `~/.claude/skills/`, Claude Code slash commands under `~/.claude/commands/`, and manifests under each tool directory when absent. It preserves existing global skills and commands and reports them as skipped. The `/terrace` entry routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next` when no arguments are provided. A write-capable route returns a state-bound plan token first; inspect its command, writes, and execution scope, then run its returned `apply.argv` only when that mutation is authorized.
 
 ## PRD Intake
 
@@ -123,7 +123,7 @@ pnpm exec terrace ship check --json
 pnpm exec terrace release-preflight --target-version 0.2.0 --json
 ```
 
-`terrace ship check` defaults to a read-only fast mode and never runs project package scripts. Use `--local` to add a complete Git status check or `--full` only when you explicitly intend to run discovered quality and dead-code scripts; full execution is skipped until staged, unstaged, and untracked files are resolved. `terrace ship prepare` deliberately writes a release-readiness summary under `docs/terrace/ship/` after a full check by default; pass `--fast` for a read-only check before it writes the snapshot.
+`terrace ship check` defaults to a read-only fast mode and never runs project package scripts. Use `--local` to add a complete Git status check or `--full` only when you explicitly intend to run discovered quality and dead-code scripts; full execution is skipped until staged, unstaged, and untracked files are resolved. Those project scripts sit outside Terrace’s artifact boundary and may write project files. `terrace ship prepare` deliberately writes a release-readiness summary under `docs/terrace/ship/` after a full check by default; pass `--fast` to use a non-executing fast check before it writes the snapshot.
 `terrace release-preflight` runs the release flow and returns one JSON summary for CI, audit, package, release dry-run, ship-check status, trusted-publishing prerequisites, tag/version alignment, and stale npm-era release instructions. `--static` keeps its ship-check portion read-only.
 `pnpm run ci` includes the packed-consumer smoke test that installs Terrace from the generated tarball and verifies `terrace agents install-global` writes usable `/terrace` and `/terrace-*` global assets into temporary agent directories.
 
@@ -139,7 +139,7 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 - `terrace doctor` checks installation health.
 - `terrace spec validate` validates governance artifacts.
 - `terrace spec hash --file <path>` computes a stable spec hash.
-- `terrace audit` checks artifacts and protected baselines.
+- `terrace audit` read-only checks artifacts and protected baselines. Use `terrace report update` to persist a Tier One report card.
 - `terrace ci check [files...]` runs audit and protected-change enforcement.
 - `terrace adoption status` answers “Can Terrace replace GSD for me yet?” with a direct verdict, `replace_gsd` / `pilot_with_gsd_fallback` / `keep_gsd` mode, workflow evidence, blocking checks, and concrete next commands.
 - `terrace port gsd --dry-run` inventories legacy GSD artifacts.
@@ -148,7 +148,7 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 - `terrace next` reports the next workflow action from state, handoff data, and blockers.
 - `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
 - `terrace history` summarizes migrated phases, sessions, decisions, and quick tasks.
-- `terrace do <intent>` routes natural-language agent intent to stable Terrace commands.
+- `terrace do <intent> | --apply <plan-token>` resolves natural-language agent intent. Read routes execute immediately; write-capable routes return a state-bound plan token with writes and execution scope until explicitly applied with that token. State-mutating routes hold the managed-artifact writer lock through state validation and execution, intentionally serializing those routes so a reviewed plan cannot run against concurrently changed Terrace state. `ship prepare` runs its full clean-snapshot check before its short managed write, so its own lock does not make the checkout appear dirty.
 - `terrace autonomous` plans the next phase, prepares execution readiness, and stops at blockers or agent handoff.
 - `terrace execute-phase-complete <id>` runs phase plan, execute, validate, review, and complete in order, stopping at blockers.
 - `terrace settings effort <fast|standard|thorough>` sets the default phase effort used in planning and execution artifacts.
@@ -205,7 +205,7 @@ Use `terrace adoption status` after migration, corpus runs, or agent asset chang
 5. Run `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, and `terrace phase complete <id>` to preserve execution history.
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
 
-Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, `terrace do "make this feature ship-ready"`, or `terrace do "ship prepare"` when they have natural-language intent instead of a structured command. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
+Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, `terrace do "make this feature ship-ready"`, or `terrace do "ship prepare"` to resolve natural-language intent instead of a structured command. Any write-capable route returns its command, parameters, writes, execution scope, and state-bound `apply` object without writing; inspect that plan, then run the returned `apply.argv` exactly when the mutation is intended. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
 
 ## Senior Cycle
 
@@ -261,7 +261,7 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 - `terrace ship check` exits nonzero: inspect the failed category and run the listed command directly for detailed output.
 - `terrace ship check` reports `QUALITY_SCRIPT_MISSING`: add the suggested package script if that gate should be enforced for this project.
 - `terrace ship check` reports `DEAD_CODE_SCRIPT_MISSING`: add a package script with `pnpm pkg set scripts["dead-code"]="knip"` or configure/skip `ship_gates.dead_code` in `.terrace/config.json`.
-- `terrace do <intent>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
+- `terrace do <intent> | --apply <plan-token>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
 - Typecheck errors from package dependencies usually mean the repo is not using the supported `Bundler` module resolution settings in `tsconfig.json`.
 
 ## Development
