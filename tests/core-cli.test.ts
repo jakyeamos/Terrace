@@ -46,6 +46,25 @@ describe('strict core CLI delegation', () => {
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.json'))).toBe(true);
   });
 
+  it('rejects static full and missing ship modes before package scripts execute', () => {
+    const sentinel = path.join(tmpDir, 'cli-ship-sentinel.txt');
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'cli-ship-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+
+    const staticFull = runTerraceResult(tmpDir, ['release-preflight', '--static', '--full', '--json']);
+    expect(staticFull.status).toBe(1);
+    expect(staticFull.json.blockers).toContainEqual(expect.objectContaining({ code: 'RELEASE_STATIC_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const missingMode = runTerraceResult(tmpDir, ['ship', 'check', '--mode', '--json']);
+    expect(missingMode.status).toBe(1);
+    expect(missingMode.json.blockers).toContainEqual(expect.objectContaining({ code: 'SHIP_CHECK_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+  });
+
   it('requires paired reset flags and exposes backup metadata through both init aliases', () => {
     runTerrace(tmpDir, ['init', '--json']);
     const statePath = path.join(tmpDir, '.terrace', 'state.json');

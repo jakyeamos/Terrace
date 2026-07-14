@@ -215,19 +215,19 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     command: 'terrace ship check',
     category: 'shipping',
     json: true,
-    purpose: 'Run release-readiness checks and report failed quality gates.'
+    purpose: 'Run read-only release-readiness checks without executing project package scripts.'
   },
   {
     command: 'terrace ship check --fast',
     category: 'shipping',
     json: true,
-    purpose: 'Run deterministic Terrace gates without executing project package scripts.'
+    purpose: 'Explicitly run the default read-only Terrace gates without executing project package scripts.'
   },
   {
     command: 'terrace ship prepare',
     category: 'shipping',
     json: true,
-    purpose: 'Write a PR-ready release summary from ship check results.'
+    purpose: 'Write a PR-ready summary after a clean full ship check; use --fast for a read-only snapshot before writing.'
   },
   {
     command: 'terrace release-preflight',

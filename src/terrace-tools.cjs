@@ -160,9 +160,9 @@ const HELP_TEXT = [
   '  terrace quick complete <id>  Complete a quick task',
   '  terrace backlog list         List backlog items',
   '  terrace backlog add <title>  Add a backlog item',
-  '  terrace ship check           Run release readiness checks',
-  '  terrace ship prepare         Write PR/release readiness summary',
-  '  terrace release-preflight    Run Terrace 0.2.0 release preflight summary',
+  '  terrace ship check [--fast|--local|--full] Run release readiness checks',
+  '  terrace ship prepare [--fast|--local|--full] Write PR/release readiness summary',
+  '  terrace release-preflight [--static] [--fast|--local|--full] Run Terrace 0.2.0 release preflight summary',
   '  terrace report [update|open|history|ceremony]',
   '  terrace handoff create [--feature <id>] [--for codex|claude|generic]',
   '  terrace debt add|list|audit|resolve',
@@ -205,6 +205,13 @@ function stripFlags(args, flags) {
 function optionValue(rawArgs, name) {
   const index = rawArgs.indexOf(name);
   return index === -1 ? null : rawArgs[index + 1] || null;
+}
+
+function shipModeOption(rawArgs) {
+  if (hasFlag(rawArgs, '--mode')) {
+    return optionValue(rawArgs, '--mode') || '';
+  }
+  return hasFlag(rawArgs, '--fast') ? 'fast' : hasFlag(rawArgs, '--local') ? 'local' : hasFlag(rawArgs, '--full') ? 'full' : undefined;
 }
 
 function seniorOptions(rawArgs) {
@@ -1107,8 +1114,7 @@ async function main() {
       const result = releasePreflight(cwd, {
         targetVersion: optionValue(rawArgs, '--target-version'),
         runCommands: !hasFlag(rawArgs, '--static'),
-        shipMode: optionValue(rawArgs, '--mode') ||
-          (hasFlag(rawArgs, '--fast') ? 'fast' : hasFlag(rawArgs, '--local') ? 'local' : hasFlag(rawArgs, '--full') ? 'full' : undefined)
+        shipMode: shipModeOption(rawArgs)
       });
       output(result, { json });
       if (!result.passed) {
@@ -1120,8 +1126,7 @@ async function main() {
       const sub = args[1];
       if (!sub || sub === 'check') {
         const result = shipCheck(cwd, {
-          mode: optionValue(rawArgs, '--mode') ||
-            (hasFlag(rawArgs, '--fast') ? 'fast' : hasFlag(rawArgs, '--local') ? 'local' : hasFlag(rawArgs, '--full') ? 'full' : undefined)
+          mode: shipModeOption(rawArgs)
         });
         output(result, { json });
         if (!result.passed) {
@@ -1130,7 +1135,7 @@ async function main() {
         return;
       }
       if (sub === 'prepare') {
-        const result = shipPrepare(cwd);
+        const result = shipPrepare(cwd, { mode: shipModeOption(rawArgs) });
         output(result, { json });
         if (!result.passed) {
           process.exitCode = 1;

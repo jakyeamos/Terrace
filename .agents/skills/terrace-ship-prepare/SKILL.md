@@ -1,6 +1,6 @@
 ---
 name: terrace-ship-prepare
-description: Write a release-readiness summary artifact.
+description: Write a full release-readiness summary; use --fast for a read-only snapshot.
 ---
 
 # Terrace Ship Prepare

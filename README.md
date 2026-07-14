@@ -37,7 +37,7 @@ pnpm exec terrace report
 pnpm exec terrace ship check --json
 ```
 
-`terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs release-readiness checks and exits nonzero when a blocking gate fails.
+`terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs the default read-only release-readiness gates and exits nonzero when a blocking gate fails.
 
 ## What Terrace Creates
 
@@ -123,8 +123,8 @@ pnpm exec terrace ship check --json
 pnpm exec terrace release-preflight --target-version 0.2.0 --json
 ```
 
-`terrace ship check` is read-only. Use `terrace ship prepare` when you want Terrace to write a release-readiness summary under `docs/terrace/ship/`.
-`terrace release-preflight` runs the release flow and returns one JSON summary for CI, audit, package, release dry-run, ship-check status, trusted-publishing prerequisites, tag/version alignment, and stale npm-era release instructions.
+`terrace ship check` defaults to a read-only fast mode and never runs project package scripts. Use `--local` to add a complete Git status check or `--full` only when you explicitly intend to run discovered quality and dead-code scripts; full execution is skipped until staged, unstaged, and untracked files are resolved. `terrace ship prepare` deliberately writes a release-readiness summary under `docs/terrace/ship/` after a full check by default; pass `--fast` for a read-only check before it writes the snapshot.
+`terrace release-preflight` runs the release flow and returns one JSON summary for CI, audit, package, release dry-run, ship-check status, trusted-publishing prerequisites, tag/version alignment, and stale npm-era release instructions. `--static` keeps its ship-check portion read-only.
 `pnpm run ci` includes the packed-consumer smoke test that installs Terrace from the generated tarball and verifies `terrace agents install-global` writes usable `/terrace` and `/terrace-*` global assets into temporary agent directories.
 
 ## Command Reference
@@ -177,8 +177,8 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 - `terrace quick complete <id>` writes a quick-task summary and marks it complete after verification evidence exists.
 - `terrace backlog list` lists backlog items.
 - `terrace backlog add <title>` appends a backlog item.
-- `terrace ship check` runs release-readiness checks, discovers available project scripts, enforces active Senior Cycle ship gates, treats missing optional scripts as warnings, runs the dead-code gate when a script is discovered or configured, and exits nonzero when an available quality gate fails.
-- `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` from release-readiness results.
+- `terrace ship check` runs read-only release-readiness checks, requires current security evidence, and computes the Tier One report from current state without writing. `--local` adds a complete Git status check; `--full` runs discovered project quality and dead-code scripts only after that status is clean.
+- `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` after a full check by default; pass `--fast` or `--local` to choose a non-executing snapshot mode explicitly.
 - `terrace release-preflight [--target-version <version>] [--static]` summarizes the Terrace 0.2.0 release flow, trusted-publishing prerequisites, tag/version mismatches, and stale npm-era release artifacts as JSON.
 - `terrace workbench status [--feature <id>]` reads feature release evidence, missing senior-cycle gates, preflight, docs, AI review, workstreams, debt, security, test eval, and report-card claim scope.
 - `terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]` writes production workbench artifacts from preflight, runbook docs, release AI review, workstreams, and optional handoff primitives.

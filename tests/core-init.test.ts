@@ -124,7 +124,7 @@ describe('terrace-core init and events', () => {
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toContain('name: terrace-next');
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'commands', 'terrace-next.md'), 'utf-8')).toContain('description: Find and follow the next Terrace workflow action.');
     expect(fs.readFileSync(path.join(tmpDir, '.claude', 'commands', 'terrace-interrogate.md'), 'utf-8')).toContain('Use the answers as the authority');
-    expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-ship-check', 'SKILL.md'), 'utf-8')).toContain('description: Run read-only release readiness checks.');
+    expect(fs.readFileSync(path.join(tmpDir, '.claude', 'skills', 'terrace-ship-check', 'SKILL.md'), 'utf-8')).toContain('description: Run read-only release readiness checks; use --full only to execute project scripts.');
     const manifest = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'agents', 'manifest.json'), 'utf-8')) as {
       schema_version: string;
       assets: Array<{ path: string; status: string }>;

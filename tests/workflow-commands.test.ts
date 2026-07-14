@@ -160,6 +160,24 @@ describe('workflow parity core helpers', () => {
     ].filter(Boolean).join('\n') + '\n', 'utf-8');
   }
 
+  function commitGitSnapshot(cwd = tmpDir): void {
+    if (!fs.existsSync(path.join(cwd, '.git'))) {
+      execFileSync('git', ['init', '-q'], { cwd });
+      execFileSync('git', ['config', 'user.email', 'terrace@example.test'], { cwd });
+      execFileSync('git', ['config', 'user.name', 'Terrace Test'], { cwd });
+    }
+    execFileSync('git', ['add', '--all'], { cwd });
+    const tree = execFileSync('git', ['write-tree'], { cwd, encoding: 'utf8' }).trim();
+    let parent = '';
+    try {
+      parent = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    } catch (error) {
+      parent = '';
+    }
+    const commit = execFileSync('git', ['commit-tree', tree, ...(parent ? ['-p', parent] : []), '-m', 'fixture snapshot'], { cwd, encoding: 'utf8' }).trim();
+    execFileSync('git', ['update-ref', 'HEAD', commit], { cwd });
+  }
+
   function writeMediumSeniorArtifacts(featureId: string): void {
     const artifactPaths = [
       path.join('docs', 'terrace', 'features', featureId, 'ALIGNMENT.md'),
@@ -727,7 +745,7 @@ describe('workflow parity core helpers', () => {
     expect(result).toMatchObject({
       passed: false,
       ship_ref: 'docs/terrace/ship/SHIP.md',
-      next_command: 'terrace ship check'
+      next_command: 'terrace ship check --full'
     });
     expect(fs.readFileSync(path.join(tmpDir, result.ship_ref), 'utf-8')).toContain('Release Readiness');
   }, 120000);
@@ -740,8 +758,9 @@ describe('workflow parity core helpers', () => {
         'dead-code': 'node -e "process.exit(0)"'
       }
     }, null, 2), 'utf-8');
+    commitGitSnapshot();
     const discovered = discoverProjectCommands(tmpDir);
-    const result = shipCheck(tmpDir);
+    const result = shipCheck(tmpDir, { mode: 'full' });
 
     expect(discovered).toMatchObject({
       package_manager: 'npm',
@@ -787,8 +806,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const configured = shipCheck(tmpDir);
+    const configured = shipCheck(tmpDir, { mode: 'full' });
 
     expect(configured.project_commands.dead_code).toMatchObject({
       configured: true,
@@ -809,8 +829,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const skipped = shipCheck(tmpDir);
+    const skipped = shipCheck(tmpDir, { mode: 'full' });
 
     expect(skipped.project_commands.dead_code).toMatchObject({
       enabled: false,
@@ -839,8 +860,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const missing = shipCheck(tmpDir);
+    const missing = shipCheck(tmpDir, { mode: 'full' });
 
     expect(missing.categories).toContainEqual(expect.objectContaining({
       category: 'dead_code',
@@ -855,8 +877,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const failed = shipCheck(tmpDir);
+    const failed = shipCheck(tmpDir, { mode: 'full' });
 
     expect(failed.categories).toContainEqual(expect.objectContaining({
       category: 'dead_code',
@@ -873,6 +896,7 @@ describe('workflow parity core helpers', () => {
         'dead-code': 'node -e "process.exit(7)"'
       }
     }, null, 2), 'utf-8');
+    commitGitSnapshot();
 
     const result = shipCheck(tmpDir, { mode: 'fast' });
 
@@ -886,6 +910,120 @@ describe('workflow parity core helpers', () => {
       elapsed_ms: expect.any(Number)
     }));
   });
+
+  it('keeps default and static ship checks read-only until full mode is explicit', () => {
+    const sentinel = path.join(tmpDir, 'ship-check-sentinel.txt');
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'ship-check-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+    commitGitSnapshot();
+
+    expect(shipCheck(tmpDir).mode).toBe('fast');
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    expect(shipCheck(tmpDir, { mode: 'local' }).mode).toBe('local');
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    expect(shipCheck(tmpDir, { mode: 'full' }).mode).toBe('full');
+    expect(fs.existsSync(sentinel)).toBe(true);
+    fs.rmSync(sentinel);
+
+    const staticPreflight = releasePreflight(tmpDir, { runCommands: false });
+    expect(staticPreflight.ship_check.mode).toBe('fast');
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const staticFull = releasePreflight(tmpDir, { runCommands: false, shipMode: 'full' });
+    expect(staticFull.blockers).toContainEqual(expect.objectContaining({ code: 'RELEASE_STATIC_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const invalidPreflight = releasePreflight(tmpDir, { shipMode: 'automatic' });
+    expect(invalidPreflight.blockers).toContainEqual(expect.objectContaining({ code: 'RELEASE_PREFLIGHT_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const invalid = shipCheck(tmpDir, { mode: 'automatic' });
+    expect(invalid.blockers).toContainEqual(expect.objectContaining({ code: 'SHIP_CHECK_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+  }, 120000);
+
+  it('uses an explicit full check before ship prepare writes its release summary', () => {
+    const sentinel = path.join(tmpDir, 'ship-prepare-sentinel.txt');
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'ship-prepare-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+    commitGitSnapshot();
+
+    const prepared = shipPrepare(tmpDir);
+
+    expect(prepared.mode).toBe('full');
+    expect(prepared.ship_ref).toBe('docs/terrace/ship/SHIP.md');
+    expect(fs.existsSync(sentinel)).toBe(true);
+  }, 120000);
+
+  it('detects staged, unstaged, and untracked files in local ship checks', () => {
+    const fixture = (name: string) => {
+      const cwd = path.join(tmpDir, name);
+      fs.mkdirSync(cwd, { recursive: true });
+      saveState(cwd, createDefaultState({ projectName: name }));
+      fs.writeFileSync(path.join(cwd, 'tracked.txt'), 'baseline\n', 'utf-8');
+      execFileSync('git', ['init', '-q'], { cwd });
+      execFileSync('git', ['config', 'user.email', 'terrace@example.test'], { cwd });
+      execFileSync('git', ['config', 'user.name', 'Terrace Test'], { cwd });
+      execFileSync('git', ['add', '.'], { cwd });
+      execFileSync('git', ['commit', '-qm', 'baseline'], { cwd });
+      return cwd;
+    };
+    const dirtyCategory = (cwd: string) => shipCheck(cwd, { mode: 'local' }).categories.find((category: { category: string }) => category.category === 'dirty_tree');
+
+    const unstaged = fixture('unstaged');
+    fs.appendFileSync(path.join(unstaged, 'tracked.txt'), 'changed\n', 'utf-8');
+    expect(dirtyCategory(unstaged)).toMatchObject({ passed: false, blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })] });
+
+    const staged = fixture('staged');
+    fs.writeFileSync(path.join(staged, 'staged.txt'), 'staged\n', 'utf-8');
+    execFileSync('git', ['add', 'staged.txt'], { cwd: staged });
+    expect(dirtyCategory(staged)).toMatchObject({ passed: false, blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })] });
+
+    const untracked = fixture('untracked');
+    fs.writeFileSync(path.join(untracked, 'untracked.txt'), 'untracked\n', 'utf-8');
+    expect(dirtyCategory(untracked)).toMatchObject({ passed: false, blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })] });
+
+    const full = fixture('full-script');
+    const sentinel = path.join(full, 'full-dirty-sentinel.txt');
+    fs.writeFileSync(path.join(full, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'full-dirty-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+    commitGitSnapshot(full);
+    fs.writeFileSync(path.join(full, 'dirty.txt'), 'dirty\n', 'utf-8');
+    const fullResult = shipCheck(full, { mode: 'full' });
+    expect(fullResult.categories).toContainEqual(expect.objectContaining({
+      category: 'dirty_tree',
+      passed: false,
+      blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })]
+    }));
+    expect(fullResult.categories.map((category: { category: string }) => category.category)).not.toContain('lint');
+    expect(fs.existsSync(sentinel)).toBe(false);
+  }, 120000);
+
+  it('skips release-preflight commands when the checkout is dirty', () => {
+    writeReleasePreflightFixtures('0.2.0');
+    const packageJson = JSON.parse(fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf-8'));
+    packageJson.scripts.ci = 'node -e "require(\'fs\').writeFileSync(\'release-dirty-sentinel.txt\', \'ran\')"';
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify(packageJson, null, 2), 'utf-8');
+    commitGitSnapshot();
+    fs.writeFileSync(path.join(tmpDir, 'release-dirty.txt'), 'dirty\n', 'utf-8');
+
+    const result = releasePreflight(tmpDir, { targetVersion: '0.2.0', shipMode: 'full' });
+
+    expect(result.blockers).toContainEqual(expect.objectContaining({ code: 'DIRTY_TREE' }));
+    expect(result.flow).toEqual(expect.arrayContaining([expect.objectContaining({ ran: false, skipped: true })]));
+    expect(fs.existsSync(path.join(tmpDir, 'release-dirty-sentinel.txt'))).toBe(false);
+  }, 120000);
 
   it('includes trusted-publishing release guard for the Terrace npm release candidate', () => {
     writeReleasePreflightFixtures('0.2.0');
@@ -1264,15 +1402,7 @@ describe('workflow parity core helpers', () => {
       'waivers',
       'documentation',
       'test_eval',
-      'rule_audit',
-      'typecheck',
-      'lint',
-      'test',
-      'coverage',
-      'package',
-      'build',
-      'dead_code',
-      'dirty_tree'
+      'rule_audit'
     ]);
     expect(result.blockers.length).toBeGreaterThan(0);
   }, 120000);

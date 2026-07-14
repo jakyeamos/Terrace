@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { spawnSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -28,6 +28,16 @@ function runTerrace(tmpDir: string, args: string[]) {
 function writeJson(filePath: string, value: unknown): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + '\n', 'utf-8');
+}
+
+function createGitSnapshot(cwd: string): void {
+  execFileSync('git', ['init', '-q'], { cwd });
+  execFileSync('git', ['config', 'user.email', 'terrace@example.test'], { cwd });
+  execFileSync('git', ['config', 'user.name', 'Terrace Test'], { cwd });
+  execFileSync('git', ['add', '--all'], { cwd });
+  const tree = execFileSync('git', ['write-tree'], { cwd, encoding: 'utf8' }).trim();
+  const commit = execFileSync('git', ['commit-tree', tree, '-m', 'fixture snapshot'], { cwd, encoding: 'utf8' }).trim();
+  execFileSync('git', ['update-ref', 'HEAD', commit], { cwd });
 }
 
 describe('expected blocker ergonomics', () => {
@@ -124,6 +134,7 @@ describe('expected blocker ergonomics', () => {
         lint: 'node -e "process.exit(0)"'
       }
     }, null, 2), 'utf-8');
+    createGitSnapshot(tmpDir);
 
     const result = runTerrace(tmpDir, ['ship', 'check', '--full']);
 
@@ -158,8 +169,8 @@ describe('expected blocker ergonomics', () => {
   it('distinguishes missing security evidence from blocked security findings', () => {
     initCore(tmpDir, { projectName: 'Security UX' });
 
-    expect(securityShipCheck(tmpDir).warnings[0]).toMatchObject({
-      code: 'SECURITY_CHECK_MISSING',
+    expect(securityShipCheck(tmpDir).blocking[0]).toMatchObject({
+      code: 'SECURITY_CHECK_REQUIRED',
       next_command: 'terrace security check',
       why_blocked: expect.stringContaining('security evidence')
     });

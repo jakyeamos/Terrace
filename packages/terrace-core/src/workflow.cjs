@@ -1448,6 +1448,45 @@ function commandCheck(cwd, command, category, options) {
   }
 }
 
+function dirtyTreeCheck(cwd) {
+  const command = 'git status --porcelain=v1 --untracked-files=all';
+  try {
+    const output = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], {
+      cwd,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    if (!output.trim()) {
+      return { category: 'dirty_tree', command, passed: true, blocking: [] };
+    }
+    return {
+      category: 'dirty_tree',
+      command,
+      passed: false,
+      blocking: [blocker({
+        code: 'DIRTY_TREE',
+        message: 'Git status reports staged, unstaged, or untracked files.',
+        why_blocked: 'Release readiness must be evaluated against a known repository snapshot.',
+        next_command: 'git status --short',
+        remediation: 'Commit, discard, or intentionally exclude every reported file before rerunning the local or full ship check.'
+      })]
+    };
+  } catch (error) {
+    return {
+      category: 'dirty_tree',
+      command,
+      passed: false,
+      blocking: [blocker({
+        code: 'DIRTY_TREE_CHECK_UNAVAILABLE',
+        message: error && error.message ? error.message : 'Git status could not inspect the working tree.',
+        why_blocked: 'Terrace cannot verify repository cleanliness without Git status evidence.',
+        next_command: 'git status --short',
+        remediation: 'Run the ship check from a Git working tree or resolve the Git status error.'
+      })]
+    };
+  }
+}
+
 function missingScriptCheck(discovered, check) {
   return {
     category: check.category,
@@ -1539,11 +1578,41 @@ function timedCategory(factory) {
   };
 }
 
+const SHIP_CHECK_MODES = ['fast', 'local', 'full'];
+
+function invalidShipModeResult(mode) {
+  const invalidMode = typeof mode === 'string' && mode.trim() ? mode : String(mode);
+  const invalid = blocker({
+    code: 'SHIP_CHECK_MODE_INVALID',
+    message: 'Unsupported ship-check mode: ' + invalidMode + '.',
+    why_blocked: 'Terrace only accepts fast, local, or full ship-check modes and must not silently choose an execution-capable fallback.',
+    next_command: 'terrace ship check --fast',
+    remediation: 'Use `--fast` for the read-only default, `--local` to include the Git dirty-tree check, or `--full` only when you intend to execute project scripts.'
+  });
+  return {
+    mode: invalidMode,
+    passed: false,
+    project_commands: null,
+    categories: [],
+    timings: [],
+    blockers: [invalid],
+    warnings: [],
+    top_blockers: [invalid],
+    next_command: invalid.next_command,
+    recheck_command: 'terrace ship check --fast'
+  };
+}
+
 function shipCheck(cwd, options) {
   const opts = options || {};
-  const mode = ['fast', 'local', 'full'].includes(opts.mode) ? opts.mode : 'full';
+  if (opts.mode !== undefined && !SHIP_CHECK_MODES.includes(opts.mode)) {
+    return invalidShipModeResult(opts.mode);
+  }
+  const mode = opts.mode || 'fast';
   const discovered = discoverProjectCommands(cwd);
+  const dirtyTree = mode === 'local' || mode === 'full' ? dirtyTreeCheck(cwd) : null;
   const factories = [
+    ...(dirtyTree ? [() => dirtyTree] : []),
     () => staticCheck(runDoctor(cwd), 'doctor', 'terrace doctor'),
     () => staticCheck(runAudit(cwd), 'audit', 'terrace audit'),
     () => securityShipCheck(cwd),
@@ -1559,14 +1628,11 @@ function shipCheck(cwd, options) {
     () => testEvalShipCheck(cwd),
     () => ruleAuditShipCheck(cwd)
   ];
-  if (mode === 'full') {
+  if (mode === 'full' && (!dirtyTree || dirtyTree.passed)) {
     for (const check of discovered.checks) {
       factories.push(() => scriptCheck(cwd, discovered, check));
     }
     factories.push(() => deadCodeCheck(cwd, discovered));
-  }
-  if (mode === 'local' || mode === 'full') {
-    factories.push(() => commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree'));
   }
   const timed = factories.map((factory) => timedCategory(factory));
   const categories = timed.map((item) => item.category);
@@ -1931,14 +1997,58 @@ function releasePreflight(cwd, options) {
   const opts = options || {};
   const targetVersion = typeof opts.targetVersion === 'string' && opts.targetVersion.trim() ? opts.targetVersion.trim() : packageVersion(cwd);
   const runCommands = opts.runCommands !== false;
-  const flow = releaseFlowChecks(cwd).map((item) => releaseFlowCommandResult(cwd, item, runCommands));
-  const ship = shipCheck(cwd, { mode: opts.shipMode || 'full', includeTrustedPublishing: false });
+  const shipMode = opts.shipMode !== undefined ? opts.shipMode : (runCommands ? 'full' : 'fast');
+  const modeBlocker = !SHIP_CHECK_MODES.includes(shipMode)
+    ? blocker({
+      code: 'RELEASE_PREFLIGHT_MODE_INVALID',
+      message: 'Unsupported release-preflight ship-check mode: ' + String(shipMode) + '.',
+      why_blocked: 'Terrace must validate the requested ship-check mode before any release-flow command can execute.',
+      next_command: 'terrace release-preflight --static --json',
+      remediation: 'Use `--fast`, `--local`, or `--full`; omit the mode to use the release-preflight default.'
+    })
+    : !runCommands && shipMode === 'full'
+      ? blocker({
+        code: 'RELEASE_STATIC_MODE_INVALID',
+        message: 'release-preflight --static cannot run ship-check full mode.',
+        why_blocked: 'The static release-preflight contract is read-only and must not execute project package scripts.',
+        next_command: 'terrace release-preflight --static --fast --json',
+        remediation: 'Use `--static` with the default fast mode or `--local`; omit `--static` when you intentionally authorize the full release flow.'
+      })
+      : null;
+  const executionDirtyTree = !modeBlocker && runCommands ? dirtyTreeCheck(cwd) : null;
+  const flow = modeBlocker
+    ? []
+    : executionDirtyTree && !executionDirtyTree.passed
+      ? releaseFlowChecks(cwd).map((item) => ({
+        ...item,
+        ran: false,
+        skipped: true,
+        passed: false,
+        blocking: []
+      }))
+      : releaseFlowChecks(cwd).map((item) => releaseFlowCommandResult(cwd, item, runCommands));
+  const ship = modeBlocker
+    ? {
+      mode: shipMode,
+      passed: false,
+      blockers: [modeBlocker],
+      warnings: [],
+      categories: []
+    }
+    : shipCheck(cwd, {
+      mode: shipMode,
+      includeTrustedPublishing: false
+    });
   const trustedPublishing = trustedPublishingCheck(cwd);
   const tagVersion = releaseVersionTagCheck(cwd, targetVersion);
   const staleArtifacts = staleReleaseArtifactsCheck(cwd);
   const flowBlockers = flow.flatMap((item) => item.blocking || []);
+  const executionBlockers = executionDirtyTree && !executionDirtyTree.passed && shipMode === 'fast'
+    ? executionDirtyTree.blocking
+    : [];
   const blockers = [
     ...flowBlockers,
+    ...executionBlockers,
     ...ship.blockers,
     ...trustedPublishing.blocking,
     ...tagVersion.blocking,
@@ -1977,13 +2087,24 @@ function releasePreflight(cwd, options) {
   };
 }
 
-function shipPrepare(cwd) {
-  const result = shipCheck(cwd);
+function shipPrepare(cwd, options) {
+  const opts = options || {};
+  const mode = opts.mode === undefined ? 'full' : opts.mode;
+  const result = shipCheck(cwd, { mode });
+  if (!SHIP_CHECK_MODES.includes(mode)) {
+    return {
+      ...result,
+      ship_ref: null,
+      next_command: 'terrace ship check --fast',
+      recheck_command: 'terrace ship check --fast'
+    };
+  }
   const shipRef = 'docs/terrace/ship/SHIP.md';
   writeMarkdown(cwd, shipRef, [
     '# Release Readiness',
     '',
     '## Status',
+    '- Mode: ' + result.mode,
     '- Passed: ' + String(result.passed),
     '- Blocking issue count: ' + String(result.blockers.length),
     '- Warning count: ' + String(result.warnings.length),
@@ -1995,12 +2116,12 @@ function shipPrepare(cwd) {
     ...(result.blockers.length > 0 ? result.blockers.map((item) => '- ' + item.code + ': ' + item.message + (item.next_command ? ' Next: `' + item.next_command + '`.' : '')) : ['- None.']),
     '',
     '## Next Command',
-    '- terrace ship check'
+    '- terrace ship check --' + result.mode
   ]);
   return {
     ...result,
     ship_ref: shipRef,
-    next_command: 'terrace ship check',
+    next_command: 'terrace ship check --' + result.mode,
     recheck_command: 'terrace ship check --fast'
   };
 }

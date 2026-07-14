@@ -4,7 +4,7 @@
 - Terrace already has a strict core/CLI split, state transitions, audit/doctor checks, protected baselines, red/green gates, command contracts, session reconstruction, and GSD migration.
 - Workflow state is recoverable through `.terrace/state.json`, and generated artifacts live under `docs/`.
 - Phase and quick-task commands already preserve operational history and can stop on blockers.
-- `terrace ship check` discovers project quality scripts and reports structured blockers/warnings.
+- `terrace ship check` reports read-only readiness blockers and warnings; `terrace ship check --full` explicitly discovers and executes project quality scripts.
 
 ## Critical Gaps
 - Alignment existed as PRD/spec intent, but it did not require customer, problem, success metrics, risks, rollout, observability, validation, and cleanup in one feature-level artifact.
@@ -141,8 +141,8 @@ Terrace uses tiered enforcement so rigor scales with risk.
 - No completion without `CLEANUP.md` for Tier 2+.
 - Tier 3 additionally requires interrogation, codebase map, architecture/risk/testing/observability context, and design.
 - Every generated plan includes the no band-aid rule: choose sustainable architecture by default, even through `terrace quick`.
-- `terrace ship check` now includes Tier One report, production preflight, and debt categories in addition to Senior Cycle, migration readiness, project scripts, and dirty-tree checks.
-- `terrace phase complete`, `terrace quick complete`, `terrace audit`, `terrace ship check`, `terrace preflight`, `terrace handoff create`, and debt mutations refresh the Tier One report card.
+- `terrace ship check` includes fresh Tier One report, production preflight, debt, Senior Cycle, and migration-readiness categories without writing. `--local` adds the dirty-tree check; `--full` additionally executes project scripts and the dead-code gate.
+- `terrace phase complete`, `terrace quick complete`, `terrace audit`, `terrace preflight`, `terrace handoff create`, and debt mutations refresh the persisted Tier One report card. `terrace ship check` instead computes the report card from current state in memory.
 - Ownerless debt or debt without expiry/cleanup metadata is blocking. Debt that is not marked allowed to ship is a warning until resolved or formalized.
 - Tier 2+ active feature work blocks ship when `PREFLIGHT.md` is missing. Tier 1 receives a warning.
 - Ship checks also consume AI review, documentation, test evaluation, and rule audit state. Tier 3 active features block on missing AI review; Tier 2+ active features block on missing documentation.

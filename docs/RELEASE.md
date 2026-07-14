@@ -8,7 +8,7 @@
 6. Run `pnpm audit --audit-level moderate`.
 7. Run `pnpm package` and confirm the package contains only runtime files and public docs.
 8. Run `pnpm run release:dry-run`.
-9. Run `node src/terrace-tools.cjs ship check --json`, confirm it does not dirty the working tree, and confirm the `trusted_publishing` category reports repo-owned prerequisites as passed while listing the manual npm/GitHub admin confirmations for `@jakyeamos33/terrace@0.2.0`.
+9. Run `node src/terrace-tools.cjs ship check --json`, confirm the default read-only check does not dirty the working tree, and confirm the `trusted_publishing` category reports repo-owned prerequisites as passed while listing the manual npm/GitHub admin confirmations for `@jakyeamos33/terrace@0.2.0`. Use `--full` only when intentionally executing discovered project scripts.
 10. Run `node src/terrace-tools.cjs release-preflight --target-version 0.2.0 --json` and confirm the JSON summary has no blockers.
 11. Tag the release after review with `git tag v<version>`.
 12. Publish by creating a GitHub Release for that tag. The Release Publish workflow uses GitHub OIDC trusted publishing and must not require local registry auth secrets.

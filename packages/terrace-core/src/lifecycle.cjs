@@ -1830,7 +1830,24 @@ function debtShipCheck(cwd) {
 }
 
 function reportShipCheck(cwd) {
-  const card = reportRead(cwd).report_card;
+  let card;
+  try {
+    card = buildReportCard(cwd, 'terrace ship check');
+  } catch (error) {
+    return {
+      category: 'tier_one_report',
+      command: 'terrace report update',
+      passed: false,
+      blocking: [blocker({
+        code: 'TIER_ONE_REPORT_UNAVAILABLE',
+        message: error && error.message ? error.message : String(error),
+        why_blocked: 'Terrace cannot build a current Tier One readiness report from the project state.',
+        next_command: 'terrace report update',
+        remediation: 'Repair the Terrace state or report inputs, then rerun terrace ship check.'
+      })],
+      warnings: []
+    };
+  }
   const blocking = card.score < 50 ? [blocker({
     code: 'TIER_ONE_REPORT_WEAK',
     message: 'Tier One report score is below 50.',
@@ -1852,7 +1869,8 @@ function reportShipCheck(cwd) {
     })] : [],
     report_card: {
       score: card.score,
-      status_label: card.status_label
+      status_label: card.status_label,
+      source: 'fresh'
     }
   };
 }

@@ -29,12 +29,12 @@
 - Feature alignment, design, test-plan, observability, validation, and cleanup artifacts were created under `docs/terrace/features/gpt56-modernization/` and `docs/testing/TEST-PLAN.md`.
 - Terrace's planning gates are now satisfied; this records implementation readiness, not permission to skip the documented RED-gate tests or P0 containment work.
 - The package-containment commit is complete and the safe-init vertical slice passed independent recovery review.
-- During baseline inspection, `terrace ship check --fast` refreshed report-card/history artifacts despite documentation presenting ship checks as read-only. That behavior is a recorded P1 defect, not accepted audit-side mutability.
+- During baseline inspection, `terrace ship check --fast` refreshed report-card/history artifacts despite documentation presenting ship checks as read-only. That P1 behavior is now removed: the default check is read-only, `ship check` project-script execution requires `--full`, and its report gate is computed in memory. The explicitly writing `ship prepare` command retains a full check by default.
 
 ## Next action
 
-Address stale security/readiness evidence and ship-check write side effects before advancing Milestone 1.
+Verify the fresh-evidence and read-only ship-check contract, then advance the next Milestone 1 release-integrity slice.
 
 ## Known blockers
 
-- Stale security/readiness evidence and ship-check side effects remain open Milestone 1 risks.
+- A release now requires a newly generated security evidence artifact after source or lockfile changes; the current legacy artifact cannot be treated as passing evidence.
