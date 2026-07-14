@@ -7,6 +7,7 @@
 - State and evidence live in `.terrace/` and `docs/`; the product has no remote-service boundary.
 - Command metadata is duplicated across help, agent generators, tests, README content, and command contracts.
 - Project command discovery now lives below orchestration in `project-command-discovery.cjs`; `adoption.cjs` no longer imports `workflow.cjs`. The larger dispatcher and orchestration hotspots remain.
+- `debt-assessment.cjs` owns unresolved-debt policy; lifecycle and workbench adapters preserve their distinct public result shapes.
 
 ## Target Architecture
 

@@ -11,6 +11,7 @@ const { blocker, warning } = require('./guidance.cjs');
 const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
 const { packageManagerFor, testCommand } = require('./package-manager.cjs');
 const { listManagedJsonArtifacts, preflightProjectArtifacts, readManagedJson, withManagedArtifactLock, writeManagedJson, writeProjectText } = require('./managed-artifacts.cjs');
+const { evaluateDebt } = require('./debt-assessment.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -742,39 +743,12 @@ function listDebt(cwd) {
 }
 
 function auditDebtState(entries) {
-  const open = entries.filter((entry) => entry.status !== 'resolved');
-  const blockers = [];
-  const warnings = [];
-  for (const entry of open) {
-    if (!entry.owner) {
-      blockers.push({
-        code: 'DEBT_OWNER_REQUIRED',
-        id: entry.id,
-        message: 'Debt entry has no owner: ' + entry.id,
-        remediation: 'Resolve the debt or add an owner.'
-      });
-    }
-    if (!entry.expiry_condition && !entry.cleanup_trigger) {
-      blockers.push({
-        code: 'DEBT_EXPIRY_REQUIRED',
-        id: entry.id,
-        message: 'Debt entry has no expiry condition or cleanup trigger: ' + entry.id,
-        remediation: 'Add an expiry condition or cleanup trigger.'
-      });
-    }
-    if (!entry.allowed_to_ship) {
-      warnings.push({
-        code: 'DEBT_NOT_ALLOWED_TO_SHIP',
-        id: entry.id,
-        message: 'Debt is open and not marked as allowed to ship: ' + entry.id
-      });
-    }
-  }
+  const assessment = evaluateDebt(entries);
   return {
-    open_count: open.length,
-    blockers,
-    warnings,
-    passed: blockers.length === 0
+    open_count: assessment.open_count,
+    blockers: assessment.blockers,
+    warnings: assessment.warnings,
+    passed: assessment.passed
   };
 }
 

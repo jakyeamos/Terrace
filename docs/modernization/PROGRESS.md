@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 3 domain-seam work has started: command discovery is extracted and the adoption/workflow cycle is removed; dispatcher and lifecycle seams remain.
+**Phase:** Milestone 3 domain-seam work: command discovery and debt assessment are extracted, and the adoption/workflow cycle is removed; dispatcher and release-policy seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** continue decomposing the remaining workflow dispatcher hotspots into lower-level domain services without changing public behavior.
+**Immediate implementation priority:** extract the release-preflight policy from workflow orchestration through an injected compatibility boundary, without changing public behavior.
 
 ## Evidence recorded
 
@@ -38,10 +38,11 @@
 - All 252 catalog-owned repository agent assets now pass a source-only content and Git-tracking parity check. The check preserves consumer bootstrap guidance and bespoke governance skills, and never invokes Terrace to modify Terrace.
 - Full CI passed after reconciliation: typecheck, lint, source parity/tracking, 398 tests with 1 existing skip, coverage, and the network-enabled fresh packed-consumer/package dry run.
 - Project command discovery and dead-code gate configuration now live in a lower-level module. `workflow.cjs` retains the compatibility export, while a fresh-process test proves `adoption.cjs` imports without initializing workflow orchestration; malformed package JSON remains intentionally strict. Focused checks and full network-enabled CI passed.
+- Unresolved-debt policy now has one pure owner. Lifecycle, report, and ship checks retain remediation guidance, while feature-scoped workbench status preserves its lean blocker contract; direct tests cover ordering, resolved entries, feature scoping, and each projection.
 
 ## Next action
 
-Choose the next bounded workflow or lifecycle seam, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher redesign before each extraction is independently verified.
+Extract release-preflight policy behind injected ship-check and dirty-tree dependencies, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher redesign before each extraction is independently verified.
 
 ## Known blockers
 
