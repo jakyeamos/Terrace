@@ -9,7 +9,7 @@ const { readJson } = require('./json.cjs');
 const { reportRead } = require('./lifecycle.cjs');
 const { portGsdCompare } = require('./port-gsd.cjs');
 const { loadState } = require('./state.cjs');
-const { discoverProjectCommands } = require('./workflow.cjs');
+const { discoverProjectCommands } = require('./project-command-discovery.cjs');
 
 function packageVersion() {
   const packagePath = path.resolve(__dirname, '..', '..', '..', 'package.json');

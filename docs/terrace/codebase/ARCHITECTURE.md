@@ -6,7 +6,7 @@
 - The CLI is a large switch router; `workflow.cjs` and `lifecycle.cjs` are the main orchestration hotspots.
 - State and evidence live in `.terrace/` and `docs/`; the product has no remote-service boundary.
 - Command metadata is duplicated across help, agent generators, tests, README content, and command contracts.
-- `adoption.cjs -> workflow.cjs -> adoption.cjs` is a confirmed dependency cycle.
+- Project command discovery now lives below orchestration in `project-command-discovery.cjs`; `adoption.cjs` no longer imports `workflow.cjs`. The larger dispatcher and orchestration hotspots remain.
 
 ## Target Architecture
 

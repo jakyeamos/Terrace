@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 2 command-catalog consolidation is complete; dispatcher/domain seams remain.
+**Phase:** Milestone 3 domain-seam work has started: command discovery is extracted and the adoption/workflow cycle is removed; dispatcher and lifecycle seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** extract the project-command discovery seam to break the adoption/workflow dependency cycle without changing public behavior.
+**Immediate implementation priority:** continue decomposing the remaining workflow dispatcher hotspots into lower-level domain services without changing public behavior.
 
 ## Evidence recorded
 
@@ -37,10 +37,11 @@
 - The command catalog now owns 106 command forms and drives CLI help, generated-agent metadata, published contracts, a generated README index, packed-consumer assertions, and natural-language plan argv arrays. `port gsd --compare`, `port gsd --verify-parity`, and `design-source diff` are now explicit catalog entries rather than drifted dispatch-only behavior.
 - All 252 catalog-owned repository agent assets now pass a source-only content and Git-tracking parity check. The check preserves consumer bootstrap guidance and bespoke governance skills, and never invokes Terrace to modify Terrace.
 - Full CI passed after reconciliation: typecheck, lint, source parity/tracking, 398 tests with 1 existing skip, coverage, and the network-enabled fresh packed-consumer/package dry run.
+- Project command discovery and dead-code gate configuration now live in a lower-level module. `workflow.cjs` retains the compatibility export, while a fresh-process test proves `adoption.cjs` imports without initializing workflow orchestration; malformed package JSON remains intentionally strict. Focused checks and full network-enabled CI passed.
 
 ## Next action
 
-Extract the project-command discovery seam from `workflow.cjs`, retain its compatibility export, and make `adoption.cjs` depend on the lower-level module instead of the workflow orchestrator.
+Choose the next bounded workflow or lifecycle seam, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher redesign before each extraction is independently verified.
 
 ## Known blockers
 
