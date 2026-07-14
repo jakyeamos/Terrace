@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 3 domain-seam work: command discovery and debt assessment are extracted, and the adoption/workflow cycle is removed; dispatcher and release-policy seams remain.
+**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, and release-preflight policy are extracted, and the adoption/workflow cycle is removed; dispatcher and remaining orchestration seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** extract the release-preflight policy from workflow orchestration through an injected compatibility boundary, without changing public behavior.
+**Immediate implementation priority:** choose the next bounded dispatcher or orchestration seam without changing public behavior.
 
 ## Evidence recorded
 
@@ -39,10 +39,11 @@
 - Full CI passed after reconciliation: typecheck, lint, source parity/tracking, 398 tests with 1 existing skip, coverage, and the network-enabled fresh packed-consumer/package dry run.
 - Project command discovery and dead-code gate configuration now live in a lower-level module. `workflow.cjs` retains the compatibility export, while a fresh-process test proves `adoption.cjs` imports without initializing workflow orchestration; malformed package JSON remains intentionally strict. Focused checks and full network-enabled CI passed.
 - Unresolved-debt policy now has one pure owner. Lifecycle, report, and ship checks retain remediation guidance, while feature-scoped workbench status preserves its lean blocker contract; direct tests cover ordering, resolved entries, feature scoping, and each projection.
+- Release-preflight policy now lives below workflow with injected dirty-tree and ship-check boundaries. The public workflow/CLI API is unchanged; fresh-process and injected-contract tests prove the module does not initialize orchestration or execute static-invalid paths.
 
 ## Next action
 
-Extract release-preflight policy behind injected ship-check and dirty-tree dependencies, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher redesign before each extraction is independently verified.
+Choose the next independently verifiable dispatcher or orchestration seam, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher redesign before each extraction is independently verified.
 
 ## Known blockers
 
