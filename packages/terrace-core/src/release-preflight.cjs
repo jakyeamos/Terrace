@@ -5,8 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { blocker, topBlockers, warning } = require('./guidance.cjs');
 const { listProjectFiles, readSmallText } = require('./repo-analysis.cjs');
-
-const SHIP_CHECK_MODES = ['fast', 'local', 'full'];
+const { SHIP_CHECK_MODES } = require('./ship-check-modes.cjs');
 
 function readJsonFile(filePath) {
   if (!fs.existsSync(filePath)) {

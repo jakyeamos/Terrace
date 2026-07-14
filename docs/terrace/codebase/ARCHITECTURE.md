@@ -9,6 +9,7 @@
 - Project command discovery now lives below orchestration in `project-command-discovery.cjs`; `adoption.cjs` no longer imports `workflow.cjs`. The larger dispatcher and orchestration hotspots remain.
 - `debt-assessment.cjs` owns unresolved-debt policy; lifecycle and workbench adapters preserve their distinct public result shapes.
 - `release-preflight.cjs` owns release, tag, trusted-publishing, and artifact policy. Workflow supplies only dirty-tree and ship-check adapters, preserving the public CLI/API boundary without a reverse import.
+- `ship-readiness.cjs` owns fast/local/full readiness policy, project-script gates, category aggregation, and ship-summary artifacts. It receives senior-cycle and release-specific evidence through injected callbacks while workflow preserves the existing public API and composes release preflight; their shared modes live below both modules.
 
 ## Target Architecture
 
