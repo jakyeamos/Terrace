@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, and lower-level project command discovery that no longer couples adoption to workflow orchestration.
-healthScore: 87
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, and one pure unresolved-debt policy shared by lifecycle and workbench projections.
+healthScore: 88
 statusLabel: modernization_in_progress_domain_seams
-nextStep: Choose the next bounded workflow or lifecycle domain seam while preserving public exports and command behavior.
+nextStep: Extract release-preflight policy behind injected dependencies while preserving public exports and command behavior.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
 risks:
@@ -25,13 +25,13 @@ lastCommitDate: "2026-07-14"
 quality:
   lint: pass
   types: pass_commonjs_outside_typecheck
-  tests: pass_full_ci_after_bfc19d4
+  tests: pass_full_ci_after_8018e84
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer
   auditHigh: pass
   auditModerate: pass
   deadCode: not_configured
-  structure: milestone_3_command_discovery_extracted
+  structure: milestone_3_debt_assessment_extracted
 canonicalCommands:
   install: pnpm install
   dev: unknown
@@ -45,7 +45,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: "pnpm run ci"
-lastVerifiedAt: "2026-07-14T18:18:22-04:00"
+lastVerifiedAt: "2026-07-14T18:37:42-04:00"
 ---
 
 ## Current State
@@ -72,8 +72,11 @@ Catalog-owned source assets are now a separate, read-only parity surface: 252 ge
 
 Project command discovery now owns package-script inspection, dead-code gate configuration, and agent-asset readiness warnings. `workflow.cjs` retains its exported compatibility function, while `adoption.cjs` imports the lower-level owner directly; a fresh-process test proves that adoption no longer initializes the workflow orchestrator.
 
+Unresolved-debt policy now lives in one pure module. Lifecycle, report, and ship checks retain remediation guidance, while feature-scoped workbench status retains its lean blocker contract; direct tests cover resolved entries, feature filtering, finding order, and every public projection without invoking Terrace to repair Terrace.
+
 ## Recent Progress
 
+- July 14: Committed `8018e84`; centralized unresolved-debt assessment, preserved lifecycle remediation and workbench response shapes, and passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `bfc19d4`; extracted project command discovery, removed the adoption/workflow dependency cycle, preserved strict package parsing and workflow export compatibility, and passed full network-enabled CI.
 - July 14: Committed `92fcde1`; source-owned generated agent assets now have content and Git-tracking parity checks without self-invocation. Full network-enabled CI passed: 398 tests / 1 existing skip, coverage, and package dry run.
 - July 14: Committed `de82ea2`; README command index and natural-language plans now derive from the catalog. 56 focused workflow/catalog/product tests, typecheck, and lint passed.
@@ -91,7 +94,7 @@ Project command discovery now owns package-script inspection, dead-code gate con
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
-- `workflow.cjs` and `lifecycle.cjs` remain large orchestration hotspots; extract only independently verifiable lower-level seams.
+- Release-preflight policy still resides in the workflow orchestrator; extract it only through injected dependencies that preserve its existing public behavior.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
@@ -101,7 +104,7 @@ Project command discovery now owns package-script inspection, dead-code gate con
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS after `bfc19d4`; focused import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
+| Tests | `pnpm run ci` PASS after `8018e84`; debt-projection and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Security evidence | Missing, legacy, incomplete, or source/config/lock-stale evidence blocks release readiness; `terrace security check` is the explicit writer. |
@@ -109,6 +112,6 @@ Project command discovery now owns package-script inspection, dead-code gate con
 
 ## Next Concrete Steps
 
-1. Choose the next lower-level workflow or lifecycle seam and prove its import/export boundary before moving consumers.
+1. Extract release-preflight policy behind injected ship-check and dirty-tree dependencies, then prove its import/export boundary before moving consumers.
 2. Continue splitting catalog-aware dispatcher/domain seams without changing public argv, JSON, or exit behavior.
 3. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.
