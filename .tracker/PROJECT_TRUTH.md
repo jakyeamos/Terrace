@@ -1,13 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, and a canonical command catalog that drives CLI help, agent metadata, contracts, README reference validation, packed-consumer coverage, and natural-language argv plans.
-healthScore: 84
-statusLabel: modernization_in_progress_catalog_routed
-nextStep: Reconcile tracked generated agent assets from the catalog through a pure source-generation/check path, preserving bespoke and user-owned guidance.
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, and a canonical command catalog with verified source-owned generated assets, help, metadata, contracts, README validation, packed-consumer coverage, and natural-language argv plans.
+healthScore: 86
+statusLabel: modernization_in_progress_catalog_verified
+nextStep: Extract project command discovery from workflow orchestration so adoption no longer depends on the workflow module.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
-  - Existing tracked generated agent assets differ from current templates and need deliberate reconciliation before full agent-surface parity can be claimed.
 risks:
   - A hostile same-user process with direct directory write access can still race a final filesystem pathname replacement; the managed lock is not an isolation boundary.
   - Runtime CommonJS remains outside the TypeScript gate.
@@ -17,7 +16,7 @@ areas: [cli, packaging, state, lifecycle, security, command-routing, agents, doc
 goals:
   - Keep Terrace installable, recoverable, and honest about readiness.
   - Preserve public CLI, JSON, artifact, agent, and GSD migration contracts through modernization.
-  - Reconcile generated agent assets from the catalog without silently overwriting bespoke or user-owned guidance.
+  - Keep source-owned generated assets in catalog parity without silently overwriting bespoke or user-owned guidance.
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: JavaScript CommonJS with TypeScript tests/configuration
@@ -26,13 +25,13 @@ lastCommitDate: "2026-07-14"
 quality:
   lint: pass
   types: pass_commonjs_outside_typecheck
-  tests: pass_catalog_routing_and_packed_consumer_after_de82ea2
+  tests: pass_full_ci_after_92fcde1
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer
   auditHigh: pass
   auditModerate: pass
   deadCode: not_configured
-  structure: milestone_2_command_catalog_routed
+  structure: milestone_2_command_catalog_and_assets_verified
 canonicalCommands:
   install: pnpm install
   dev: unknown
@@ -45,8 +44,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: "pnpm vitest run tests/command-catalog.test.ts tests/workflow-commands.test.ts tests/product-readiness.test.ts && pnpm typecheck && pnpm lint"
-lastVerifiedAt: "2026-07-14T17:09:44-04:00"
+lastVerifiedCommand: "pnpm run ci"
+lastVerifiedAt: "2026-07-14T18:00:40-04:00"
 ---
 
 ## Current State
@@ -69,8 +68,11 @@ The canonical command catalog now drives CLI help, generated-agent metadata, the
 
 The README command index is now a checked projection of the catalog, and natural-language plans reference catalog command IDs plus safe argv arrays. The human-readable command field remains a compatibility display only; execution continues through direct domain handlers and the explicit state-bound apply token rather than a shell command string.
 
+Catalog-owned source assets are now a separate, read-only parity surface: 252 generated Codex/Claude files must match their templates and be tracked when checked from a Git worktree. This protects a clean clone without invoking Terrace's consumer installer or repair command against Terrace itself. Root bootstrap guidance and the five bespoke governance skills remain outside that generated scope.
+
 ## Recent Progress
 
+- July 14: Committed `92fcde1`; source-owned generated agent assets now have content and Git-tracking parity checks without self-invocation. Full network-enabled CI passed: 398 tests / 1 existing skip, coverage, and package dry run.
 - July 14: Committed `de82ea2`; README command index and natural-language plans now derive from the catalog. 56 focused workflow/catalog/product tests, typecheck, and lint passed.
 - July 14: Committed `d3d1e69`; one command catalog now drives help, agent metadata, contracts, and packed-consumer surface coverage. Focused catalog/agent tests, typecheck, lint, and packed-consumer test passed.
 - July 14: Committed `3f113f4`; natural-language writes now require state-bound explicit apply, audit is read-only, agent drift is visible, ship prepare avoids self-dirtying, and adoption avoids ambient self-invocation. `pnpm run ci` passed.
@@ -86,7 +88,6 @@ The README command index is now a checked projection of the catalog, and natural
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
-- The tracked generated agent assets contain pre-existing drift. Reconcile them deliberately in a separate generated-artifact review instead of overwriting user-owned guidance.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
@@ -96,7 +97,7 @@ The README command index is now a checked projection of the catalog, and natural
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS after `3f113f4`; coverage and fresh-consumer package smoke pass. |
+| Tests | `pnpm run ci` PASS after `92fcde1`: 398 tests / 1 existing skip, coverage, and fresh-consumer package smoke. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Security evidence | Missing, legacy, incomplete, or source/config/lock-stale evidence blocks release readiness; `terrace security check` is the explicit writer. |
@@ -104,6 +105,6 @@ The README command index is now a checked projection of the catalog, and natural
 
 ## Next Concrete Steps
 
-1. Reconcile the tracked generated agent assets in a dedicated reviewable unit, preserving user-owned guidance rules.
-2. Extract the CLI dispatcher into catalog-aware domain seams without changing public argv, JSON, or exit behavior.
+1. Extract project command discovery into a lower-level module, preserving its workflow compatibility export and public behavior.
+2. Continue splitting catalog-aware dispatcher/domain seams without changing public argv, JSON, or exit behavior.
 3. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.
