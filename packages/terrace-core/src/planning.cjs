@@ -1,10 +1,10 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 const { analyzeRepository } = require('./repo-analysis.cjs');
 const { packageManagerFor, scriptCommand } = require('./package-manager.cjs');
 const { loadState } = require('./state.cjs');
+const { preflightProjectArtifacts, withManagedArtifactLock, writeProjectText } = require('./managed-artifacts.cjs');
 
 function slugify(value, fallback) {
   return String(value || '')
@@ -81,13 +81,7 @@ function backlogItems(state) {
 }
 
 function writeFile(cwd, relativePath, content, writes) {
-  const resolved = path.resolve(cwd, relativePath);
-  const root = path.resolve(cwd);
-  if (resolved !== root && !resolved.startsWith(root + path.sep)) {
-    throw new Error('UNSAFE_PATH: generated planning path is outside the project root');
-  }
-  fs.mkdirSync(path.dirname(resolved), { recursive: true });
-  fs.writeFileSync(resolved, content.endsWith('\n') ? content : content + '\n', 'utf8');
+  writeProjectText(cwd, relativePath, content.endsWith('\n') ? content : content + '\n');
   writes.push(relativePath);
 }
 
@@ -231,11 +225,24 @@ function phasePlanMarkdown(phase, analysis, cwd, index) {
   ].join('\n');
 }
 
-function refreshPlanningPackage(cwd) {
+function refreshPlanningPackageUnlocked(cwd) {
   const state = loadState(cwd);
   const analysis = normalizeAnalysisForPlanning(analyzeRepository(cwd));
   const writes = [];
   const phases = phasesFromState(state);
+
+  preflightProjectArtifacts(cwd, [
+    '.planning/PROJECT.md',
+    '.planning/REQUIREMENTS.md',
+    '.planning/ROADMAP.md',
+    '.planning/STATE.md',
+    '.planning/HANDOFF.json',
+    '.planning/config.json',
+    ...phases.map((phase, index) => {
+      const number = paddedPhaseNumber(phaseNumber(phase, index));
+      return '.planning/phases/' + phaseDirectory(phase, index) + '/' + number + '-01-PLAN.md';
+    })
+  ]);
 
   writeFile(cwd, '.planning/PROJECT.md', projectMarkdown(state, analysis, cwd), writes);
   writeFile(cwd, '.planning/REQUIREMENTS.md', requirementsMarkdown(state, analysis, cwd), writes);
@@ -272,6 +279,10 @@ function refreshPlanningPackage(cwd) {
     phases: phaseArtifacts,
     next_command: 'terrace port gsd --verify-parity'
   };
+}
+
+function refreshPlanningPackage(cwd) {
+  return withManagedArtifactLock(cwd, () => refreshPlanningPackageUnlocked(cwd));
 }
 
 module.exports = {

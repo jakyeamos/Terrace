@@ -5,6 +5,7 @@ const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
 const { computeSpecHash } = require('./hash.cjs');
 const { evaluatePolicy } = require('./policy.cjs');
+const { appendManagedText, readManagedText, writeManagedText } = require('./managed-artifacts.cjs');
 
 function sessionPathFor(cwd) {
   return path.resolve(cwd, '.terrace', 'sessions', 'SESSION.md');
@@ -31,7 +32,6 @@ function startSession(cwd, options) {
     spec_hash_alert: drift ? 'changed' : 'none'
   };
 
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const content = [
     '# Terrace Session',
     '',
@@ -48,7 +48,7 @@ function startSession(cwd, options) {
     '## Handoff',
     '- pending'
   ].join('\n') + '\n';
-  fs.writeFileSync(filePath, content, 'utf8');
+  writeManagedText(cwd, 'sessions/SESSION.md', content);
 
   saveState(cwd, {
     ...state,
@@ -62,7 +62,6 @@ function startSession(cwd, options) {
 function endSession(cwd, options) {
   const opts = options || {};
   const filePath = sessionPathFor(cwd);
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const lines = [
     '',
     '## Session End',
@@ -73,7 +72,7 @@ function endSession(cwd, options) {
     ...((opts.filesChanged || opts.files_changed || []).map((item) => '- ' + item)),
     'next_slice: ' + (opts.nextSlice || opts.next_slice || 'unspecified')
   ];
-  fs.appendFileSync(filePath, lines.join('\n') + '\n', 'utf8');
+  appendManagedText(cwd, 'sessions/SESSION.md', lines.join('\n') + '\n');
   return { file: filePath };
 }
 
@@ -85,7 +84,7 @@ function reconstructSession(cwd) {
     active_slice: state.active_slice || null,
     policy_mode: state.workflow.mode || 'strict',
     spec_hash: currentSpecHash(cwd),
-    last_session: fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : ''
+    last_session: readManagedText(cwd, 'sessions/SESSION.md') || ''
   };
 }
 

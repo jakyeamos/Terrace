@@ -5,6 +5,16 @@ import * as path from 'path';
 
 const { agentAssetExpectations, initCore, installGlobalAgentBootstrap, readEvents, detectCommands } = require('../packages/terrace-core/src/index.cjs');
 
+function expectGuidanceCode(action: () => void, code: string): void {
+  let thrown: { details?: { code?: string } } | null = null;
+  try {
+    action();
+  } catch (error) {
+    thrown = error as { details?: { code?: string } };
+  }
+  expect(thrown?.details?.code).toBe(code);
+}
+
 describe('terrace-core init and events', () => {
   let tmpDir: string;
 
@@ -41,6 +51,44 @@ describe('terrace-core init and events', () => {
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'events.jsonl'))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'rules', 'testing-trust.json'))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'spec'))).toBe(true);
+  });
+
+  it('does not leave lock scaffolding when configuration discovery fails', () => {
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{not valid JSON\n', 'utf8');
+
+    expect(() => initCore(tmpDir, { projectName: 'demo' })).toThrow();
+
+    expect(fs.existsSync(path.join(tmpDir, '.terrace'))).toBe(false);
+  });
+
+  it('refuses a symlinked docs parent before ordinary init writes state', () => {
+    const outsideDirectory = path.join(tmpDir, 'outside-docs');
+    const sentinelPath = path.join(outsideDirectory, 'sentinel.txt');
+    fs.mkdirSync(outsideDirectory, { recursive: true });
+    fs.writeFileSync(sentinelPath, 'outside docs\n', 'utf8');
+    fs.symlinkSync(outsideDirectory, path.join(tmpDir, 'docs'));
+
+    expectGuidanceCode(() => initCore(tmpDir, { projectName: 'demo' }), 'INIT_PATH_UNSAFE');
+
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.json'))).toBe(false);
+    expect(fs.readFileSync(sentinelPath, 'utf8')).toBe('outside docs\n');
+    expect(fs.existsSync(path.join(outsideDirectory, 'prd'))).toBe(false);
+  });
+
+  it('refuses a symlinked docs parent before a forced reset creates a backup', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const stateBefore = fs.readFileSync(statePath, 'utf8');
+    const outsideDirectory = path.join(tmpDir, 'outside-docs');
+    fs.rmSync(path.join(tmpDir, 'docs'), { recursive: true, force: true });
+    fs.mkdirSync(outsideDirectory, { recursive: true });
+    fs.symlinkSync(outsideDirectory, path.join(tmpDir, 'docs'));
+
+    expectGuidanceCode(() => initCore(tmpDir, { projectName: 'demo', force: true, yes: true }), 'INIT_PATH_UNSAFE');
+
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(stateBefore);
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'backups'))).toBe(false);
+    expect(fs.readdirSync(outsideDirectory)).toEqual([]);
   });
 
   it('initCore installs default agent bootstrap assets in a fresh repo', () => {
@@ -242,6 +290,25 @@ describe('terrace-core init and events', () => {
     ]);
   });
 
+  it('preserves a user-owned AGENTS.md symlink during a forced reset', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const externalPath = path.join(tmpDir, 'user-owned-agents.md');
+    const sentinel = '# User-owned external instructions\n';
+    fs.writeFileSync(externalPath, sentinel, 'utf8');
+    fs.rmSync(path.join(tmpDir, 'AGENTS.md'));
+    fs.symlinkSync(externalPath, path.join(tmpDir, 'AGENTS.md'));
+
+    const result = initCore(tmpDir, { projectName: 'demo', force: true, yes: true }) as {
+      mode: string;
+      reset: { preserved: string[] };
+    };
+
+    expect(result.mode).toBe('reset');
+    expect(result.reset.preserved).toContain('AGENTS.md');
+    expect(fs.lstatSync(path.join(tmpDir, 'AGENTS.md')).isSymbolicLink()).toBe(true);
+    expect(fs.readFileSync(externalPath, 'utf8')).toBe(sentinel);
+  });
+
   it('refuses a forced reset through a symlinked managed state path before backup or rollback can touch the target', () => {
     initCore(tmpDir, { projectName: 'demo' });
     const statePath = path.join(tmpDir, '.terrace', 'state.json');
@@ -326,9 +393,15 @@ describe('terrace-core init and events', () => {
     }
     fs.rmSync(path.dirname(missingAgentPath), { recursive: true, force: true });
     const mutableFs = require('fs') as typeof fs;
-    const appendFailure = vi.spyOn(mutableFs, 'appendFileSync').mockImplementationOnce(() => {
-      throw new Error('simulated reset event failure');
-    });
+    const originalRenameSync = mutableFs.renameSync;
+    let failed = false;
+    const appendFailure = vi.spyOn(mutableFs, 'renameSync').mockImplementation(((oldPath, newPath) => {
+      if (!failed && newPath === 'events.jsonl' && path.basename(process.cwd()) === '.terrace') {
+        failed = true;
+        throw new Error('simulated reset event failure');
+      }
+      return originalRenameSync(oldPath, newPath);
+    }) as typeof fs.renameSync);
     let resetError: { details?: { code?: string; backup_path?: string } } | null = null;
 
     try {
@@ -351,6 +424,41 @@ describe('terrace-core init and events', () => {
       expect(fs.readFileSync(filePath, 'utf-8')).toBe(content);
     }
     expect(fs.existsSync(missingAgentPath)).toBe(false);
+  });
+
+  it('leaves a user-owned AGENTS.md symlink untouched when forced-reset recovery runs', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const externalPath = path.join(tmpDir, 'user-owned-agents.md');
+    const sentinel = '# User-owned external instructions\n';
+    fs.writeFileSync(externalPath, sentinel, 'utf8');
+    fs.rmSync(path.join(tmpDir, 'AGENTS.md'));
+    fs.symlinkSync(externalPath, path.join(tmpDir, 'AGENTS.md'));
+    const mutableFs = require('fs') as typeof fs;
+    const originalRenameSync = mutableFs.renameSync;
+    let failed = false;
+    const eventFailure = vi.spyOn(mutableFs, 'renameSync').mockImplementation(((oldPath, newPath) => {
+      if (!failed && newPath === 'events.jsonl' && path.basename(process.cwd()) === '.terrace') {
+        failed = true;
+        throw new Error('simulated reset event failure');
+      }
+      return originalRenameSync(oldPath, newPath);
+    }) as typeof fs.renameSync);
+    let resetError: { details?: { code?: string } } | null = null;
+
+    try {
+      try {
+        initCore(tmpDir, { projectName: 'demo', force: true, yes: true });
+      } catch (error) {
+        resetError = error as { details?: { code?: string } };
+      }
+    } finally {
+      eventFailure.mockRestore();
+    }
+
+    expect(failed).toBe(true);
+    expect(resetError?.details?.code).toBe('INIT_RESET_ROLLED_BACK');
+    expect(fs.lstatSync(path.join(tmpDir, 'AGENTS.md')).isSymbolicLink()).toBe(true);
+    expect(fs.readFileSync(externalPath, 'utf8')).toBe(sentinel);
   });
 
   it('installs global Codex and Claude Terrace skills without overwriting user-owned files', () => {
@@ -395,6 +503,36 @@ describe('terrace-core init and events', () => {
     expect(fs.readFileSync(path.join(globalAgentsDir, 'skills', 'terrace-next', 'SKILL.md'), 'utf-8')).toBe('custom global skill\n');
     expect(fs.readFileSync(path.join(globalClaudeDir, 'skills', 'terrace', 'SKILL.md'), 'utf-8')).toContain('name: terrace');
     expect(fs.readFileSync(path.join(globalClaudeDir, 'commands', 'terrace-next.md'), 'utf-8')).toBe('custom global command\n');
+  });
+
+  it('refuses a symlinked global agent parent without writing outside its configured root', () => {
+    const globalAgentsDir = path.join(tmpDir, 'global-agents');
+    const globalClaudeDir = path.join(tmpDir, 'global-claude');
+    const outsideDirectory = path.join(tmpDir, 'outside-global-agents');
+    const sentinelPath = path.join(outsideDirectory, 'sentinel.txt');
+    fs.mkdirSync(globalAgentsDir, { recursive: true });
+    fs.mkdirSync(globalClaudeDir, { recursive: true });
+    fs.mkdirSync(outsideDirectory, { recursive: true });
+    fs.writeFileSync(sentinelPath, 'outside global agents\n', 'utf8');
+    fs.symlinkSync(outsideDirectory, path.join(globalAgentsDir, 'skills'));
+
+    expectGuidanceCode(() => installGlobalAgentBootstrap({ globalAgentsDir, globalClaudeDir }), 'GLOBAL_AGENT_ASSET_PATH_UNSAFE');
+
+    expect(fs.readFileSync(sentinelPath, 'utf8')).toBe('outside global agents\n');
+    expect(fs.existsSync(path.join(outsideDirectory, 'terrace', 'SKILL.md'))).toBe(false);
+  });
+
+  it('refuses a global root below a symlinked ancestor without writing outside its configured root', () => {
+    const globalAgentsDir = path.join(tmpDir, 'global-root-alias', 'agents');
+    const globalClaudeDir = path.join(tmpDir, 'global-claude');
+    const outsideDirectory = path.join(tmpDir, 'outside-global-root');
+    fs.mkdirSync(path.join(outsideDirectory, 'agents'), { recursive: true });
+    fs.mkdirSync(globalClaudeDir, { recursive: true });
+    fs.symlinkSync(outsideDirectory, path.join(tmpDir, 'global-root-alias'));
+
+    expectGuidanceCode(() => installGlobalAgentBootstrap({ globalAgentsDir, globalClaudeDir }), 'GLOBAL_AGENT_ASSET_PATH_UNSAFE');
+
+    expect(fs.existsSync(path.join(outsideDirectory, 'agents', 'skills', 'terrace', 'SKILL.md'))).toBe(false);
   });
 
   it('initCore records an init event with from_state and to_state', () => {

@@ -6,6 +6,7 @@ const path = require('path');
 const Ajv = require('ajv');
 const stateSchema = require('../schemas/state.schema.json');
 const { guidanceError } = require('./guidance.cjs');
+const { resolveManagedArtifact, withManagedArtifactLock, withPinnedDirectory } = require('./managed-artifacts.cjs');
 
 const STATE_SCHEMA_VERSION = '1.1';
 const STATE_FINGERPRINT = Symbol('terrace.state.fingerprint');
@@ -125,43 +126,63 @@ function unsafeStatePath(filePath, reason) {
   });
 }
 
-function ensureTerraceDirectory(cwd, createIfMissing) {
-  const directory = path.resolve(cwd, '.terrace');
-  let stat = lstatIfExists(directory);
-  if (!stat) {
-    if (!createIfMissing) {
-      return { directory, exists: false, identity: null };
+function assertDirectoryIdentity(directory, expectedIdentity, ancestors) {
+  for (const ancestor of ancestors || [{ directory, identity: expectedIdentity }]) {
+    const stat = lstatIfExists(ancestor.directory);
+    if (!stat || stat.isSymbolicLink() || !stat.isDirectory()) {
+      unsafeStatePath(ancestor.directory, '.terrace changed while Terrace was writing state.');
     }
-    fs.mkdirSync(directory, { recursive: true });
-    stat = lstatIfExists(directory);
+    if (ancestor.identity && (stat.dev !== ancestor.identity.dev || stat.ino !== ancestor.identity.ino)) {
+      unsafeStatePath(ancestor.directory, '.terrace was replaced while Terrace was writing state.');
+    }
   }
-  if (!stat || stat.isSymbolicLink() || !stat.isDirectory()) {
-    unsafeStatePath(directory, '.terrace must be a real directory owned by the project.');
-  }
-  return {
-    directory,
-    exists: true,
-    identity: { dev: stat.dev, ino: stat.ino }
-  };
 }
 
-function assertDirectoryIdentity(directory, expectedIdentity) {
-  const stat = lstatIfExists(directory);
-  if (!stat || stat.isSymbolicLink() || !stat.isDirectory()) {
-    unsafeStatePath(directory, '.terrace changed while Terrace was writing state.');
+function fileIdentity(stat) {
+  return { dev: stat.dev, ino: stat.ino };
+}
+
+function sameFileIdentity(stat, identity) {
+  return Boolean(stat && identity && !stat.isSymbolicLink() && stat.isFile() && stat.dev === identity.dev && stat.ino === identity.ino);
+}
+
+function assertExpectedStateFile(paths, current, operation) {
+  if (paths.stateIdentity) {
+    if (!sameFileIdentity(current, paths.stateIdentity)) {
+      unsafeStatePath(paths.statePath, 'Terrace state changed while Terrace was preparing to ' + operation + '.');
+    }
+  } else if (current) {
+    unsafeStatePath(paths.statePath, 'A Terrace state file appeared while Terrace was preparing to ' + operation + '.');
   }
-  if (expectedIdentity && (stat.dev !== expectedIdentity.dev || stat.ino !== expectedIdentity.ino)) {
-    unsafeStatePath(directory, '.terrace was replaced while Terrace was writing state.');
-  }
+}
+
+function withStateDirectory(paths, action) {
+  return withPinnedDirectory(paths.directory, paths.identity, (reason) => unsafeStatePath(paths.directory, reason), () => {
+    assertDirectoryIdentity(paths.directory, paths.identity, paths.ancestors);
+    return action();
+  });
 }
 
 function resolveStatePaths(cwd, createIfMissing) {
-  const terrace = ensureTerraceDirectory(cwd, createIfMissing);
+  let resolved;
+  try {
+    resolved = resolveManagedArtifact(cwd, 'state.json', { createParents: createIfMissing });
+  } catch (error) {
+    if (error && error.details && error.details.code === 'MANAGED_ARTIFACT_PATH_UNSAFE') {
+      unsafeStatePath(path.resolve(cwd, '.terrace'), error.details.why_blocked || 'The managed state directory is unsafe.');
+    }
+    throw error;
+  }
+  const directory = resolved.directory || path.dirname(resolved.filePath);
   return {
-    ...terrace,
-    statePath: path.join(terrace.directory, 'state.json'),
-    lockPath: path.join(terrace.directory, 'state.lock'),
-    recoveryPath: path.join(terrace.directory, 'state.lock.recovery')
+    directory,
+    exists: Boolean(resolved.directory),
+    identity: resolved.directoryIdentity,
+    ancestors: resolved.directoryAncestors,
+    statePath: resolved.filePath,
+    stateIdentity: resolved.fileStat ? fileIdentity(resolved.fileStat) : null,
+    lockPath: path.join(directory, 'state.lock'),
+    recoveryPath: path.join(directory, 'state.lock.recovery')
   };
 }
 
@@ -179,30 +200,39 @@ function assertSafeRegularFile(filePath, missingAllowed) {
   return stat;
 }
 
-function readRegularText(filePath) {
-  const initialStat = assertSafeRegularFile(filePath, true);
-  if (!initialStat) {
+function readRegularText(paths, filePath) {
+  if (!paths.exists) {
     return null;
   }
+  const fileName = path.basename(filePath);
+  return withStateDirectory(paths, () => {
+    const initialStat = assertSafeRegularFile(fileName, true);
+    if (!initialStat) {
+      return null;
+    }
+    if (filePath === paths.statePath) {
+      assertExpectedStateFile(paths, initialStat, 'read it');
+    }
 
-  let descriptor;
-  try {
-    descriptor = fs.openSync(filePath, fs.constants.O_RDONLY | noFollowFlag());
-    const openedStat = fs.fstatSync(descriptor);
-    if (!openedStat.isFile()) {
-      unsafeStatePath(filePath, 'Terrace state files must remain regular files while read.');
+    let descriptor;
+    try {
+      descriptor = fs.openSync(fileName, fs.constants.O_RDONLY | noFollowFlag());
+      const openedStat = fs.fstatSync(descriptor);
+      if (!openedStat.isFile() || (filePath === paths.statePath && !sameFileIdentity(openedStat, paths.stateIdentity))) {
+        unsafeStatePath(filePath, 'Terrace state files must remain regular files while read.');
+      }
+      return fs.readFileSync(descriptor, 'utf8');
+    } catch (error) {
+      if (error && error.code === 'ELOOP') {
+        unsafeStatePath(filePath, 'Terrace refuses to follow a state-file symlink.');
+      }
+      throw error;
+    } finally {
+      if (descriptor !== undefined) {
+        fs.closeSync(descriptor);
+      }
     }
-    return fs.readFileSync(descriptor, 'utf8');
-  } catch (error) {
-    if (error && error.code === 'ELOOP') {
-      unsafeStatePath(filePath, 'Terrace refuses to follow a state-file symlink.');
-    }
-    throw error;
-  } finally {
-    if (descriptor !== undefined) {
-      fs.closeSync(descriptor);
-    }
-  }
+  });
 }
 
 function fingerprint(text) {
@@ -278,7 +308,7 @@ function parseAndValidateState(text, filePath) {
 }
 
 function readCurrentState(paths, allowInvalid) {
-  const text = readRegularText(paths.statePath);
+  const text = readRegularText(paths, paths.statePath);
   if (text === null) {
     return null;
   }
@@ -300,8 +330,8 @@ function readCurrentState(paths, allowInvalid) {
   }
 }
 
-function lockOwner(lockPath) {
-  const text = readRegularText(lockPath);
+function lockOwner(paths, lockPath) {
+  const text = readRegularText(paths, lockPath);
   if (text === null) {
     return null;
   }
@@ -312,50 +342,42 @@ function lockOwner(lockPath) {
   }
 }
 
-function sameFileIdentity(stat, expectedIdentity) {
-  return Boolean(
-    stat &&
-    expectedIdentity &&
-    !stat.isSymbolicLink() &&
-    stat.isFile() &&
-    stat.dev === expectedIdentity.dev &&
-    stat.ino === expectedIdentity.ino
-  );
-}
-
 function exclusiveFileExistsError() {
   const error = new Error('Exclusive Terrace state marker already exists.');
   error.code = 'EEXIST';
   return error;
 }
 
-function acquireExclusiveMarker(markerPath) {
-  if (assertSafeRegularFile(markerPath, true)) {
-    throw exclusiveFileExistsError();
-  }
-
+function acquireExclusiveMarker(paths, markerPath) {
   let descriptor;
   let identity;
-  try {
-    descriptor = fs.openSync(markerPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | noFollowFlag(), 0o600);
-    const stat = fs.fstatSync(descriptor);
-    if (!stat.isFile()) {
-      unsafeStatePath(markerPath, 'Terrace state markers must remain regular files while locked.');
-    }
-    identity = { dev: stat.dev, ino: stat.ino };
-    fs.writeFileSync(descriptor, JSON.stringify({ pid: process.pid, created_at: new Date().toISOString() }) + '\n', 'utf8');
-    fs.fsyncSync(descriptor);
-  } catch (error) {
-    if (descriptor !== undefined) {
-      fs.closeSync(descriptor);
-      descriptor = undefined;
-      const current = lstatIfExists(markerPath);
-      if (sameFileIdentity(current, identity)) {
-        fs.unlinkSync(markerPath);
+  const markerName = path.basename(markerPath);
+  withStateDirectory(paths, () => {
+    try {
+      if (assertSafeRegularFile(markerName, true)) {
+        throw exclusiveFileExistsError();
       }
+      descriptor = fs.openSync(markerName, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | noFollowFlag(), 0o600);
+      const stat = fs.fstatSync(descriptor);
+      if (!stat.isFile()) {
+        unsafeStatePath(markerPath, 'Terrace state markers must remain regular files while locked.');
+      }
+      identity = { dev: stat.dev, ino: stat.ino };
+      fs.writeFileSync(descriptor, JSON.stringify({ pid: process.pid, created_at: new Date().toISOString() }) + '\n', 'utf8');
+      fs.fsyncSync(descriptor);
+      assertDirectoryIdentity(paths.directory, paths.identity, paths.ancestors);
+    } catch (error) {
+      if (descriptor !== undefined) {
+        fs.closeSync(descriptor);
+        descriptor = undefined;
+        const current = lstatIfExists(markerName);
+        if (sameFileIdentity(current, identity)) {
+          fs.unlinkSync(markerName);
+        }
+      }
+      throw error;
     }
-    throw error;
-  }
+  });
 
   return {
     release() {
@@ -363,10 +385,13 @@ function acquireExclusiveMarker(markerPath) {
         fs.closeSync(descriptor);
         descriptor = undefined;
       }
-      const current = lstatIfExists(markerPath);
-      if (sameFileIdentity(current, identity)) {
-        fs.unlinkSync(markerPath);
-      }
+      withStateDirectory(paths, () => {
+        const current = lstatIfExists(markerName);
+        if (sameFileIdentity(current, identity)) {
+          fs.unlinkSync(markerName);
+          syncStateDirectory('.');
+        }
+      });
     }
   };
 }
@@ -386,7 +411,7 @@ function processIsConfirmedDead(pid) {
 function reclaimStaleLock(paths, expectedStat) {
   let recoveryGate;
   try {
-    recoveryGate = acquireExclusiveMarker(paths.recoveryPath);
+    recoveryGate = acquireExclusiveMarker(paths, paths.recoveryPath);
   } catch (error) {
     if (error && error.code === 'EEXIST') {
       return null;
@@ -399,18 +424,30 @@ function reclaimStaleLock(paths, expectedStat) {
 
   let claimed = false;
   try {
-    const current = assertSafeRegularFile(paths.lockPath, true);
+    let current;
+    withStateDirectory(paths, () => {
+      current = assertSafeRegularFile(path.basename(paths.lockPath), true);
+    });
     if (!sameFileIdentity(current, expectedStat)) {
       return null;
     }
 
-    const owner = lockOwner(paths.lockPath);
+    const owner = lockOwner(paths, paths.lockPath);
     if (!owner || !processIsConfirmedDead(owner.pid)) {
       return null;
     }
 
-    fs.unlinkSync(paths.lockPath);
-    claimed = true;
+    withStateDirectory(paths, () => {
+      if (!sameFileIdentity(lstatIfExists(path.basename(paths.lockPath)), expectedStat)) {
+        return;
+      }
+      fs.unlinkSync(path.basename(paths.lockPath));
+      syncStateDirectory('.');
+      claimed = true;
+    });
+    if (!claimed) {
+      return null;
+    }
     return recoveryGate;
   } finally {
     if (!claimed) {
@@ -429,10 +466,14 @@ function stateWriteLocked(paths, owner, whyBlocked, filePath) {
 }
 
 function assertNoRecoveryInProgress(paths) {
-  if (assertSafeRegularFile(paths.recoveryPath, true)) {
+  let recovery;
+  withStateDirectory(paths, () => {
+    recovery = assertSafeRegularFile(path.basename(paths.recoveryPath), true);
+  });
+  if (recovery) {
     stateWriteLocked(
       paths,
-      lockOwner(paths.recoveryPath),
+      lockOwner(paths, paths.recoveryPath),
       'A stale-lock recovery claim is active, so Terrace will not race it or remove its marker automatically.',
       paths.recoveryPath
     );
@@ -440,34 +481,50 @@ function assertNoRecoveryInProgress(paths) {
 }
 
 function acquireStateLock(paths) {
-  assertDirectoryIdentity(paths.directory, paths.identity);
+  assertDirectoryIdentity(paths.directory, paths.identity, paths.ancestors);
   assertNoRecoveryInProgress(paths);
-  const existingLock = assertSafeRegularFile(paths.lockPath, true);
+  let existingLock;
+  withStateDirectory(paths, () => {
+    existingLock = assertSafeRegularFile(path.basename(paths.lockPath), true);
+  });
   let recoveryGate = null;
   if (existingLock) {
     recoveryGate = reclaimStaleLock(paths, existingLock);
     if (!recoveryGate) {
-      stateWriteLocked(paths, lockOwner(paths.lockPath), 'A state lock already exists, so Terrace cannot safely merge concurrent whole-file writes.');
+      stateWriteLocked(paths, lockOwner(paths, paths.lockPath), 'A state lock already exists, so Terrace cannot safely merge concurrent whole-file writes.');
     }
   }
 
+  let stateLock = null;
   try {
     if (!recoveryGate) {
       assertNoRecoveryInProgress(paths);
     }
-    const stateLock = acquireExclusiveMarker(paths.lockPath);
+    stateLock = acquireExclusiveMarker(paths, paths.lockPath);
     if (recoveryGate) {
       recoveryGate.release();
       recoveryGate = null;
     }
     return stateLock.release;
   } catch (error) {
+    if (stateLock) {
+      try {
+        stateLock.release();
+      } catch {
+        // Preserve the failure that interrupted lock handoff; a remaining marker fails closed.
+      }
+      stateLock = null;
+    }
     if (recoveryGate) {
-      recoveryGate.release();
+      try {
+        recoveryGate.release();
+      } catch {
+        // Preserve the failure that interrupted lock handoff; a remaining marker fails closed.
+      }
       recoveryGate = null;
     }
     if (error && error.code === 'EEXIST') {
-      stateWriteLocked(paths, lockOwner(paths.lockPath), 'A state lock appeared while Terrace was preparing the write.');
+      stateWriteLocked(paths, lockOwner(paths, paths.lockPath), 'A state lock appeared while Terrace was preparing the write.');
     }
     if (error && error.code === 'ELOOP') {
       unsafeStatePath(paths.lockPath, 'Terrace refuses to follow a state-lock symlink.');
@@ -478,28 +535,30 @@ function acquireStateLock(paths) {
 }
 
 function atomicWriteState(paths, text) {
-  const temporaryPath = path.join(paths.directory, '.state.json.' + process.pid + '.' + crypto.randomUUID() + '.tmp');
-  let descriptor;
-  try {
-    descriptor = fs.openSync(temporaryPath, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | noFollowFlag(), 0o600);
-    fs.writeFileSync(descriptor, text, 'utf8');
-    fs.fsyncSync(descriptor);
-    fs.closeSync(descriptor);
-    descriptor = undefined;
-
-    assertDirectoryIdentity(paths.directory, paths.identity);
-    assertSafeRegularFile(paths.statePath, true);
-    fs.renameSync(temporaryPath, paths.statePath);
-    syncStateDirectory(paths.directory);
-  } finally {
-    if (descriptor !== undefined) {
+  const temporaryName = '.state.json.' + process.pid + '.' + crypto.randomUUID() + '.tmp';
+  return withStateDirectory(paths, () => {
+    let descriptor;
+    try {
+      descriptor = fs.openSync(temporaryName, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | noFollowFlag(), 0o600);
+      fs.writeFileSync(descriptor, text, 'utf8');
+      fs.fsyncSync(descriptor);
       fs.closeSync(descriptor);
+      descriptor = undefined;
+
+      assertDirectoryIdentity(paths.directory, paths.identity, paths.ancestors);
+      const currentState = assertSafeRegularFile('state.json', true);
+      assertExpectedStateFile(paths, currentState, 'replace it');
+      fs.renameSync(temporaryName, 'state.json');
+      syncStateDirectory('.');
+    } finally {
+      if (descriptor !== undefined) {
+        fs.closeSync(descriptor);
+      }
+      if (lstatIfExists(temporaryName)) {
+        fs.unlinkSync(temporaryName);
+      }
     }
-    const directory = lstatIfExists(paths.directory);
-    if (directory && !directory.isSymbolicLink() && directory.isDirectory() && paths.identity && directory.dev === paths.identity.dev && directory.ino === paths.identity.ino && lstatIfExists(temporaryPath)) {
-      fs.unlinkSync(temporaryPath);
-    }
-  }
+  });
 }
 
 function syncStateDirectory(directory) {
@@ -521,10 +580,20 @@ function syncStateDirectory(directory) {
 }
 
 function writeState(cwd, candidate, options) {
+  const terraceDirectory = path.resolve(cwd, '.terrace');
+  const terraceStat = lstatIfExists(terraceDirectory);
+  if (terraceStat && (terraceStat.isSymbolicLink() || !terraceStat.isDirectory())) {
+    unsafeStatePath(terraceDirectory, '.terrace must be a real directory owned by the project.');
+  }
+  return withManagedArtifactLock(cwd, () => writeStateLocked(cwd, candidate, options));
+}
+
+function writeStateLocked(cwd, candidate, options) {
   const opts = options || {};
   const canonicalCandidate = validateState(migrateState(candidate));
   const paths = resolveStatePaths(cwd, true);
   const releaseLock = acquireStateLock(paths);
+  let writeError = null;
 
   try {
     const current = readCurrentState(paths, Boolean(opts.replace));
@@ -555,8 +624,17 @@ function writeState(cwd, candidate, options) {
     const text = JSON.stringify(nextState, null, 2) + '\n';
     atomicWriteState(paths, text);
     return paths.statePath;
+  } catch (error) {
+    writeError = error;
+    throw error;
   } finally {
-    releaseLock();
+    try {
+      releaseLock();
+    } catch (releaseError) {
+      if (!writeError) {
+        throw releaseError;
+      }
+    }
   }
 }
 
@@ -588,7 +666,7 @@ function replaceState(cwd, state) {
 
 function loadState(cwd) {
   const paths = resolveStatePaths(cwd, false);
-  const text = readRegularText(paths.statePath);
+  const text = readRegularText(paths, paths.statePath);
   if (text === null) {
     throw stateError('STATE_MISSING', 'Missing .terrace/state.json. Run `terrace init` first.', {
       next_command: 'terrace init',

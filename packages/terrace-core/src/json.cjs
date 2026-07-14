@@ -1,7 +1,6 @@
 'use strict';
 
 const fs = require('fs');
-const path = require('path');
 
 function readJson(filePath, fallback) {
   if (!fs.existsSync(filePath)) {
@@ -12,11 +11,6 @@ function readJson(filePath, fallback) {
   } catch (_) {
     return fallback;
   }
-}
-
-function writeJson(filePath, value) {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + '\n', 'utf8');
 }
 
 function parseFrontmatter(content) {
@@ -48,6 +42,5 @@ function parseFrontmatter(content) {
 
 module.exports = {
   readJson,
-  writeJson,
   parseFrontmatter
 };

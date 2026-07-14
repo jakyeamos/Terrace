@@ -1,15 +1,13 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
+const { appendManagedJsonLine, readManagedJsonLines } = require('./managed-artifacts.cjs');
 
 function eventsPathFor(cwd) {
   return path.resolve(cwd, '.terrace', 'events.jsonl');
 }
 
 function appendEvent(cwd, event) {
-  const filePath = eventsPathFor(cwd);
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const payload = {
     event_id: event.event_id || 'evt_' + Date.now() + '_' + Math.random().toString(16).slice(2),
     timestamp: event.timestamp || new Date().toISOString(),
@@ -19,19 +17,12 @@ function appendEvent(cwd, event) {
     result: event.result || 'ok',
     evidence_refs: event.evidence_refs || []
   };
-  fs.appendFileSync(filePath, JSON.stringify(payload) + '\n', 'utf8');
+  appendManagedJsonLine(cwd, 'events.jsonl', payload);
   return payload;
 }
 
 function readEvents(cwd) {
-  const filePath = eventsPathFor(cwd);
-  if (!fs.existsSync(filePath)) {
-    return [];
-  }
-  return fs.readFileSync(filePath, 'utf8')
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => JSON.parse(line));
+  return readManagedJsonLines(cwd, 'events.jsonl');
 }
 
 module.exports = {

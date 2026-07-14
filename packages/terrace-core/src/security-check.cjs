@@ -6,6 +6,7 @@ const path = require('path');
 const { analyzeRepository, readSmallText } = require('./repo-analysis.cjs');
 const { blocker, warning } = require('./guidance.cjs');
 const { auditCommandFor, packageManagerFor } = require('./package-manager.cjs');
+const { preflightProjectArtifacts, readManagedJson, withManagedArtifactLock, writeManagedJson, writeProjectText } = require('./managed-artifacts.cjs');
 
 const SECRET_PATTERNS = [
   { code: 'SECRET_AWS_ACCESS_KEY', severity: 'critical', pattern: /AKIA[0-9A-Z]{16}/ },
@@ -231,17 +232,37 @@ function runSecurityCheck(cwd) {
     blocking,
     warnings: findings.filter((item) => item.classification !== 'blocking')
   };
-  fs.mkdirSync(path.join(cwd, '.terrace', 'security'), { recursive: true });
-  fs.mkdirSync(path.join(cwd, 'docs', 'terrace', 'security'), { recursive: true });
-  fs.writeFileSync(path.join(cwd, result.artifact), JSON.stringify(result, null, 2) + '\n', 'utf8');
-  fs.writeFileSync(path.join(cwd, result.markdown), securityMarkdown(result).join('\n') + '\n', 'utf8');
-  return result;
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [result.markdown]);
+    writeManagedJson(cwd, 'security/latest.json', result);
+    writeProjectText(cwd, result.markdown, securityMarkdown(result).join('\n') + '\n');
+    return result;
+  });
 }
 
 function securityShipCheck(cwd) {
   const artifact = '.terrace/security/latest.json';
-  const artifactPath = path.join(cwd, artifact);
-  if (!fs.existsSync(artifactPath)) {
+  let result;
+  try {
+    result = readManagedJson(cwd, 'security/latest.json', null);
+  } catch (error) {
+    return {
+      category: 'security',
+      command: 'terrace security check',
+      passed: false,
+      security_check: null,
+      blocking: [blocker({
+        code: 'SECURITY_CHECK_INVALID',
+        message: artifact + ' could not be parsed.',
+        file: artifact,
+        why_blocked: 'Terrace cannot trust malformed or unsafe security evidence.',
+        next_command: 'terrace security check',
+        remediation: 'Resolve the managed-artifact error, then rerun terrace security check to regenerate the security artifact.'
+      })],
+      warnings: []
+    };
+  }
+  if (result === null) {
     return {
       category: 'security',
       command: 'terrace security check',
@@ -257,37 +278,18 @@ function securityShipCheck(cwd) {
       })]
     };
   }
-  try {
-    const result = JSON.parse(fs.readFileSync(artifactPath, 'utf8'));
-    return {
-      category: 'security',
-      command: 'terrace security check',
-      passed: !result.blocking || result.blocking.length === 0,
-      security_check: {
-        status: result.status,
-        artifact,
-        markdown: result.markdown || null
-      },
-      blocking: result.blocking || [],
-      warnings: result.warnings || []
-    };
-  } catch (error) {
-    return {
-      category: 'security',
-      command: 'terrace security check',
-      passed: false,
-      security_check: null,
-      blocking: [blocker({
-        code: 'SECURITY_CHECK_INVALID',
-        message: artifact + ' could not be parsed.',
-        file: artifact,
-        why_blocked: 'Terrace cannot trust malformed security evidence.',
-        next_command: 'terrace security check',
-        remediation: 'Rerun terrace security check to regenerate the security artifact.'
-      })],
-      warnings: []
-    };
-  }
+  return {
+    category: 'security',
+    command: 'terrace security check',
+    passed: !result.blocking || result.blocking.length === 0,
+    security_check: {
+      status: result.status,
+      artifact,
+      markdown: result.markdown || null
+    },
+    blocking: result.blocking || [],
+    warnings: result.warnings || []
+  };
 }
 
 module.exports = {

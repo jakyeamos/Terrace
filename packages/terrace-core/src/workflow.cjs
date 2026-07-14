@@ -22,6 +22,7 @@ const {
   seniorRequirements,
   seniorCycleGateStatus
 } = require('./workflow-helpers.cjs');
+const { preflightProjectArtifacts, writeProjectText } = require('./managed-artifacts.cjs');
 const {
   reportUpdate,
   reportShipCheck,
@@ -47,13 +48,8 @@ function safeResolve(cwd, relativeFilePath) {
   return resolved;
 }
 
-function ensureDirFor(cwd, relativeFilePath) {
-  fs.mkdirSync(path.dirname(safeResolve(cwd, relativeFilePath)), { recursive: true });
-}
-
 function writeMarkdown(cwd, relativeFilePath, lines) {
-  ensureDirFor(cwd, relativeFilePath);
-  fs.writeFileSync(safeResolve(cwd, relativeFilePath), lines.join('\n') + '\n', 'utf8');
+  writeProjectText(cwd, relativeFilePath, lines.join('\n') + '\n');
   return relativeFilePath;
 }
 
@@ -584,6 +580,7 @@ function mapCodebase(cwd) {
     refs.codebase_testing,
     refs.codebase_observability
   ];
+  preflightProjectArtifacts(cwd, artifacts);
   writeMarkdown(cwd, refs.codebase_map, [
     '# Codebase Map',
     '',

@@ -66,6 +66,12 @@ Terrace keeps its workflow state at `.terrace/state.json`. Current installations
 
 State mutations use an exclusive `.terrace/state.lock`, validate the complete canonical schema, sync a temporary file and its parent directory where the platform supports it, then atomically replace state. Stale-lock recovery is itself serialized through a temporary recovery claim, so a concurrent writer cannot delete a replacement lock; an interrupted recovery claim fails closed for inspection. A concurrent or stale mutation returns structured guidance instead of silently overwriting newer work. If a state file is damaged, restore a valid backup or use `terrace init --force --yes` only when a deliberate managed-state reset is appropriate.
 
+## Managed Artifact Safety
+
+The primary mutable Terrace-owned files under `.terrace/` use the managed-artifact boundary. It rejects path traversal, symlinked parents or files, special filesystem objects, malformed JSON/JSONL, and unexpected replacement of a parent directory while a write is in progress. Writes are serialized by `.terrace/locks/managed-artifacts.lock`, atomically replace a synced temporary file, and fail closed if an active writer or interrupted stale-lock recovery cannot be proven safe.
+
+Preset installation journals its coupled policy and registry update under `.terrace/transactions/`, so an interrupted install is either completed or rolled back before the next managed mutation. Configuration, rule packs, policy, event history, generated manifests, session records, security evidence, migration reports, and lifecycle JSON use this same boundary. `terrace doctor` reports unsafe managed paths instead of treating them as healthy files.
+
 ## Agent Integration
 
 `terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance. Use `terrace agents repair` when only generated repo-local agent assets are missing; it never changes workflow state.
@@ -125,7 +131,7 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 
 - `terrace --help` shows the top-level command list.
 - `terrace --version` prints the package version.
-- `terrace init` initializes or safely repairs Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent. `terrace init --force --yes` first stores managed pre-reset files under `.terrace/backups/`, then resets the default Terrace state, configuration, preset registry, rules, and event ledger while continuing to add only missing agent assets. If that reset fails after writing, Terrace restores the managed files from that retained backup.
+- `terrace init` initializes or safely repairs Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent. It preflights Terrace-owned files and generated-agent parent directories before writing state. `terrace init --force --yes` first stores managed pre-reset files under `.terrace/backups/`, then resets the default Terrace state, configuration, preset registry, rules, and event ledger while continuing to add only missing agent assets. If that reset fails after writing, Terrace restores the managed files from that retained backup.
 - `terrace agents repair` installs missing repo-local Terrace agent assets without changing `.terrace/state.json`, configuration, rules, or event history.
 - `terrace agents install-global` installs non-overwriting global Codex and Claude Code assets, including `/terrace` and the full `/terrace-*` command-reference surface.
 - `terrace new-project <name> --prd <file>` or `--paste-prd` initializes Terrace from a source PRD and writes project artifacts.
@@ -244,6 +250,7 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
 - `STATE_REVISION_CONFLICT` or `STATE_WRITE_LOCKED`: wait for the active Terrace mutation to finish, reload state, and retry. Terrace reclaims a lock only when its recorded PID is confirmed absent; if the message names `.terrace/state.lock.recovery`, inspect that interrupted recovery claim before any manual intervention.
+- `MANAGED_ARTIFACT_PATH_UNSAFE`, `MANAGED_ARTIFACT_WRITE_LOCKED`, or `MANAGED_ARTIFACT_TRANSACTION_RECOVERY_REQUIRED`: replace the unsafe filesystem object or inspect the named lock/transaction journal; Terrace will not follow a managed symlink, overwrite a live writer, or discard interrupted preset state.
 - `STATE_SCHEMA_INVALID` or `STATE_JSON_INVALID`: restore a valid `.terrace/state.json` backup, or use `terrace init --force --yes` only for an intentional managed-state reset.
 - `terrace init` needs to restart an existing workflow: use `terrace init --force --yes` only when you intend to reset managed Terrace state; restore files from the reported `.terrace/backups/` path if needed.
 - Repo-local `/terrace-*` assets are incomplete: run `terrace agents repair`.

@@ -3,6 +3,18 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { guidanceError } = require('./guidance.cjs');
+const {
+  ensureProjectDirectory,
+  readManagedText,
+  readProjectText,
+  resolveProjectArtifact,
+  withManagedArtifactLock,
+  withPinnedDirectory,
+  writeManagedText,
+  writeProjectText,
+  writeProjectTextIfMissing
+} = require('./managed-artifacts.cjs');
 
 const AGENT_SCHEMA_VERSION = '1.0';
 
@@ -325,54 +337,114 @@ function globalClaudeTemplateAssets() {
   ];
 }
 
+function agentAssetPathError(relativePath, reason) {
+  throw guidanceError('Refusing to use unsafe Terrace agent asset ' + relativePath + '.', {
+    code: 'AGENT_ASSET_PATH_UNSAFE',
+    file: relativePath,
+    why_blocked: reason,
+    next_command: 'Replace the symlink or unexpected filesystem object, then rerun the Terrace agent command.',
+    remediation: 'Terrace agent assets must stay inside the target repository and use ordinary files and directories.'
+  });
+}
+
+function mapProjectArtifactError(relativePath, error) {
+  if (error && error.details && error.details.code === 'MANAGED_ARTIFACT_PATH_UNSAFE') {
+    agentAssetPathError(relativePath, error.details.why_blocked || 'The generated agent asset path is unsafe.');
+  }
+  throw error;
+}
+
+function resolveRepoAsset(cwd, relativePath, options) {
+  try {
+    return resolveProjectArtifact(cwd, relativePath, options);
+  } catch (error) {
+    return mapProjectArtifactError(relativePath, error);
+  }
+}
+
+function readRepoAssetText(cwd, relativePath) {
+  try {
+    return readProjectText(cwd, relativePath);
+  } catch (error) {
+    return mapProjectArtifactError(relativePath, error);
+  }
+}
+
+function existingRepoAssetResult(cwd, asset) {
+  const resolved = resolveRepoAsset(cwd, asset.path, { allowExistingLeafSymlink: true });
+  if (!resolved.fileStat) {
+    return null;
+  }
+  if (resolved.fileStat.isSymbolicLink()) {
+    return { path: asset.path, type: asset.type, status: 'skipped' };
+  }
+  const existing = readRepoAssetText(cwd, asset.path);
+  return {
+    path: asset.path,
+    type: asset.type,
+    status: existing === asset.content ? 'unchanged' : 'skipped'
+  };
+}
+
+function writeMissingRepoAsset(cwd, asset) {
+  try {
+    const existing = existingRepoAssetResult(cwd, asset);
+    if (existing) {
+      return existing;
+    }
+    const written = writeProjectTextIfMissing(cwd, asset.path, asset.content, { allowExistingLeafSymlink: true });
+    if (written) {
+      return { path: asset.path, type: asset.type, status: 'written' };
+    }
+    return existingRepoAssetResult(cwd, asset) || { path: asset.path, type: asset.type, status: 'skipped' };
+  } catch (error) {
+    return mapProjectArtifactError(asset.path, error);
+  }
+}
+
+function preflightAgentBootstrap(cwd) {
+  for (const asset of templateAssets()) {
+    resolveRepoAsset(cwd, asset.path, { allowExistingLeafSymlink: true });
+  }
+  readManagedText(cwd, 'agents/manifest.json');
+}
+
 function writeAsset(cwd, asset) {
-  const target = path.resolve(cwd, asset.path);
-  if (!target.startsWith(path.resolve(cwd) + path.sep)) {
-    throw new Error('Agent asset path escapes repository: ' + asset.path);
-  }
-  if (fs.existsSync(target)) {
-    const existing = fs.readFileSync(target, 'utf8');
-    return {
-      path: asset.path,
-      type: asset.type,
-      status: existing === asset.content ? 'unchanged' : 'skipped'
-    };
-  }
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, asset.content, 'utf8');
-  return { path: asset.path, type: asset.type, status: 'written' };
+  return writeMissingRepoAsset(cwd, asset);
 }
 
 function writeManifest(cwd, assetResults) {
   const relPath = '.terrace/agents/manifest.json';
-  const target = path.resolve(cwd, relPath);
   const manifest = {
     schema_version: AGENT_SCHEMA_VERSION,
     generated_by: 'terrace init',
     assets: assetResults
   };
   const content = JSON.stringify(manifest, null, 2) + '\n';
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  const shouldRefresh = !fs.existsSync(target) || assetResults.some((asset) => asset.status === 'written');
+  const existing = readManagedText(cwd, 'agents/manifest.json');
+  const shouldRefresh = existing === null || assetResults.some((asset) => asset.status === 'written');
   if (!shouldRefresh) {
     return { path: relPath, type: 'manifest', status: 'unchanged' };
   }
-  const status = fs.existsSync(target) && fs.readFileSync(target, 'utf8') === content ? 'unchanged' : 'written';
+  const status = existing === content ? 'unchanged' : 'written';
   if (status === 'unchanged') {
     return { path: relPath, type: 'manifest', status };
   }
-  fs.writeFileSync(target, content, 'utf8');
+  writeManagedText(cwd, 'agents/manifest.json', content);
   return { path: relPath, type: 'manifest', status };
 }
 
 function installAgentBootstrap(cwd) {
-  const assetResults = templateAssets().map((asset) => writeAsset(cwd, asset));
-  const manifestResult = writeManifest(cwd, assetResults);
-  return {
-    enabled: true,
-    manifest_path: manifestResult.path,
-    assets: [...assetResults, manifestResult]
-  };
+  preflightAgentBootstrap(cwd);
+  return withManagedArtifactLock(cwd, () => {
+    const assetResults = templateAssets().map((asset) => writeAsset(cwd, asset));
+    const manifestResult = writeManifest(cwd, assetResults);
+    return {
+      enabled: true,
+      manifest_path: manifestResult.path,
+      assets: [...assetResults, manifestResult]
+    };
+  });
 }
 
 function defaultGlobalAgentsDir() {
@@ -383,59 +455,230 @@ function defaultGlobalClaudeDir() {
   return process.env.TERRACE_GLOBAL_CLAUDE_DIR || path.join(os.homedir(), '.claude');
 }
 
+function lstatIfExists(filePath) {
+  try {
+    return fs.lstatSync(filePath);
+  } catch (error) {
+    if (error && error.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
+
+function isSystemDirectoryAlias(directory) {
+  if (!['/tmp', '/var'].includes(directory)) {
+    return false;
+  }
+  try {
+    return fs.realpathSync(directory) === path.join('/private', directory);
+  } catch {
+    return false;
+  }
+}
+
+function assertGlobalRootAncestors(rootDir) {
+  const requestedRoot = path.resolve(rootDir);
+  const parsed = path.parse(requestedRoot);
+  let current = parsed.root;
+  const parts = requestedRoot.slice(parsed.root.length).split(path.sep).filter(Boolean);
+
+  for (const part of parts) {
+    current = path.join(current, part);
+    let stat;
+    try {
+      stat = lstatIfExists(current);
+    } catch (error) {
+      globalAssetPathError(requestedRoot, '.', 'Terrace could not inspect a parent of the configured global asset root.');
+    }
+    if (!stat) {
+      return;
+    }
+    if (stat.isSymbolicLink() && !isSystemDirectoryAlias(current)) {
+      globalAssetPathError(requestedRoot, '.', 'The configured global asset root and its parents must be real directories, never symlinks.');
+    }
+    if (!stat.isSymbolicLink() && !stat.isDirectory()) {
+      globalAssetPathError(requestedRoot, '.', 'Every existing parent of the configured global asset root must be a directory.');
+    }
+  }
+}
+
+function sameGlobalDirectory(stat, identity) {
+  return Boolean(stat && identity && !stat.isSymbolicLink() && stat.isDirectory() && stat.dev === identity.dev && stat.ino === identity.ino);
+}
+
+function globalAssetPathError(rootDir, relativePath, reason) {
+  throw guidanceError('Refusing to use unsafe Terrace global agent asset ' + relativePath + '.', {
+    code: 'GLOBAL_AGENT_ASSET_PATH_UNSAFE',
+    file: path.join(rootDir, relativePath),
+    why_blocked: reason,
+    next_command: 'Replace the symlink or unexpected filesystem object, then rerun terrace agents install-global.',
+    remediation: 'Global Terrace agent assets must stay inside their configured root and use ordinary files and directories.'
+  });
+}
+
+function mapGlobalAssetError(rootDir, relativePath, error) {
+  if (error && error.details && error.details.code === 'MANAGED_ARTIFACT_PATH_UNSAFE') {
+    globalAssetPathError(rootDir, relativePath, error.details.why_blocked || 'The global asset path is unsafe.');
+  }
+  throw error;
+}
+
+function ensureGlobalRoot(rootDir) {
+  const requestedRoot = path.resolve(rootDir);
+  assertGlobalRootAncestors(requestedRoot);
+  let current = requestedRoot;
+  const missing = [];
+  let stat = lstatIfExists(current);
+  while (!stat) {
+    const parent = path.dirname(current);
+    if (parent === current) {
+      globalAssetPathError(requestedRoot, '.', 'Terrace could not find a real parent directory for the configured global asset root.');
+    }
+    missing.unshift(path.basename(current));
+    current = parent;
+    stat = lstatIfExists(current);
+  }
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
+    globalAssetPathError(requestedRoot, '.', 'The configured global asset root and its created parents must be real directories, never links or special filesystem objects.');
+  }
+
+  let root = current;
+  if (missing.length > 0) {
+    try {
+      root = ensureProjectDirectory(current, missing.join(path.sep)).directory;
+    } catch (error) {
+      return mapGlobalAssetError(requestedRoot, '.', error);
+    }
+  }
+  const rootStat = lstatIfExists(root);
+  if (!rootStat || rootStat.isSymbolicLink() || !rootStat.isDirectory()) {
+    globalAssetPathError(requestedRoot, '.', 'The configured global asset root must be a real directory.');
+  }
+  assertGlobalRootAncestors(requestedRoot);
+  return root;
+}
+
+function assertGlobalRootStable(rootDir, identity) {
+  assertGlobalRootAncestors(rootDir);
+  if (!sameGlobalDirectory(lstatIfExists(rootDir), identity)) {
+    globalAssetPathError(rootDir, '.', 'The configured global asset root changed while Terrace was installing generated assets.');
+  }
+}
+
+function resolveGlobalAsset(rootDir, relativePath, options) {
+  try {
+    return resolveProjectArtifact(rootDir, relativePath, options);
+  } catch (error) {
+    return mapGlobalAssetError(rootDir, relativePath, error);
+  }
+}
+
+function readGlobalAssetText(rootDir, relativePath) {
+  try {
+    return readProjectText(rootDir, relativePath);
+  } catch (error) {
+    return mapGlobalAssetError(rootDir, relativePath, error);
+  }
+}
+
+function existingGlobalAssetResult(rootDir, asset) {
+  const resolved = resolveGlobalAsset(rootDir, asset.path, { allowExistingLeafSymlink: true });
+  if (!resolved.fileStat) {
+    return null;
+  }
+  if (resolved.fileStat.isSymbolicLink()) {
+    return { path: asset.path, type: asset.type, status: 'skipped' };
+  }
+  const existing = readGlobalAssetText(rootDir, asset.path);
+  return {
+    path: asset.path,
+    type: asset.type,
+    status: existing === asset.content ? 'unchanged' : 'skipped'
+  };
+}
+
 function writeGlobalAsset(rootDir, asset) {
-  const root = path.resolve(rootDir);
-  const target = path.resolve(root, asset.path);
-  if (!target.startsWith(root + path.sep)) {
-    throw new Error('Global agent asset path escapes target directory: ' + asset.path);
+  const root = ensureGlobalRoot(rootDir);
+  const operationRoot = rootDir === '.' ? '.' : root;
+  try {
+    const existing = existingGlobalAssetResult(operationRoot, asset);
+    if (existing) {
+      return existing;
+    }
+    const written = writeProjectTextIfMissing(operationRoot, asset.path, asset.content, { allowExistingLeafSymlink: true, lock: false });
+    if (written) {
+      return { path: asset.path, type: asset.type, status: 'written' };
+    }
+    return existingGlobalAssetResult(operationRoot, asset) || { path: asset.path, type: asset.type, status: 'skipped' };
+  } catch (error) {
+    return mapGlobalAssetError(root, asset.path, error);
   }
-  if (fs.existsSync(target)) {
-    const existing = fs.readFileSync(target, 'utf8');
-    return {
-      path: asset.path,
-      type: asset.type,
-      status: existing === asset.content ? 'unchanged' : 'skipped'
-    };
-  }
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, asset.content, 'utf8');
-  return { path: asset.path, type: asset.type, status: 'written' };
 }
 
 function writeGlobalManifest(rootDir, relPath, generatedBy, assetResults) {
-  const root = path.resolve(rootDir);
-  const target = path.resolve(root, relPath);
-  if (!target.startsWith(root + path.sep)) {
-    throw new Error('Global agent manifest path escapes target directory.');
-  }
+  const root = ensureGlobalRoot(rootDir);
+  const operationRoot = rootDir === '.' ? '.' : root;
   const manifest = {
     schema_version: AGENT_SCHEMA_VERSION,
     generated_by: generatedBy,
     assets: assetResults
   };
   const content = JSON.stringify(manifest, null, 2) + '\n';
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  const status = fs.existsSync(target) && fs.readFileSync(target, 'utf8') === content ? 'unchanged' : 'written';
-  fs.writeFileSync(target, content, 'utf8');
+  const resolved = resolveGlobalAsset(operationRoot, relPath, { allowExistingLeafSymlink: true });
+  if (resolved.fileStat && resolved.fileStat.isSymbolicLink()) {
+    return { path: relPath, type: 'global-manifest', status: 'skipped' };
+  }
+  const existing = resolved.fileStat ? readGlobalAssetText(operationRoot, relPath) : null;
+  const status = existing === content ? 'unchanged' : 'written';
+  if (status === 'written') {
+    try {
+      writeProjectText(operationRoot, relPath, content, { lock: false });
+    } catch (error) {
+      return mapGlobalAssetError(root, relPath, error);
+    }
+  }
   return { path: relPath, type: 'global-manifest', status };
+}
+
+function withGlobalRoot(rootDir, action) {
+  const configuredRoot = path.resolve(rootDir);
+  const root = ensureGlobalRoot(configuredRoot);
+  const stat = lstatIfExists(root);
+  const identity = { dev: stat.dev, ino: stat.ino };
+  assertGlobalRootStable(configuredRoot, identity);
+  const value = withPinnedDirectory(root, identity, (reason) => {
+    globalAssetPathError(root, '.', reason);
+  }, () => {
+    assertGlobalRootStable(configuredRoot, identity);
+    const result = action('.');
+    assertGlobalRootStable(configuredRoot, identity);
+    return result;
+  });
+  assertGlobalRootStable(configuredRoot, identity);
+  return { root: configuredRoot, value };
 }
 
 function installGlobalAgentBootstrap(options) {
   const opts = options || {};
-  const globalAgentsDir = path.resolve(opts.globalAgentsDir || defaultGlobalAgentsDir());
-  const globalClaudeDir = path.resolve(opts.globalClaudeDir || defaultGlobalClaudeDir());
-  const codexAssetResults = globalTemplateAssets().map((asset) => writeGlobalAsset(globalAgentsDir, asset));
-  const codexManifestResult = writeGlobalManifest(globalAgentsDir, 'terrace/manifest.json', 'terrace agents install-global', codexAssetResults);
-  const claudeAssetResults = globalClaudeTemplateAssets().map((asset) => writeGlobalAsset(globalClaudeDir, asset));
-  const claudeManifestResult = writeGlobalManifest(globalClaudeDir, 'terrace/manifest.json', 'terrace agents install-global', claudeAssetResults);
+  const codex = withGlobalRoot(opts.globalAgentsDir || defaultGlobalAgentsDir(), (root) => {
+    const assets = globalTemplateAssets().map((asset) => writeGlobalAsset(root, asset));
+    const manifest = writeGlobalManifest(root, 'terrace/manifest.json', 'terrace agents install-global', assets);
+    return { assets, manifest };
+  });
+  const claude = withGlobalRoot(opts.globalClaudeDir || defaultGlobalClaudeDir(), (root) => {
+    const assets = globalClaudeTemplateAssets().map((asset) => writeGlobalAsset(root, asset));
+    const manifest = writeGlobalManifest(root, 'terrace/manifest.json', 'terrace agents install-global', assets);
+    return { assets, manifest };
+  });
   return {
     enabled: true,
-    global_agents_dir: globalAgentsDir,
-    global_claude_dir: globalClaudeDir,
-    manifest_path: codexManifestResult.path,
-    claude_manifest_path: claudeManifestResult.path,
-    assets: [...codexAssetResults, codexManifestResult],
-    claude_assets: [...claudeAssetResults, claudeManifestResult],
+    global_agents_dir: codex.root,
+    global_claude_dir: claude.root,
+    manifest_path: codex.value.manifest.path,
+    claude_manifest_path: claude.value.manifest.path,
+    assets: [...codex.value.assets, codex.value.manifest],
+    claude_assets: [...claude.value.assets, claude.value.manifest],
     next_command: '/terrace'
   };
 }
@@ -489,6 +732,7 @@ module.exports = {
   agentAssetExpectations,
   installGlobalAgentBootstrap,
   installAgentBootstrap,
+  preflightAgentBootstrap,
   globalClaudeTemplateAssets,
   globalTemplateAssets,
   templateAssets

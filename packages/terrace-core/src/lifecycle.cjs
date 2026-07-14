@@ -10,6 +10,7 @@ const { normalizeImportedFindings, staticReviewFindings } = require('./artifact-
 const { blocker, warning } = require('./guidance.cjs');
 const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
 const { packageManagerFor, testCommand } = require('./package-manager.cjs');
+const { listManagedJsonArtifacts, preflightProjectArtifacts, readManagedJson, withManagedArtifactLock, writeManagedJson, writeProjectText } = require('./managed-artifacts.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -28,17 +29,24 @@ function safeResolve(cwd, relativeFilePath) {
   return resolved;
 }
 
-function ensureDirFor(cwd, relativeFilePath) {
-  fs.mkdirSync(path.dirname(safeResolve(cwd, relativeFilePath)), { recursive: true });
+function isManagedArtifactRef(relativeFilePath) {
+  return relativeFilePath.startsWith('.terrace/');
+}
+
+function managedArtifactRef(relativeFilePath) {
+  return relativeFilePath.slice('.terrace/'.length);
 }
 
 function writeText(cwd, relativeFilePath, content) {
-  ensureDirFor(cwd, relativeFilePath);
-  fs.writeFileSync(safeResolve(cwd, relativeFilePath), content, 'utf8');
+  writeProjectText(cwd, relativeFilePath, content);
   return relativeFilePath;
 }
 
 function writeJson(cwd, relativeFilePath, data) {
+  if (isManagedArtifactRef(relativeFilePath)) {
+    writeManagedJson(cwd, managedArtifactRef(relativeFilePath), data);
+    return relativeFilePath;
+  }
   return writeText(cwd, relativeFilePath, JSON.stringify(data, null, 2) + '\n');
 }
 
@@ -71,6 +79,9 @@ function normalizePathToken(value, label) {
 }
 
 function readJsonIfExists(cwd, relativeFilePath, fallback) {
+  if (isManagedArtifactRef(relativeFilePath)) {
+    return readManagedJson(cwd, managedArtifactRef(relativeFilePath), fallback);
+  }
   const filePath = path.resolve(cwd, relativeFilePath);
   if (!fs.existsSync(filePath)) {
     return fallback;
@@ -418,30 +429,33 @@ function reportMarkdown(card) {
 function reportUpdate(cwd, options) {
   const opts = options || {};
   const command = opts.command || 'terrace report update';
-  const card = buildReportCard(cwd, command);
-  const cardRef = '.terrace/report-card.json';
-  const docsRef = 'docs/terrace/REPORT-CARD.md';
-  const historyRef = 'docs/terrace/report-history/' + timestampId() + '.md';
-  writeJson(cwd, cardRef, card);
-  writeMarkdown(cwd, docsRef, reportMarkdown(card));
-  writeMarkdown(cwd, historyRef, reportMarkdown(card));
-  const state = loadState(cwd);
-  const nextState = {
-    ...state,
-    report_card: {
-      ...card,
+  return withManagedArtifactLock(cwd, () => {
+    const card = buildReportCard(cwd, command);
+    const cardRef = '.terrace/report-card.json';
+    const docsRef = 'docs/terrace/REPORT-CARD.md';
+    const historyRef = 'docs/terrace/report-history/' + timestampId() + '.md';
+    preflightProjectArtifacts(cwd, [docsRef, historyRef]);
+    writeJson(cwd, cardRef, card);
+    writeMarkdown(cwd, docsRef, reportMarkdown(card));
+    writeMarkdown(cwd, historyRef, reportMarkdown(card));
+    const state = loadState(cwd);
+    const nextState = {
+      ...state,
+      report_card: {
+        ...card,
+        artifact: cardRef,
+        docs_ref: docsRef,
+        latest_history_ref: historyRef
+      }
+    };
+    saveState(cwd, nextState);
+    return {
+      report_card: nextState.report_card,
       artifact: cardRef,
       docs_ref: docsRef,
-      latest_history_ref: historyRef
-    }
-  };
-  saveState(cwd, nextState);
-  return {
-    report_card: nextState.report_card,
-    artifact: cardRef,
-    docs_ref: docsRef,
-    history_ref: historyRef
-  };
+      history_ref: historyRef
+    };
+  });
 }
 
 function reportRead(cwd) {
@@ -604,22 +618,25 @@ function createHandoff(cwd, options) {
       json: jsonRef
     }
   };
-  writeJson(cwd, jsonRef, handoff);
-  writeMarkdown(cwd, markdownRef, handoffMarkdown(handoff));
-  const handoffs = Array.isArray(state.handoffs) ? state.handoffs : [];
-  const nextState = {
-    ...state,
-    handoffs: [...handoffs, handoff],
-    handoff: {
-      status: 'handoff_ready',
-      next_action: handoff.safe_next_action,
-      feature: featureId,
-      artifact: markdownRef
-    }
-  };
-  saveState(cwd, nextState);
-  reportUpdate(cwd, { command: 'terrace handoff create' });
-  return handoff;
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [markdownRef]);
+    writeJson(cwd, jsonRef, handoff);
+    writeMarkdown(cwd, markdownRef, handoffMarkdown(handoff));
+    const handoffs = Array.isArray(state.handoffs) ? state.handoffs : [];
+    const nextState = {
+      ...state,
+      handoffs: [...handoffs, handoff],
+      handoff: {
+        status: 'handoff_ready',
+        next_action: handoff.safe_next_action,
+        feature: featureId,
+        artifact: markdownRef
+      }
+    };
+    saveState(cwd, nextState);
+    reportUpdate(cwd, { command: 'terrace handoff create' });
+    return handoff;
+  });
 }
 
 function inferOwnership(files) {
@@ -687,14 +704,18 @@ function addDebt(cwd, options) {
     ...state,
     debt: [...entries, entry]
   };
-  saveState(cwd, nextState);
-  writeDebtDoc(cwd, featureId, nextState.debt.filter((item) => item.feature_id === featureId));
-  reportUpdate(cwd, { command: 'terrace debt add ' + featureId });
-  return {
-    entry,
-    artifact: featureRef(featureId) + '/DEBT.md',
-    next_command: 'terrace debt audit'
-  };
+  const artifact = featureRef(featureId) + '/DEBT.md';
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [artifact]);
+    saveState(cwd, nextState);
+    writeDebtDoc(cwd, featureId, nextState.debt.filter((item) => item.feature_id === featureId));
+    reportUpdate(cwd, { command: 'terrace debt add ' + featureId });
+    return {
+      entry,
+      artifact,
+      next_command: 'terrace debt audit'
+    };
+  });
 }
 
 function writeDebtDoc(cwd, featureId, entries) {
@@ -779,14 +800,18 @@ function resolveDebt(cwd, id) {
     ...state,
     debt: nextEntries
   };
-  saveState(cwd, nextState);
-  writeDebtDoc(cwd, found.feature_id, nextEntries.filter((entry) => entry.feature_id === found.feature_id));
-  reportUpdate(cwd, { command: 'terrace debt resolve ' + id });
-  return {
-    entry: nextEntries.find((entry) => entry.id === id),
-    artifact: featureRef(found.feature_id) + '/DEBT.md',
-    next_command: 'terrace debt audit'
-  };
+  const artifact = featureRef(found.feature_id) + '/DEBT.md';
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [artifact]);
+    saveState(cwd, nextState);
+    writeDebtDoc(cwd, found.feature_id, nextEntries.filter((entry) => entry.feature_id === found.feature_id));
+    reportUpdate(cwd, { command: 'terrace debt resolve ' + id });
+    return {
+      entry: nextEntries.find((entry) => entry.id === id),
+      artifact,
+      next_command: 'terrace debt audit'
+    };
+  });
 }
 
 function featureEvidence(cwd, featureId) {
@@ -1162,26 +1187,29 @@ function reviewAi(cwd, options) {
     imported_from: importedPath,
     findings
   };
-  writeJson(cwd, artifact, entry);
-  writeMarkdown(cwd, markdown, [
-    '# AI Review: ' + mode + ' - ' + featureId,
-    '',
-    '## Findings',
-    ...findings.map((finding) => '- ' + finding.id + ' [' + finding.classification + ']: ' + finding.claim),
-    '',
-    '## Evidence',
-    ...findings.map((finding) => '- ' + finding.file_or_artifact + ': ' + finding.evidence),
-    '',
-    '## Recommended Fix',
-    ...findings.map((finding) => '- ' + finding.id + ': ' + finding.recommended_fix)
-  ]);
-  const state = loadState(cwd);
-  saveState(cwd, {
-    ...state,
-    ai_reviews: [...aiReviewEntries(state), entry]
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [artifact, markdown]);
+    writeJson(cwd, artifact, entry);
+    writeMarkdown(cwd, markdown, [
+      '# AI Review: ' + mode + ' - ' + featureId,
+      '',
+      '## Findings',
+      ...findings.map((finding) => '- ' + finding.id + ' [' + finding.classification + ']: ' + finding.claim),
+      '',
+      '## Evidence',
+      ...findings.map((finding) => '- ' + finding.file_or_artifact + ': ' + finding.evidence),
+      '',
+      '## Recommended Fix',
+      ...findings.map((finding) => '- ' + finding.id + ': ' + finding.recommended_fix)
+    ]);
+    const state = loadState(cwd);
+    saveState(cwd, {
+      ...state,
+      ai_reviews: [...aiReviewEntries(state), entry]
+    });
+    reportUpdate(cwd, { command: 'terrace review ai --mode ' + mode });
+    return entry;
   });
-  reportUpdate(cwd, { command: 'terrace review ai --mode ' + mode });
-  return entry;
 }
 
 function ruleAdd(cwd, domain, ruleId) {
@@ -1203,29 +1231,32 @@ function ruleAdd(cwd, domain, ruleId) {
     review_after: null,
     source: 'terrace rule add'
   };
-  writeJson(cwd, jsonRef, entry);
-  writeMarkdown(cwd, docsRef, [
-    '# Rule: ' + normalizedDomain + '/' + normalizedRule,
-    '',
-    '## Rationale',
-    entry.rationale,
-    '',
-    '## Applies To',
-    '- TODO',
-    '',
-    '## Forbidden Patterns',
-    '- TODO',
-    '',
-    '## Preferred Patterns',
-    '- TODO',
-    '',
-    '## Enforcement',
-    '- ' + entry.enforcement_level,
-    '',
-    '## Owner',
-    '- missing'
-  ]);
-  return { rule: entry, artifact: jsonRef, docs_ref: docsRef, next_command: 'terrace rule audit' };
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [docsRef]);
+    writeJson(cwd, jsonRef, entry);
+    writeMarkdown(cwd, docsRef, [
+      '# Rule: ' + normalizedDomain + '/' + normalizedRule,
+      '',
+      '## Rationale',
+      entry.rationale,
+      '',
+      '## Applies To',
+      '- TODO',
+      '',
+      '## Forbidden Patterns',
+      '- TODO',
+      '',
+      '## Preferred Patterns',
+      '- TODO',
+      '',
+      '## Enforcement',
+      '- ' + entry.enforcement_level,
+      '',
+      '## Owner',
+      '- missing'
+    ]);
+    return { rule: entry, artifact: jsonRef, docs_ref: docsRef, next_command: 'terrace rule audit' };
+  });
 }
 
 function ruleAudit(cwd, options) {
@@ -1309,35 +1340,33 @@ function ruleAudit(cwd, options) {
 }
 
 function collectRuleArtifacts(cwd) {
-  const root = path.resolve(cwd, '.terrace/rules');
   const rules = [];
-  if (!fs.existsSync(root)) {
-    return rules;
-  }
-  walk(root, (filePath) => {
-    if (!filePath.endsWith('.json')) {
-      return;
-    }
+  for (const relativePath of listManagedJsonArtifacts(cwd, 'rules')) {
+    let parsed;
     try {
-      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      if (Array.isArray(parsed.rules)) {
-        for (const rule of parsed.rules) {
-          rules.push({
-            ...rule,
-            domain: rule.domain || parsed.domain || path.basename(filePath, '.json'),
-            owner: rule.owner || parsed.owner || 'terrace-core',
-            review_after: rule.review_after || parsed.review_after || '2026-10-29',
-            maturity: rule.maturity || parsed.maturity || (rule.blocking ? 'blocking' : 'warning'),
-            source: rule.source || parsed.source || 'bundled-rule-pack'
-          });
-        }
-      } else {
-        rules.push(parsed);
-      }
+      parsed = readManagedJson(cwd, relativePath, null);
     } catch (error) {
-      rules.push({ id: path.basename(filePath, '.json'), domain: 'unknown', owner: null, rationale: '' });
+      if (error && error.details && error.details.code === 'MANAGED_ARTIFACT_PATH_UNSAFE') {
+        throw error;
+      }
+      rules.push({ id: path.basename(relativePath, '.json'), domain: 'unknown', owner: null, rationale: '' });
+      continue;
     }
-  });
+    if (Array.isArray(parsed.rules)) {
+      for (const rule of parsed.rules) {
+        rules.push({
+          ...rule,
+          domain: rule.domain || parsed.domain || path.basename(relativePath, '.json'),
+          owner: rule.owner || parsed.owner || 'terrace-core',
+          review_after: rule.review_after || parsed.review_after || '2026-10-29',
+          maturity: rule.maturity || parsed.maturity || (rule.blocking ? 'blocking' : 'warning'),
+          source: rule.source || parsed.source || 'bundled-rule-pack'
+        });
+      }
+    } else {
+      rules.push(parsed);
+    }
+  }
   return rules;
 }
 
@@ -1473,32 +1502,35 @@ function workstreamsPlan(cwd, feature) {
   const artifact = featureRef(featureId) + '/WORKSTREAMS.md';
   const jsonRef = '.terrace/workstreams/' + featureId + '.json';
   const entry = { feature_id: featureId, artifact, json_ref: jsonRef, lanes, coordination_points, created_at: nowIso() };
-  writeJson(cwd, jsonRef, entry);
-  writeMarkdown(cwd, artifact, [
-    '# Workstreams: ' + featureId,
-    '',
-    '## Coordination Points',
-    ...coordination_points.map((item) => '- ' + item),
-    '',
-    '## Lanes',
-    ...lanes.flatMap((lane) => [
-      '### ' + lane.lane,
-      '- Parallel: ' + String(lane.parallel),
-      '- Owned files: ' + (lane.owned_files.length > 0 ? lane.owned_files.join(', ') : 'none detected'),
-      '- Dependencies: ' + (lane.dependencies.length > 0 ? lane.dependencies.join(', ') : 'none detected'),
-      '- Collision risks: ' + (lane.collision_risks.length > 0 ? lane.collision_risks.join(', ') : 'none detected'),
-      '- Verification: ' + lane.verification_commands.join(', ')
-    ])
-  ]);
-  const state = loadState(cwd);
-  saveState(cwd, {
-    ...state,
-    workstreams: {
-      ...workstreamEntries(state),
-      [featureId]: entry
-    }
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [artifact]);
+    writeJson(cwd, jsonRef, entry);
+    writeMarkdown(cwd, artifact, [
+      '# Workstreams: ' + featureId,
+      '',
+      '## Coordination Points',
+      ...coordination_points.map((item) => '- ' + item),
+      '',
+      '## Lanes',
+      ...lanes.flatMap((lane) => [
+        '### ' + lane.lane,
+        '- Parallel: ' + String(lane.parallel),
+        '- Owned files: ' + (lane.owned_files.length > 0 ? lane.owned_files.join(', ') : 'none detected'),
+        '- Dependencies: ' + (lane.dependencies.length > 0 ? lane.dependencies.join(', ') : 'none detected'),
+        '- Collision risks: ' + (lane.collision_risks.length > 0 ? lane.collision_risks.join(', ') : 'none detected'),
+        '- Verification: ' + lane.verification_commands.join(', ')
+      ])
+    ]);
+    const state = loadState(cwd);
+    saveState(cwd, {
+      ...state,
+      workstreams: {
+        ...workstreamEntries(state),
+        [featureId]: entry
+      }
+    });
+    return entry;
   });
-  return entry;
 }
 
 function designSourceImport(cwd, source, feature, ref) {
@@ -1520,50 +1552,53 @@ function designSourceImport(cwd, source, feature, ref) {
     },
     created_at: nowIso()
   };
-  writeMarkdown(cwd, specRef, [
-    '# UI Spec: ' + featureId,
-    '',
-    '## Source',
-    '- Type: ' + normalizedSource,
-    '- Ref: ' + (ref || 'missing'),
-    '',
-    '## Routes And Components',
-    ...bulletList(repo.route_hints.concat(repo.component_hints), 'No route or component files were detected.'),
-    '',
-    '## States',
-    '- loading, empty, error, success, disabled, and responsive states must be verified for the imported surface.',
-    '',
-    '## Implementation Constraints',
-    '- Preserve existing route structure unless the design source explicitly requires navigation changes.',
-    '- Match assets and interaction states to the referenced ' + normalizedSource + ' source.'
-  ]);
-  writeMarkdown(cwd, assetsRef, [
-    '# UI Assets: ' + featureId,
-    '',
-    '## Required Assets',
-    '- Source reference: ' + (ref || 'missing'),
-    '- Reuse existing assets where current components already provide equivalent imagery or icons.',
-    '',
-    '## Source References',
-    '- ' + (ref || 'missing')
-  ]);
-  writeMarkdown(cwd, verifyRef, [
-    '# UI Verification: ' + featureId,
-    '',
-    '## Browser Checks',
-    '- Verify primary routes at mobile and desktop viewport widths.',
-    '- Capture screenshot evidence for changed screens.',
-    '- Check keyboard interaction and accessible names for controls.'
-  ]);
-  const state = loadState(cwd);
-  saveState(cwd, {
-    ...state,
-    design_sources: {
-      ...designSourceEntries(state),
-      [featureId]: entry
-    }
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, [specRef, assetsRef, verifyRef]);
+    writeMarkdown(cwd, specRef, [
+      '# UI Spec: ' + featureId,
+      '',
+      '## Source',
+      '- Type: ' + normalizedSource,
+      '- Ref: ' + (ref || 'missing'),
+      '',
+      '## Routes And Components',
+      ...bulletList(repo.route_hints.concat(repo.component_hints), 'No route or component files were detected.'),
+      '',
+      '## States',
+      '- loading, empty, error, success, disabled, and responsive states must be verified for the imported surface.',
+      '',
+      '## Implementation Constraints',
+      '- Preserve existing route structure unless the design source explicitly requires navigation changes.',
+      '- Match assets and interaction states to the referenced ' + normalizedSource + ' source.'
+    ]);
+    writeMarkdown(cwd, assetsRef, [
+      '# UI Assets: ' + featureId,
+      '',
+      '## Required Assets',
+      '- Source reference: ' + (ref || 'missing'),
+      '- Reuse existing assets where current components already provide equivalent imagery or icons.',
+      '',
+      '## Source References',
+      '- ' + (ref || 'missing')
+    ]);
+    writeMarkdown(cwd, verifyRef, [
+      '# UI Verification: ' + featureId,
+      '',
+      '## Browser Checks',
+      '- Verify primary routes at mobile and desktop viewport widths.',
+      '- Capture screenshot evidence for changed screens.',
+      '- Check keyboard interaction and accessible names for controls.'
+    ]);
+    const state = loadState(cwd);
+    saveState(cwd, {
+      ...state,
+      design_sources: {
+        ...designSourceEntries(state),
+        [featureId]: entry
+      }
+    });
+    return entry;
   });
-  return entry;
 }
 
 function designSourceDiff(cwd, target, feature, routeOrPath) {

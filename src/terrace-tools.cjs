@@ -102,6 +102,7 @@ const {
   installGlobalAgentBootstrap,
   refreshPlanningPackage
 } = require('../packages/terrace-core/src/index.cjs');
+const { managedArtifactExists, writeManagedText } = require('../packages/terrace-core/src/managed-artifacts.cjs');
 
 const packageJson = require('../package.json');
 
@@ -465,9 +466,8 @@ function corpusReport(json) {
 
 function ensureSteering(cwd) {
   const steeringPath = path.resolve(cwd, '.terrace', 'steering.md');
-  if (!fs.existsSync(steeringPath)) {
-    fs.mkdirSync(path.dirname(steeringPath), { recursive: true });
-    fs.writeFileSync(steeringPath, [
+  if (!managedArtifactExists(cwd, 'steering.md')) {
+    writeManagedText(cwd, 'steering.md', [
       '---',
       'version: "1.0"',
       'project: "{{PROJECT_NAME}}"',
@@ -479,7 +479,7 @@ function ensureSteering(cwd) {
       'non_negotiables: Do not bypass protected behavior without a decision.',
       'scope_boundaries: Use Terrace-owned files for workflow state.',
       ''
-    ].join('\n'), 'utf8');
+    ].join('\n'));
   }
   return { path: steeringPath };
 }

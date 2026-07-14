@@ -1,23 +1,38 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 const { createDefaultState, replaceState, saveState } = require('./state.cjs');
 const { detectCommands, writeConfig } = require('./config.cjs');
 const { appendEvent } = require('./events.cjs');
 const { defaultRuleFiles, ensureDefaultRules, writeDefaultRules } = require('./rules.cjs');
-const { installAgentBootstrap, templateAssets } = require('./agents.cjs');
+const { installAgentBootstrap, preflightAgentBootstrap, templateAssets } = require('./agents.cjs');
 const { guidanceError } = require('./guidance.cjs');
+const {
+  ensureProjectDirectory,
+  managedArtifactExists,
+  preflightManagedArtifacts,
+  readManagedText,
+  readProjectText,
+  removeManagedArtifact,
+  removeProjectArtifact,
+  resolveProjectArtifact,
+  withManagedArtifactLock,
+  writeManagedJson,
+  writeManagedText,
+  writeProjectText
+} = require('./managed-artifacts.cjs');
 
 function ensureDir(cwd, relPath, created) {
-  const fullPath = path.resolve(cwd, relPath);
-  if (fs.existsSync(fullPath)) {
-    return false;
+  try {
+    const result = ensureProjectDirectory(cwd, relPath);
+    if (result.created) {
+      created.push(relPath);
+    }
+    return result.created;
+  } catch (error) {
+    return mapInitProjectArtifactError(relPath, error);
   }
-  fs.mkdirSync(fullPath, { recursive: true });
-  created.push(relPath);
-  return true;
 }
 
 function defaultConfig(cwd) {
@@ -42,17 +57,6 @@ function defaultPresetRegistry() {
   return { version: '1.0', presets: [] };
 }
 
-function lstatIfExists(filePath) {
-  try {
-    return fs.lstatSync(filePath);
-  } catch (error) {
-    if (error && error.code === 'ENOENT') {
-      return null;
-    }
-    throw error;
-  }
-}
-
 function resetPathError(relPath, reason) {
   throw guidanceError('Refusing to reset Terrace through unsafe managed path ' + relPath + '.', {
     code: 'INIT_RESET_PATH_UNSAFE',
@@ -63,43 +67,96 @@ function resetPathError(relPath, reason) {
   });
 }
 
-function assertResetPathSafe(cwd, relPath) {
-  const root = path.resolve(cwd);
-  const targetPath = path.resolve(root, relPath);
-  const relative = path.relative(root, targetPath);
-  if (!relative || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
-    resetPathError(relPath, 'Managed reset paths must remain inside the target repository.');
-  }
+function initProjectPathError(relPath, reason) {
+  throw guidanceError('Refusing to initialize Terrace through unsafe project path ' + relPath + '.', {
+    code: 'INIT_PATH_UNSAFE',
+    file: relPath,
+    why_blocked: reason,
+    next_command: 'Replace the symlink or unexpected filesystem object, then rerun terrace init.',
+    remediation: 'Terrace initialization only creates ordinary directories inside the target repository.'
+  });
+}
 
-  let currentPath = root;
-  const parts = relative.split(path.sep);
-  for (let index = 0; index < parts.length; index += 1) {
-    currentPath = path.join(currentPath, parts[index]);
-    const stat = lstatIfExists(currentPath);
-    if (!stat) {
-      continue;
-    }
-    if (stat.isSymbolicLink()) {
-      resetPathError(relPath, 'Terrace refuses to follow symlinks while backing up, resetting, or restoring managed artifacts.');
-    }
-    if (index < parts.length - 1 && !stat.isDirectory()) {
-      resetPathError(relPath, 'A parent path is not a directory.');
-    }
-    if (index === parts.length - 1 && !stat.isFile() && !stat.isDirectory()) {
-      resetPathError(relPath, 'Managed reset paths must be regular files or directories.');
-    }
+function mapInitProjectArtifactError(relPath, error) {
+  if (error && error.details && error.details.code === 'MANAGED_ARTIFACT_PATH_UNSAFE') {
+    initProjectPathError(relPath, error.details.why_blocked || 'The project path is unsafe.');
+  }
+  throw error;
+}
+
+function mapResetProjectArtifactError(relPath, error) {
+  if (error && error.details && error.details.code === 'MANAGED_ARTIFACT_PATH_UNSAFE') {
+    resetPathError(relPath, error.details.why_blocked || 'The reset path is unsafe.');
+  }
+  throw error;
+}
+
+function resolveInitProjectArtifact(cwd, relPath, options) {
+  try {
+    return resolveProjectArtifact(cwd, relPath, options);
+  } catch (error) {
+    return mapInitProjectArtifactError(relPath, error);
   }
 }
 
+function resolveResetProjectArtifact(cwd, relPath, options) {
+  try {
+    return resolveProjectArtifact(cwd, relPath, options);
+  } catch (error) {
+    return mapResetProjectArtifactError(relPath, error);
+  }
+}
+
+function readResetProjectText(cwd, relPath) {
+  try {
+    return readProjectText(cwd, relPath);
+  } catch (error) {
+    return mapResetProjectArtifactError(relPath, error);
+  }
+}
+
+function writeResetProjectText(cwd, relPath, text) {
+  try {
+    return writeProjectText(cwd, relPath, text);
+  } catch (error) {
+    return mapResetProjectArtifactError(relPath, error);
+  }
+}
+
+function removeResetProjectArtifact(cwd, relPath) {
+  try {
+    return removeProjectArtifact(cwd, relPath);
+  } catch (error) {
+    return mapResetProjectArtifactError(relPath, error);
+  }
+}
+
+function assertResetPathSafe(cwd, relPath) {
+  resolveResetProjectArtifact(cwd, relPath, { allowExistingLeafSymlink: true });
+}
+
 function assertResetPathsSafe(cwd, relPaths) {
-  assertResetPathSafe(cwd, '.terrace/backups');
-  for (const relPath of relPaths) {
+  const managedPaths = ['backups/.reset-preflight', ...relPaths
+    .filter((relPath) => relPath.startsWith('.terrace/'))
+    .map((relPath) => relPath.slice('.terrace/'.length))];
+  try {
+    preflightManagedArtifacts(cwd, managedPaths);
+  } catch (error) {
+    if (error && error.details && error.details.code === 'MANAGED_ARTIFACT_PATH_UNSAFE') {
+      resetPathError(error.details.file || '.terrace', error.details.why_blocked || 'A managed reset path is unsafe.');
+    }
+    throw error;
+  }
+  for (const relPath of relPaths.filter((candidate) => !candidate.startsWith('.terrace/'))) {
     assertResetPathSafe(cwd, relPath);
   }
 }
 
 function relativePathExists(cwd, relPath) {
-  return lstatIfExists(path.resolve(cwd, relPath)) !== null;
+  if (relPath.startsWith('.terrace/')) {
+    return managedArtifactExists(cwd, relPath.slice('.terrace/'.length));
+  }
+  return Boolean(resolveInitProjectArtifact(cwd, relPath, { allowExistingLeafSymlink: true }).fileStat);
 }
 
 function coreArtifactPaths() {
@@ -123,44 +180,81 @@ function resetArtifactPaths() {
   ])];
 }
 
+function backupArtifactPath(backupPath, relPath) {
+  return backupPath.slice('.terrace/'.length) + '/' + (relPath.startsWith('.terrace/') ? relPath.slice('.terrace/'.length) : relPath);
+}
+
 function writePresetRegistry(cwd) {
-  const presetRegistryPath = path.resolve(cwd, '.terrace', 'presets', 'registry.json');
-  fs.mkdirSync(path.dirname(presetRegistryPath), { recursive: true });
-  fs.writeFileSync(presetRegistryPath, JSON.stringify(defaultPresetRegistry(), null, 2) + '\n', 'utf8');
+  writeManagedJson(cwd, 'presets/registry.json', defaultPresetRegistry());
 }
 
 function createBackup(cwd, relPaths) {
   assertResetPathsSafe(cwd, relPaths);
   const backupPath = '.terrace/backups/' + new Date().toISOString().replace(/[:.]/g, '-') + '-' + randomUUID();
-  const backupRoot = path.resolve(cwd, backupPath);
   const backedUp = [];
+  const preserved = [];
   for (const relPath of relPaths) {
-    const sourcePath = path.resolve(cwd, relPath);
-    if (!lstatIfExists(sourcePath)) {
+    if (relPath.startsWith('.terrace/')) {
+      const source = readManagedText(cwd, relPath.slice('.terrace/'.length));
+      if (source === null) {
+        continue;
+      }
+      writeManagedText(cwd, backupArtifactPath(backupPath, relPath), source);
+      backedUp.push(relPath);
       continue;
     }
-    const targetPath = path.resolve(backupRoot, relPath.replace(/^\.terrace\//, ''));
-    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-    fs.copyFileSync(sourcePath, targetPath);
+    const sourceArtifact = resolveResetProjectArtifact(cwd, relPath, { allowExistingLeafSymlink: true });
+    if (!sourceArtifact.fileStat) {
+      continue;
+    }
+    if (sourceArtifact.fileStat.isSymbolicLink()) {
+      preserved.push(relPath);
+      continue;
+    }
+    const source = readResetProjectText(cwd, relPath);
+    if (source === null) {
+      resetPathError(relPath, 'A reset artifact disappeared while Terrace was preparing its backup.');
+    }
+    writeManagedText(cwd, backupArtifactPath(backupPath, relPath), source);
     backedUp.push(relPath);
   }
-  return { backup_path: backupPath, backed_up: backedUp };
+  return { backup_path: backupPath, backed_up: backedUp, preserved };
 }
 
 function restoreBackup(cwd, backup, relPaths) {
   assertResetPathsSafe(cwd, relPaths);
   const backedUp = new Set(backup.backed_up);
+  const preserved = new Set(backup.preserved || []);
   const restored = [];
   const removed = [];
   for (const relPath of relPaths) {
-    const targetPath = path.resolve(cwd, relPath);
+    if (relPath.startsWith('.terrace/')) {
+      const artifactPath = relPath.slice('.terrace/'.length);
+      if (backedUp.has(relPath)) {
+        const source = readManagedText(cwd, backupArtifactPath(backup.backup_path, relPath));
+        if (source === null) {
+          resetPathError(relPath, 'The retained reset backup is missing a managed artifact that must be restored.');
+        }
+        writeManagedText(cwd, artifactPath, source);
+        restored.push(relPath);
+      } else if (managedArtifactExists(cwd, artifactPath)) {
+        removeManagedArtifact(cwd, artifactPath);
+        removed.push(relPath);
+      }
+      continue;
+    }
+    if (preserved.has(relPath)) {
+      continue;
+    }
     if (backedUp.has(relPath)) {
-      const sourcePath = path.resolve(cwd, backup.backup_path, relPath.replace(/^\.terrace\//, ''));
-      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-      fs.copyFileSync(sourcePath, targetPath);
+      const source = readManagedText(cwd, backupArtifactPath(backup.backup_path, relPath));
+      if (source === null) {
+        resetPathError(relPath, 'The retained reset backup is missing an artifact that must be restored.');
+      }
+      writeResetProjectText(cwd, relPath, source);
       restored.push(relPath);
-    } else if (lstatIfExists(targetPath)) {
-      fs.rmSync(targetPath, { force: true });
+    } else if (resolveResetProjectArtifact(cwd, relPath).fileStat) {
+      removeResetProjectArtifact(cwd, relPath);
       removed.push(relPath);
     }
   }
@@ -192,12 +286,12 @@ function resetRecoveryError(cwd, backup, relPaths, cause) {
 }
 
 function existingWorkflowStatus(cwd) {
-  const statePath = path.resolve(cwd, '.terrace', 'state.json');
-  if (!fs.existsSync(statePath)) {
-    return 'uninitialized';
-  }
   try {
-    const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    const text = readManagedText(cwd, 'state.json');
+    if (text === null) {
+      return 'uninitialized';
+    }
+    const state = JSON.parse(text);
     return state.workflow && typeof state.workflow.status === 'string' ? state.workflow.status : 'unknown';
   } catch {
     return 'unknown';
@@ -229,13 +323,12 @@ function recordWrite(created, overwritten, relPath, existed) {
   }
 }
 
-function resetCore(cwd, opts, created) {
+function resetCore(cwd, opts, created, resetConfig) {
   const resetPaths = coreArtifactPaths();
   const resetPathsWithAgentAssets = resetArtifactPaths();
+  assertResetPathsSafe(cwd, resetPathsWithAgentAssets);
   const existed = new Set(resetPathsWithAgentAssets.filter((relPath) => relativePathExists(cwd, relPath)));
   const resetState = createDefaultState({ projectName: opts.projectName || path.basename(cwd) });
-  const resetConfig = defaultConfig(cwd);
-  assertResetPathsSafe(cwd, resetPathsWithAgentAssets);
   const backup = createBackup(cwd, resetPathsWithAgentAssets);
   const overwritten = [];
   const fromState = existingWorkflowStatus(cwd);
@@ -255,9 +348,7 @@ function resetCore(cwd, opts, created) {
       recordWrite(created, overwritten, relPath, existed.has(relPath));
     }
 
-    const eventsPath = path.resolve(cwd, '.terrace', 'events.jsonl');
-    fs.mkdirSync(path.dirname(eventsPath), { recursive: true });
-    fs.writeFileSync(eventsPath, '', 'utf8');
+    writeManagedText(cwd, 'events.jsonl', '');
     recordWrite(created, overwritten, '.terrace/events.jsonl', existed.has('.terrace/events.jsonl'));
 
     for (const relPath of ['docs/prd', 'docs/spec', 'docs/testing']) {
@@ -283,6 +374,19 @@ function resetCore(cwd, opts, created) {
   }
 }
 
+function preflightInitDirectories(cwd) {
+  for (const relPath of ['docs/prd', 'docs/spec', 'docs/testing']) {
+    resolveInitProjectArtifact(cwd, path.join(relPath, '.terrace-init-preflight'));
+  }
+}
+
+function prepareInitConfig(cwd, opts) {
+  if (opts.force || !relativePathExists(cwd, '.terrace/config.json')) {
+    return defaultConfig(cwd);
+  }
+  return null;
+}
+
 function initCore(cwd, options) {
   const opts = options || {};
   if (Boolean(opts.force) !== Boolean(opts.yes)) {
@@ -294,18 +398,32 @@ function initCore(cwd, options) {
     });
   }
 
+  preflightInitDirectories(cwd);
+
+  if (!opts.force) {
+    preflightManagedArtifacts(cwd, [...coreArtifactPaths(), '.terrace/agents/manifest.json'].map((relPath) => relPath.slice('.terrace/'.length)));
+    preflightAgentBootstrap(cwd);
+  } else if (opts.yes) {
+    assertResetPathsSafe(cwd, resetArtifactPaths());
+  }
+
+  const preparedConfig = prepareInitConfig(cwd, opts);
+  return withManagedArtifactLock(cwd, () => initCoreLocked(cwd, opts, preparedConfig));
+}
+
+function initCoreLocked(cwd, opts, preparedConfig) {
   const created = [];
   const preserved = [];
   const existingManagedPaths = backupPaths().filter((relPath) => relativePathExists(cwd, relPath));
   if (opts.force && opts.yes && existingManagedPaths.length > 0) {
-    return resetCore(cwd, opts, created);
+    return resetCore(cwd, opts, created, preparedConfig || defaultConfig(cwd));
   }
 
   const stateExists = relativePathExists(cwd, '.terrace/state.json');
   const configExists = relativePathExists(cwd, '.terrace/config.json');
   const eventsExist = relativePathExists(cwd, '.terrace/events.jsonl');
   const initialState = stateExists ? null : createDefaultState({ projectName: opts.projectName || path.basename(cwd) });
-  const initialConfig = configExists ? null : defaultConfig(cwd);
+  const initialConfig = configExists ? null : (preparedConfig || defaultConfig(cwd));
   if (stateExists) {
     preserved.push('.terrace/state.json');
   } else {
@@ -339,9 +457,7 @@ function initCore(cwd, options) {
   if (eventsExist) {
     preserved.push('.terrace/events.jsonl');
   } else {
-    const eventsPath = path.resolve(cwd, '.terrace', 'events.jsonl');
-    fs.mkdirSync(path.dirname(eventsPath), { recursive: true });
-    fs.writeFileSync(eventsPath, '', 'utf8');
+    writeManagedText(cwd, 'events.jsonl', '');
     created.push('.terrace/events.jsonl');
   }
 

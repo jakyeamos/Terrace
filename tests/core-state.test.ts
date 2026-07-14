@@ -180,6 +180,37 @@ describe('terrace-core state machine', () => {
     expect(loadState(tmpDir).decisions).toEqual([{ id: 'first-writer', title: 'First writer wins' }]);
   });
 
+  it('refuses to replace a state file that changes after the write snapshot is loaded', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'original' }));
+    const candidate = loadState(tmpDir);
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const replacement = createDefaultState({ projectName: 'replacement' });
+    const mutableFs = require('fs') as typeof fs;
+    const originalOpenSync = mutableFs.openSync;
+    let swapped = false;
+    const swapDuringTemporaryWrite = vi.spyOn(mutableFs, 'openSync').mockImplementation(((filePath, flags, mode) => {
+      const descriptor = originalOpenSync(filePath, flags, mode);
+      if (!swapped && typeof filePath === 'string' && path.basename(filePath).startsWith('.state.json.') && (Number(flags) & fs.constants.O_EXCL) !== 0) {
+        swapped = true;
+        fs.renameSync(statePath, path.join(tmpDir, '.terrace', 'state-before-swap.json'));
+        fs.writeFileSync(statePath, JSON.stringify(replacement, null, 2) + '\n', 'utf8');
+      }
+      return descriptor;
+    }) as typeof fs.openSync);
+
+    try {
+      expectStateError(() => saveState(tmpDir, {
+        ...candidate,
+        decisions: [{ id: 'must-not-overwrite-replacement', title: 'Fail closed' }]
+      }), 'STATE_PATH_UNSAFE');
+    } finally {
+      swapDuringTemporaryWrite.mockRestore();
+    }
+
+    expect(swapped).toBe(true);
+    expect(loadState(tmpDir).project.name).toBe('replacement');
+  });
+
   it('fails closed when another process owns the state lock', () => {
     saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
     const statePath = path.join(tmpDir, '.terrace', 'state.json');
@@ -216,6 +247,42 @@ describe('terrace-core state machine', () => {
     }
 
     expect(loadState(tmpDir).decisions).toEqual([{ id: 'reclaimed-lock', title: 'Recovered safely' }]);
+    expect(fs.existsSync(lockPath)).toBe(false);
+    expect(fs.existsSync(recoveryPath)).toBe(false);
+  });
+
+  it('cleans both state lock markers when recovery handoff cleanup fails', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
+    const lockPath = path.join(tmpDir, '.terrace', 'state.lock');
+    const recoveryPath = path.join(tmpDir, '.terrace', 'state.lock.recovery');
+    fs.writeFileSync(lockPath, JSON.stringify({ pid: 4312, created_at: '2026-07-13T00:00:00.000Z' }) + '\n', 'utf8');
+    const state = loadState(tmpDir);
+    const mutableFs = require('fs') as typeof fs;
+    const originalUnlinkSync = mutableFs.unlinkSync;
+    const processKill = vi.spyOn(process, 'kill').mockImplementation(() => {
+      const error = Object.assign(new Error('no such process'), { code: 'ESRCH' });
+      throw error;
+    });
+    let failedRecoveryCleanup = false;
+    const recoveryCleanupFailure = vi.spyOn(mutableFs, 'unlinkSync').mockImplementation(((filePath) => {
+      if (!failedRecoveryCleanup && filePath === 'state.lock.recovery') {
+        failedRecoveryCleanup = true;
+        throw new Error('simulated state recovery cleanup failure');
+      }
+      return originalUnlinkSync(filePath);
+    }) as typeof fs.unlinkSync);
+
+    try {
+      expect(() => saveState(tmpDir, {
+        ...state,
+        decisions: [{ id: 'recovery-cleanup', title: 'Must not leak locks' }]
+      })).toThrow('simulated state recovery cleanup failure');
+    } finally {
+      recoveryCleanupFailure.mockRestore();
+      processKill.mockRestore();
+    }
+
+    expect(failedRecoveryCleanup).toBe(true);
     expect(fs.existsSync(lockPath)).toBe(false);
     expect(fs.existsSync(recoveryPath)).toBe(false);
   });
@@ -257,6 +324,49 @@ describe('terrace-core state machine', () => {
     expect(loadState(tmpDir).decisions).toEqual([]);
     expect(fs.readdirSync(path.dirname(statePath)).filter((entry) => entry.startsWith('.state.json.'))).toEqual([]);
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.lock'))).toBe(false);
+  });
+
+  it('keeps a state write pinned when .terrace is replaced after its temporary file is opened', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'pinned-state' }));
+    const terracePath = path.join(tmpDir, '.terrace');
+    const pinnedPath = path.join(tmpDir, '.terrace-pinned');
+    const outsidePath = path.join(tmpDir, 'outside-terrace');
+    const before = fs.readFileSync(path.join(terracePath, 'state.json'), 'utf8');
+    const sentinel = '{"outside":true}\n';
+    const previousDirectory = process.cwd();
+    const loaded = loadState(tmpDir);
+    const mutableFs = require('fs') as typeof fs;
+    const originalOpenSync = mutableFs.openSync;
+    let swapped = false;
+    const swapDuringOpen = vi.spyOn(mutableFs, 'openSync').mockImplementation(((filePath, flags, mode) => {
+      if (!swapped
+        && typeof filePath === 'string'
+        && filePath.startsWith('.state.json.')
+        && filePath.endsWith('.tmp')
+        && (Number(flags) & fs.constants.O_CREAT) !== 0) {
+        swapped = true;
+        fs.renameSync(terracePath, pinnedPath);
+        fs.mkdirSync(outsidePath, { recursive: true });
+        fs.writeFileSync(path.join(outsidePath, 'state.json'), sentinel, 'utf8');
+        fs.symlinkSync(outsidePath, terracePath);
+      }
+      return originalOpenSync(filePath, flags, mode);
+    }) as typeof fs.openSync);
+
+    try {
+      expectStateError(() => saveState(tmpDir, {
+        ...loaded,
+        decisions: [{ id: 'pinned-write', title: 'Must not escape' }]
+      }), 'STATE_PATH_UNSAFE');
+    } finally {
+      swapDuringOpen.mockRestore();
+    }
+
+    expect(swapped).toBe(true);
+    expect(process.cwd()).toBe(previousDirectory);
+    expect(fs.readFileSync(path.join(outsidePath, 'state.json'), 'utf8')).toBe(sentinel);
+    expect(fs.readFileSync(path.join(pinnedPath, 'state.json'), 'utf8')).toBe(before);
+    expect(fs.readdirSync(pinnedPath).filter((entry) => entry.startsWith('.state.json.'))).toEqual([]);
   });
 
   it('refuses symlinked Terrace state paths without touching the external target', () => {

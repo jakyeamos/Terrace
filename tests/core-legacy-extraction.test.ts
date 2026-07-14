@@ -8,6 +8,7 @@ const {
   computeSpecHash,
   protectBaseline,
   addDecision,
+  hasDecisionForSpec,
   enforceProtectedChanges,
   evaluatePolicy,
   startSession,
@@ -19,6 +20,8 @@ const {
   migrateArtifacts,
   runAudit,
   runCiCheck,
+  loadState,
+  saveState,
   loadFragments
 } = require('../packages/terrace-core/src/index.cjs');
 
@@ -53,6 +56,34 @@ describe('terrace-core extraction of useful legacy behavior', () => {
 
     addDecision(tmpDir, { specRef: 'SPEC-1', rationale: 'Spec changed the protected expectation.' });
     expect(enforceProtectedChanges(tmpDir, ['tests/protected.test.ts']).allowed).toBe(true);
+  });
+
+  it('does not authorize a protected change from state-only decision evidence', () => {
+    const state = loadState(tmpDir);
+    saveState(tmpDir, {
+      ...state,
+      decisions: [...state.decisions, { spec_ref: 'SPEC-STATE-ONLY' }]
+    });
+
+    expect(hasDecisionForSpec(tmpDir, 'SPEC-STATE-ONLY')).toBe(false);
+
+    protectBaseline(tmpDir, 'tests/protected.test.ts', 'SPEC-STATE-ONLY', {});
+    expect(enforceProtectedChanges(tmpDir, ['tests/protected.test.ts']).allowed).toBe(false);
+
+    addDecision(tmpDir, { specRef: 'SPEC-STATE-ONLY' });
+    expect(hasDecisionForSpec(tmpDir, 'SPEC-STATE-ONLY')).toBe(true);
+    expect(enforceProtectedChanges(tmpDir, ['tests/protected.test.ts']).allowed).toBe(true);
+  });
+
+  it('does not authorize a spec from a decision-log prefix match', () => {
+    const state = loadState(tmpDir);
+    saveState(tmpDir, {
+      ...state,
+      decisions: [...state.decisions, { spec_ref: 'SPEC-1' }]
+    });
+    fs.writeFileSync(path.join(tmpDir, 'docs', 'spec', 'DECISION-LOG.md'), 'spec_ref: SPEC-10\n', 'utf8');
+
+    expect(hasDecisionForSpec(tmpDir, 'SPEC-1')).toBe(false);
   });
 
   it('evaluates temporary recovery mode and records repo-only sessions against strict state', () => {
