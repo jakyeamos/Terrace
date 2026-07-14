@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
-const { createDefaultState, saveState } = require('./state.cjs');
+const { createDefaultState, replaceState, saveState } = require('./state.cjs');
 const { detectCommands, writeConfig } = require('./config.cjs');
 const { appendEvent } = require('./events.cjs');
 const { defaultRuleFiles, ensureDefaultRules, writeDefaultRules } = require('./rules.cjs');
@@ -42,8 +42,64 @@ function defaultPresetRegistry() {
   return { version: '1.0', presets: [] };
 }
 
+function lstatIfExists(filePath) {
+  try {
+    return fs.lstatSync(filePath);
+  } catch (error) {
+    if (error && error.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
+}
+
+function resetPathError(relPath, reason) {
+  throw guidanceError('Refusing to reset Terrace through unsafe managed path ' + relPath + '.', {
+    code: 'INIT_RESET_PATH_UNSAFE',
+    file: relPath,
+    why_blocked: reason,
+    next_command: 'Replace the symlink or unexpected filesystem object, then rerun terrace init --force --yes.',
+    remediation: 'Terrace reset only operates on ordinary files and directories inside the target repository.'
+  });
+}
+
+function assertResetPathSafe(cwd, relPath) {
+  const root = path.resolve(cwd);
+  const targetPath = path.resolve(root, relPath);
+  const relative = path.relative(root, targetPath);
+  if (!relative || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+    resetPathError(relPath, 'Managed reset paths must remain inside the target repository.');
+  }
+
+  let currentPath = root;
+  const parts = relative.split(path.sep);
+  for (let index = 0; index < parts.length; index += 1) {
+    currentPath = path.join(currentPath, parts[index]);
+    const stat = lstatIfExists(currentPath);
+    if (!stat) {
+      continue;
+    }
+    if (stat.isSymbolicLink()) {
+      resetPathError(relPath, 'Terrace refuses to follow symlinks while backing up, resetting, or restoring managed artifacts.');
+    }
+    if (index < parts.length - 1 && !stat.isDirectory()) {
+      resetPathError(relPath, 'A parent path is not a directory.');
+    }
+    if (index === parts.length - 1 && !stat.isFile() && !stat.isDirectory()) {
+      resetPathError(relPath, 'Managed reset paths must be regular files or directories.');
+    }
+  }
+}
+
+function assertResetPathsSafe(cwd, relPaths) {
+  assertResetPathSafe(cwd, '.terrace/backups');
+  for (const relPath of relPaths) {
+    assertResetPathSafe(cwd, relPath);
+  }
+}
+
 function relativePathExists(cwd, relPath) {
-  return fs.existsSync(path.resolve(cwd, relPath));
+  return lstatIfExists(path.resolve(cwd, relPath)) !== null;
 }
 
 function coreArtifactPaths() {
@@ -74,12 +130,13 @@ function writePresetRegistry(cwd) {
 }
 
 function createBackup(cwd, relPaths) {
+  assertResetPathsSafe(cwd, relPaths);
   const backupPath = '.terrace/backups/' + new Date().toISOString().replace(/[:.]/g, '-') + '-' + randomUUID();
   const backupRoot = path.resolve(cwd, backupPath);
   const backedUp = [];
   for (const relPath of relPaths) {
     const sourcePath = path.resolve(cwd, relPath);
-    if (!fs.existsSync(sourcePath)) {
+    if (!lstatIfExists(sourcePath)) {
       continue;
     }
     const targetPath = path.resolve(backupRoot, relPath.replace(/^\.terrace\//, ''));
@@ -91,6 +148,7 @@ function createBackup(cwd, relPaths) {
 }
 
 function restoreBackup(cwd, backup, relPaths) {
+  assertResetPathsSafe(cwd, relPaths);
   const backedUp = new Set(backup.backed_up);
   const restored = [];
   const removed = [];
@@ -101,7 +159,7 @@ function restoreBackup(cwd, backup, relPaths) {
       fs.mkdirSync(path.dirname(targetPath), { recursive: true });
       fs.copyFileSync(sourcePath, targetPath);
       restored.push(relPath);
-    } else if (fs.existsSync(targetPath)) {
+    } else if (lstatIfExists(targetPath)) {
       fs.rmSync(targetPath, { force: true });
       removed.push(relPath);
     }
@@ -177,12 +235,13 @@ function resetCore(cwd, opts, created) {
   const existed = new Set(resetPathsWithAgentAssets.filter((relPath) => relativePathExists(cwd, relPath)));
   const resetState = createDefaultState({ projectName: opts.projectName || path.basename(cwd) });
   const resetConfig = defaultConfig(cwd);
+  assertResetPathsSafe(cwd, resetPathsWithAgentAssets);
   const backup = createBackup(cwd, resetPathsWithAgentAssets);
   const overwritten = [];
   const fromState = existingWorkflowStatus(cwd);
 
   try {
-    saveState(cwd, resetState);
+    replaceState(cwd, resetState);
     recordWrite(created, overwritten, '.terrace/state.json', existed.has('.terrace/state.json'));
 
     writeConfig(cwd, resetConfig);

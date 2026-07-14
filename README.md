@@ -60,6 +60,12 @@ pnpm exec terrace ship check --json
 
 Report artifacts are explicit: `terrace report` is read-only, while `terrace report update` writes `.terrace/report-card.json`, `docs/terrace/REPORT-CARD.md`, and report history.
 
+## State Safety
+
+Terrace keeps its workflow state at `.terrace/state.json`. Current installations write schema `1.1` with a monotonic `state_revision`. Existing schema `1.0` state is accepted, validated, and promoted in memory without changing its bytes; the next successful Terrace mutation persists the canonical `1.1` form.
+
+State mutations use an exclusive `.terrace/state.lock`, validate the complete canonical schema, sync a temporary file and its parent directory where the platform supports it, then atomically replace state. Stale-lock recovery is itself serialized through a temporary recovery claim, so a concurrent writer cannot delete a replacement lock; an interrupted recovery claim fails closed for inspection. A concurrent or stale mutation returns structured guidance instead of silently overwriting newer work. If a state file is damaged, restore a valid backup or use `terrace init --force --yes` only when a deliberate managed-state reset is appropriate.
+
 ## Agent Integration
 
 `terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance. Use `terrace agents repair` when only generated repo-local agent assets are missing; it never changes workflow state.
@@ -237,6 +243,8 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 ## Troubleshooting
 
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
+- `STATE_REVISION_CONFLICT` or `STATE_WRITE_LOCKED`: wait for the active Terrace mutation to finish, reload state, and retry. Terrace reclaims a lock only when its recorded PID is confirmed absent; if the message names `.terrace/state.lock.recovery`, inspect that interrupted recovery claim before any manual intervention.
+- `STATE_SCHEMA_INVALID` or `STATE_JSON_INVALID`: restore a valid `.terrace/state.json` backup, or use `terrace init --force --yes` only for an intentional managed-state reset.
 - `terrace init` needs to restart an existing workflow: use `terrace init --force --yes` only when you intend to reset managed Terrace state; restore files from the reported `.terrace/backups/` path if needed.
 - Repo-local `/terrace-*` assets are incomplete: run `terrace agents repair`.
 - `/terrace` or `/terrace-*` is missing in another local repo: run `terrace agents install-global`, then reload the Codex or Claude Code session.

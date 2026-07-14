@@ -5,6 +5,8 @@ import * as path from 'path';
 import { execFileSync } from 'child_process';
 
 const {
+  loadState,
+  replaceState,
   saveState,
   createDefaultState,
   phaseList,
@@ -240,7 +242,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: [{ id: '12-01', title: 'Release Plan', status: 'planned', source_ref: '.planning/phases/12/12-01-PLAN.md' }]
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     const planned = phasePlan(tmpDir, 'phase-12-release');
     alignFeature(tmpDir, 'phase-12-release', { tier: 'medium' });
@@ -284,7 +286,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: [{ id: '13-01', title: 'Complete Plan', status: 'planned', source_ref: '.planning/phases/13/13-01-PLAN.md' }]
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     settingsSetEffort(tmpDir, 'thorough');
     alignFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
     testPlanFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
@@ -431,7 +433,7 @@ describe('workflow parity core helpers', () => {
       source_ref: 'docs/terrace/features/billing-refresh/ALIGNMENT.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     const blocked = phaseExecute(tmpDir, 'billing-refresh');
@@ -459,7 +461,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     const blocked = phaseExecute(tmpDir, 'unregistered-feature');
 
@@ -490,7 +492,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     expect(nextWorkflow(tmpDir)).toMatchObject({
       command: 'terrace align billing-refresh',
@@ -511,7 +513,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     testPlanFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     observeFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
@@ -556,7 +558,7 @@ describe('workflow parity core helpers', () => {
   it('includes senior-cycle ship blockers in ship check results', () => {
     const state = createDefaultState({ projectName: 'workflow-test' });
     state.workflow.active_feature = 'billing-refresh';
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     testPlanFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
 
@@ -936,7 +938,7 @@ describe('workflow parity core helpers', () => {
     expect(routePlainText(tmpDir, 'ship this')).toMatchObject({
       command: 'terrace ship check'
     });
-    const activeState = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
+    const activeState = loadState(tmpDir);
     saveState(tmpDir, {
       ...activeState,
       workflow: {
@@ -1038,7 +1040,7 @@ describe('workflow parity core helpers', () => {
   it('separates legacy planning phases from executable Terrace state phases', () => {
     process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.2.0';
     const state = createDefaultState({ projectName: 'workflow-test' });
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), [
       '# Roadmap',

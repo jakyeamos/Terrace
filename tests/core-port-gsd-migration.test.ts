@@ -132,6 +132,7 @@ describe('terrace port gsd migration', () => {
           plans: [{ id: 'custom-plan', title: 'Keep me' }]
         }]
       },
+      active_slice: null,
       red_gate: { status: 'not_started', evidence: [] },
       green_gate: { status: 'not_started', evidence: [] },
       protected_tests: [],

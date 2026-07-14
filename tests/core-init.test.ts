@@ -242,6 +242,29 @@ describe('terrace-core init and events', () => {
     ]);
   });
 
+  it('refuses a forced reset through a symlinked managed state path before backup or rollback can touch the target', () => {
+    initCore(tmpDir, { projectName: 'demo' });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const externalPath = path.join(tmpDir, 'outside-state.json');
+    const sentinel = '{"external":true}\n';
+    fs.writeFileSync(externalPath, sentinel, 'utf8');
+    fs.rmSync(statePath);
+    fs.symlinkSync(externalPath, statePath);
+    let resetError: { details?: { code?: string } } | null = null;
+
+    try {
+      initCore(tmpDir, { projectName: 'demo', force: true, yes: true });
+    } catch (error) {
+      resetError = error as { details?: { code?: string } };
+    }
+
+    expect(resetError).toMatchObject({
+      details: expect.objectContaining({ code: 'INIT_RESET_PATH_UNSAFE' })
+    });
+    expect(fs.readFileSync(externalPath, 'utf8')).toBe(sentinel);
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'backups'))).toBe(false);
+  });
+
   it('backs up a managed agent manifest before a forced reset repairs partial assets', () => {
     initCore(tmpDir, { projectName: 'demo' });
     fs.rmSync(path.join(tmpDir, '.terrace'), { recursive: true, force: true });

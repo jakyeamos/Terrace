@@ -2,6 +2,7 @@
 
 ## 0.2.0
 
+- Add validated, schema-versioned, atomic `.terrace/state.json` persistence with legacy `1.0` migration, revision conflict detection, recovery-aware writer locks, explicit replacement, parent-directory syncing where supported, and symlink rejection.
 - Add objective `terrace adoption status` replacement measurement for GSD parity with a direct verdict, score, ready flag, recommended mode, workflow evidence, blockers, and next commands.
 - Add merge-safe `terrace port gsd --import-roadmap` to append missing executable legacy `.planning` roadmap phases into existing Terrace state without replacing current phase objects.
 - Make Terrace pnpm-first across scripts, docs, command discovery, package guidance, and dependency audit handling.

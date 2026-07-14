@@ -51,6 +51,7 @@
     "ci": "pnpm run typecheck && pnpm run lint && pnpm test && pnpm run test:coverage && pnpm run package:dry-run"
   },
   "dependencies": {
+    "ajv": "8.18.0",
     "fast-glob": "^3.3.3",
     "ignore": "^7.0.5",
     "yaml": "^2.8.3"
@@ -67,7 +68,6 @@
   "devDependencies": {
     "vitest": "4.1.2",
     "@vitest/coverage-v8": "4.1.2",
-    "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
     "@types/node": "^24.0.0",
     "typescript": "^5.0.0"

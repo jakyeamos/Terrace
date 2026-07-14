@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createDefaultState, loadState, saveState } = require('./state.cjs');
+const { createDefaultState, loadState, replaceState, saveState } = require('./state.cjs');
 const { installAgentBootstrap } = require('./agents.cjs');
 
 const COMMAND_STRATEGIES = {
@@ -904,7 +904,7 @@ function portGsd(cwd, options) {
     throw new Error('.terrace/state.json already exists. Re-run with --force to overwrite migration state.');
   }
 
-  const state = createDefaultState({ projectName: path.basename(cwd) });
+  let state = createDefaultState({ projectName: path.basename(cwd) });
   state.workflow.status = 'intake_recorded';
   state.roadmap.phases = extractRoadmapPhases(cwd);
   state.migration = {
@@ -965,7 +965,12 @@ function portGsd(cwd, options) {
   }
 
   state.migration.converted = converted;
-  saveState(cwd, state);
+  if (opts.force) {
+    replaceState(cwd, state);
+  } else {
+    saveState(cwd, state);
+  }
+  state = loadState(cwd);
   writes.unshift('.terrace/state.json');
   const nextCommand = nextCommandForState(state);
   state.migration.next_command = nextCommand;
