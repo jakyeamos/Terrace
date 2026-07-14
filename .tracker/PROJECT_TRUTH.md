@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, and release-preflight policy isolated behind injected workflow adapters.
-healthScore: 89
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight policy behind injected workflow adapters, and isolated ship-readiness policy with injected senior-cycle and release evidence.
+healthScore: 90
 statusLabel: modernization_in_progress_domain_seams
-nextStep: Select the next independently verifiable dispatcher or workflow-domain seam while preserving public exports and command behavior.
+nextStep: Extract senior-cycle artifact and gate operations behind a workflow compatibility facade while preserving public exports and command behavior.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
 risks:
@@ -25,13 +25,13 @@ lastCommitDate: "2026-07-14"
 quality:
   lint: pass
   types: pass_commonjs_outside_typecheck
-  tests: pass_full_ci_after_1c88e0e
+  tests: pass_full_ci_after_daa2b4c
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer
   auditHigh: pass
   auditModerate: pass
   deadCode: not_configured
-  structure: milestone_3_release_preflight_policy_extracted
+  structure: milestone_3_ship_readiness_policy_extracted
 canonicalCommands:
   install: pnpm install
   dev: unknown
@@ -45,7 +45,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: "pnpm run ci"
-lastVerifiedAt: "2026-07-14T19:04:06-04:00"
+lastVerifiedAt: "2026-07-14T19:41:29-04:00"
 ---
 
 ## Current State
@@ -76,8 +76,11 @@ Unresolved-debt policy now lives in one pure module. Lifecycle, report, and ship
 
 Release-preflight policy now lives below the workflow orchestrator. It owns release-flow, tag, trusted-publishing, and stale-artifact checks; workflow supplies only dirty-tree and ship-check adapters, and fresh-process tests prove the new module does not initialize workflow orchestration.
 
+Ship-readiness policy now lives below workflow. It owns fast/local/full readiness selection, project-script and dead-code gates, category timing/aggregation, and the `ship prepare` artifact; workflow injects senior-cycle and release-specific evidence, while shared ship modes live below both readiness and release-preflight domains. Fresh-process, injected-contract, workflow/CLI parity, and full clean-consumer CI verification passed.
+
 ## Recent Progress
 
+- July 14: Committed `daa2b4c`; isolated ship-readiness policy with injected senior-cycle and release evidence, removed the release/readiness dependency edge, and passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `1c88e0e`; isolated release-preflight policy behind injected dirty-tree and ship-check adapters, preserved public CLI/API behavior, and passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `8018e84`; centralized unresolved-debt assessment, preserved lifecycle remediation and workbench response shapes, and passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `bfc19d4`; extracted project command discovery, removed the adoption/workflow dependency cycle, preserved strict package parsing and workflow export compatibility, and passed full network-enabled CI.
@@ -92,12 +95,11 @@ Release-preflight policy now lives below the workflow orchestrator. It owns rele
 - July 14: `pnpm run ci` passed: typecheck, lint, 329 tests / 1 skipped, coverage gate, and package dry run.
 - July 13: Committed `757a283`; safe init preserves existing artifacts, force reset is backup/rollback recoverable, and agent repair is state-preserving.
 - July 13: Committed `ba92e8d`; removing incomplete `bundledDependencies` restores the packed CLI in a fresh pnpm consumer.
-- July 13: Committed `1269a86` with the GPT-5.6 modernization audit, target, execution plan, Terrace planning artifacts, and current report evidence.
 
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
-- `workflow.cjs` and the CLI dispatcher remain large orchestration hotspots; extract only independently verifiable lower-level seams.
+- Senior-cycle operations and the CLI dispatcher remain large orchestration hotspots; extract only independently verifiable lower-level seams.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
@@ -107,7 +109,7 @@ Release-preflight policy now lives below the workflow orchestrator. It owns rele
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS after `1c88e0e`; release-policy, debt-projection, and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
+| Tests | `pnpm run ci` PASS after `daa2b4c`; ship-readiness, release-policy, debt-projection, and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Security evidence | Missing, legacy, incomplete, or source/config/lock-stale evidence blocks release readiness; `terrace security check` is the explicit writer. |
@@ -115,6 +117,6 @@ Release-preflight policy now lives below the workflow orchestrator. It owns rele
 
 ## Next Concrete Steps
 
-1. Select the next lower-level dispatcher or workflow seam and prove its import/export boundary before moving consumers.
+1. Extract senior-cycle artifact and gate operations, then prove the new owner does not initialize workflow orchestration.
 2. Continue splitting catalog-aware dispatcher/domain seams without changing public argv, JSON, or exit behavior.
 3. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.
