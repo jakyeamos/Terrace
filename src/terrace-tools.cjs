@@ -105,10 +105,24 @@ const {
   renderCliHelp
 } = require('../packages/terrace-core/src/index.cjs');
 const { managedArtifactExists, writeManagedText } = require('../packages/terrace-core/src/managed-artifacts.cjs');
+const { createPhaseCliRouter } = require('./phase-cli-router.cjs');
 
 const packageJson = require('../package.json');
 
 const HELP_TEXT = renderCliHelp();
+const phaseCliRouter = createPhaseCliRouter({
+  phaseList,
+  phaseShow,
+  phasePlan,
+  phaseExecute,
+  phaseValidate,
+  phaseReview,
+  phaseComplete,
+  phaseCompleteWorkflow,
+  loadState,
+  saveState,
+  transitionState
+});
 
 function hasFlag(args, flag) {
   return args.includes(flag);
@@ -447,6 +461,16 @@ async function main() {
 
   if (apply && command !== 'do') {
     fail('--apply is only supported with terrace do --apply <plan-token>.', { json });
+  }
+
+  const phaseRoute = phaseCliRouter.route({ command, args, cwd });
+  if (phaseRoute.handled) {
+    if (phaseRoute.kind === 'error') {
+      fail(phaseRoute.message, { json });
+      return;
+    }
+    output(phaseRoute.data, { json });
+    return;
   }
 
   switch (command) {
@@ -888,37 +912,6 @@ async function main() {
       }
       return;
     }
-    case 'plan-phase':
-    case 'execute-phase':
-    case 'validate-phase':
-    case 'review-phase':
-    case 'complete-phase': {
-      const phaseId = args[1];
-      if (!phaseId) {
-        fail('Usage: terrace ' + command + ' <phase-id>', { json });
-      }
-      const action = command.replace('-phase', '');
-      const handlers = {
-        plan: phasePlan,
-        execute: phaseExecute,
-        validate: phaseValidate,
-        review: phaseReview,
-        complete: phaseComplete
-      };
-      output({
-        command_alias: 'terrace phase ' + action + ' ' + phaseId,
-        result: handlers[action](cwd, phaseId)
-      }, { json });
-      return;
-    }
-    case 'execute-phase-complete': {
-      const phaseId = args[1];
-      if (!phaseId) {
-        fail('Usage: terrace execute-phase-complete <phase-id>', { json });
-      }
-      output(phaseCompleteWorkflow(cwd, phaseId), { json });
-      return;
-    }
     case 'init': {
       output(initCore(cwd, { projectName: path.basename(cwd), force, yes }), { json });
       return;
@@ -946,72 +939,6 @@ async function main() {
         return;
       }
       fail('Unknown preset subcommand: ' + sub, { json });
-      return;
-    }
-    case 'phase': {
-      const sub = args[1];
-      if (sub === 'list') {
-        output(phaseList(cwd), { json });
-        return;
-      }
-      if (sub === 'show') {
-        const phaseId = args[2];
-        if (!phaseId) {
-          fail('Usage: terrace phase show <phase-id>', { json });
-        }
-        output(phaseShow(cwd, phaseId), { json });
-        return;
-      }
-      if (sub === 'plan') {
-        const phaseId = args[2];
-        if (!phaseId) {
-          fail('Usage: terrace phase plan <phase-id>', { json });
-        }
-        output(phasePlan(cwd, phaseId), { json });
-        return;
-      }
-      if (sub === 'execute') {
-        const phaseId = args[2];
-        if (!phaseId) {
-          fail('Usage: terrace phase execute <phase-id>', { json });
-        }
-        output(phaseExecute(cwd, phaseId), { json });
-        return;
-      }
-      if (sub === 'validate') {
-        const phaseId = args[2];
-        if (!phaseId) {
-          fail('Usage: terrace phase validate <phase-id>', { json });
-        }
-        output(phaseValidate(cwd, phaseId), { json });
-        return;
-      }
-      if (sub === 'review') {
-        const phaseId = args[2];
-        if (!phaseId) {
-          fail('Usage: terrace phase review <phase-id>', { json });
-        }
-        output(phaseReview(cwd, phaseId), { json });
-        return;
-      }
-      if (sub === 'complete') {
-        const phaseId = args[2];
-        if (!phaseId) {
-          fail('Usage: terrace phase complete <phase-id>', { json });
-        }
-        output(phaseComplete(cwd, phaseId), { json });
-        return;
-      }
-      if (sub !== 'set') {
-        fail('Unknown phase subcommand: ' + sub + '. Use: list, show, plan, execute, validate, review, complete, set', { json });
-      }
-      const nextStatus = args[2];
-      if (!nextStatus) {
-        fail('Usage: terrace phase set <workflow-status>', { json });
-      }
-      const updated = transitionState(loadState(cwd), nextStatus);
-      saveState(cwd, updated);
-      output(updated, { json });
       return;
     }
     case 'backlog': {

@@ -418,6 +418,11 @@ describe('strict core CLI delegation', () => {
     const prepared = runTerraceResult(tmpDir, ['ship', 'prepare', '--json']);
     expect(prepared.status).toBe(1);
     expect(prepared.json.ship_ref).toBe('docs/terrace/ship/SHIP.md');
+    for (const action of ['plan', 'execute', 'validate', 'review', 'complete']) {
+      expect(runTerrace(tmpDir, [action + '-phase', 'phase-11-notifications', '--json'])).toMatchObject({
+        command_alias: 'terrace phase ' + action + ' phase-11-notifications'
+      });
+    }
   }, 180000);
 
   it('supports migrated quick-task history commands', () => {
