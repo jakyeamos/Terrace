@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, ship-readiness, senior-cycle, and phase-router domains are extracted, and the adoption/workflow cycle is removed; remaining dispatcher and orchestration seams remain.
+**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, ship-readiness, senior-cycle, phase-router, and senior-cycle/UI-router domains are extracted, and the adoption/workflow cycle is removed; remaining dispatcher and orchestration seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** choose the next bounded reporting/readiness or CLI command-family seam without changing public behavior.
+**Immediate implementation priority:** choose the next bounded CLI command-family seam or report/readiness precondition without changing public behavior.
 
 ## Evidence recorded
 
@@ -43,10 +43,11 @@
 - Ship-readiness policy now lives below workflow with an injected senior-cycle check. Fast/local/full behavior, script and dead-code gates, timings, and `ship prepare` artifacts retain their existing workflow/CLI contracts; focused parity tests, typecheck, lint, and source-agent checks passed.
 - Senior-cycle artifact generation, persisted feature evidence, gate evaluation, and ship evidence now live below workflow. The workflow facade remains identity-compatible; direct large-tier, read-only ship-check, and fresh-process import tests preserve the boundary.
 - The phase CLI command family now routes through a lower-level adapter with injected core operations. Canonical forms, five GSD aliases, `execute-phase-complete`, and `phase set` retain the top-level CLI's output, JSON, and exit behavior; direct and child-process tests cover the compatibility surface.
+- Senior-cycle and UI CLI commands now route through a lower-level adapter with injected handlers. Interrogation mode selection, answer-option evaluation, UI routing, and JSON error behavior retain the top-level renderer contract; direct and child-process tests cover the compatibility surface.
 
 ## Next action
 
-Select the next independently verifiable reporting/readiness or CLI command-family seam, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher rewrite before each extraction is independently verified.
+Select the next independently verifiable CLI command-family seam or report/readiness precondition, retain every public export through a tested compatibility boundary, and avoid widening into a dispatcher rewrite before each extraction is independently verified.
 
 ## Known blockers
 

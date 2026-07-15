@@ -106,6 +106,7 @@ const {
 } = require('../packages/terrace-core/src/index.cjs');
 const { managedArtifactExists, writeManagedText } = require('../packages/terrace-core/src/managed-artifacts.cjs');
 const { createPhaseCliRouter } = require('./phase-cli-router.cjs');
+const { createSeniorCycleCliRouter } = require('./senior-cycle-cli-router.cjs');
 
 const packageJson = require('../package.json');
 
@@ -122,6 +123,21 @@ const phaseCliRouter = createPhaseCliRouter({
   loadState,
   saveState,
   transitionState
+});
+const seniorCycleCliRouter = createSeniorCycleCliRouter({
+  optionsFor: seniorOptions,
+  alignFeature,
+  interrogateFeature,
+  interrogateMode,
+  mapCodebase,
+  designFeature,
+  testPlanFeature,
+  observeFeature,
+  validateProdFeature,
+  cleanupFeature,
+  uiImportStitch,
+  uiPlanRefresh,
+  uiDiff
 });
 
 function hasFlag(args, flag) {
@@ -470,6 +486,16 @@ async function main() {
       return;
     }
     output(phaseRoute.data, { json });
+    return;
+  }
+
+  const seniorCycleRoute = seniorCycleCliRouter.route({ command, args, rawArgs, cwd });
+  if (seniorCycleRoute.handled) {
+    if (seniorCycleRoute.kind === 'error') {
+      fail(seniorCycleRoute.message, { json });
+      return;
+    }
+    output(seniorCycleRoute.data, { json });
     return;
   }
 
@@ -844,60 +870,6 @@ async function main() {
         return;
       }
       fail('Unknown settings subcommand: ' + sub + '. Use: show, effort', { json });
-      return;
-    }
-    case 'align': {
-      output(alignFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
-      return;
-    }
-    case 'interrogate': {
-      if (['init', 'adjust', 'risk', 'milestone'].includes(args[1])) {
-        output(interrogateMode(cwd, args[1], args[2], seniorOptions(rawArgs)), { json });
-        return;
-      }
-      output(interrogateFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
-      return;
-    }
-    case 'map-codebase': {
-      output(mapCodebase(cwd), { json });
-      return;
-    }
-    case 'design': {
-      output(designFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
-      return;
-    }
-    case 'test-plan': {
-      output(testPlanFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
-      return;
-    }
-    case 'observe': {
-      output(observeFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
-      return;
-    }
-    case 'validate-prod': {
-      output(validateProdFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
-      return;
-    }
-    case 'cleanup': {
-      output(cleanupFeature(cwd, args[1], seniorOptions(rawArgs)), { json });
-      return;
-    }
-    case 'ui': {
-      const sub = args[1];
-      const feature = args[2];
-      if (sub === 'import-stitch') {
-        output(uiImportStitch(cwd, feature), { json });
-        return;
-      }
-      if (sub === 'plan-refresh') {
-        output(uiPlanRefresh(cwd, feature), { json });
-        return;
-      }
-      if (sub === 'diff') {
-        output(uiDiff(cwd, feature), { json });
-        return;
-      }
-      fail('Unknown ui subcommand: ' + sub + '. Use: import-stitch, plan-refresh, diff', { json });
       return;
     }
     case 'do': {

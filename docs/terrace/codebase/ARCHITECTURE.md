@@ -12,6 +12,7 @@
 - `ship-readiness.cjs` owns fast/local/full readiness policy, project-script gates, category aggregation, and ship-summary artifacts. It receives senior-cycle and release-specific evidence through injected callbacks while workflow preserves the existing public API and composes release preflight; their shared modes live below both modules.
 - `senior-cycle.cjs` owns senior artifact generation, state recording, gate evaluation, and ship evidence. It imports only lower-level services; workflow preserves the existing public facade and keeps phase, quick-task, and autonomous orchestration separate.
 - `phase-cli-router.cjs` owns canonical and GSD-compatible phase command parsing through injected core operations. The top-level CLI retains global-option parsing, human/JSON rendering, and exit behavior.
+- `senior-cycle-cli-router.cjs` owns senior-cycle and UI command parsing through injected handlers. It preserves lazy option evaluation and returns data/errors to the same top-level CLI renderer.
 
 ## Target Architecture
 

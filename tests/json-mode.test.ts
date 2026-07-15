@@ -94,4 +94,19 @@ describe('--json output mode for all CLI commands (CLI-12)', () => {
       remediation: null
     });
   });
+
+  it('terrace UI router errors preserve the JSON renderer and nonzero exit', () => {
+    const result = spawnSync(NODE_BIN, [TERRACE_CLI, 'ui', 'unknown', '--json'], {
+      cwd: tmpDir,
+      encoding: 'utf-8'
+    });
+
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      error: 'Unknown ui subcommand: unknown. Use: import-stitch, plan-refresh, diff',
+      details: null,
+      next_command: null,
+      remediation: null
+    });
+  });
 });
