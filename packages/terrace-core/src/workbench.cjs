@@ -9,9 +9,9 @@ const {
   reviewAi,
   workstreamsPlan,
   createHandoff,
-  reportRead,
   testEvalShipCheck
 } = require('./lifecycle.cjs');
+const { reportRead } = require('./reporting.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
 const { evaluateDebt } = require('./debt-assessment.cjs');
 

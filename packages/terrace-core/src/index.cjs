@@ -22,6 +22,7 @@ module.exports = {
   ...require('./workflow-helpers.cjs'),
   ...require('./intent-catalog.cjs'),
   ...require('./workflow.cjs'),
+  ...require('./reporting.cjs'),
   ...require('./lifecycle.cjs'),
   ...require('./workbench.cjs'),
   ...require('./adoption.cjs'),

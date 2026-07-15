@@ -31,7 +31,7 @@ const {
   uiDiff
 } = require('./senior-cycle.cjs');
 const { withManagedArtifactLock, writeProjectText } = require('./managed-artifacts.cjs');
-const { reportUpdate } = require('./lifecycle.cjs');
+const { reportUpdate } = require('./reporting.cjs');
 const { resolveIntentCommand } = require('./intent-catalog.cjs');
 
 function nowIso() {

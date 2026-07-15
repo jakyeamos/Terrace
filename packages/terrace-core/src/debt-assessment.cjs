@@ -45,7 +45,18 @@ function evaluateDebt(entries, options) {
   };
 }
 
+function auditDebtState(entries) {
+  const assessment = evaluateDebt(entries);
+  return {
+    open_count: assessment.open_count,
+    blockers: assessment.blockers,
+    warnings: assessment.warnings,
+    passed: assessment.passed
+  };
+}
+
 module.exports = {
   openDebtEntries,
-  evaluateDebt
+  evaluateDebt,
+  auditDebtState
 };

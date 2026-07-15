@@ -11,7 +11,6 @@ const { discoverProjectCommands } = require('./project-command-discovery.cjs');
 const { SHIP_CHECK_MODES } = require('./ship-check-modes.cjs');
 const { writeProjectText } = require('./managed-artifacts.cjs');
 const {
-  reportShipCheck,
   preflightShipCheck,
   debtShipCheck,
   documentationShipCheck,
@@ -20,6 +19,7 @@ const {
   ruleAuditShipCheck,
   waiverShipCheck
 } = require('./lifecycle.cjs');
+const { reportShipCheck } = require('./reporting.cjs');
 
 function staticCheck(result, category, command) {
   return {
