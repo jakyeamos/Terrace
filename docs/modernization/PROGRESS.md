@@ -47,6 +47,7 @@
 - Release-preflight aliases and ship commands now route through a lower-level adapter with injected policy handlers. Raw mode-option parsing, default ship behavior, exact command errors, and failed-readiness exit intent remain renderer-owned compatibility behavior; direct router and policy-boundary tests cover the seam.
 - Reporting now lives below lifecycle: report-card calculation, persistence/history, ceremony analysis, and the fresh report ship gate have one owner. Workflow, adoption, workbench, and ship readiness import the lower-level owner directly while lifecycle retains identity-compatible public exports; focused behavior, symlink-safety, consumer, and fresh-process import tests passed.
 - Report commands now route through a lower-level adapter with injected reporting operations. Plain reads, explicit updates, history/open responses, exact unknown-command errors, and ceremony-only exit intent retain the unchanged top-level JSON/human renderer; direct and existing CLI contract tests cover the seam.
+- Package `main` now agrees with root `exports` on the import-safe core facade, while `bin` remains the only CLI entrypoint. A fresh-process regression test proves legacy directory imports do not initialize the CLI dispatcher.
 
 ## Next action
 

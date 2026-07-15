@@ -19,7 +19,7 @@
     "governance",
     "workflow"
   ],
-  "main": "src/terrace-tools.cjs",
+  "main": "packages/terrace-core/src/index.cjs",
   "bin": {
     "terrace": "src/terrace-tools.cjs"
   },

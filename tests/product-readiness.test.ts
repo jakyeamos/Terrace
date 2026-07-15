@@ -39,6 +39,7 @@ describe('tier-one product readiness', () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
     expect(pkg.bin).toEqual({ terrace: 'src/terrace-tools.cjs' });
+    expect(pkg.main).toBe('packages/terrace-core/src/index.cjs');
     expect(pkg.files).toEqual([
       'src/',
       'scripts/',
@@ -55,6 +56,21 @@ describe('tier-one product readiness', () => {
     expect(pkg.publishConfig).toMatchObject({ access: 'public', provenance: true });
     expect(pkg.repository.type).toBe('git');
     expect(pkg.exports['.']).toBe('./packages/terrace-core/src/index.cjs');
+  });
+
+  it('keeps the legacy main entry import-safe', () => {
+    const script = [
+      'const library = require(' + JSON.stringify(repoRoot) + ');',
+      'const cliPath = require.resolve(' + JSON.stringify(cliPath) + ');',
+      'process.stdout.write(JSON.stringify({ init_core: typeof library.initCore, cli_loaded: Boolean(require.cache[cliPath]) }));'
+    ].join('\n');
+    const result = spawnSync(process.execPath, ['-e', script], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
+
+    expect(result.status, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({ init_core: 'function', cli_loaded: false });
   });
 
   it('documents install, quickstart, command reference, workflow examples, and troubleshooting', () => {

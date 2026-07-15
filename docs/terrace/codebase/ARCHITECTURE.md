@@ -3,6 +3,7 @@
 ## Current Architecture
 
 - Terrace is one root npm package exposing a CLI and reusable core.
+- `main` and root `exports` both resolve to the import-safe core facade; `bin` is the only executable CLI entrypoint.
 - The CLI is a large switch router; `workflow.cjs` and the remaining lifecycle orchestration are the main hotspots.
 - State and evidence live in `.terrace/` and `docs/`; the product has no remote-service boundary.
 - Command metadata is duplicated across help, agent generators, tests, README content, and command contracts.
