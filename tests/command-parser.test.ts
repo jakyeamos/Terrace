@@ -81,11 +81,11 @@ describe('catalog-owned command parser', () => {
   });
 
   it('returns an unknown result for a command family absent from the catalog', () => {
-    expect(resolve(['not-a-command'])).toEqual({
+    expect(resolve(['x'])).toEqual({
       kind: 'unknown',
-      token: 'not-a-command',
-      raw_args: ['not-a-command'],
-      args: ['not-a-command']
+      token: 'x',
+      raw_args: ['x'],
+      args: ['x']
     });
   });
 });

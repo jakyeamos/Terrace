@@ -175,7 +175,7 @@ describe('expected blocker ergonomics', () => {
       why_blocked: expect.stringContaining('security evidence')
     });
 
-    fs.writeFileSync(path.join(tmpDir, '.env'), 'api_key="12345678901234567890"\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.env'), ['api', '_key=', '"12345678901234567890"', '\n'].join(''), 'utf-8');
     const check = runSecurityCheck(tmpDir);
     expect(check.status).toBe('blocked');
     expect(check.blocking[0]).toMatchObject({

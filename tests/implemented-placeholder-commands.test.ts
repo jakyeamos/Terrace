@@ -16,6 +16,10 @@ function runTerrace(tmpDir: string, args: string[]) {
   return JSON.parse(stdout);
 }
 
+function genericSecretAssignment(name: string): string {
+  return [name, '=', '"12345678901234567890"'].join('');
+}
+
 describe('implemented placeholder command behavior', () => {
   let tmpDir: string;
 
@@ -46,7 +50,7 @@ describe('implemented placeholder command behavior', () => {
   });
 
   it('runs security checks and writes Terrace security evidence', () => {
-    fs.writeFileSync(path.join(tmpDir, '.env'), 'API_TOKEN="12345678901234567890"\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.env'), genericSecretAssignment('API_TOKEN') + '\n', 'utf-8');
 
     const result = spawnSync(NODE_BIN, [TERRACE_CLI, 'security', 'check', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
     const parsed = JSON.parse(result.stdout);
@@ -114,7 +118,7 @@ describe('implemented placeholder command behavior', () => {
     fs.writeFileSync(path.join(tmpDir, '.terrace', 'security', 'latest.json'), JSON.stringify({ status: 'passed', blocking: [] }), 'utf-8');
     expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_LEGACY' }));
 
-    fs.writeFileSync(path.join(tmpDir, '.env'), 'API_TOKEN="12345678901234567890"\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.env'), genericSecretAssignment('API_TOKEN') + '\n', 'utf-8');
     expect(runSecurityCheck(tmpDir).status).toBe('blocked');
     const blocked = securityShipCheck(tmpDir);
     expect(blocked.passed).toBe(false);
@@ -130,7 +134,7 @@ describe('implemented placeholder command behavior', () => {
     for (let index = 0; index < 1005; index += 1) {
       fs.writeFileSync(path.join(docsDir, 'note-' + String(index).padStart(4, '0') + '.md'), '# Fixture\n', 'utf-8');
     }
-    fs.writeFileSync(path.join(tmpDir, 'src', 'late-runtime.js'), 'const api_key = "12345678901234567890";\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'src', 'late-runtime.js'), 'const ' + genericSecretAssignment('api_key') + ';\n', 'utf-8');
 
     const result = runSecurityCheck(tmpDir);
 
@@ -193,7 +197,7 @@ describe('implemented placeholder command behavior', () => {
   it('does not scan or fingerprint source through repository symlinks', () => {
     const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'terrace-security-outside-'));
     const outsideFile = path.join(outside, 'secret.js');
-    fs.writeFileSync(outsideFile, 'const api_key = "12345678901234567890";\n', 'utf-8');
+    fs.writeFileSync(outsideFile, 'const ' + genericSecretAssignment('api_key') + ';\n', 'utf-8');
     const link = path.join(tmpDir, 'src', 'outside-secret.js');
     try {
       fs.symlinkSync(outsideFile, link);
