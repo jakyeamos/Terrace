@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight, ship-readiness, senior-cycle, and reporting domains, plus phase, senior-cycle/UI, and release-readiness CLI compatibility routers.
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight, ship-readiness, senior-cycle, and reporting domains, plus phase, senior-cycle/UI, release-readiness, and report CLI compatibility routers.
 healthScore: 94
 statusLabel: modernization_in_progress_domain_seams
-nextStep: Route report commands through a narrow injected adapter while retaining top-level rendering and exit behavior.
+nextStep: Run final adversarial modernization review and remove only confirmed remaining transition debris.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
 risks:
@@ -25,13 +25,13 @@ lastCommitDate: "2026-07-15"
 quality:
   lint: pass
   types: pass_commonjs_outside_typecheck
-  tests: pass_full_ci_after_59ead7e
+  tests: pass_full_ci_after_93c2587
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer
   auditHigh: pass
   auditModerate: pass
   deadCode: not_configured
-  structure: milestone_5_reporting_domain_extracted
+  structure: milestone_5_report_cli_router_extracted
 canonicalCommands:
   install: pnpm install
   dev: unknown
@@ -45,7 +45,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: "pnpm run ci"
-lastVerifiedAt: "2026-07-15T10:32:36-04:00"
+lastVerifiedAt: "2026-07-15T10:49:26-04:00"
 ---
 
 ## Current State
@@ -88,8 +88,11 @@ Release-preflight aliases and ship commands now live behind a separate compatibi
 
 Reporting now lives below lifecycle. The new owner calculates report cards, writes report-card/history artifacts through the managed boundary, analyzes ceremony artifacts, and builds a fresh report ship gate. Workflow, adoption, workbench, and ship readiness import it directly; lifecycle keeps identity-compatible exports for existing consumers. The exact report contract, fixed artifact set, read-only report reads, fresh ship checks, and symlink-safe write ordering are covered by fresh-process, focused behavior, and full clean-consumer CI verification.
 
+Report CLI parsing now lives behind a small injected compatibility router. It preserves read/update/open/history forms, the explicit report-update command metadata, exact unknown-subcommand errors, and ceremony-only exit intent; the top-level CLI retains global option parsing plus human/JSON output and error rendering. Direct router, existing CLI behavior, and full clean-consumer CI verification passed.
+
 ## Recent Progress
 
+- July 15: Committed `93c2587`; isolated report command parsing with injected reporting operations while retaining the top-level renderer and ceremony-only exit intent. Full network-enabled CI passed: 428 tests / 1 existing skip, coverage, and fresh packed-consumer smoke.
 - July 15: Committed `59ead7e`; isolated reporting calculation, persistence, ceremony, and ship-gate behavior below lifecycle while retaining identity-compatible exports and direct lower-level consumers. Full network-enabled CI passed: 428 tests / 1 existing skip, coverage, and fresh packed-consumer smoke.
 - July 15: Committed `4151930`; isolated release-preflight and ship command routing with raw option compatibility and renderer-owned exit intent, then passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `979ae32`; isolated senior-cycle/UI command routing with lazy option evaluation and unchanged JSON/error rendering, then passed full network-enabled CI with coverage and fresh packed-consumer smoke.
@@ -104,12 +107,11 @@ Reporting now lives below lifecycle. The new owner calculates report cards, writ
 - July 14: Committed `d3d1e69`; one command catalog now drives help, agent metadata, contracts, and packed-consumer surface coverage. Focused catalog/agent tests, typecheck, lint, and packed-consumer test passed.
 - July 14: Committed `3f113f4`; natural-language writes now require state-bound explicit apply, audit is read-only, agent drift is visible, ship prepare avoids self-dirtying, and adoption avoids ambient self-invocation. `pnpm run ci` passed.
 - July 14: Committed `05369a4`; release integrity now requires fresh source-scoped security evidence, uses a read-only default ship check, and gates full/release execution behind a clean Git snapshot. `pnpm run ci` passed: 385 tests / 1 skipped, coverage, and package dry run.
-- July 14: Committed `cd44e3b`; autonomous routing now stops safely on active features, avoids unrelated phase writes, and preserves migration precedence. Three direct regression tests plus `pnpm run ci` passed.
 
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
-- The report command family still lives in the top-level dispatcher; extract only its parsing/routing adapter while retaining the current renderer.
+- Remaining dispatcher branches should be reviewed as a group before further extraction; do not manufacture routers where they do not reduce a confirmed boundary risk.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
@@ -119,7 +121,7 @@ Reporting now lives below lifecycle. The new owner calculates report cards, writ
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS after `59ead7e`; reporting, phase/senior-cycle/UI/release-readiness routers, senior-cycle, ship-readiness, release-policy, debt-projection, and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
+| Tests | `pnpm run ci` PASS after `93c2587`; reporting, report/phase/senior-cycle/UI/release-readiness routers, senior-cycle, ship-readiness, release-policy, debt-projection, and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Security evidence | Missing, legacy, incomplete, or source/config/lock-stale evidence blocks release readiness; `terrace security check` is the explicit writer. |
@@ -127,6 +129,6 @@ Reporting now lives below lifecycle. The new owner calculates report cards, writ
 
 ## Next Concrete Steps
 
-1. Route report commands through a narrow injected adapter while retaining current renderer and exit behavior.
-2. Continue splitting catalog-aware dispatcher/domain seams without changing public argv, JSON, or exit behavior.
+1. Run an adversarial modernization review of remaining dispatcher seams, import direction, generated assets, and public compatibility.
+2. Remove only confirmed transition debris without changing public argv, JSON, or exit behavior.
 3. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.
