@@ -1,8 +1,8 @@
 'use strict';
 
-// This module is metadata only. The CLI keeps its existing dispatcher until a
-// later migration can prove handler parity. Every public projection must read
-// from this catalog rather than maintain a second command inventory.
+// This module owns command metadata and explicit inbound dispatch forms. Every
+// public projection and the CLI parser must read from this catalog rather than
+// maintain a second command inventory or infer parser rules from help text.
 
 const CATALOG_SCHEMA_VERSION = '1.0';
 
@@ -31,6 +31,142 @@ function option(name, flag) {
   return Object.freeze({ kind: 'option', name, flag });
 }
 
+function dispatchForm(literals, options) {
+  const opts = options || {};
+  return Object.freeze({
+    literals: freezeList(literals),
+    required_flags: freezeList(opts.requiredFlags),
+    priority: Number.isInteger(opts.priority) ? opts.priority : 0,
+    kind: opts.kind || 'command',
+    family_id: opts.familyId || null,
+    match: opts.match || 'prefix',
+    alias_id: opts.aliasId || null
+  });
+}
+
+function dispatch(owner, ...forms) {
+  return Object.freeze({
+    owner,
+    forms: freezeList(forms)
+  });
+}
+
+const F = dispatchForm;
+const D = dispatch;
+const G = (familyId, literals) => F(literals, { kind: 'family', familyId, priority: -100 });
+
+// These forms are parser data, not display grammar. They intentionally include
+// the compatibility defaults and flag precedence that are not expressible in
+// argv_pattern, while leaving argument and option validation to the owner.
+const COMMAND_DISPATCH_BY_ID = Object.freeze({
+  help: D('top', F(['help']), F(['--help']), F(['-h'])),
+  version: D('top', F(['--version']), F(['-v'])),
+  init: D('legacy', F(['init'])),
+  'agents.repair': D('legacy', G('agents', ['agents']), F(['agents', 'repair'])),
+  'agents.install-global': D('legacy', F(['agents', 'install-global'])),
+  'project.new': D('legacy', F(['new-project'])),
+  'prd.import': D('legacy', G('prd', ['prd']), F(['prd', 'import'])),
+  doctor: D('legacy', F(['doctor'])),
+  'spec.validate': D('legacy', G('spec', ['spec']), F(['spec', 'validate'])),
+  'spec.hash': D('legacy', F(['spec', 'hash'])),
+  audit: D('legacy', F(['audit'])),
+  'ci.check': D('legacy', G('ci', ['ci']), F(['ci', 'check'])),
+  'security.check': D('legacy', G('security', ['security']), F(['security', 'check'])),
+  'corpus.run': D('legacy', G('corpus', ['corpus']), F(['corpus', 'run'])),
+  'corpus.report': D('legacy', F(['corpus', 'report'])),
+  'adoption.status': D('legacy', G('adoption', ['adoption']), F(['adoption', 'status'])),
+  'port.gsd': D('legacy', G('port', ['port']), F(['port', 'gsd'])),
+  'port.gsd.dry-run': D('legacy', F(['port', 'gsd'], { requiredFlags: ['--dry-run'], priority: 100 })),
+  'port.gsd.compare': D('legacy', F(['port', 'gsd'], { requiredFlags: ['--compare'], priority: 400 })),
+  'port.gsd.verify-parity': D('legacy', F(['port', 'gsd'], { requiredFlags: ['--verify-parity'], priority: 300 })),
+  'port.gsd.import-roadmap': D('legacy', F(['port', 'gsd'], { requiredFlags: ['--import-roadmap'], priority: 200 })),
+  'planning.refresh': D('legacy', G('planning', ['planning']), F(['planning', 'refresh']), F(['planning', 'init'], { aliasId: 'planning.init' })),
+  next: D('legacy', F(['next'])),
+  resume: D('legacy', F(['resume'])),
+  history: D('legacy', F(['history'])),
+  do: D('legacy', F(['do'])),
+  autonomous: D('legacy', F(['autonomous'])),
+  'phase.execute-complete': D('phase', F(['execute-phase-complete'])),
+  'settings.show': D('legacy', G('settings', ['settings']), F(['settings'], { match: 'exact' }), F(['settings', 'show'])),
+  'settings.effort': D('legacy', F(['settings', 'effort'])),
+  'commands.discover': D('legacy', G('commands', ['commands']), F(['commands', 'discover'])),
+  align: D('senior-cycle', F(['align'])),
+  interrogate: D('senior-cycle', F(['interrogate'])),
+  'map-codebase': D('senior-cycle', F(['map-codebase'])),
+  design: D('senior-cycle', F(['design'])),
+  'test-plan': D('senior-cycle', F(['test-plan'])),
+  observe: D('senior-cycle', F(['observe'])),
+  'validate-prod': D('senior-cycle', F(['validate-prod'])),
+  cleanup: D('senior-cycle', F(['cleanup'])),
+  'ui.import-stitch': D('senior-cycle', G('ui', ['ui']), F(['ui', 'import-stitch'])),
+  'ui.plan-refresh': D('senior-cycle', F(['ui', 'plan-refresh'])),
+  'ui.diff': D('senior-cycle', F(['ui', 'diff'])),
+  'workstreams.plan': D('legacy', G('workstreams', ['workstreams']), F(['workstreams', 'plan'])),
+  'design-source.import': D('legacy', G('design-source', ['design-source']), F(['design-source', 'import'])),
+  'design-source.diff': D('legacy', F(['design-source', 'diff'])),
+  'phase.list': D('phase', G('phase', ['phase']), F(['phase', 'list'])),
+  'phase.show': D('phase', F(['phase', 'show'])),
+  'phase.plan': D('phase', F(['phase', 'plan'])),
+  'phase.execute': D('phase', F(['phase', 'execute'])),
+  'phase.validate': D('phase', F(['phase', 'validate'])),
+  'phase.review': D('phase', F(['phase', 'review'])),
+  'phase.complete': D('phase', F(['phase', 'complete'])),
+  'phase.plan.alias': D('phase', F(['plan-phase'])),
+  'phase.execute.alias': D('phase', F(['execute-phase'])),
+  'phase.validate.alias': D('phase', F(['validate-phase'])),
+  'phase.review.alias': D('phase', F(['review-phase'])),
+  'phase.complete.alias': D('phase', F(['complete-phase'])),
+  'quick.list': D('legacy', F(['quick', 'list'])),
+  'quick.show': D('legacy', F(['quick', 'show'])),
+  'quick.plan': D('legacy', F(['quick', 'plan'])),
+  'quick.execute': D('legacy', F(['quick', 'execute'])),
+  'quick.complete': D('legacy', F(['quick', 'complete'])),
+  'backlog.list': D('legacy', G('backlog', ['backlog']), F(['backlog', 'list'])),
+  'backlog.add': D('legacy', F(['backlog', 'add'])),
+  'ship.check': D('release-readiness', G('ship', ['ship']), F(['ship'], { match: 'exact' }), F(['ship', 'check'])),
+  'ship.prepare': D('release-readiness', F(['ship', 'prepare'])),
+  'release-preflight': D('release-readiness', F(['release-preflight']), G('release', ['release']), F(['release', 'preflight'], { aliasId: 'release.preflight' })),
+  report: D('report', G('report', ['report']), F(['report'], { match: 'exact' })),
+  'handoff.create': D('legacy', G('handoff', ['handoff']), F(['handoff', 'create'])),
+  debt: D('legacy', G('debt', ['debt'])),
+  preflight: D('legacy', F(['preflight'])),
+  docu: D('legacy', F(['docu'])),
+  'test.eval': D('legacy', G('test', ['test']), F(['test', 'eval'])),
+  'review.ai': D('legacy', G('review', ['review']), F(['review', 'ai'])),
+  waive: D('legacy', F(['waive'])),
+  'workbench.status': D('legacy', G('workbench', ['workbench']), F(['workbench', 'status'])),
+  'workbench.prepare': D('legacy', F(['workbench', 'prepare'])),
+  'rule.add': D('legacy', G('rule', ['rule']), G('add', ['add']), F(['rule', 'add']), F(['add', 'rule'], { aliasId: 'add.rule' })),
+  'rule.audit': D('legacy', F(['rule', 'audit'])),
+  'rule.list': D('legacy', F(['rule', 'list'])),
+  'rule.explain': D('legacy', F(['rule', 'explain'])),
+  backfill: D('legacy', F(['backfill'])),
+  'preset.list': D('legacy', G('preset', ['preset']), F(['preset', 'list'])),
+  'preset.install': D('legacy', F(['preset', 'install'])),
+  'core.init': D('legacy', G('core', ['core']), F(['core', 'init'])),
+  'quick.roadmap-item': D('legacy', F(['quick'])),
+  'roadmap.execute': D('legacy', G('roadmap', ['roadmap']), F(['roadmap', 'execute'])),
+  'report.update': D('report', F(['report', 'update'])),
+  'report.open': D('report', F(['report', 'open'])),
+  'report.history': D('report', F(['report', 'history'])),
+  'report.ceremony': D('report', F(['report', 'ceremony'])),
+  'debt.add': D('legacy', F(['debt', 'add'])),
+  'debt.list': D('legacy', F(['debt', 'list'])),
+  'debt.audit': D('legacy', F(['debt', 'audit'])),
+  'debt.resolve': D('legacy', F(['debt', 'resolve'])),
+  'phase.set': D('phase', F(['phase', 'set'])),
+  'interrogate.mode': D('senior-cycle', F(['interrogate', 'init']), F(['interrogate', 'adjust']), F(['interrogate', 'risk']), F(['interrogate', 'milestone'])),
+  steering: D('legacy', F(['steering'])),
+  'baseline.protect': D('legacy', G('baseline', ['baseline']), F(['baseline', 'protect'])),
+  'baseline.status': D('legacy', F(['baseline', 'status'])),
+  'decision.log': D('legacy', G('decision', ['decision']), F(['decision', 'log'])),
+  policy: D('legacy', F(['policy'])),
+  'session.start': D('legacy', G('session', ['session']), F(['session', 'start'])),
+  'session.end': D('legacy', F(['session', 'end'])),
+  'session.reconstruct': D('legacy', F(['session', 'reconstruct'])),
+  migrate: D('legacy', F(['migrate']))
+});
+
 function command(id, argvPattern, options) {
   const opts = options || {};
   return Object.freeze({
@@ -45,7 +181,8 @@ function command(id, argvPattern, options) {
     writes: freezeList(opts.writes),
     execution: freezeList(opts.execution),
     variants: freezeList(opts.variants),
-    route_argv: freezeList(opts.route)
+    route_argv: freezeList(opts.route),
+    dispatch: opts.dispatch || COMMAND_DISPATCH_BY_ID[id] || null
   });
 }
 
@@ -600,6 +737,21 @@ function cloneRouteArgv(routeArgv) {
   return routeArgv.map((token) => typeof token === 'string' ? token : { ...token });
 }
 
+function cloneDispatch(dispatchEntry) {
+  return dispatchEntry ? {
+    owner: dispatchEntry.owner,
+    forms: dispatchEntry.forms.map((form) => ({
+      literals: [...form.literals],
+      required_flags: [...form.required_flags],
+      priority: form.priority,
+      kind: form.kind,
+      family_id: form.family_id,
+      match: form.match,
+      alias_id: form.alias_id
+    }))
+  } : null;
+}
+
 function cloneCommand(entry) {
   return {
     ...entry,
@@ -611,6 +763,7 @@ function cloneCommand(entry) {
     execution: [...entry.execution],
     variants: entry.variants.map((variant) => ({ ...variant, execution: [...(variant.execution || [])] })),
     route_argv: cloneRouteArgv(entry.route_argv),
+    dispatch: cloneDispatch(entry.dispatch),
     contracts: CONTRACTS.filter((contract) => contract.command_id === entry.id).map((contract) => ({ ...contract }))
   };
 }
@@ -733,6 +886,8 @@ function validateCommandCatalog() {
   const seenIds = new Set();
   const seenAgents = new Set();
   const missingContractCommands = [];
+  const missingDispatchCommands = [];
+  const invalidDispatchCommands = [];
 
   for (const entry of COMMAND_CATALOG) {
     if (seenIds.has(entry.id)) duplicateIds.push(entry.id);
@@ -741,6 +896,16 @@ function validateCommandCatalog() {
       if (seenAgents.has(entry.agent.template_id)) duplicateAgentNames.push(entry.agent.template_id);
       seenAgents.add(entry.agent.template_id);
     }
+    if (!entry.dispatch) {
+      missingDispatchCommands.push(entry.id);
+    } else if (!entry.dispatch.owner || entry.dispatch.forms.length === 0 || entry.dispatch.forms.some((form) => (
+      !['command', 'family'].includes(form.kind)
+      || !['prefix', 'exact'].includes(form.match)
+      || form.literals.length === 0
+      || (form.kind === 'family' && !form.family_id)
+    ))) {
+      invalidDispatchCommands.push(entry.id);
+    }
   }
   for (const contract of CONTRACTS) {
     if (!CATALOG_BY_ID.has(contract.command_id)) missingContractCommands.push(contract.command_id);
@@ -748,10 +913,12 @@ function validateCommandCatalog() {
 
   return {
     schema_version: CATALOG_SCHEMA_VERSION,
-    valid: duplicateIds.length === 0 && duplicateAgentNames.length === 0 && missingContractCommands.length === 0,
+    valid: duplicateIds.length === 0 && duplicateAgentNames.length === 0 && missingContractCommands.length === 0 && missingDispatchCommands.length === 0 && invalidDispatchCommands.length === 0,
     duplicate_ids: duplicateIds,
     duplicate_agent_names: duplicateAgentNames,
     missing_contract_commands: missingContractCommands,
+    missing_dispatch_commands: missingDispatchCommands,
+    invalid_dispatch_commands: invalidDispatchCommands,
     command_count: COMMAND_CATALOG.length,
     help_count: listHelpCommands().length,
     agent_count: listAgentCommands().length,

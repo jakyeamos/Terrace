@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, ship-readiness, senior-cycle, reporting, phase-router, senior-cycle/UI-router, release-readiness-router, and report-router domains are extracted, and the adoption/workflow cycle is removed; remaining dispatcher and orchestration seams remain.
+**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, ship-readiness, senior-cycle, reporting, and catalog-driven CLI routing are extracted, and the adoption/workflow cycle is removed; final adversarial review and confirmed cleanup remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** review the remaining dispatcher/orchestration seams against the target architecture and remove only confirmed transition debris.
+**Immediate implementation priority:** run the final adversarial review against the catalog parser, compatibility adapters, import direction, and public behavior; remove only confirmed transition debris.
 
 ## Evidence recorded
 
@@ -50,10 +50,11 @@
 - Package `main` now agrees with root `exports` on the import-safe core facade, while `bin` remains the only CLI entrypoint. A fresh-process regression test proves legacy directory imports do not initialize the CLI dispatcher.
 - Corpus configuration now ships as a synthetic-only runtime asset, while corpus results stay in the target project's `.terrace/corpus/` directory. The package allowlist excludes all repository documentation and historical corpus evidence; dry-run and fresh-consumer tests enforce a file-count and tarball-size budget.
 - Catalog metadata now classifies rule/debt audits and recovery-policy evaluation as write-capable because they persist evidence or state. Generated `ship prepare` guidance also makes clear that `--fast` skips project scripts but still writes the summary.
+- The catalog now owns explicit inbound dispatch forms, aliases, compatibility defaults, known-family fallbacks, and `port gsd` flag precedence. A pure core parser resolves canonical IDs without interpreting help grammar; phase, senior/UI, release/readiness, report, and legacy adapters consume those IDs, leaving the entrypoint with global options, rendering, errors, and exit intent only.
 
 ## Next action
 
-Review remaining dispatcher seams, import direction, generated-asset parity, and public compatibility against the target architecture; remove only confirmed obsolete paths before the final adversarial review.
+Run the final adversarial review of catalog routing, import direction, generated-asset parity, package behavior, and public compatibility; remove only confirmed obsolete paths before declaring the modernization complete.
 
 ## Known blockers
 

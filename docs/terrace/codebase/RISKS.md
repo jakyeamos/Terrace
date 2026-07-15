@@ -7,7 +7,6 @@
 
 ## P2
 
-- The command catalog drives help, agent assets, README content, contracts, and natural-language routes, but the remaining top-level CLI dispatcher still has hand-written command selection. A catalog-owned inbound dispatch specification is needed to prevent future parser drift.
 - Runtime CommonJS remains outside the TypeScript gate; current typecheck success does not establish static coverage for the production core.
 - Managed artifacts rely on cooperative locking and permission-controlled project directories. A same-user hostile process can still race a final filesystem pathname replacement.
 

@@ -1541,6 +1541,8 @@ describe('workflow parity core helpers', () => {
     expect(output).toContain('Answer: No. Keep GSD available');
     expect(output).toContain('Mode: keep_gsd');
     expect(output).toContain('Evidence:');
+    expect(output).toContain('\n\nEvidence:');
+    expect(output).not.toContain('\n\n\nEvidence:');
     expect(output).toContain('Workflow continuity: yes');
     expect(output).toContain('Next commands:');
     expect(output).toContain('terrace commands discover');

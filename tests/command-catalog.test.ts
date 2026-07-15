@@ -8,6 +8,18 @@ type CatalogCommand = {
   agent: { template_id: string; invocation: string; description: string } | null;
   variants: Array<{ when: string; effect: string }>;
   route_argv: Array<string | { kind: string; name: string; flag?: string }>;
+  dispatch: {
+    owner: string;
+    forms: Array<{
+      literals: string[];
+      required_flags: string[];
+      priority: number;
+      kind: string;
+      family_id: string | null;
+      match: string;
+      alias_id: string | null;
+    }>;
+  } | null;
   contracts: Array<{ command_id: string; command: string; category: string; json: boolean; purpose: string }>;
 };
 
@@ -42,6 +54,8 @@ const {
     duplicate_ids: string[];
     duplicate_agent_names: string[];
     missing_contract_commands: string[];
+    missing_dispatch_commands: string[];
+    invalid_dispatch_commands: string[];
   };
 };
 
@@ -58,7 +72,9 @@ describe('command catalog', () => {
       valid: true,
       duplicate_ids: [],
       duplicate_agent_names: [],
-      missing_contract_commands: []
+      missing_contract_commands: [],
+      missing_dispatch_commands: [],
+      invalid_dispatch_commands: []
     });
     expect(new Set(catalog.map((entry) => entry.id)).size).toBe(catalog.length);
     expect(new Set(helpCommands.map((entry) => entry.usage)).size).toBe(helpCommands.length);
@@ -107,6 +123,23 @@ describe('command catalog', () => {
     expect(commandById('ship.prepare')?.agent?.description).toBe('Write a release-readiness summary; --fast skips project scripts but still writes the summary.');
   });
 
+  it('owns explicit parser forms without treating display patterns as parser grammar', () => {
+    const catalog = listCommandCatalog();
+    expect(catalog.every((entry) => entry.dispatch && entry.dispatch.forms.length > 0)).toBe(true);
+    expect(commandById('port.gsd.compare')?.dispatch).toMatchObject({
+      owner: 'legacy',
+      forms: [expect.objectContaining({
+        literals: ['port', 'gsd'],
+        required_flags: ['--compare'],
+        priority: 400
+      })]
+    });
+    expect(commandById('ship.check')?.dispatch?.forms).toContainEqual(expect.objectContaining({
+      literals: ['ship'],
+      match: 'exact'
+    }));
+  });
+
   it('renders routed intent argv as arrays from catalog-owned parameter shapes', () => {
     const catalog = listCommandCatalog();
     const intentCommandIds = listIntentCommands().map((intent) => intent.command_id);
@@ -141,9 +174,11 @@ describe('command catalog', () => {
     init?.argv_pattern.push('mutated');
     if (init?.help) init.help.summary = 'mutated';
     port?.agent && (port.agent.template_id = 'mutated');
+    init?.dispatch?.forms[0].literals.push('mutated');
 
     expect(commandById('init')?.argv_pattern).not.toContain('mutated');
     expect(commandById('init')?.help?.summary).not.toBe('mutated');
     expect(commandById('port.gsd')?.agent?.template_id).toBe('terrace-port-gsd');
+    expect(commandById('init')?.dispatch?.forms[0].literals).not.toContain('mutated');
   });
 });

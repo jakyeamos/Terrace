@@ -52,19 +52,19 @@ describe('phase CLI router', () => {
     const router = createRouter(calls);
     const cwd = '/fixture';
 
-    expect(router.route({ command: 'phase', args: ['phase', 'list'], cwd })).toEqual({
+    expect(router.route({ command_id: 'phase.list', args: ['phase', 'list'], cwd })).toEqual({
       handled: true,
       kind: 'result',
       data: { name: 'list', cwd, phaseId: undefined }
     });
     for (const action of ['show', 'plan', 'execute', 'validate', 'review', 'complete']) {
-      expect(router.route({ command: 'phase', args: ['phase', action, 'phase-12'], cwd })).toEqual({
+      expect(router.route({ command_id: 'phase.' + action, args: ['phase', action, 'phase-12'], cwd })).toEqual({
         handled: true,
         kind: 'result',
         data: { name: action, cwd, phaseId: 'phase-12' }
       });
     }
-    expect(router.route({ command: 'ship', args: ['ship', 'check'], cwd })).toEqual({ handled: false });
+    expect(router.route({ command_id: 'ship.check', args: ['ship', 'check'], cwd })).toEqual({ handled: false });
     expect(calls.map((call) => call.name)).toEqual(['list', 'show', 'plan', 'execute', 'validate', 'review', 'complete']);
   });
 
@@ -74,7 +74,7 @@ describe('phase CLI router', () => {
     const cwd = '/fixture';
 
     for (const action of ['plan', 'execute', 'validate', 'review', 'complete']) {
-      expect(router.route({ command: action + '-phase', args: [action + '-phase', 'phase-12'], cwd })).toEqual({
+      expect(router.route({ command_id: 'phase.' + action + '.alias', args: [action + '-phase', 'phase-12'], cwd })).toEqual({
         handled: true,
         kind: 'result',
         data: {
@@ -83,7 +83,7 @@ describe('phase CLI router', () => {
         }
       });
     }
-    expect(router.route({ command: 'execute-phase-complete', args: ['execute-phase-complete', 'phase-12'], cwd })).toEqual({
+    expect(router.route({ command_id: 'phase.execute-complete', args: ['execute-phase-complete', 'phase-12'], cwd })).toEqual({
       handled: true,
       kind: 'result',
       data: { name: 'complete-workflow', cwd, phaseId: 'phase-12' }
@@ -115,23 +115,23 @@ describe('phase CLI router', () => {
     });
     const cwd = '/fixture';
 
-    expect(router.route({ command: 'phase', args: ['phase', 'set', 'intake_recorded'], cwd })).toEqual({
+    expect(router.route({ command_id: 'phase.set', args: ['phase', 'set', 'intake_recorded'], cwd })).toEqual({
       handled: true,
       kind: 'result',
       data: { workflow: { status: 'intake_recorded' } }
     });
     expect(order).toEqual(['load', 'transition:intake_recorded', 'save:intake_recorded']);
-    expect(router.route({ command: 'phase', args: ['phase', 'show'], cwd })).toEqual({
+    expect(router.route({ command_id: 'phase.show', args: ['phase', 'show'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Usage: terrace phase show <phase-id>'
     });
-    expect(router.route({ command: 'phase', args: ['phase', 'invalid'], cwd })).toEqual({
+    expect(router.route({ family_id: 'phase', args: ['phase', 'invalid'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Unknown phase subcommand: invalid. Use: list, show, plan, execute, validate, review, complete, set'
     });
-    expect(router.route({ command: 'execute-phase-complete', args: ['execute-phase-complete'], cwd })).toEqual({
+    expect(router.route({ command_id: 'phase.execute-complete', args: ['execute-phase-complete'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Usage: terrace execute-phase-complete <phase-id>'

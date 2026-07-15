@@ -43,14 +43,14 @@ describe('report CLI router', () => {
     const router = createRouter(calls);
     const cwd = '/fixture';
 
-    expect(router.route({ command: 'report', args: ['report'], cwd })).toMatchObject({
+    expect(router.route({ command_id: 'report', args: ['report'], cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'read', cwd },
       exitCode: undefined
     });
     for (const [sub, name] of [['update', 'update'], ['open', 'open'], ['history', 'history']] as const) {
-      expect(router.route({ command: 'report', args: ['report', sub, 'ignored'], cwd })).toMatchObject({
+      expect(router.route({ command_id: 'report.' + sub, args: ['report', sub, 'ignored'], cwd })).toMatchObject({
         handled: true,
         kind: 'result',
         data: { name, cwd },
@@ -70,13 +70,13 @@ describe('report CLI router', () => {
     const passingCalls: Call[] = [];
     const failingCalls: Call[] = [];
 
-    expect(createRouter(passingCalls, true).route({ command: 'report', args: ['report', 'ceremony'], cwd })).toMatchObject({
+    expect(createRouter(passingCalls, true).route({ command_id: 'report.ceremony', args: ['report', 'ceremony'], cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'ceremony', cwd, passed: true },
       exitCode: undefined
     });
-    expect(createRouter(failingCalls, false).route({ command: 'report', args: ['report', 'ceremony'], cwd })).toMatchObject({
+    expect(createRouter(failingCalls, false).route({ command_id: 'report.ceremony', args: ['report', 'ceremony'], cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'ceremony', cwd, passed: false },
@@ -91,12 +91,12 @@ describe('report CLI router', () => {
     const router = createRouter(calls);
     const cwd = '/fixture';
 
-    expect(router.route({ command: 'report', args: ['report', 'unknown'], cwd })).toEqual({
+    expect(router.route({ family_id: 'report', args: ['report', 'unknown'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Unknown report subcommand: unknown. Use: update, open, history, ceremony'
     });
-    expect(router.route({ command: 'ship', args: ['ship', 'check'], cwd })).toEqual({ handled: false });
+    expect(router.route({ command_id: 'ship.check', args: ['ship', 'check'], cwd })).toEqual({ handled: false });
     expect(calls).toEqual([]);
   });
 });

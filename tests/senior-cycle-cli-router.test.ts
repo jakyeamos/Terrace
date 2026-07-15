@@ -57,7 +57,7 @@ describe('senior-cycle CLI router', () => {
 
     for (const command of ['align', 'design', 'test-plan', 'observe', 'validate-prod', 'cleanup']) {
       const rawArgs = [command, 'billing-refresh', '--tier', 'large'];
-      expect(router.route({ command, args: rawArgs.slice(0, 2), rawArgs, cwd })).toMatchObject({
+      expect(router.route({ command_id: command, args: rawArgs.slice(0, 2), raw_args: rawArgs, cwd })).toMatchObject({
         handled: true,
         kind: 'result',
         data: { name: command, cwd }
@@ -80,12 +80,12 @@ describe('senior-cycle CLI router', () => {
     const router = createRouter(calls, optionCalls);
     const cwd = '/fixture';
 
-    expect(router.route({ command: 'interrogate', args: ['interrogate', 'billing-refresh'], rawArgs: ['interrogate', 'billing-refresh'], cwd })).toMatchObject({
+    expect(router.route({ command_id: 'interrogate', args: ['interrogate', 'billing-refresh'], raw_args: ['interrogate', 'billing-refresh'], cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'interrogate-feature', cwd }
     });
-    expect(router.route({ command: 'interrogate', args: ['interrogate', 'risk', 'billing-refresh'], rawArgs: ['interrogate', 'risk', 'billing-refresh'], cwd })).toMatchObject({
+    expect(router.route({ command_id: 'interrogate.mode', args: ['interrogate', 'risk', 'billing-refresh'], raw_args: ['interrogate', 'risk', 'billing-refresh'], cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'interrogate-mode', cwd }
@@ -106,24 +106,24 @@ describe('senior-cycle CLI router', () => {
     const router = createRouter(calls, optionCalls);
     const cwd = '/fixture';
 
-    expect(router.route({ command: 'map-codebase', args: ['map-codebase'], rawArgs: ['map-codebase', '--paste-answers'], cwd })).toMatchObject({
+    expect(router.route({ command_id: 'map-codebase', args: ['map-codebase'], raw_args: ['map-codebase', '--paste-answers'], cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'map-codebase', cwd }
     });
     for (const [sub, name] of [['import-stitch', 'ui-import-stitch'], ['plan-refresh', 'ui-plan-refresh'], ['diff', 'ui-diff']]) {
-      expect(router.route({ command: 'ui', args: ['ui', sub, 'settings-refresh'], rawArgs: ['ui', sub, 'settings-refresh', '--paste-answers'], cwd })).toMatchObject({
+      expect(router.route({ command_id: 'ui.' + sub, args: ['ui', sub, 'settings-refresh'], raw_args: ['ui', sub, 'settings-refresh', '--paste-answers'], cwd })).toMatchObject({
         handled: true,
         kind: 'result',
         data: { name, cwd }
       });
     }
-    expect(router.route({ command: 'ui', args: ['ui', 'unknown'], rawArgs: ['ui', 'unknown'], cwd })).toEqual({
+    expect(router.route({ family_id: 'ui', args: ['ui', 'unknown'], raw_args: ['ui', 'unknown'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Unknown ui subcommand: unknown. Use: import-stitch, plan-refresh, diff'
     });
-    expect(router.route({ command: 'ship', args: ['ship', 'check'], rawArgs: ['ship', 'check'], cwd })).toEqual({ handled: false });
+    expect(router.route({ command_id: 'ship.check', args: ['ship', 'check'], raw_args: ['ship', 'check'], cwd })).toEqual({ handled: false });
     expect(optionCalls).toEqual([]);
   });
 });

@@ -16,6 +16,19 @@ function createSeniorCycleCliRouter(dependencies) {
     uiPlanRefresh,
     uiDiff
   } = dependencies;
+  const featureHandlers = {
+    align: alignFeature,
+    design: designFeature,
+    'test-plan': testPlanFeature,
+    observe: observeFeature,
+    'validate-prod': validateProdFeature,
+    cleanup: cleanupFeature
+  };
+  const uiHandlers = {
+    'ui.import-stitch': uiImportStitch,
+    'ui.plan-refresh': uiPlanRefresh,
+    'ui.diff': uiDiff
+  };
 
   function result(data) {
     return { handled: true, kind: 'result', data };
@@ -26,43 +39,26 @@ function createSeniorCycleCliRouter(dependencies) {
   }
 
   function route(input) {
-    const { command, args, rawArgs, cwd } = input;
-    if (command === 'align') {
-      return result(alignFeature(cwd, args[1], optionsFor(rawArgs)));
+    const { command_id: commandId, family_id: familyId, args, raw_args: rawArgs, cwd } = input;
+    if (familyId === 'ui') {
+      return error('Unknown ui subcommand: ' + args[1] + '. Use: import-stitch, plan-refresh, diff');
     }
-    if (command === 'interrogate') {
-      if (['init', 'adjust', 'risk', 'milestone'].includes(args[1])) {
-        return result(interrogateMode(cwd, args[1], args[2], optionsFor(rawArgs)));
-      }
+    if (Object.prototype.hasOwnProperty.call(featureHandlers, commandId)) {
+      return result(featureHandlers[commandId](cwd, args[1], optionsFor(rawArgs)));
+    }
+    if (commandId === 'interrogate') {
       return result(interrogateFeature(cwd, args[1], optionsFor(rawArgs)));
     }
-    if (command === 'map-codebase') {
+    if (commandId === 'interrogate.mode') {
+      return result(interrogateMode(cwd, args[1], args[2], optionsFor(rawArgs)));
+    }
+    if (commandId === 'map-codebase') {
       return result(mapCodebase(cwd));
     }
-    const featureHandlers = {
-      design: designFeature,
-      'test-plan': testPlanFeature,
-      observe: observeFeature,
-      'validate-prod': validateProdFeature,
-      cleanup: cleanupFeature
-    };
-    if (Object.prototype.hasOwnProperty.call(featureHandlers, command)) {
-      return result(featureHandlers[command](cwd, args[1], optionsFor(rawArgs)));
+    if (Object.prototype.hasOwnProperty.call(uiHandlers, commandId)) {
+      return result(uiHandlers[commandId](cwd, args[2]));
     }
-    if (command !== 'ui') {
-      return { handled: false };
-    }
-    const sub = args[1];
-    const feature = args[2];
-    const uiHandlers = {
-      'import-stitch': uiImportStitch,
-      'plan-refresh': uiPlanRefresh,
-      diff: uiDiff
-    };
-    if (!Object.prototype.hasOwnProperty.call(uiHandlers, sub)) {
-      return error('Unknown ui subcommand: ' + sub + '. Use: import-stitch, plan-refresh, diff');
-    }
-    return result(uiHandlers[sub](cwd, feature));
+    return { handled: false };
   }
 
   return { route };

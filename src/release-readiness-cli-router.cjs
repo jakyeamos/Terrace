@@ -23,24 +23,23 @@ function createReleaseReadinessCliRouter(dependencies) {
   }
 
   function route(input) {
-    const { command, args, rawArgs, cwd } = input;
-    if (command === 'release-preflight' || command === 'release') {
-      if (command === 'release' && args[1] !== 'preflight') {
-        return error('Unknown release subcommand: ' + args[1] + '. Use: preflight');
-      }
+    const { command_id: commandId, family_id: familyId, args, raw_args: rawArgs, cwd } = input;
+    if (familyId === 'release') {
+      return error('Unknown release subcommand: ' + args[1] + '. Use: preflight');
+    }
+    if (familyId === 'ship') {
+      return error('Unknown ship subcommand: ' + args[1] + '. Use: check, prepare');
+    }
+    if (commandId === 'release-preflight') {
       return result(releasePreflight(cwd, releaseOptionsFor(rawArgs)));
     }
-    if (command !== 'ship') {
-      return { handled: false };
-    }
-    const sub = args[1];
-    if (!sub || sub === 'check') {
+    if (commandId === 'ship.check') {
       return result(shipCheck(cwd, shipOptionsFor(rawArgs)));
     }
-    if (sub === 'prepare') {
+    if (commandId === 'ship.prepare') {
       return result(shipPrepare(cwd, shipOptionsFor(rawArgs)));
     }
-    return error('Unknown ship subcommand: ' + sub + '. Use: check, prepare');
+    return { handled: false };
   }
 
   return { route };

@@ -1,5 +1,22 @@
 'use strict';
 
+const PHASE_ALIAS_ACTIONS = Object.freeze({
+  'phase.plan.alias': 'plan',
+  'phase.execute.alias': 'execute',
+  'phase.validate.alias': 'validate',
+  'phase.review.alias': 'review',
+  'phase.complete.alias': 'complete'
+});
+
+const PHASE_ACTIONS = Object.freeze({
+  'phase.show': 'show',
+  'phase.plan': 'plan',
+  'phase.execute': 'execute',
+  'phase.validate': 'validate',
+  'phase.review': 'review',
+  'phase.complete': 'complete'
+});
+
 function createPhaseCliRouter(dependencies) {
   const {
     phaseList,
@@ -15,6 +32,7 @@ function createPhaseCliRouter(dependencies) {
     transitionState
   } = dependencies;
   const handlers = {
+    show: phaseShow,
     plan: phasePlan,
     execute: phaseExecute,
     validate: phaseValidate,
@@ -30,50 +48,46 @@ function createPhaseCliRouter(dependencies) {
     return { handled: true, kind: 'error', message };
   }
 
+  function phaseFamilyError(args) {
+    return error('Unknown phase subcommand: ' + args[1] + '. Use: list, show, plan, execute, validate, review, complete, set');
+  }
+
   function route(input) {
-    const { command, args, cwd } = input;
-    if (['plan-phase', 'execute-phase', 'validate-phase', 'review-phase', 'complete-phase'].includes(command)) {
+    const { command_id: commandId, family_id: familyId, args, cwd } = input;
+    if (familyId === 'phase') {
+      return phaseFamilyError(args);
+    }
+    if (Object.prototype.hasOwnProperty.call(PHASE_ALIAS_ACTIONS, commandId)) {
+      const action = PHASE_ALIAS_ACTIONS[commandId];
       const phaseId = args[1];
       if (!phaseId) {
-        return error('Usage: terrace ' + command + ' <phase-id>');
+        return error('Usage: terrace ' + action + '-phase <phase-id>');
       }
-      const action = command.replace('-phase', '');
       return result({
         command_alias: 'terrace phase ' + action + ' ' + phaseId,
         result: handlers[action](cwd, phaseId)
       });
     }
-    if (command === 'execute-phase-complete') {
+    if (commandId === 'phase.execute-complete') {
       const phaseId = args[1];
       if (!phaseId) {
         return error('Usage: terrace execute-phase-complete <phase-id>');
       }
       return result(phaseCompleteWorkflow(cwd, phaseId));
     }
-    if (command !== 'phase') {
-      return { handled: false };
-    }
-    const sub = args[1];
-    if (sub === 'list') {
+    if (commandId === 'phase.list') {
       return result(phaseList(cwd));
     }
-    const phaseHandlers = {
-      show: phaseShow,
-      plan: phasePlan,
-      execute: phaseExecute,
-      validate: phaseValidate,
-      review: phaseReview,
-      complete: phaseComplete
-    };
-    if (Object.prototype.hasOwnProperty.call(phaseHandlers, sub)) {
+    if (Object.prototype.hasOwnProperty.call(PHASE_ACTIONS, commandId)) {
+      const action = PHASE_ACTIONS[commandId];
       const phaseId = args[2];
       if (!phaseId) {
-        return error('Usage: terrace phase ' + sub + ' <phase-id>');
+        return error('Usage: terrace phase ' + action + ' <phase-id>');
       }
-      return result(phaseHandlers[sub](cwd, phaseId));
+      return result(handlers[action](cwd, phaseId));
     }
-    if (sub !== 'set') {
-      return error('Unknown phase subcommand: ' + sub + '. Use: list, show, plan, execute, validate, review, complete, set');
+    if (commandId !== 'phase.set') {
+      return { handled: false };
     }
     const nextStatus = args[2];
     if (!nextStatus) {

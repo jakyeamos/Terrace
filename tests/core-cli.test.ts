@@ -146,6 +146,13 @@ describe('strict core CLI delegation', () => {
     const misplacedApply = runTerraceResult(tmpDir, ['next', '--apply', '--json']);
     expect(misplacedApply.status).toBe(1);
     expect(misplacedApply.json.error).toContain('--apply is only supported');
+
+    const unknownApply = runTerraceResult(tmpDir, ['unknown-command', '--apply', '--json']);
+    const bareApply = runTerraceResult(tmpDir, ['--apply', '--json']);
+    expect(unknownApply.status).toBe(1);
+    expect(unknownApply.json.error).toContain('--apply is only supported');
+    expect(bareApply.status).toBe(1);
+    expect(bareApply.json.error).toContain('--apply is only supported');
   });
 
   it('rejects static full and missing ship modes before package scripts execute', () => {

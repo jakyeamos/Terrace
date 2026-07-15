@@ -18,28 +18,27 @@ function createReportCliRouter(dependencies) {
   }
 
   function route(input) {
-    const { command, args, cwd } = input;
-    if (command !== 'report') {
-      return { handled: false };
+    const { command_id: commandId, family_id: familyId, args, cwd } = input;
+    if (familyId === 'report') {
+      return error('Unknown report subcommand: ' + args[1] + '. Use: update, open, history, ceremony');
     }
-    const sub = args[1];
-    if (!sub) {
+    if (commandId === 'report') {
       return result(reportRead(cwd));
     }
-    if (sub === 'update') {
+    if (commandId === 'report.update') {
       return result(reportUpdate(cwd, { command: 'terrace report update' }));
     }
-    if (sub === 'open') {
+    if (commandId === 'report.open') {
       return result(reportOpen(cwd));
     }
-    if (sub === 'history') {
+    if (commandId === 'report.history') {
       return result(reportHistory(cwd));
     }
-    if (sub === 'ceremony') {
+    if (commandId === 'report.ceremony') {
       const data = reportCeremony(cwd);
       return result(data, data.passed ? undefined : 1);
     }
-    return error('Unknown report subcommand: ' + sub + '. Use: update, open, history, ceremony');
+    return { handled: false };
   }
 
   return { route };

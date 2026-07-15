@@ -53,13 +53,13 @@ describe('release-readiness CLI router', () => {
     const canonical = ['release-preflight', 'ignored', '--static', '--target-version', '2.0.0', '--local'];
     const alias = ['release', 'preflight', '--full'];
 
-    expect(router.route({ command: 'release-preflight', args: canonical.slice(0, 2), rawArgs: canonical, cwd })).toMatchObject({
+    expect(router.route({ command_id: 'release-preflight', args: canonical.slice(0, 2), raw_args: canonical, cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'release-preflight', cwd },
       exitCode: undefined
     });
-    expect(router.route({ command: 'release', args: alias.slice(0, 2), rawArgs: alias, cwd })).toMatchObject({
+    expect(router.route({ command_id: 'release-preflight', args: alias.slice(0, 2), raw_args: alias, cwd })).toMatchObject({
       handled: true,
       kind: 'result',
       data: { name: 'release-preflight', cwd },
@@ -82,8 +82,8 @@ describe('release-readiness CLI router', () => {
     const missingModeArgs = ['ship', 'check', '--mode'];
     const prepareArgs = ['ship', 'prepare', '--full'];
 
-    for (const [args, name] of [[defaultArgs, 'ship-check'], [checkArgs, 'ship-check'], [missingModeArgs, 'ship-check'], [prepareArgs, 'ship-prepare']] as const) {
-      expect(router.route({ command: 'ship', args, rawArgs: args, cwd })).toMatchObject({
+    for (const [args, commandId, name] of [[defaultArgs, 'ship.check', 'ship-check'], [checkArgs, 'ship.check', 'ship-check'], [missingModeArgs, 'ship.check', 'ship-check'], [prepareArgs, 'ship.prepare', 'ship-prepare']] as const) {
+      expect(router.route({ command_id: commandId, args, raw_args: args, cwd })).toMatchObject({
         handled: true,
         kind: 'result',
         data: { name, cwd, passed: false },
@@ -100,22 +100,22 @@ describe('release-readiness CLI router', () => {
     const router = createRouter(calls, optionCalls);
     const cwd = '/fixture';
 
-    expect(router.route({ command: 'release', args: ['release'], rawArgs: ['release'], cwd })).toEqual({
+    expect(router.route({ family_id: 'release', args: ['release'], raw_args: ['release'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Unknown release subcommand: undefined. Use: preflight'
     });
-    expect(router.route({ command: 'release', args: ['release', 'prepare'], rawArgs: ['release', 'prepare'], cwd })).toEqual({
+    expect(router.route({ family_id: 'release', args: ['release', 'prepare'], raw_args: ['release', 'prepare'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Unknown release subcommand: prepare. Use: preflight'
     });
-    expect(router.route({ command: 'ship', args: ['ship', 'unknown'], rawArgs: ['ship', 'unknown'], cwd })).toEqual({
+    expect(router.route({ family_id: 'ship', args: ['ship', 'unknown'], raw_args: ['ship', 'unknown'], cwd })).toEqual({
       handled: true,
       kind: 'error',
       message: 'Unknown ship subcommand: unknown. Use: check, prepare'
     });
-    expect(router.route({ command: 'security', args: ['security', 'check'], rawArgs: ['security', 'check'], cwd })).toEqual({ handled: false });
+    expect(router.route({ command_id: 'security.check', args: ['security', 'check'], raw_args: ['security', 'check'], cwd })).toEqual({ handled: false });
     expect(calls).toEqual([]);
     expect(optionCalls).toEqual({ release: [], ship: [] });
   });
