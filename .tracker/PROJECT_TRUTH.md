@@ -1,10 +1,10 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight and ship-readiness policy behind injected workflow adapters, an isolated senior-cycle domain for artifacts/state/gates, and a phase CLI compatibility router.
-healthScore: 92
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has fresh-consumer package containment, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight and ship-readiness policy behind injected workflow adapters, an isolated senior-cycle domain for artifacts/state/gates, and phase plus senior-cycle/UI CLI compatibility routers.
+healthScore: 93
 statusLabel: modernization_in_progress_domain_seams
-nextStep: Extract the senior-cycle/UI CLI router as a bounded compatibility adapter while preserving public argv, JSON, and exit behavior.
+nextStep: Extract the release-readiness CLI router as a bounded compatibility adapter while preserving public argv, JSON, and exit behavior.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
 risks:
@@ -25,13 +25,13 @@ lastCommitDate: "2026-07-14"
 quality:
   lint: pass
   types: pass_commonjs_outside_typecheck
-  tests: pass_full_ci_after_c9dc05a
+  tests: pass_full_ci_after_979ae32
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer
   auditHigh: pass
   auditModerate: pass
   deadCode: not_configured
-  structure: milestone_3_phase_cli_router_extracted
+  structure: milestone_4_senior_cycle_cli_router_extracted
 canonicalCommands:
   install: pnpm install
   dev: unknown
@@ -45,7 +45,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: "pnpm run ci"
-lastVerifiedAt: "2026-07-14T20:23:58-04:00"
+lastVerifiedAt: "2026-07-14T20:39:50-04:00"
 ---
 
 ## Current State
@@ -82,8 +82,11 @@ Senior-cycle operations now live below workflow. The domain owns artifact genera
 
 The phase CLI command family now lives behind a small compatibility router. It injects core operations, preserves canonical and GSD-compatible forms plus `phase set`, and returns results to the unchanged top-level renderer for JSON/human formatting and exit handling. Direct, child-process, and full clean-consumer CI verification passed.
 
+Senior-cycle and UI CLI commands now live behind a separate compatibility router. It injects their lower-level operations, keeps answer/tier options lazy for `map-codebase` and UI routes, preserves the exact UI error contract, and returns data to the unchanged top-level renderer for human/JSON formatting and exit handling. Direct, production-lifecycle, child-process, and full clean-consumer CI verification passed.
+
 ## Recent Progress
 
+- July 14: Committed `979ae32`; isolated senior-cycle/UI command routing with lazy option evaluation and unchanged JSON/error rendering, then passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `c9dc05a`; isolated canonical and GSD-compatible phase CLI routing behind injected core operations while preserving renderer/exit behavior, then passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `8cb6d37`; isolated senior-cycle artifacts, state, gates, and ship evidence behind an identity-compatible workflow facade, then passed full network-enabled CI with coverage and fresh packed-consumer smoke.
 - July 14: Committed `daa2b4c`; isolated ship-readiness policy with injected senior-cycle and release evidence, removed the release/readiness dependency edge, and passed full network-enabled CI with coverage and fresh packed-consumer smoke.
@@ -98,12 +101,11 @@ The phase CLI command family now lives behind a small compatibility router. It i
 - July 14: Committed `cd44e3b`; autonomous routing now stops safely on active features, avoids unrelated phase writes, and preserves migration precedence. Three direct regression tests plus `pnpm run ci` passed.
 - July 14: Committed `43da5a8`; added managed/project artifact path safety, recovery-aware serialization, atomic persistence, transaction recovery, and 79 focused regression tests. `pnpm run ci` passed: 373 tests / 1 skipped, coverage, and package dry run.
 - July 14: Committed `03bd2ab`; schema `1.1` state store adds atomic writes, validation, revision conflicts, recovery-aware locking, and safe reset preflight.
-- July 14: `pnpm run ci` passed: typecheck, lint, 329 tests / 1 skipped, coverage gate, and package dry run.
 
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
-- Remaining CLI command families and lifecycle reporting remain orchestration hotspots; extract only independently verifiable lower-level seams.
+- Release-readiness command routing is the next independent CLI seam; lifecycle reporting remains an orchestration hotspot until it has a lower-level owner.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
@@ -113,7 +115,7 @@ The phase CLI command family now lives behind a small compatibility router. It i
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS after `c9dc05a`; phase-router, senior-cycle, ship-readiness, release-policy, debt-projection, and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
+| Tests | `pnpm run ci` PASS after `979ae32`; phase/senior-cycle/UI routers, senior-cycle, ship-readiness, release-policy, debt-projection, and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Security evidence | Missing, legacy, incomplete, or source/config/lock-stale evidence blocks release readiness; `terrace security check` is the explicit writer. |
@@ -121,6 +123,6 @@ The phase CLI command family now lives behind a small compatibility router. It i
 
 ## Next Concrete Steps
 
-1. Extract the senior-cycle/UI CLI router with injected core operations while retaining the existing renderer and exit behavior.
-2. Continue splitting catalog-aware dispatcher/domain seams without changing public argv, JSON, or exit behavior.
+1. Extract the release-readiness CLI router with injected core operations while retaining the existing renderer and exit behavior.
+2. Prepare a true lower-level reporting-domain extraction before routing report commands.
 3. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.
