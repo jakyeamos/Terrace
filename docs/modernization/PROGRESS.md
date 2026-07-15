@@ -49,6 +49,7 @@
 - Report commands now route through a lower-level adapter with injected reporting operations. Plain reads, explicit updates, history/open responses, exact unknown-command errors, and ceremony-only exit intent retain the unchanged top-level JSON/human renderer; direct and existing CLI contract tests cover the seam.
 - Package `main` now agrees with root `exports` on the import-safe core facade, while `bin` remains the only CLI entrypoint. A fresh-process regression test proves legacy directory imports do not initialize the CLI dispatcher.
 - Corpus configuration now ships as a synthetic-only runtime asset, while corpus results stay in the target project's `.terrace/corpus/` directory. The package allowlist excludes all repository documentation and historical corpus evidence; dry-run and fresh-consumer tests enforce a file-count and tarball-size budget.
+- Catalog metadata now classifies rule/debt audits and recovery-policy evaluation as write-capable because they persist evidence or state. Generated `ship prepare` guidance also makes clear that `--fast` skips project scripts but still writes the summary.
 
 ## Next action
 

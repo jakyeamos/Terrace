@@ -4,7 +4,6 @@
 
 - Release readiness correctly fails without current, schema-versioned security evidence. A release candidate still needs a fresh `terrace security check` after relevant source, configuration, or lockfile changes.
 - `ship check --full` intentionally executes target-repository scripts. It requires explicit authority and a clean snapshot, but those scripts can still have their own side effects.
-- `rule audit`, `debt audit`, and expired-recovery `policy` handling can write artifacts while their catalog metadata still labels them as read-only. Their mutation classification must be corrected before the read-only contract can be trusted.
 
 ## P2
 

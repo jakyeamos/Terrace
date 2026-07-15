@@ -404,7 +404,7 @@ const COMMAND_CATALOG = Object.freeze([
     effect: 'write',
     route: ['ship', 'prepare'],
     help: H('terrace ship prepare [--fast|--local|--full]', 'Write PR/release readiness summary'),
-    agent: A('terrace-ship-prepare', 'terrace ship prepare', '', 'Write a full release-readiness summary; use --fast for a read-only snapshot.')
+    agent: A('terrace-ship-prepare', 'terrace ship prepare', '', 'Write a release-readiness summary; --fast skips project scripts but still writes the summary.')
   }),
   command('release-preflight', ['release-preflight', '[--static]', '[--fast|--local|--full]', '[--target-version', '<version>]'], {
     effect: 'mixed',
@@ -472,7 +472,7 @@ const COMMAND_CATALOG = Object.freeze([
     agent: A('terrace-rule-add', 'terrace rule add $ARGUMENTS', '<domain> <rule-id>', 'Add a Terrace rule to the project rule pack.')
   }),
   command('rule.audit', ['rule', 'audit', '[--effectiveness]'], {
-    effect: 'read',
+    effect: 'write',
     help: H('terrace rule audit', 'Audit installed rule packs and evidence'),
     agent: A('terrace-rule-audit', 'terrace rule audit $ARGUMENTS', '[--effectiveness]', 'Audit installed Terrace rules and rule evidence.')
   }),
@@ -511,7 +511,7 @@ const COMMAND_CATALOG = Object.freeze([
   command('report.ceremony', ['report', 'ceremony'], { effect: 'read', visibility: 'advanced' }),
   command('debt.add', ['debt', 'add', '<feature>'], { effect: 'write', visibility: 'advanced' }),
   command('debt.list', ['debt', 'list'], { effect: 'read', visibility: 'advanced' }),
-  command('debt.audit', ['debt', 'audit'], { effect: 'read', visibility: 'advanced' }),
+  command('debt.audit', ['debt', 'audit'], { effect: 'write', visibility: 'advanced' }),
   command('debt.resolve', ['debt', 'resolve', '<id>'], { effect: 'write', visibility: 'advanced' }),
   command('phase.set', ['phase', 'set', '<workflow-status>'], { effect: 'write', visibility: 'internal' }),
   command('interrogate.mode', ['interrogate', '<init|adjust|risk|milestone>', '<feature>'], { effect: 'write', visibility: 'advanced' }),
@@ -519,7 +519,7 @@ const COMMAND_CATALOG = Object.freeze([
   command('baseline.protect', ['baseline', 'protect', '<file>', '--spec-ref', '<spec-id>'], { effect: 'write', visibility: 'internal' }),
   command('baseline.status', ['baseline', 'status'], { effect: 'read', visibility: 'internal' }),
   command('decision.log', ['decision', 'log', '--spec-ref', '<spec-id>'], { effect: 'write', visibility: 'internal' }),
-  command('policy', ['policy'], { effect: 'read', visibility: 'internal' }),
+  command('policy', ['policy'], { effect: 'write', visibility: 'internal' }),
   command('session.start', ['session', 'start'], { effect: 'write', visibility: 'internal' }),
   command('session.end', ['session', 'end'], { effect: 'write', visibility: 'internal' }),
   command('session.reconstruct', ['session', 'reconstruct'], { effect: 'read', visibility: 'internal' }),

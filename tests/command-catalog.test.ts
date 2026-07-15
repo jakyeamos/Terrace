@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 type CatalogCommand = {
   id: string;
+  effect: string;
   argv_pattern: string[];
   help: { usage: string; summary: string } | null;
-  agent: { template_id: string; invocation: string } | null;
+  agent: { template_id: string; invocation: string; description: string } | null;
   variants: Array<{ when: string; effect: string }>;
   route_argv: Array<string | { kind: string; name: string; flag?: string }>;
   contracts: Array<{ command_id: string; command: string; category: string; json: boolean; purpose: string }>;
@@ -97,6 +98,13 @@ describe('command catalog', () => {
       effect: 'executes_project'
     }));
     expect(listCommandContracts()).toContainEqual(expect.objectContaining({ command: 'terrace ship check --fast' }));
+  });
+
+  it('marks persistence-capable commands as write-capable and describes ship prepare accurately', () => {
+    expect(commandById('rule.audit')).toMatchObject({ effect: 'write' });
+    expect(commandById('debt.audit')).toMatchObject({ effect: 'write' });
+    expect(commandById('policy')).toMatchObject({ effect: 'write' });
+    expect(commandById('ship.prepare')?.agent?.description).toBe('Write a release-readiness summary; --fast skips project scripts but still writes the summary.');
   });
 
   it('renders routed intent argv as arrays from catalog-owned parameter shapes', () => {

@@ -1,6 +1,6 @@
 ---
 name: terrace-ship-prepare
-description: Write a full release-readiness summary; use --fast for a read-only snapshot.
+description: Write a release-readiness summary; --fast skips project scripts but still writes the summary.
 ---
 
 # Terrace Ship Prepare
