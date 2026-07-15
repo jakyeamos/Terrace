@@ -7,8 +7,7 @@ const path = require('path');
 const { agentAssetExpectations } = require('../packages/terrace-core/src/agents.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
-const CONFIG_PATH = path.join(REPO_ROOT, 'docs', 'terrace', 'corpus', 'config.json');
-const REPORT_DIR = path.join(REPO_ROOT, 'docs', 'terrace', 'corpus');
+const DEFAULT_CONFIG_PATH = path.join(REPO_ROOT, 'scripts', 'terrace-corpus-default-config.json');
 const DEFAULT_TIMEOUT_MS = 90_000;
 const OUTPUT_CAPTURE_LIMIT = 20_000;
 const PROJECT_PRD = [
@@ -95,6 +94,18 @@ function valueAfter(argv, flag) {
   return index === -1 ? null : argv[index + 1] || null;
 }
 
+function corpusConfigPath() {
+  const configured = process.env.TERRACE_CORPUS_CONFIG;
+  return configured ? path.resolve(process.cwd(), configured) : DEFAULT_CONFIG_PATH;
+}
+
+function corpusReportDir() {
+  const configured = process.env.TERRACE_CORPUS_DIR;
+  return configured
+    ? path.resolve(process.cwd(), configured)
+    : path.join(process.cwd(), '.terrace', 'corpus');
+}
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
@@ -168,10 +179,11 @@ function packageTerrace(runRoot) {
 }
 
 function loadConfig() {
-  if (!fs.existsSync(CONFIG_PATH)) {
-    throw new Error('Missing corpus config: ' + CONFIG_PATH);
+  const configPath = corpusConfigPath();
+  if (!fs.existsSync(configPath)) {
+    throw new Error('Missing corpus config: ' + configPath);
   }
-  return readJson(CONFIG_PATH);
+  return readJson(configPath);
 }
 
 function selectedRealRepos(config, opts) {
@@ -804,7 +816,8 @@ function countMatching(root, regex) {
 function runEvaluation(config, opts) {
   const runId = new Date().toISOString().replace(/[:.]/g, '-');
   const runRoot = path.join(os.tmpdir(), 'terrace-corpus-eval-' + runId);
-  const evidenceDir = path.join(REPORT_DIR, 'runs', runId);
+  const reportDir = corpusReportDir();
+  const evidenceDir = path.join(reportDir, 'runs', runId);
   fs.mkdirSync(runRoot, { recursive: true });
   fs.mkdirSync(evidenceDir, { recursive: true });
   const tarball = packageTerrace(runRoot);
@@ -834,12 +847,12 @@ function runEvaluation(config, opts) {
     }
   }
 
-  const summary = summarize(records, { runId, evidenceDir });
+  const summary = summarize(records, { runId, evidenceDir, outputRoot: process.cwd() });
   const recordsIndex = compactRecordsIndex(records);
   writeJson(path.join(evidenceDir, 'results.json'), { runId, summary, recordsIndex });
-  writeJson(path.join(REPORT_DIR, 'latest-results.json'), { runId, summary, recordsIndex });
-  fs.writeFileSync(path.join(REPORT_DIR, 'REPORT.md'), renderReport(summary, records, runId), 'utf8');
-  return { runId, records, summary, evidenceDir };
+  writeJson(path.join(reportDir, 'latest-results.json'), { runId, summary, recordsIndex });
+  fs.writeFileSync(path.join(reportDir, 'REPORT.md'), renderReport(summary, records, runId), 'utf8');
+  return { runId, records, summary, evidenceDir, reportDir };
 }
 
 function compactRecordsIndex(records) {
@@ -943,7 +956,7 @@ function summarize(records, meta) {
     .slice(0, 12);
   return {
     runId: meta.runId,
-    evidenceDir: path.relative(REPO_ROOT, meta.evidenceDir),
+    evidenceDir: path.relative(meta.outputRoot || REPO_ROOT, meta.evidenceDir),
     totals: {
       commands: records.length,
       pass: records.filter((record) => record.classification === 'pass').length,
@@ -1250,9 +1263,9 @@ function main() {
   const result = runEvaluation(config, opts);
   process.stdout.write(JSON.stringify({
     runId: result.runId,
-    evidenceDir: path.relative(REPO_ROOT, result.evidenceDir),
+    evidenceDir: path.relative(process.cwd(), result.evidenceDir),
     totals: result.summary.totals,
-    report: path.relative(REPO_ROOT, path.join(REPORT_DIR, 'REPORT.md'))
+    report: path.relative(process.cwd(), path.join(result.reportDir, 'REPORT.md'))
   }, null, 2) + '\n');
 }
 

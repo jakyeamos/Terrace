@@ -32,8 +32,7 @@
     "packages/terrace-core/",
     "README.md",
     "LICENSE",
-    "CHANGELOG.md",
-    "docs/"
+    "CHANGELOG.md"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",

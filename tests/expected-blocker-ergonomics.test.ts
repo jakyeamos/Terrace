@@ -15,8 +15,8 @@ const {
   securityShipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
-function runTerrace(tmpDir: string, args: string[]) {
-  const result = spawnSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8' });
+function runTerrace(tmpDir: string, args: string[], env?: NodeJS.ProcessEnv) {
+  const result = spawnSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8', env: { ...process.env, ...env } });
   return {
     status: result.status,
     stdout: result.stdout,
@@ -220,12 +220,38 @@ describe('expected blocker ergonomics', () => {
     expect(dryRun.status).toBe(0);
     expect(dryRun.json.plan).toEqual(expect.any(Array));
 
+    writeJson(path.join(tmpDir, '.terrace', 'corpus', 'latest-results.json'), {
+      runId: 'consumer-corpus-run',
+      summary: {
+        totals: { commands: 1, pass: 1, expectedBlockers: 0, productWeaknesses: 0 }
+      }
+    });
+
     const report = runTerrace(tmpDir, ['corpus', 'report', '--json']);
     expect(report.status).toBe(0);
     expect(report.json).toMatchObject({
       runId: expect.any(String),
       totals: expect.objectContaining({ commands: expect.any(Number) }),
-      report: expect.stringContaining('docs/terrace/corpus/REPORT.md')
+      report: expect.stringContaining('.terrace/corpus/REPORT.md')
     });
+  });
+
+  it('reads configured corpus evidence before current and legacy locations', () => {
+    writeJson(path.join(tmpDir, 'docs', 'terrace', 'corpus', 'latest-results.json'), {
+      runId: 'legacy-corpus-run',
+      summary: { totals: { commands: 1, pass: 1, expectedBlockers: 0, productWeaknesses: 0 } }
+    });
+    writeJson(path.join(tmpDir, 'custom-corpus', 'latest-results.json'), {
+      runId: 'configured-corpus-run',
+      summary: { totals: { commands: 2, pass: 2, expectedBlockers: 0, productWeaknesses: 0 } }
+    });
+
+    const configured = runTerrace(tmpDir, ['corpus', 'report', '--json'], { TERRACE_CORPUS_DIR: 'custom-corpus' });
+    const legacy = runTerrace(tmpDir, ['corpus', 'report', '--json'], { TERRACE_CORPUS_DIR: '' });
+
+    expect(configured.status).toBe(0);
+    expect(configured.json).toMatchObject({ runId: 'configured-corpus-run', report: 'custom-corpus/REPORT.md' });
+    expect(legacy.status).toBe(0);
+    expect(legacy.json).toMatchObject({ runId: 'legacy-corpus-run', report: 'docs/terrace/corpus/REPORT.md' });
   });
 });

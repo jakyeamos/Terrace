@@ -1,0 +1,40 @@
+{
+  "realRepos": [],
+  "syntheticRepos": [
+    {
+      "id": "synthetic-node-package",
+      "name": "synthetic-node-package",
+      "type": "synthetic-node-package",
+      "template": "node-package",
+      "ui": false
+    },
+    {
+      "id": "synthetic-node-app-no-scripts",
+      "name": "synthetic-node-app-no-scripts",
+      "type": "synthetic-node-no-scripts",
+      "template": "node-app-no-scripts",
+      "ui": true
+    },
+    {
+      "id": "synthetic-python",
+      "name": "synthetic-python",
+      "type": "synthetic-python",
+      "template": "python",
+      "ui": false
+    },
+    {
+      "id": "synthetic-docs",
+      "name": "synthetic-docs",
+      "type": "synthetic-docs",
+      "template": "docs",
+      "ui": false
+    },
+    {
+      "id": "synthetic-empty",
+      "name": "synthetic-empty",
+      "type": "synthetic-empty",
+      "template": "empty",
+      "ui": false
+    }
+  ]
+}

@@ -16,6 +16,14 @@ function terraceExec(terraceBin: string, args: string[], options: { cwd: string;
   return execFileSync(terraceBin, args, { ...options, shell: windowsShell });
 }
 
+function packedPaths(): string[] {
+  const output = pnpmExec(['pack', '--dry-run', '--json', '--config.node-linker=hoisted'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+  return (JSON.parse(output) as { files: Array<{ path: string }> }).files.map((file) => file.path);
+}
+
 type GlobalCommandSurface = {
   name: string;
   help?: string;
@@ -46,8 +54,7 @@ describe('tier-one product readiness', () => {
       'packages/terrace-core/',
       'README.md',
       'LICENSE',
-      'CHANGELOG.md',
-      'docs/'
+      'CHANGELOG.md'
     ]);
     expect(pkg.license).toBe('MIT');
     expect(pkg.author.name).toBe('Jakye Amos');
@@ -118,6 +125,25 @@ describe('tier-one product readiness', () => {
     expect(pkg.files).not.toContain('tests');
   });
 
+  it('contains only runtime assets in the publish payload', () => {
+    const paths = packedPaths();
+    const corpusConfig = fs.readFileSync(path.join(repoRoot, 'scripts', 'terrace-corpus-default-config.json'), 'utf8');
+
+    expect(paths).toEqual(expect.arrayContaining([
+      'src/terrace-tools.cjs',
+      'scripts/terrace-corpus-eval.cjs',
+      'scripts/terrace-corpus-default-config.json',
+      'packages/terrace-core/src/index.cjs'
+    ]));
+    expect(paths.length).toBeGreaterThan(0);
+    expect(paths.length).toBeLessThan(160);
+    expect(paths.some((file) => file.startsWith('docs/'))).toBe(false);
+    expect(paths.some((file) => file.startsWith('docs/terrace/corpus/'))).toBe(false);
+    expect(paths.some((file) => file.startsWith('.agents/') || file.startsWith('.claude/'))).toBe(false);
+    expect(JSON.parse(corpusConfig)).toMatchObject({ realRepos: [] });
+    expect(corpusConfig).not.toMatch(/\/Users\/|\/private\/|docs\/terrace\/corpus/);
+  });
+
   it('publishes releases through GitHub trusted publishing instead of npm tokens', () => {
     const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'release-publish.yml'), 'utf8');
     const releaseDocs = fs.readFileSync(path.join(repoRoot, 'docs', 'RELEASE.md'), 'utf8');
@@ -170,6 +196,7 @@ describe('tier-one product readiness', () => {
       const terraceBin = path.join(consumerDir, 'node_modules', '.bin', 'terrace');
       const help = terraceExec(terraceBin, ['--help'], { cwd: consumerDir, encoding: 'utf8' });
       const version = terraceExec(terraceBin, ['--version'], { cwd: consumerDir, encoding: 'utf8' }).trim();
+      const corpusPlan = JSON.parse(terraceExec(terraceBin, ['corpus', 'run', '--dry-run-plan', '--sample', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const globalInstall = JSON.parse(terraceExec(terraceBin, ['agents', 'install-global', '--json'], {
         cwd: consumerDir,
         encoding: 'utf8',
@@ -201,6 +228,9 @@ describe('tier-one product readiness', () => {
 
       expect(help).toContain('Usage: terrace <command>');
       expect(version).toBe(JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version);
+      expect(corpusPlan.plan).toEqual(expect.any(Array));
+      expect(corpusPlan.plan.length).toBeGreaterThan(0);
+      expect(fs.statSync(tarballPath).size).toBeLessThan(300_000);
       expect(globalInstall).toMatchObject({
         enabled: true,
         global_agents_dir: globalAgentsDir,

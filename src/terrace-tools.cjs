@@ -395,14 +395,14 @@ function repoRoot() {
   return path.resolve(__dirname, '..');
 }
 
-function runCorpusCommand(rawArgs, json) {
+function runCorpusCommand(cwd, rawArgs, json) {
   const forwarded = rawArgs.filter((arg) => arg !== '--json');
   const script = path.join(repoRoot(), 'scripts', 'terrace-corpus-eval.cjs');
   if (!fs.existsSync(script)) {
     throw new Error('Corpus evaluator script not found: ' + script);
   }
   const result = spawnSync(process.execPath, [script, ...forwarded], {
-    cwd: repoRoot(),
+    cwd,
     encoding: 'utf8'
   });
   if (result.stdout) {
@@ -419,17 +419,27 @@ function runCorpusCommand(rawArgs, json) {
   }
 }
 
-function corpusReport(json) {
-  const latestPath = path.join(repoRoot(), 'docs', 'terrace', 'corpus', 'latest-results.json');
-  if (!fs.existsSync(latestPath)) {
+function corpusResultDirectories(cwd) {
+  const configured = process.env.TERRACE_CORPUS_DIR;
+  return [
+    ...(configured ? [path.resolve(cwd, configured)] : []),
+    path.join(cwd, '.terrace', 'corpus'),
+    path.join(cwd, 'docs', 'terrace', 'corpus')
+  ];
+}
+
+function corpusReport(cwd, json) {
+  const reportDir = corpusResultDirectories(cwd).find((directory) => fs.existsSync(path.join(directory, 'latest-results.json')));
+  if (!reportDir) {
     throw new Error('No corpus results found. Run terrace corpus run --sample first.');
   }
+  const latestPath = path.join(reportDir, 'latest-results.json');
   const latest = JSON.parse(fs.readFileSync(latestPath, 'utf8'));
-  const reportPath = path.join(repoRoot(), 'docs', 'terrace', 'corpus', 'REPORT.md');
+  const reportPath = path.join(reportDir, 'REPORT.md');
   const result = {
     runId: latest.runId,
     totals: latest.summary ? latest.summary.totals : latest.totals,
-    report: path.relative(process.cwd(), reportPath),
+    report: path.relative(cwd, reportPath),
     evidence: latest.summary && latest.summary.evidenceDir ? latest.summary.evidenceDir : null
   };
   if (json) {
@@ -1040,11 +1050,11 @@ async function main() {
     case 'corpus': {
       const sub = args[1];
       if (sub === 'run') {
-        runCorpusCommand(rawArgs.slice(2), json);
+        runCorpusCommand(cwd, rawArgs.slice(2), json);
         return;
       }
       if (sub === 'report') {
-        corpusReport(json);
+        corpusReport(cwd, json);
         return;
       }
       fail('Unknown corpus subcommand: ' + sub + '. Use: run, report', { json });

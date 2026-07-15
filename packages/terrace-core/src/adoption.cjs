@@ -22,7 +22,10 @@ function installedTerraceVersion() {
 }
 
 function latestCorpusSummary(cwd) {
-  const latest = readJson(path.resolve(cwd, 'docs/terrace/corpus/latest-results.json'), null);
+  const latest = [
+    '.terrace/corpus/latest-results.json',
+    'docs/terrace/corpus/latest-results.json'
+  ].map((artifact) => readJson(path.resolve(cwd, artifact), null)).find(Boolean);
   if (!latest || !latest.summary || !latest.summary.totals) {
     return {
       present: false,

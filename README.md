@@ -226,6 +226,8 @@ Migrated state includes roadmap phases and plans, decisions, sessions, handoff c
 
 Use `terrace adoption status` after migration, corpus runs, or agent asset changes when the practical question is whether Terrace can replace GSD yet. The command is read-only and leads with a verdict, score, recommended mode, real workflow evidence, blockers, and next commands such as `terrace commands discover`, `terrace corpus run`, `terrace port gsd --import-roadmap`, `terrace init`, or `terrace report update`.
 
+Corpus evaluation keeps generated evidence in `.terrace/corpus/` in the target project, never in the installed package. The shipped default exercises synthetic fixtures; maintainers can set `TERRACE_CORPUS_CONFIG` to a private configuration for named shadow repositories and `TERRACE_CORPUS_DIR` to choose a different evidence directory.
+
 ## Workflow Example
 
 1. Capture intent in `docs/prd/PRD.md`.
