@@ -1,16 +1,16 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has an import-safe root library facade, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight, ship-readiness, senior-cycle, and reporting domains, plus phase, senior-cycle/UI, release-readiness, and report CLI compatibility routers.
-healthScore: 91
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has an import-safe root library facade, a 76-file runtime-only publish payload, consumer-owned corpus evidence, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight, ship-readiness, senior-cycle, and reporting domains, plus phase, senior-cycle/UI, release-readiness, and report CLI compatibility routers.
+healthScore: 92
 statusLabel: modernization_in_progress_final_hardening
-nextStep: Close confirmed command-safety, package-containment, and catalog-routing gaps, then repeat adversarial review.
+nextStep: Close confirmed command-safety and catalog-routing gaps, then repeat adversarial review.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
 risks:
   - A hostile same-user process with direct directory write access can still race a final filesystem pathname replacement; the managed lock is not an isolation boundary.
   - Runtime CommonJS remains outside the TypeScript gate.
-  - The publish allowlist still includes the repository corpus; package payload containment is an active modernization repair.
+  - Catalog metadata still marks three writing command paths as read-only; their classification repair is active.
 lastUpdated: 2026-07-15
 tags: [framework, ai-tooling, governance, cli, modernization]
 areas: [cli, packaging, state, lifecycle, security, command-routing, agents, docs]
@@ -28,7 +28,7 @@ quality:
   types: pass_commonjs_outside_typecheck
   tests: pass_full_ci_after_93c2587
   coverage: pass_ci_coverage_gate
-  package: pass_fresh_pnpm_consumer_payload_containment_repair_pending
+  package: pass_fresh_pnpm_consumer_76_file_runtime_payload
   auditHigh: pass
   auditModerate: pass
   deadCode: not_configured
@@ -45,8 +45,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: "pnpm run ci"
-lastVerifiedAt: "2026-07-15T10:49:26-04:00"
+lastVerifiedCommand: "pnpm test -- tests/expected-blocker-ergonomics.test.ts tests/product-readiness.test.ts"
+lastVerifiedAt: "2026-07-15T11:12:29-04:00"
 ---
 
 ## Current State
@@ -93,8 +93,11 @@ Report CLI parsing now lives behind a small injected compatibility router. It pr
 
 The package `main` field now resolves to the same import-safe core facade as root `exports`; only `bin` executes the CLI. A fresh-process regression test proves a legacy package import does not initialize the CLI dispatcher.
 
+Published packages now contain only 76 runtime files: core/templates, the CLI, required scripts, and concise root documentation. Historical corpus evidence and private repo configuration remain repository-only; installed corpus runs use synthetic defaults and persist in the caller's `.terrace/corpus/` directory, with explicit environment overrides and legacy-read compatibility.
+
 ## Recent Progress
 
+- July 15: Committed `b9de0b5`; removed repository docs/corpus evidence from the published tarball, moved corpus output to consumer-owned state, and proved a 76-file packed consumer with content/size regressions.
 - July 15: Committed `c85f841`; aligned package `main` with the import-safe core facade while retaining the CLI only under `bin`, with fresh-process import regression coverage.
 - July 15: Committed `93c2587`; isolated report command parsing with injected reporting operations while retaining the top-level renderer and ceremony-only exit intent. Full network-enabled CI passed: 428 tests / 1 existing skip, coverage, and fresh packed-consumer smoke.
 - July 15: Committed `59ead7e`; isolated reporting calculation, persistence, ceremony, and ship-gate behavior below lifecycle while retaining identity-compatible exports and direct lower-level consumers. Full network-enabled CI passed: 428 tests / 1 existing skip, coverage, and fresh packed-consumer smoke.
@@ -109,12 +112,11 @@ The package `main` field now resolves to the same import-safe core facade as roo
 - July 14: Committed `92fcde1`; source-owned generated agent assets now have content and Git-tracking parity checks without self-invocation. Full network-enabled CI passed: 398 tests / 1 existing skip, coverage, and package dry run.
 - July 14: Committed `de82ea2`; README command index and natural-language plans now derive from the catalog. 56 focused workflow/catalog/product tests, typecheck, and lint passed.
 - July 14: Committed `d3d1e69`; one command catalog now drives help, agent metadata, contracts, and packed-consumer surface coverage. Focused catalog/agent tests, typecheck, lint, and packed-consumer test passed.
-- July 14: Committed `3f113f4`; natural-language writes now require state-bound explicit apply, audit is read-only, agent drift is visible, ship prepare avoids self-dirtying, and adoption avoids ambient self-invocation. `pnpm run ci` passed.
 
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
-- Final review found catalog entries that call writers while claiming to be read-only, an over-broad package payload, and remaining CLI/catalog routing drift; each requires a verified repair before modernization can be called complete.
+- Final review found catalog entries that call writers while claiming to be read-only, plus remaining CLI/catalog routing drift; each requires a verified repair before modernization can be called complete.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
