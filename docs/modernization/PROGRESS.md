@@ -51,10 +51,11 @@
 - Corpus configuration now ships as a synthetic-only runtime asset, while corpus results stay in the target project's `.terrace/corpus/` directory. The package allowlist excludes all repository documentation and historical corpus evidence; dry-run and fresh-consumer tests enforce a file-count and tarball-size budget.
 - Catalog metadata now classifies rule/debt audits and recovery-policy evaluation as write-capable because they persist evidence or state. Generated `ship prepare` guidance also makes clear that `--fast` skips project scripts but still writes the summary.
 - The catalog now owns explicit inbound dispatch forms, aliases, compatibility defaults, known-family fallbacks, and `port gsd` flag precedence. A pure core parser resolves canonical IDs without interpreting help grammar; phase, senior/UI, release/readiness, report, and legacy adapters consume those IDs, leaving the entrypoint with global options, rendering, errors, and exit intent only.
+- The root core facade now records export owners and fails on divergent names instead of silently overwriting them. Identity-compatible reporting exports remain supported, while command-contract listing has one catalog-owned implementation across its compatible entrypoints.
 
 ## Next action
 
-Run the final adversarial review of catalog routing, import direction, generated-asset parity, package behavior, and public compatibility; remove only confirmed obsolete paths before declaring the modernization complete.
+Run the final adversarial review of import direction, generated-asset parity, package behavior, and public compatibility; remove only confirmed obsolete paths before declaring the modernization complete.
 
 ## Known blockers
 

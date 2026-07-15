@@ -10,10 +10,6 @@
 - Runtime CommonJS remains outside the TypeScript gate; current typecheck success does not establish static coverage for the production core.
 - Managed artifacts rely on cooperative locking and permission-controlled project directories. A same-user hostile process can still race a final filesystem pathname replacement.
 
-## P3
-
-- The root core facade still merges module exports through a broad spread barrel. It currently has a silent compatibility overwrite for `listCommandContracts`; a curated facade or collision guard remains future cleanup.
-
 ## Protected Behavior
 
 - `.terrace/state.json`, schemas, PRD intake, GSD migration, agent asset installation, CLI JSON/exit codes, package installation, corpus-output paths, and release workflows require characterization before change.
