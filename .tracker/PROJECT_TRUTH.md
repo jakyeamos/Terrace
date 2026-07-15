@@ -1,16 +1,15 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has an import-safe root library facade, a 76-file runtime-only publish payload, consumer-owned corpus evidence, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, read-only audits, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight, ship-readiness, senior-cycle, and reporting domains, plus phase, senior-cycle/UI, release-readiness, and report CLI compatibility routers.
-healthScore: 92
+summary: Terrace is a Node 22, pnpm-first CLI/library for spec-driven AI development. The GPT-5.6 modernization branch now has an import-safe root library facade, a 76-file runtime-only publish payload, consumer-owned corpus evidence, recoverable initialization/reset semantics, durable state persistence, a shared managed-artifact boundary, explicit state-bound natural-language applies, no ambient self-invocation, mutation-safe command metadata, a canonical command catalog with verified source-owned generated assets, lower-level project command discovery, shared debt assessment, release-preflight, ship-readiness, senior-cycle, and reporting domains, plus phase, senior-cycle/UI, release-readiness, and report CLI compatibility routers.
+healthScore: 93
 statusLabel: modernization_in_progress_final_hardening
-nextStep: Close confirmed command-safety and catalog-routing gaps, then repeat adversarial review.
+nextStep: Move inbound command selection to catalog-owned explicit dispatch metadata, then repeat adversarial review.
 blockers:
   - A release candidate needs a current `terrace security check` artifact; missing, legacy, incomplete, or source/config/lock-stale evidence intentionally blocks.
 risks:
   - A hostile same-user process with direct directory write access can still race a final filesystem pathname replacement; the managed lock is not an isolation boundary.
   - Runtime CommonJS remains outside the TypeScript gate.
-  - Catalog metadata still marks three writing command paths as read-only; their classification repair is active.
 lastUpdated: 2026-07-15
 tags: [framework, ai-tooling, governance, cli, modernization]
 areas: [cli, packaging, state, lifecycle, security, command-routing, agents, docs]
@@ -26,7 +25,7 @@ lastCommitDate: "2026-07-15"
 quality:
   lint: pass
   types: pass_commonjs_outside_typecheck
-  tests: pass_full_ci_after_93c2587
+  tests: pass_focused_catalog_safety_after_0dfe3ed_full_ci_after_93c2587
   coverage: pass_ci_coverage_gate
   package: pass_fresh_pnpm_consumer_76_file_runtime_payload
   auditHigh: pass
@@ -45,8 +44,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: "pnpm test -- tests/expected-blocker-ergonomics.test.ts tests/product-readiness.test.ts"
-lastVerifiedAt: "2026-07-15T11:12:29-04:00"
+lastVerifiedCommand: "pnpm test -- tests/command-catalog.test.ts tests/core-legacy-extraction.test.ts; pnpm run agent-assets:check; pnpm typecheck; pnpm lint; pnpm run package:dry-run"
+lastVerifiedAt: "2026-07-15T11:17:48-04:00"
 ---
 
 ## Current State
@@ -65,7 +64,7 @@ Release integrity now fails closed on current, schema-versioned security evidenc
 
 Natural-language routing now previews every write-capable route with a state-bound local apply token, exact known Terrace artifact scope, and any external execution effects. Only `terrace do --apply <token>` invokes a routed write; the exported route helper remains preview-only for writes. State-mutating routes retain the managed-artifact lock through revision validation and execution, while `ship prepare` runs its full check before its brief managed write so the lock cannot make its own Git snapshot dirty. Audit no longer refreshes report artifacts, root instruction-file drift is reported without overwriting user guidance, and adoption no longer probes an ambient `terrace` executable. A missing independent installation comparison is surfaced as unverified rather than a false aligned pass.
 
-The canonical command catalog now drives CLI help, generated-agent metadata, the published contract projection, and the packed-consumer command-surface test. It models 106 command forms, including compatibility and internal forms, and makes `port gsd --compare`, `port gsd --verify-parity`, and `design-source diff` explicit instead of allowing them to drift between dispatch, help, and agents. The existing CLI dispatcher remains unchanged pending a separately verified handler-seam migration.
+The canonical command catalog now drives CLI help, generated-agent metadata, the published contract projection, and the packed-consumer command-surface test. It models 106 command forms, including compatibility and internal forms, and makes `port gsd --compare`, `port gsd --verify-parity`, and `design-source diff` explicit instead of allowing them to drift between dispatch, help, and agents. Its effect contract is now conservative: rule/debt audits and policy evaluation are write-capable because they persist artifacts or recovery state, and `ship prepare --fast` is a reduced-check write rather than a read-only mode. The existing CLI dispatcher remains unchanged pending a separately verified handler-seam migration.
 
 The README command index is now a checked projection of the catalog, and natural-language plans reference catalog command IDs plus safe argv arrays. The human-readable command field remains a compatibility display only; execution continues through direct domain handlers and the explicit state-bound apply token rather than a shell command string.
 
@@ -97,6 +96,7 @@ Published packages now contain only 76 runtime files: core/templates, the CLI, r
 
 ## Recent Progress
 
+- July 15: Committed `0dfe3ed`; classified rule/debt audits and policy evaluation as write-capable, corrected `ship prepare --fast` guidance, synchronized generated assets, and passed 12 focused tests plus asset, type, lint, and package checks.
 - July 15: Committed `b9de0b5`; removed repository docs/corpus evidence from the published tarball, moved corpus output to consumer-owned state, and proved a 76-file packed consumer with content/size regressions.
 - July 15: Committed `c85f841`; aligned package `main` with the import-safe core facade while retaining the CLI only under `bin`, with fresh-process import regression coverage.
 - July 15: Committed `93c2587`; isolated report command parsing with injected reporting operations while retaining the top-level renderer and ceremony-only exit intent. Full network-enabled CI passed: 428 tests / 1 existing skip, coverage, and fresh packed-consumer smoke.
@@ -111,12 +111,11 @@ Published packages now contain only 76 runtime files: core/templates, the CLI, r
 - July 14: Committed `bfc19d4`; extracted project command discovery, removed the adoption/workflow dependency cycle, preserved strict package parsing and workflow export compatibility, and passed full network-enabled CI.
 - July 14: Committed `92fcde1`; source-owned generated agent assets now have content and Git-tracking parity checks without self-invocation. Full network-enabled CI passed: 398 tests / 1 existing skip, coverage, and package dry run.
 - July 14: Committed `de82ea2`; README command index and natural-language plans now derive from the catalog. 56 focused workflow/catalog/product tests, typecheck, and lint passed.
-- July 14: Committed `d3d1e69`; one command catalog now drives help, agent metadata, contracts, and packed-consumer surface coverage. Focused catalog/agent tests, typecheck, lint, and packed-consumer test passed.
 
 ## Open Problems
 
 - A real release must regenerate `terrace security check` evidence after source, lockfile, or relevant configuration changes; this is an intentional release blocker, not a false-green fallback.
-- Final review found catalog entries that call writers while claiming to be read-only, plus remaining CLI/catalog routing drift; each requires a verified repair before modernization can be called complete.
+- Catalog effect metadata is now accurate, but the top-level CLI still selects inbound argv through hard-coded branches rather than catalog-owned dispatch metadata; migrate that boundary without interpreting display grammar as parser rules.
 - Runtime CommonJS is outside the current TypeScript gate; semantic coverage remains a later modernization concern.
 - Managed files rely on cooperative locking and permission-controlled project directories; same-user hostile replacement races remain a documented residual risk.
 
@@ -126,7 +125,7 @@ Published packages now contain only 76 runtime files: core/templates, the CLI, r
 | --- | --- |
 | Lint | `pnpm lint` PASS; broad text/syntax scan, not semantic linting. |
 | Types | `pnpm typecheck` PASS, but excludes production CommonJS core. |
-| Tests | `pnpm run ci` PASS after `93c2587`; reporting, report/phase/senior-cycle/UI/release-readiness routers, senior-cycle, ship-readiness, release-policy, debt-projection, and import-boundary coverage, coverage gate, and fresh-consumer package smoke pass. |
+| Tests | Command-safety slice PASS after `0dfe3ed` (12 focused tests plus generated-asset, type, lint, and package checks); `pnpm run ci` PASS after `93c2587` with reporting, router, policy, coverage, and fresh-consumer coverage. |
 | Package | `pnpm package:dry-run` PASS and the packed CLI runs in a clean pnpm consumer. |
 | Dependency audit | `pnpm dependency:security` PASS with no advisory at moderate or above. |
 | Security evidence | Missing, legacy, incomplete, or source/config/lock-stale evidence blocks release readiness; `terrace security check` is the explicit writer. |
@@ -134,6 +133,6 @@ Published packages now contain only 76 runtime files: core/templates, the CLI, r
 
 ## Next Concrete Steps
 
-1. Run an adversarial modernization review of remaining dispatcher seams, import direction, generated assets, and public compatibility.
-2. Remove only confirmed transition debris without changing public argv, JSON, or exit behavior.
+1. Move inbound command selection from top-level hard-coded branches to catalog-owned explicit dispatch metadata and a pure resolver, while retaining public argv, JSON, and exit behavior.
+2. Run an adversarial modernization review of the remaining dispatcher seams, import direction, generated assets, and public compatibility.
 3. Generate fresh security evidence once a release candidate is frozen, then run the intended full release gates on its clean snapshot.
