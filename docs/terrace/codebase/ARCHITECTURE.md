@@ -13,6 +13,7 @@
 - `senior-cycle.cjs` owns senior artifact generation, state recording, gate evaluation, and ship evidence. It imports only lower-level services; workflow preserves the existing public facade and keeps phase, quick-task, and autonomous orchestration separate.
 - `phase-cli-router.cjs` owns canonical and GSD-compatible phase command parsing through injected core operations. The top-level CLI retains global-option parsing, human/JSON rendering, and exit behavior.
 - `senior-cycle-cli-router.cjs` owns senior-cycle and UI command parsing through injected handlers. It preserves lazy option evaluation and returns data/errors to the same top-level CLI renderer.
+- `release-readiness-cli-router.cjs` owns release-preflight aliases and ship command parsing through injected policy handlers. It preserves raw mode-option parsing, returns failures as renderer-owned results with exit intent, and leaves JSON/human output at the top level.
 
 ## Target Architecture
 

@@ -107,6 +107,7 @@ const {
 const { managedArtifactExists, writeManagedText } = require('../packages/terrace-core/src/managed-artifacts.cjs');
 const { createPhaseCliRouter } = require('./phase-cli-router.cjs');
 const { createSeniorCycleCliRouter } = require('./senior-cycle-cli-router.cjs');
+const { createReleaseReadinessCliRouter } = require('./release-readiness-cli-router.cjs');
 
 const packageJson = require('../package.json');
 
@@ -139,6 +140,13 @@ const seniorCycleCliRouter = createSeniorCycleCliRouter({
   uiPlanRefresh,
   uiDiff
 });
+const releaseReadinessCliRouter = createReleaseReadinessCliRouter({
+  releasePreflight,
+  shipCheck,
+  shipPrepare,
+  releaseOptionsFor,
+  shipOptionsFor
+});
 
 function hasFlag(args, flag) {
   return args.includes(flag);
@@ -158,6 +166,20 @@ function shipModeOption(rawArgs) {
     return optionValue(rawArgs, '--mode') || '';
   }
   return hasFlag(rawArgs, '--fast') ? 'fast' : hasFlag(rawArgs, '--local') ? 'local' : hasFlag(rawArgs, '--full') ? 'full' : undefined;
+}
+
+function releaseOptionsFor(rawArgs) {
+  return {
+    targetVersion: optionValue(rawArgs, '--target-version'),
+    runCommands: !hasFlag(rawArgs, '--static'),
+    shipMode: shipModeOption(rawArgs)
+  };
+}
+
+function shipOptionsFor(rawArgs) {
+  return {
+    mode: shipModeOption(rawArgs)
+  };
 }
 
 function seniorOptions(rawArgs) {
@@ -496,6 +518,19 @@ async function main() {
       return;
     }
     output(seniorCycleRoute.data, { json });
+    return;
+  }
+
+  const releaseReadinessRoute = releaseReadinessCliRouter.route({ command, args, rawArgs, cwd });
+  if (releaseReadinessRoute.handled) {
+    if (releaseReadinessRoute.kind === 'error') {
+      fail(releaseReadinessRoute.message, { json });
+      return;
+    }
+    output(releaseReadinessRoute.data, { json });
+    if (releaseReadinessRoute.exitCode) {
+      process.exitCode = releaseReadinessRoute.exitCode;
+    }
     return;
   }
 
@@ -924,45 +959,6 @@ async function main() {
         return;
       }
       fail('Unknown backlog subcommand: ' + sub + '. Use: list, add', { json });
-      return;
-    }
-    case 'release-preflight':
-    case 'release': {
-      if (command === 'release' && args[1] !== 'preflight') {
-        fail('Unknown release subcommand: ' + args[1] + '. Use: preflight', { json });
-      }
-      const result = releasePreflight(cwd, {
-        targetVersion: optionValue(rawArgs, '--target-version'),
-        runCommands: !hasFlag(rawArgs, '--static'),
-        shipMode: shipModeOption(rawArgs)
-      });
-      output(result, { json });
-      if (!result.passed) {
-        process.exitCode = 1;
-      }
-      return;
-    }
-    case 'ship': {
-      const sub = args[1];
-      if (!sub || sub === 'check') {
-        const result = shipCheck(cwd, {
-          mode: shipModeOption(rawArgs)
-        });
-        output(result, { json });
-        if (!result.passed) {
-          process.exitCode = 1;
-        }
-        return;
-      }
-      if (sub === 'prepare') {
-        const result = shipPrepare(cwd, { mode: shipModeOption(rawArgs) });
-        output(result, { json });
-        if (!result.passed) {
-          process.exitCode = 1;
-        }
-        return;
-      }
-      fail('Unknown ship subcommand: ' + sub + '. Use: check, prepare', { json });
       return;
     }
     case 'steering': {
