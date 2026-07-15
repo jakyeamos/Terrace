@@ -108,6 +108,7 @@ const { managedArtifactExists, writeManagedText } = require('../packages/terrace
 const { createPhaseCliRouter } = require('./phase-cli-router.cjs');
 const { createSeniorCycleCliRouter } = require('./senior-cycle-cli-router.cjs');
 const { createReleaseReadinessCliRouter } = require('./release-readiness-cli-router.cjs');
+const { createReportCliRouter } = require('./report-cli-router.cjs');
 
 const packageJson = require('../package.json');
 
@@ -146,6 +147,13 @@ const releaseReadinessCliRouter = createReleaseReadinessCliRouter({
   shipPrepare,
   releaseOptionsFor,
   shipOptionsFor
+});
+const reportCliRouter = createReportCliRouter({
+  reportRead,
+  reportUpdate,
+  reportOpen,
+  reportHistory,
+  reportCeremony
 });
 
 function hasFlag(args, flag) {
@@ -534,6 +542,19 @@ async function main() {
     return;
   }
 
+  const reportRoute = reportCliRouter.route({ command, args, cwd });
+  if (reportRoute.handled) {
+    if (reportRoute.kind === 'error') {
+      fail(reportRoute.message, { json });
+      return;
+    }
+    output(reportRoute.data, { json });
+    if (reportRoute.exitCode) {
+      process.exitCode = reportRoute.exitCode;
+    }
+    return;
+  }
+
   switch (command) {
     case 'new-project': {
       const name = args[1];
@@ -728,35 +749,6 @@ async function main() {
     }
     case 'history': {
       output(historySummary(cwd), { json });
-      return;
-    }
-    case 'report': {
-      const sub = args[1];
-      if (!sub) {
-        output(reportRead(cwd), { json });
-        return;
-      }
-      if (sub === 'update') {
-        output(reportUpdate(cwd, { command: 'terrace report update' }), { json });
-        return;
-      }
-      if (sub === 'open') {
-        output(reportOpen(cwd), { json });
-        return;
-      }
-      if (sub === 'history') {
-        output(reportHistory(cwd), { json });
-        return;
-      }
-      if (sub === 'ceremony') {
-        const result = reportCeremony(cwd);
-        output(result, { json });
-        if (!result.passed) {
-          process.exitCode = 1;
-        }
-        return;
-      }
-      fail('Unknown report subcommand: ' + sub + '. Use: update, open, history, ceremony', { json });
       return;
     }
     case 'waive': {

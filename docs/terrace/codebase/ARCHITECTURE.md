@@ -15,6 +15,7 @@
 - `phase-cli-router.cjs` owns canonical and GSD-compatible phase command parsing through injected core operations. The top-level CLI retains global-option parsing, human/JSON rendering, and exit behavior.
 - `senior-cycle-cli-router.cjs` owns senior-cycle and UI command parsing through injected handlers. It preserves lazy option evaluation and returns data/errors to the same top-level CLI renderer.
 - `release-readiness-cli-router.cjs` owns release-preflight aliases and ship command parsing through injected policy handlers. It preserves raw mode-option parsing, returns failures as renderer-owned results with exit intent, and leaves JSON/human output at the top level.
+- `report-cli-router.cjs` owns report subcommand parsing through injected reporting operations. It preserves report-update command metadata and returns ceremony-only exit intent to the top-level renderer.
 
 ## Target Architecture
 

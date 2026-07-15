@@ -2,13 +2,13 @@
 
 ## Current position
 
-**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, ship-readiness, senior-cycle, reporting, phase-router, senior-cycle/UI-router, and release-readiness-router domains are extracted, and the adoption/workflow cycle is removed; remaining dispatcher and orchestration seams remain.
+**Phase:** Milestone 3 domain-seam work: command discovery, debt assessment, release-preflight, ship-readiness, senior-cycle, reporting, phase-router, senior-cycle/UI-router, release-readiness-router, and report-router domains are extracted, and the adoption/workflow cycle is removed; remaining dispatcher and orchestration seams remain.
 
 **Branch:** `codex/gpt56-modernization` (isolated from the original dirty checkout).
 
 **Baseline:** `b80a8997`.
 
-**Immediate implementation priority:** route the report command family through a tested lower-level adapter while preserving top-level rendering and exit behavior.
+**Immediate implementation priority:** review the remaining dispatcher/orchestration seams against the target architecture and remove only confirmed transition debris.
 
 ## Evidence recorded
 
@@ -46,10 +46,11 @@
 - Senior-cycle and UI CLI commands now route through a lower-level adapter with injected handlers. Interrogation mode selection, answer-option evaluation, UI routing, and JSON error behavior retain the top-level renderer contract; direct and child-process tests cover the compatibility surface.
 - Release-preflight aliases and ship commands now route through a lower-level adapter with injected policy handlers. Raw mode-option parsing, default ship behavior, exact command errors, and failed-readiness exit intent remain renderer-owned compatibility behavior; direct router and policy-boundary tests cover the seam.
 - Reporting now lives below lifecycle: report-card calculation, persistence/history, ceremony analysis, and the fresh report ship gate have one owner. Workflow, adoption, workbench, and ship readiness import the lower-level owner directly while lifecycle retains identity-compatible public exports; focused behavior, symlink-safety, consumer, and fresh-process import tests passed.
+- Report commands now route through a lower-level adapter with injected reporting operations. Plain reads, explicit updates, history/open responses, exact unknown-command errors, and ceremony-only exit intent retain the unchanged top-level JSON/human renderer; direct and existing CLI contract tests cover the seam.
 
 ## Next action
 
-Route report commands through a narrow injected adapter, retain the existing human/JSON renderer and ceremony exit behavior, then review remaining dispatcher seams without widening into a rewrite.
+Review remaining dispatcher seams, import direction, generated-asset parity, and public compatibility against the target architecture; remove only confirmed obsolete paths before the final adversarial review.
 
 ## Known blockers
 
