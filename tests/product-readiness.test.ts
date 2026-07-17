@@ -107,12 +107,31 @@ describe('tier-one product readiness', () => {
   it('prints top-level CLI help and version without requiring a Terrace state file', () => {
     const help = execFileSync('node', [cliPath, '--help'], { cwd: repoRoot, encoding: 'utf8' });
     const version = execFileSync('node', [cliPath, '--version'], { cwd: repoRoot, encoding: 'utf8' }).trim();
+    const helpJson = JSON.parse(execFileSync('node', [cliPath, '--help', '--json'], { cwd: repoRoot, encoding: 'utf8' })) as {
+      usage: string;
+      sections: { common: Array<{ usage: string }>; advanced: Array<{ usage: string }>; compatibility: Array<{ usage: string }> };
+      commands: Array<{ id: string }>;
+    };
+    const versionJson = JSON.parse(execFileSync('node', [cliPath, '--version', '--json'], { cwd: repoRoot, encoding: 'utf8' })) as {
+      command: string;
+      package: string;
+      version: string;
+    };
     const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
     expect(help).toContain('Usage: terrace <command>');
     expect(help).toContain('terrace init');
     expect(help).toContain('terrace agents install-global');
+    expect(help).toContain('Common workflow:');
+    expect(help).toContain('Advanced commands:');
+    expect(help).toContain('Compatibility aliases:');
     expect(version).toBe(pkg.version);
+    expect(helpJson).toMatchObject({ usage: 'terrace <command> [options]' });
+    expect(helpJson.sections.common.map((entry) => entry.usage)).toContain('terrace next');
+    expect(helpJson.sections.advanced.map((entry) => entry.usage)).toContain('terrace release-preflight [--static] [--fast|--local|--full] [--target-version <version>]');
+    expect(helpJson.sections.compatibility.map((entry) => entry.usage)).toContain('terrace plan-phase <id>');
+    expect(helpJson.commands.map((entry) => entry.id)).toContain('phase.set');
+    expect(versionJson).toEqual({ command: 'terrace', package: pkg.name, version: pkg.version });
   });
 
   it('keeps legacy integration artifacts out of the publish allowlist', () => {

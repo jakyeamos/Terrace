@@ -55,6 +55,64 @@ const F = dispatchForm;
 const D = dispatch;
 const G = (familyId, literals) => F(literals, { kind: 'family', familyId, priority: -100 });
 
+const ADVANCED_HELP_COMMAND_IDS = new Set([
+  'agents.repair',
+  'agents.install-global',
+  'spec.hash',
+  'ci.check',
+  'security.check',
+  'corpus.run',
+  'corpus.report',
+  'adoption.status',
+  'port.gsd',
+  'port.gsd.dry-run',
+  'port.gsd.compare',
+  'port.gsd.verify-parity',
+  'port.gsd.import-roadmap',
+  'planning.refresh',
+  'resume',
+  'history',
+  'autonomous',
+  'settings.show',
+  'settings.effort',
+  'commands.discover',
+  'map-codebase',
+  'design',
+  'observe',
+  'validate-prod',
+  'cleanup',
+  'ui.import-stitch',
+  'ui.plan-refresh',
+  'ui.diff',
+  'workstreams.plan',
+  'design-source.import',
+  'design-source.diff',
+  'phase.list',
+  'phase.show',
+  'quick.list',
+  'quick.show',
+  'backlog.list',
+  'backlog.add',
+  'ship.prepare',
+  'release-preflight',
+  'handoff.create',
+  'debt',
+  'preflight',
+  'docu',
+  'test.eval',
+  'review.ai',
+  'waive',
+  'workbench.status',
+  'workbench.prepare',
+  'rule.add',
+  'rule.audit',
+  'rule.list',
+  'rule.explain',
+  'backfill',
+  'preset.list',
+  'preset.install'
+]);
+
 // These forms are parser data, not display grammar. They intentionally include
 // the compatibility defaults and flag precedence that are not expressible in
 // argv_pattern, while leaving argument and option validation to the owner.
@@ -176,7 +234,7 @@ function command(id, argvPattern, options) {
     help: opts.help || null,
     effect: opts.effect || 'write',
     json: opts.json !== false,
-    visibility: opts.visibility || 'primary',
+    visibility: opts.visibility || (ADVANCED_HELP_COMMAND_IDS.has(id) ? 'advanced' : 'primary'),
     agent: opts.agent || null,
     writes: freezeList(opts.writes),
     execution: freezeList(opts.execution),
@@ -639,9 +697,21 @@ const COMMAND_CATALOG = Object.freeze([
     agent: A('terrace-preset-install', 'terrace preset install $ARGUMENTS', '<preset-id>', 'Install a Terrace preset.')
   }),
 
-  command('core.init', ['core', 'init'], { effect: 'write', visibility: 'compatibility' }),
-  command('quick.roadmap-item', ['quick', '<roadmap-item-id>'], { effect: 'write', visibility: 'compatibility' }),
-  command('roadmap.execute', ['roadmap', 'execute', '<roadmap-item-id>'], { effect: 'write', visibility: 'compatibility' }),
+  command('core.init', ['core', 'init'], {
+    effect: 'write',
+    visibility: 'compatibility',
+    help: H('terrace core init', 'Compatibility alias for terrace init')
+  }),
+  command('quick.roadmap-item', ['quick', '<roadmap-item-id>'], {
+    effect: 'write',
+    visibility: 'compatibility',
+    help: H('terrace quick <roadmap-item-id>', 'Compatibility form for roadmap quick execution')
+  }),
+  command('roadmap.execute', ['roadmap', 'execute', '<roadmap-item-id>'], {
+    effect: 'write',
+    visibility: 'compatibility',
+    help: H('terrace roadmap execute <roadmap-item-id>', 'Compatibility form for roadmap execution')
+  }),
   command('report.update', ['report', 'update'], { effect: 'write', visibility: 'advanced' }),
   command('report.open', ['report', 'open'], { effect: 'read', visibility: 'advanced' }),
   command('report.history', ['report', 'history'], { effect: 'read', visibility: 'advanced' }),
@@ -815,31 +885,107 @@ function formatCommandDisplay(argv) {
   return ['terrace', ...argv].join(' ');
 }
 
+function helpEntry(entry) {
+  return {
+    id: entry.id,
+    usage: entry.help.usage,
+    summary: entry.help.summary,
+    effect: entry.effect,
+    json: entry.json,
+    visibility: entry.visibility
+  };
+}
+
 function listHelpCommands() {
   return COMMAND_CATALOG
     .filter((entry) => entry.help && entry.help.visible)
-    .map((entry) => ({
-      id: entry.id,
-      usage: entry.help.usage,
-      summary: entry.help.summary,
-      effect: entry.effect,
-      json: entry.json,
-      visibility: entry.visibility
-    }));
+    .map(helpEntry);
+}
+
+function listHelpCatalog() {
+  return COMMAND_CATALOG.map((entry) => ({
+    id: entry.id,
+    usage: entry.help ? entry.help.usage : formatCommandDisplay(entry.argv_pattern),
+    summary: entry.help ? entry.help.summary : null,
+    effect: entry.effect,
+    visibility: entry.visibility,
+    aliases: entry.aliases.map((alias) => ({
+      id: alias.id,
+      usage: formatCommandDisplay(alias.argv_pattern),
+      visibility: alias.visibility || 'compatibility'
+    }))
+  }));
+}
+
+function aliasHelpEntry(entry, alias) {
+  return {
+    id: alias.id,
+    usage: formatCommandDisplay(alias.argv_pattern),
+    summary: 'Compatibility alias for ' + (entry.help ? entry.help.usage : formatCommandDisplay(entry.argv_pattern)),
+    effect: entry.effect,
+    json: entry.json,
+    visibility: 'compatibility'
+  };
+}
+
+function uniqueHelpEntries(entries) {
+  const seen = new Set();
+  return entries.filter((entry) => {
+    if (seen.has(entry.usage)) return false;
+    seen.add(entry.usage);
+    return true;
+  });
+}
+
+function listCliHelpSections() {
+  const helpCommands = listHelpCommands();
+  const compatibility = [
+    ...helpCommands.filter((entry) => entry.visibility === 'compatibility'),
+    ...COMMAND_CATALOG.flatMap((entry) => entry.aliases
+      .filter((alias) => (alias.visibility || 'compatibility') === 'compatibility')
+      .map((alias) => aliasHelpEntry(entry, alias)))
+  ];
+  return {
+    common: helpCommands.filter((entry) => entry.visibility === 'primary'),
+    advanced: helpCommands.filter((entry) => entry.visibility === 'advanced'),
+    compatibility: uniqueHelpEntries(compatibility)
+  };
+}
+
+function formatHelpEntries(entries) {
+  const width = entries.reduce((maximum, entry) => Math.max(maximum, entry.usage.length), 0);
+  return entries.map((entry) => '  ' + entry.usage.padEnd(width + 1) + entry.summary);
 }
 
 function renderCliHelp() {
-  const commands = listHelpCommands();
-  const width = commands.reduce((maximum, entry) => Math.max(maximum, entry.usage.length), 0);
+  const sections = listCliHelpSections();
   return [
     'Usage: terrace <command> [options]',
     '',
-    'Commands:',
-    ...commands.map((entry) => '  ' + entry.usage.padEnd(width + 1) + entry.summary),
+    'Common workflow:',
+    ...formatHelpEntries(sections.common),
+    '',
+    'Advanced commands:',
+    ...formatHelpEntries(sections.advanced),
+    '',
+    'Compatibility aliases:',
+    ...formatHelpEntries(sections.compatibility),
+    '',
+    'Use `terrace --help --json` for the complete command catalog and alias metadata.',
     '',
     'Global options:',
     ...GLOBAL_OPTIONS.map(([option, description]) => '  ' + option.padEnd(18) + description)
   ].join('\n');
+}
+
+function renderCliHelpJson() {
+  return {
+    command: 'terrace --help',
+    usage: 'terrace <command> [options]',
+    sections: listCliHelpSections(),
+    commands: listHelpCatalog(),
+    global_options: GLOBAL_OPTIONS.map(([option, description]) => ({ option, description }))
+  };
 }
 
 function renderReadmeCommandIndex() {
@@ -931,12 +1077,15 @@ module.exports = {
   commandById,
   formatCommandDisplay,
   listAgentCommands,
+  listCliHelpSections,
   listCommandCatalog,
   listCommandContracts,
+  listHelpCatalog,
   listHelpCommands,
   listProductReadinessSurface,
   renderCommandArgv,
   renderCliHelp,
+  renderCliHelpJson,
   renderReadmeCommandIndex,
   validateCommandCatalog
 };

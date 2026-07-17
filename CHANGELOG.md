@@ -2,6 +2,7 @@
 
 ## 0.2.0
 
+- Curate the canonical CLI help into common workflow, advanced, and compatibility sections, with structured JSON help and version output while preserving the full command catalog.
 - Harden Terrace-managed artifacts with symlink-safe path validation, re-entrant recovery-aware write serialization, synced atomic replacement, prepared-transaction recovery for preset policy/registry updates, and doctor diagnostics for unsafe artifacts.
 - Add validated, schema-versioned, atomic `.terrace/state.json` persistence with legacy `1.0` migration, revision conflict detection, recovery-aware writer locks, explicit replacement, parent-directory syncing where supported, and symlink rejection.
 - Add objective `terrace adoption status` replacement measurement for GSD parity with a direct verdict, score, ready flag, recommended mode, workflow evidence, blockers, and next commands.

@@ -30,25 +30,60 @@ type Contract = {
   purpose: string;
 };
 
+type HelpEntry = {
+  id: string;
+  usage: string;
+  summary: string | null;
+  effect: string;
+  json: boolean;
+  visibility: string;
+};
+
+type HelpSections = {
+  common: HelpEntry[];
+  advanced: HelpEntry[];
+  compatibility: HelpEntry[];
+};
+
+type HelpCatalogEntry = {
+  id: string;
+  usage: string;
+  summary: string | null;
+  effect: string;
+  visibility: string;
+  aliases: Array<{ id: string; usage: string; visibility: string }>;
+};
+
 const {
   commandById,
   listAgentCommands,
   listCommandCatalog,
   listCommandContracts,
+  listCliHelpSections,
+  listHelpCatalog,
   listHelpCommands,
   listIntentCommands,
   renderCommandArgv,
   renderCliHelp,
+  renderCliHelpJson,
   validateCommandCatalog
 } = require('../packages/terrace-core/src/index.cjs') as {
   commandById: (id: string) => CatalogCommand | null;
   listAgentCommands: () => Array<{ name: string; command: string; help?: string }>;
   listCommandCatalog: () => CatalogCommand[];
   listCommandContracts: () => Contract[];
-  listHelpCommands: () => Array<{ id: string; usage: string; summary: string }>;
+  listCliHelpSections: () => HelpSections;
+  listHelpCatalog: () => HelpCatalogEntry[];
+  listHelpCommands: () => HelpEntry[];
   listIntentCommands: () => Array<{ id: string; command_id: string }>;
   renderCommandArgv: (id: string, parameters?: Record<string, string | null>) => string[];
   renderCliHelp: () => string;
+  renderCliHelpJson: () => {
+    usage: string;
+    sections: HelpSections;
+    commands: HelpCatalogEntry[];
+    global_options: Array<{ option: string; description: string }>;
+  };
   validateCommandCatalog: () => {
     valid: boolean;
     duplicate_ids: string[];
@@ -114,6 +149,46 @@ describe('command catalog', () => {
       effect: 'executes_project'
     }));
     expect(listCommandContracts()).toContainEqual(expect.objectContaining({ command: 'terrace ship check --fast' }));
+  });
+
+  it('curates human help while retaining the complete catalog and compatibility aliases', () => {
+    const sections = listCliHelpSections();
+    const catalog = listCommandCatalog();
+    const help = renderCliHelp();
+    const jsonHelp = renderCliHelpJson();
+
+    expect(sections.common).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'init', usage: 'terrace init' }),
+      expect.objectContaining({ id: 'next', usage: 'terrace next' }),
+      expect.objectContaining({ id: 'phase.plan', usage: 'terrace phase plan <id>' }),
+      expect.objectContaining({ id: 'ship.check', usage: 'terrace ship check [--fast|--local|--full]' })
+    ]));
+    expect(sections.advanced).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'security.check', usage: 'terrace security check' }),
+      expect.objectContaining({ id: 'release-preflight', usage: expect.stringContaining('terrace release-preflight') })
+    ]));
+    expect(sections.compatibility).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'phase.plan.alias', usage: 'terrace plan-phase <id>' }),
+      expect.objectContaining({ id: 'planning.init', usage: 'terrace planning init' }),
+      expect.objectContaining({ id: 'release.preflight', usage: 'terrace release preflight' })
+    ]));
+    expect(help).toContain('Common workflow:');
+    expect(help).toContain('Advanced commands:');
+    expect(help).toContain('Compatibility aliases:');
+    expect(help.indexOf('terrace next')).toBeLessThan(help.indexOf('Advanced commands:'));
+    expect(help).not.toContain('terrace phase set');
+
+    const catalogIds = new Set(catalog.map((entry) => entry.id));
+    const jsonCatalogIds = new Set(jsonHelp.commands.map((entry) => entry.id));
+    expect(jsonCatalogIds).toEqual(catalogIds);
+    expect(jsonHelp.commands.find((entry) => entry.id === 'release-preflight')?.aliases).toContainEqual({
+      id: 'release.preflight',
+      usage: 'terrace release preflight',
+      visibility: 'compatibility'
+    });
+    expect(jsonHelp.sections.common.map((entry) => entry.id)).toContain('next');
+    expect(jsonHelp.sections.advanced.map((entry) => entry.id)).toContain('security.check');
+    expect(jsonHelp.sections.compatibility.map((entry) => entry.id)).toContain('phase.plan.alias');
   });
 
   it('marks persistence-capable commands as write-capable and describes ship prepare accurately', () => {
