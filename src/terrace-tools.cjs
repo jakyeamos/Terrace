@@ -350,7 +350,7 @@ async function main() {
     } : packageJson.version, { json });
     return;
   }
-  if (help || args.length === 0) {
+  if (help || (args.length === 0 && !apply)) {
     output(json ? renderCliHelpJson() : HELP_TEXT, { json });
     return;
   }
