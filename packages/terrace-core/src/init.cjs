@@ -30,6 +30,13 @@ function initCore(cwd, options) {
       allow_low_effort: true,
       phase_effort_default: 'standard'
     },
+    quality_runner: {
+      enabled: false,
+      analysis_mode: 'balanced',
+      cache_mode: 'external',
+      command: 'quality-runner',
+      block_on: ['hard', 'stale', 'missing_evidence', 'plan_coverage']
+    },
     ship_gates: {
       dead_code: {
         enabled: true

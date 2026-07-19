@@ -4,6 +4,7 @@ module.exports = {
   ...require('./state.cjs'),
   ...require('./events.cjs'),
   ...require('./config.cjs'),
+  ...require('./quality-runner.cjs'),
   ...require('./package-manager.cjs'),
   ...require('./agents.cjs'),
   ...require('./rules.cjs'),

@@ -204,6 +204,35 @@ Terrace now has a senior-cycle artifact layer for adaptive rigor:
 
 See `docs/terrace/SENIOR-CYCLE.md` for the audit report, target workflow, artifact structure, enforcement rules, and implementation milestones. The no band-aid rule is the default: even `terrace quick` should choose maintainable architecture unless a short-term choice explicitly preserves future development and has a cleanup contract.
 
+## Quality Runner Delivery Contracts
+
+Terrace can opt into Quality Runner planning contracts without changing its
+native RED/GREEN, senior-cycle, state, or GSD-alias behavior. Add this block to
+`.terrace/config.json`:
+
+```json
+{
+  "quality_runner": {
+    "enabled": false,
+    "analysis_mode": "balanced",
+    "cache_mode": "external",
+    "command": "quality-runner",
+    "block_on": ["hard", "stale", "missing_evidence", "plan_coverage"]
+  }
+}
+```
+
+When enabled, `terrace phase plan` prepares or refreshes one QR delivery
+contract and records its contract reference, performance receipt, obligations,
+and verification commands in `PLAN.md`. `terrace phase execute` runs contract
+preflight without rescanning the repository. `terrace phase validate` requires
+one structured `QUALITY-RUNNER-RESULT.json` per phase/batch and performs the
+single reconciliation path; review and completion consume that saved result.
+Missing hard evidence, stale fingerprints, uncovered plan obligations, and
+deferred hard checks block the lifecycle. The default external cache keeps QR
+cache state out of the target checkout. Terrace reports an npm/QR-pnpm package
+manager conflict explicitly and never rewrites either command surface.
+
 ## Dead-Code Gate
 
 `terrace ship check --full` looks for package scripts named `dead-code`, `deadcode`, `knip`, `unused`, `unused:check`, or `depcheck`. If one exists, Terrace runs it as the `dead_code` readiness category. If none exists, Terrace reports `DEAD_CODE_SCRIPT_MISSING` as a warning so repos can decide whether to enforce the signal.

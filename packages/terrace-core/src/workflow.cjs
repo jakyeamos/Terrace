@@ -33,6 +33,12 @@ const {
   ruleAuditShipCheck,
   waiverShipCheck
 } = require('./lifecycle.cjs');
+const {
+  prepareQualityRunner,
+  preflightQualityRunner,
+  reconcileQualityRunner,
+  qualityRunnerBlocks
+} = require('./quality-runner.cjs');
 
 function nowIso() {
   return new Date().toISOString();
@@ -148,7 +154,43 @@ function effortGuidance(effort) {
   ];
 }
 
-function planLinesForPhase(phase, blockers, context, discovered, effort) {
+function qualityRunnerPlanLines(qualityRunner) {
+  if (!qualityRunner || qualityRunner.enabled !== true) {
+    return [];
+  }
+  const obligations = Array.isArray(qualityRunner.obligations) ? qualityRunner.obligations : [];
+  const verificationCommands = Array.from(new Set(
+    Array.isArray(qualityRunner.verification_commands) ? qualityRunner.verification_commands : []
+  ));
+  const performance = qualityRunner.performance && typeof qualityRunner.performance === 'object'
+    ? qualityRunner.performance
+    : {};
+  return [
+    '',
+    '## Quality Runner Delivery Contract',
+    '- Status: ' + (qualityRunner.status || 'unknown'),
+    '- Contract: ' + (qualityRunner.contract_path || 'unavailable'),
+    '- Contract ID: ' + (qualityRunner.contract_id || 'unavailable'),
+    '- Analysis mode: ' + (qualityRunner.analysis_mode || 'balanced'),
+    '- Cache mode: ' + (qualityRunner.cache_mode || 'external'),
+    '- Latency budget: ' + String(qualityRunner.latency_budget_seconds || 30) + ' seconds',
+    '- Performance receipt: ' + (performance.status || 'unavailable'),
+    ...(qualityRunner.package_manager_conflict
+      ? ['- Package-manager conflict: ' + qualityRunner.package_manager_conflict.message]
+      : []),
+    '### Obligations',
+    ...(obligations.length > 0
+      ? obligations.map((item) => '- [' + (item.kind || 'advisory') + '] ' + (item.id || 'unknown') + ': ' + (item.title || 'follow contract acceptance criteria'))
+      : ['- No obligations were returned by Quality Runner.']),
+    '### Verification Commands',
+    ...(verificationCommands.length > 0 ? verificationCommands.map((command) => '- ' + command) : ['- Use the evidence commands recorded in the contract.']),
+    '### Delivery Result',
+    '- Write one structured result to `' + (qualityRunner.result_file || 'QUALITY-RUNNER-RESULT.json') + '` before validation.',
+    '- Stale fingerprints, missing hard evidence, uncovered obligations, and deferred hard checks block completion.'
+  ];
+}
+
+function planLinesForPhase(phase, blockers, context, discovered, effort, qualityRunner) {
   const ctx = context || { plans: [], source_refs: [], source_snippets: [], quick_tasks: [], likely_files: [] };
   const criteria = Array.isArray(phase.success_criteria) ? phase.success_criteria : [];
   const commands = discovered && Array.isArray(discovered.checks)
@@ -195,6 +237,7 @@ function planLinesForPhase(phase, blockers, context, discovered, effort) {
     '',
     '## Project Commands',
     ...(commands.length > 0 ? commands.map((command) => '- ' + command) : ['- No executable project quality scripts were discovered.']),
+    ...qualityRunnerPlanLines(qualityRunner),
     '',
     '## Blockers',
     ...(blockers.length > 0 ? blockers.map((item) => '- BLOCKING: ' + item.description) : ['- None recorded.']),
@@ -860,7 +903,8 @@ function phasePlan(cwd, phaseId) {
   const discovered = discoverProjectCommands(cwd);
   const effort = phaseEffortDefault(cwd);
   const planRef = phaseRef(phase) + '/PLAN.md';
-  writeMarkdown(cwd, planRef, planLinesForPhase(phase, blockers, context, discovered, effort));
+  const qualityRunner = prepareQualityRunner(cwd, phase, context);
+  writeMarkdown(cwd, planRef, planLinesForPhase(phase, blockers, context, discovered, effort, qualityRunner));
   const plannedAt = nowIso();
   const nextState = {
     ...updatePhase(state, phase.id, {
@@ -870,6 +914,7 @@ function phasePlan(cwd, phaseId) {
       effort,
       source_refs: context.source_refs,
       likely_files: context.likely_files,
+      quality_runner: qualityRunner,
       next_command: 'terrace phase execute ' + phase.id
     }),
     workflow: {
@@ -898,6 +943,7 @@ function phasePlan(cwd, phaseId) {
     effort,
     blocked: blockers.length > 0,
     blockers,
+    quality_runner: qualityRunner,
     next_command: 'terrace phase execute ' + phase.id,
     active_slice: nextState.active_slice
   };
@@ -934,6 +980,26 @@ function phaseExecute(cwd, phaseId) {
       required_action: 'Complete senior-cycle gates before execution.'
     };
   }
+  const qualityRunnerPreflight = preflightQualityRunner(
+    cwd,
+    phase,
+    phase.plan_ref || phaseRef(phase) + '/PLAN.md'
+  );
+  const qualityRunnerPreflightBlockers = qualityRunnerBlocks(qualityRunnerPreflight);
+  if (qualityRunnerPreflightBlockers.length > 0) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      effort,
+      queue,
+      blockers: qualityRunnerPreflightBlockers,
+      quality_runner: {
+        ...(phase.quality_runner || { enabled: true }),
+        preflight: qualityRunnerPreflight
+      },
+      required_action: 'Resolve Quality Runner contract preflight blockers before execution.'
+    };
+  }
   const startedAt = nowIso();
   const waves = [
     { id: 'red', status: 'required', command: 'terrace phase validate ' + phase.id },
@@ -952,6 +1018,10 @@ function phaseExecute(cwd, phaseId) {
         status: 'red_required',
         queue,
         waves
+      },
+      quality_runner: {
+        ...(phase.quality_runner || { enabled: false }),
+        preflight: qualityRunnerPreflight
       },
       next_command: 'terrace phase validate ' + phase.id
     }),
@@ -979,6 +1049,10 @@ function phaseExecute(cwd, phaseId) {
     execution_ref: executionRef,
     queue,
     waves,
+    quality_runner: {
+      ...(phase.quality_runner || { enabled: false }),
+      preflight: qualityRunnerPreflight
+    },
     next_action: 'Add RED evidence before implementation.'
   };
 }
@@ -988,6 +1062,20 @@ function phaseValidate(cwd, phaseId) {
   const phase = findPhase(state, phaseId);
   const discovered = discoverProjectCommands(cwd);
   const commands = discovered.checks.filter((check) => check.exists).map((check) => check.command);
+  const qualityRunnerReconciliation = reconcileQualityRunner(cwd, phase);
+  const qualityRunnerReconciliationBlockers = qualityRunnerBlocks(qualityRunnerReconciliation);
+  if (qualityRunnerReconciliationBlockers.length > 0) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      blockers: qualityRunnerReconciliationBlockers,
+      quality_runner: {
+        ...(phase.quality_runner || { enabled: true }),
+        reconciliation: qualityRunnerReconciliation
+      },
+      required_action: 'Resolve Quality Runner delivery reconciliation blockers before validation.'
+    };
+  }
   const validationRef = phaseRef(phase) + '/VALIDATION.md';
   writeMarkdown(cwd, validationRef, [
     '# Validation: ' + phase.title,
@@ -1010,6 +1098,10 @@ function phaseValidate(cwd, phaseId) {
     status: 'validation_ready',
     validation_ref: validationRef,
     validated_at: nowIso(),
+    quality_runner: {
+      ...(phase.quality_runner || { enabled: false }),
+      reconciliation: qualityRunnerReconciliation
+    },
     next_command: 'terrace phase review ' + phase.id
   });
   saveState(cwd, nextState);
@@ -1017,6 +1109,7 @@ function phaseValidate(cwd, phaseId) {
     phase_id: phase.id,
     status: 'validation_ready',
     validation_ref: validationRef,
+    quality_runner: qualityRunnerReconciliation,
     next_command: 'terrace phase review ' + phase.id
   };
 }
@@ -1024,6 +1117,19 @@ function phaseValidate(cwd, phaseId) {
 function phaseReview(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  const qualityRunner = phase.quality_runner;
+  if (qualityRunner && qualityRunner.enabled === true && (!qualityRunner.reconciliation || qualityRunner.reconciliation.status !== 'reconciled')) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      blockers: qualityRunnerBlocks(qualityRunner.reconciliation || {
+        enabled: true,
+        status: 'blocked',
+        blockers: [{ code: 'QR_RECONCILIATION_MISSING', description: 'Quality Runner reconciliation is required before review.' }]
+      }),
+      required_action: 'Reconcile the Quality Runner delivery result before review.'
+    };
+  }
   const reviewRef = phaseRef(phase) + '/REVIEW.md';
   writeMarkdown(cwd, reviewRef, [
     '# Review: ' + phase.title,
@@ -1055,6 +1161,19 @@ function phaseReview(cwd, phaseId) {
 function phaseComplete(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  const qualityRunner = phase.quality_runner;
+  if (qualityRunner && qualityRunner.enabled === true && (!qualityRunner.reconciliation || qualityRunner.reconciliation.status !== 'reconciled')) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      blockers: qualityRunnerBlocks(qualityRunner.reconciliation || {
+        enabled: true,
+        status: 'blocked',
+        blockers: [{ code: 'QR_RECONCILIATION_MISSING', description: 'Quality Runner reconciliation is required before completion.' }]
+      }),
+      required_action: 'Reconcile the Quality Runner delivery result before completion.'
+    };
+  }
   const seniorFeature = seniorFeatureForState(state, phase.id, 'medium');
   const seniorGate = seniorCycleStatus(cwd, phase.id, seniorFeature.tier);
   if (!seniorGate.allowed.complete) {
