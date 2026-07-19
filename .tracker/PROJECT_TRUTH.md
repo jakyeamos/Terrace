@@ -1,12 +1,12 @@
 ---
 schemaVersion: 1
 projectName: Terrace
-summary: Terrace 0.2.0 is prepared as a pnpm-first release candidate with MIT licensing, npm package metadata, GitHub trusted publishing release automation, a `terrace ship check` trusted-publishing guard for repo-owned and manual npm release prerequisites, PRD intake, discoverable repo-local and global Codex/Claude agent commands, release-blocking packed-consumer smoke coverage for the global agent installer, a richer `terrace-autonomous` agent workflow, user-driven interrogate workflows, Terrace-native end-to-end phase routing, configurable phase effort defaults, actionable expected-blocker guidance, a first-class `.planning` refresh command, a cross-repo corpus CLI whose latest June 23 sample run reports zero product weaknesses, read-only `terrace adoption status` for GSD replacement readiness with executable phase-target evidence, merge-safe `terrace port gsd --import-roadmap`, and Terrace-native production workbench status/prepare commands. The dependency:security check now runs scripts/dependency-security.mjs, which fails only on real moderate+ advisories and skips (exit 0) on registry/network errors so offline commit gates no longer false-block.
+summary: Terrace 0.2.0 is a pnpm-first release candidate with trusted publishing, GSD-compatible phase routing, production workbench commands, and opt-in Quality Runner delivery contracts for planning, preflight, evidence reconciliation, and completion gates.
 healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Keep the local workflow entrypoint and release-readiness guard in regular use before protected work ships.
 blockers: []
-lastUpdated: 2026-07-13
+lastUpdated: 2026-07-19
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -17,7 +17,7 @@ repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
 activeBranch: codex/terrace-adoption-measure
-lastCommitDate: "2026-07-13"
+lastCommitDate: "2026-07-19"
 quality:
   lint: pass
   types: pass
@@ -40,8 +40,8 @@ canonicalCommands:
   audit: pnpm audit --audit-level moderate
   deadcode: unknown
 agentExpectationsVersion: 2
-lastVerifiedCommand: pnpm run lint && pnpm run secret:scan && pnpm exec terrace --version
-lastVerifiedAt: "2026-07-13T09:37:42-04:00"
+lastVerifiedCommand: pnpm exec vitest run tests/quality-runner-contract.test.ts --reporter=dot
+lastVerifiedAt: "2026-07-19T01:25:36-04:00"
 ---
 
 ## Current State
@@ -49,6 +49,12 @@ lastVerifiedAt: "2026-07-13T09:37:42-04:00"
 Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 79 Codex skills and 79 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, `/terrace-execute-phase-complete`, `/terrace-corpus-run`, `/terrace-corpus-report`, `/terrace-adoption-status`, `/terrace-release-preflight`, `/terrace-report`, `/terrace-security-check`, `/terrace-workbench-status`, and `/terrace-workbench-prepare`. The `terrace-autonomous` generated skill now carries a GSD-style autonomous workflow contract with JSON-first command execution, explicit implementation/verification loop guidance, allowed tools metadata, and stop conditions for blockers, human judgment, release readiness, and failed verification.
 
 Terrace now also has a repo-local Codex skill artifact under `skills/terrace/`, documenting the `@jakyeamos33/terrace@0.2.0` CLI/core surface, command workflows, public import boundary, safety rules, and release-candidate validation commands for future agent use.
+
+Terrace now has an opt-in Quality Runner delivery-contract adapter. When
+`quality_runner.enabled` is true, phase planning prepares one balanced contract,
+execution preflights saved plans without a rescan, and validation reconciles one
+structured result per phase or batch before review and completion. The default is
+disabled with an external QR cache; npm/QR-pnpm command conflicts are surfaced.
 
 _(5 older entries trimmed)_
 
@@ -79,6 +85,7 @@ Shadow test branch refs named `codex/terrace-shadow-test` were created in every 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
 ## Recent Progress
+- July 19: Added opt-in Quality Runner delivery contracts to Terrace; focused lifecycle coverage passed and the adapter was committed as `408082f`.
 - July 13: Added the source-backed `skills/terrace` Codex skill artifact for the Terrace 0.2.0 CLI/core surface; `pnpm run lint`, `pnpm run secret:scan`, and `pnpm exec terrace --version` passed.
 - July 4: Ran `terrace port gsd --import-roadmap` against Terrace itself, importing 9 executable roadmap phases into `.terrace/state.json`; refreshed the active global `terrace` binary to 0.2.0 via pnpm in the nvm global prefix; `terrace adoption status` now reports `replace_gsd`, 100/100, ready true, with zero blockers.
 - July 4: Hardened `terrace release-preflight` so an expected release tag that exists away from `HEAD` blocks with `RELEASE_TAG_NOT_AT_HEAD`; removed the stale local-only `v0.2.0` tag so the reviewed release tag can be created at the current release-prepared commit.
@@ -90,11 +97,8 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - July 3: Hardened `terrace agents install-global` by expanding generated global assets to the missing help-surface commands, advertising the remaining GSD-compatible phase aliases in CLI help, and strengthening the packed-consumer smoke to verify every expected Codex skill, Claude skill, Claude slash command, and manifest entry from a fresh consumer setup.
 - July 3: Added `terrace release-preflight` for the 0.2.0 release candidate, combining the current CI/audit/package/release-dry-run/ship-check flow with trusted-publishing prerequisites, tag/version checks, and stale npm-era release artifact detection in a single JSON summary.
 - July 3: Fixed pnpm forwarded test-file arguments by routing `pnpm test` through a small Vitest runner that strips pnpm's script separator before invoking Vitest, and added a focused-run regression proving `pnpm test -- <file>` no longer falls back to the full suite.
-- June 30: Removed the remaining stale generated-index ignore entry and neutralized historical generated-integration references in planning docs.
-- June 30: Converted Terrace to pnpm-first project commands and package metadata, replaced `package-lock.json` with `pnpm-lock.yaml`, centralized package-manager command rendering, and taught security checks to use pnpm lockfiles and pnpm audit output.
 - June 30: Added read-only `terrace adoption status` for GSD replacement readiness, routed natural-language replacement/parity questions through `terrace do`, and added report-card claim scope so baseline governance health no longer overclaims full Tier One delivery readiness.
 - July 2: Upgraded `terrace adoption status` to answer whether Terrace can replace GSD yet with direct readiness modes, operational workflow evidence, human CLI output, and actionable next commands.
-- June 30: Made `terrace port gsd` install non-overwriting repo-local agent assets by default and broadened migrated-GSD phase extraction so legacy plan evidence yields a usable roadmap phase target.
 
 ## Open Problems
 
