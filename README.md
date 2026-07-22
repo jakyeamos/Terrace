@@ -130,6 +130,7 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 - `terrace ci check [files...]` runs audit and protected-change enforcement.
 - `terrace adoption status` answers “Can Terrace replace GSD for me yet?” with a direct verdict, `replace_gsd` / `pilot_with_gsd_fallback` / `keep_gsd` mode, workflow evidence, blocking checks, and concrete next commands.
 - `terrace port gsd --dry-run` inventories legacy GSD artifacts.
+- `terrace port gsd --import-roadmap` merges missing legacy `.planning` roadmap phases into existing Terrace state without replacing existing phase objects.
 - `terrace port gsd` migrates supported legacy GSD artifacts into Terrace state.
 - `terrace next` reports the next workflow action from state, handoff data, and blockers.
 - `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
@@ -176,9 +177,11 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 
 `terrace port gsd` preserves the source `.planning/` tree, installs non-overwriting repo-local Terrace agent assets, and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `agents`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.
 
+If `.terrace/state.json` already exists and only executable roadmap phase targets are missing, run `terrace port gsd --import-roadmap`. It appends missing phases parsed from `.planning` and leaves existing Terrace phase objects unchanged.
+
 Migrated state includes roadmap phases and plans, decisions, sessions, handoff context, backlog items, blocked human actions, and quick-task history. Quick-task PLAN/SUMMARY files are archived under `docs/terrace-migration/quick/` and exposed through `terrace quick list` / `terrace quick show <id>`. Handoff remaining tasks and blocking human actions become backlog items so post-migration work is visible. Unsupported files are not deleted; each skipped artifact includes a reason and manual review action.
 
-Use `terrace adoption status` after migration, corpus runs, or agent asset changes when the practical question is whether Terrace can replace GSD yet. The command is read-only and leads with a verdict, score, recommended mode, real workflow evidence, blockers, and next commands such as `terrace commands discover`, `terrace corpus run`, `terrace port gsd --dry-run`, `terrace init`, or `terrace report update`.
+Use `terrace adoption status` after migration, corpus runs, or agent asset changes when the practical question is whether Terrace can replace GSD yet. The command is read-only and leads with a verdict, score, recommended mode, real workflow evidence, blockers, and next commands such as `terrace commands discover`, `terrace corpus run`, `terrace port gsd --import-roadmap`, `terrace init`, or `terrace report update`.
 
 ## Workflow Example
 
@@ -200,6 +203,35 @@ Terrace now has a senior-cycle artifact layer for adaptive rigor:
 - Large/risky features: full alignment, interrogation, codebase mapping, design, TDD, observability, rollout, production validation, and cleanup.
 
 See `docs/terrace/SENIOR-CYCLE.md` for the audit report, target workflow, artifact structure, enforcement rules, and implementation milestones. The no band-aid rule is the default: even `terrace quick` should choose maintainable architecture unless a short-term choice explicitly preserves future development and has a cleanup contract.
+
+## Quality Runner Delivery Contracts
+
+Terrace can opt into Quality Runner planning contracts without changing its
+native RED/GREEN, senior-cycle, state, or GSD-alias behavior. Add this block to
+`.terrace/config.json`:
+
+```json
+{
+  "quality_runner": {
+    "enabled": false,
+    "analysis_mode": "balanced",
+    "cache_mode": "external",
+    "command": "quality-runner",
+    "block_on": ["hard", "stale", "missing_evidence", "plan_coverage"]
+  }
+}
+```
+
+When enabled, `terrace phase plan` prepares or refreshes one QR delivery
+contract and records its contract reference, performance receipt, obligations,
+and verification commands in `PLAN.md`. `terrace phase execute` runs contract
+preflight without rescanning the repository. `terrace phase validate` requires
+one structured `QUALITY-RUNNER-RESULT.json` per phase/batch and performs the
+single reconciliation path; review and completion consume that saved result.
+Missing hard evidence, stale fingerprints, uncovered plan obligations, and
+deferred hard checks block the lifecycle. The default external cache keeps QR
+cache state out of the target checkout. Terrace reports an npm/QR-pnpm package
+manager conflict explicitly and never rewrites either command surface.
 
 ## Dead-Code Gate
 
@@ -235,7 +267,7 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
 - `/terrace` or `/terrace-*` is missing in another local repo: run `terrace agents install-global`, then reload the Codex or Claude Code session.
 - `Protected file changed without DECISION-LOG.md`: add a spec-linked decision before committing.
-- `terrace port gsd` refuses to overwrite state: re-run with `--force` only after preserving existing `.terrace/state.json`.
+- `terrace port gsd` refuses to overwrite state: run `terrace port gsd --import-roadmap` when only missing executable phase targets need to be merged; use `--force` only after preserving existing `.terrace/state.json`.
 - `terrace next` reports a blocked action after migration: complete or clear the migrated human action before treating the project as ready.
 - `terrace ship check` exits nonzero: inspect the failed category and run the listed command directly for detailed output.
 - `terrace ship check` reports `QUALITY_SCRIPT_MISSING`: add the suggested package script if that gate should be enforced for this project.

@@ -10,7 +10,71 @@
     "active_feature": null
   },
   "roadmap": {
-    "phases": []
+    "phases": [
+      {
+        "id": "phase-1-planning-package-parity",
+        "title": "Phase 1: Planning Package Parity",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-2-codebase-map-first-class-workflow",
+        "title": "Phase 2: Codebase Map First-Class Workflow",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-3-native-roadmap-authoring",
+        "title": "Phase 3: Native Roadmap Authoring",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-4-recovery-and-handoff-authority",
+        "title": "Phase 4: Recovery and Handoff Authority",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-5-workstreams-and-safe-parallelism",
+        "title": "Phase 5: Workstreams and Safe Parallelism",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-6-operator-surface-and-readiness-console",
+        "title": "Phase 6: Operator Surface and Readiness Console",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-7-execution-safety-and-worktree-coordination",
+        "title": "Phase 7: Execution Safety and Worktree Coordination",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-8-final-parity-review-and-product-positioning",
+        "title": "Phase 8: Final Parity Review and Product Positioning",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      },
+      {
+        "id": "phase-10-qr-remediation-terrace",
+        "title": "Phase 10: QR remediation: terrace",
+        "status": "migrated",
+        "source_ref": ".planning/ROADMAP.md",
+        "plans": []
+      }
+    ]
   },
   "active_slice": null,
   "red_gate": {

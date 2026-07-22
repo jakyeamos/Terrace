@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createDefaultState, saveState } = require('./state.cjs');
+const { createDefaultState, loadState, saveState } = require('./state.cjs');
 const { installAgentBootstrap } = require('./agents.cjs');
 
 const COMMAND_STRATEGIES = {
@@ -71,6 +71,10 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '') || 'phase';
 }
 
+function isRoadmapPhaseTitle(value) {
+  return /^Phase\s+\d+(?:\.\d+)?(?:\b|[\s:.-])/i.test(String(value).trim());
+}
+
 function extractRoadmapPhases(cwd) {
   const phases = [];
   const seen = new Set();
@@ -102,20 +106,33 @@ function extractRoadmapPhases(cwd) {
         current = {
           title: heading[1],
           id: null,
-          source_ref: '.planning/ROADMAP.md'
+          source_ref: '.planning/ROADMAP.md',
+          added: false
         };
-        addPhase(current);
+        if (isRoadmapPhaseTitle(current.title)) {
+          addPhase(current);
+          current.added = true;
+        }
         continue;
       }
 
       const id = line.match(/^\s*-\s*ID:\s*(.+?)\s*$/i);
       if (id && current) {
-        const previousId = slugify(current.id || current.title);
-        const phase = phases.find((candidate) => candidate.id === previousId);
-        if (phase) {
-          seen.delete(phase.id);
-          phase.id = slugify(id[1]);
-          seen.add(phase.id);
+        if (!current.added) {
+          addPhase({
+            id: id[1],
+            title: current.title,
+            source_ref: current.source_ref
+          });
+          current.added = true;
+        } else {
+          const previousId = slugify(current.id || current.title);
+          const phase = phases.find((candidate) => candidate.id === previousId);
+          if (phase) {
+            seen.delete(phase.id);
+            phase.id = slugify(id[1]);
+            seen.add(phase.id);
+          }
         }
         current.id = id[1];
         continue;
@@ -831,6 +848,50 @@ function nextCommandForState(state) {
   return nextPhase ? 'terrace phase show ' + nextPhase.id : 'terrace doctor';
 }
 
+function portGsdImportRoadmap(cwd) {
+  const state = loadState(cwd);
+  const existingPhases = state.roadmap && Array.isArray(state.roadmap.phases) ? state.roadmap.phases : [];
+  const existingIds = new Set(existingPhases.map((phase) => phase.id));
+  const candidates = extractRoadmapPhases(cwd);
+  const imported = [];
+  const unchanged = [];
+
+  for (const phase of candidates) {
+    if (existingIds.has(phase.id)) {
+      unchanged.push({
+        id: phase.id,
+        title: phase.title,
+        reason: 'already_exists'
+      });
+      continue;
+    }
+    existingIds.add(phase.id);
+    existingPhases.push(phase);
+    imported.push(phase);
+  }
+
+  state.roadmap = {
+    ...(state.roadmap || {}),
+    phases: existingPhases
+  };
+
+  if (imported.length > 0) {
+    saveState(cwd, state);
+  }
+
+  const nextPhase = imported[0] || existingPhases.find((phase) => phase && phase.id);
+  return {
+    mode: 'roadmap-import',
+    source: '.planning',
+    candidates: candidates.length,
+    imported,
+    unchanged,
+    writes: imported.length > 0 ? ['.terrace/state.json'] : [],
+    next_command: nextPhase ? 'terrace phase show ' + nextPhase.id : 'terrace port gsd --dry-run',
+    validation_commands: ['terrace phase list', 'terrace adoption status']
+  };
+}
+
 function portGsd(cwd, options) {
   const opts = options || {};
   const artifacts = portGsdDryRun(cwd).artifacts;
@@ -965,5 +1026,6 @@ module.exports = {
   portGsdDryRun,
   portGsd,
   portGsdCompare,
-  portGsdVerifyParity
+  portGsdVerifyParity,
+  portGsdImportRoadmap
 };

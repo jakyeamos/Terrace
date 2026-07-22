@@ -81,6 +81,7 @@ const TERRACE_COMMANDS = [
   ['terrace-ci-check', 'terrace ci check $ARGUMENTS', '[files...]', 'Run audit plus protected-change enforcement.'],
   ['terrace-security-check', 'terrace security check', '', 'Run deterministic local security checks.'],
   ['terrace-port-gsd-dry-run', 'terrace port gsd --dry-run', '', 'Inventory legacy GSD artifacts without writing Terrace state.'],
+  ['terrace-port-gsd-import-roadmap', 'terrace port gsd --import-roadmap', '', 'Merge missing legacy roadmap phases into existing Terrace state without overwriting phases.'],
   ['terrace-port-gsd', 'terrace port gsd', '', 'Migrate supported legacy GSD artifacts into Terrace state.'],
   ['terrace-planning-refresh', 'terrace planning refresh', '', 'Initialize or refresh the repo-local .planning package from Terrace state.'],
   ['terrace-next', 'terrace next', '', 'Find and follow the next Terrace workflow action.'],

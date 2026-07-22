@@ -1,0 +1,4 @@
+interface:
+  display_name: "Terrace Package"
+  short_description: "Use Terrace CLI and core APIs safely"
+  default_prompt: "Use the Terrace package skill to plan, execute, validate, or troubleshoot Terrace workflows."

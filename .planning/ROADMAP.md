@@ -249,3 +249,19 @@ Parity work is only useful if the product can explain where it matches GSD, wher
 - product
 - adoption
 - docs
+
+### Phase 10: QR remediation: terrace
+
+
+
+**Goal:** Resolve Quality Runner findings for terrace using cluster-oriented, behavior-preserving remediation from run qr-fleet-continue-20260704-terrace.
+**Requirements**: QR-TERRACE
+**Depends on:** Phase 9
+**Plans:** 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md - Primary QR cluster remediation
+- [ ] 10-02-PLAN.md - Additional QR cluster remediation
+
+**Cross-cutting constraints:**
+- The post-remediation QR run records no unresolved regression for this plan scope.

@@ -272,6 +272,12 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Fail when legacy GSD concepts are present but unmapped by Terrace migration.'
   },
   {
+    command: 'terrace port gsd --import-roadmap',
+    category: 'migration',
+    json: true,
+    purpose: 'Merge missing legacy roadmap phases into existing Terrace state without overwriting existing phase objects.'
+  },
+  {
     command: 'terrace planning refresh',
     category: 'planning',
     json: true,

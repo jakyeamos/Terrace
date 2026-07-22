@@ -30,3 +30,8 @@ Remaining risks:
 - `npm audit --audit-level=high` passes, but npm still reports one moderate PostCSS advisory through the dev dependency tree.
 - GSD migration now handles core artifacts, but still needs deeper conversion for per-phase plans, decision history, session history, and richer requirements structure.
 - Agent skill instructions still need a stricter command-contract pass.
+
+## Accumulated Context
+
+### Roadmap Evolution
+- 2026-07-04: Phase 10 planned: QR remediation: terrace from QR run qr-fleet-continue-20260704-terrace.
