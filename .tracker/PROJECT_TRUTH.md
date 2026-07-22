@@ -16,7 +16,7 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: codex/terrace-adoption-measure
+activeBranch: codex/full-audit-fold-terrace
 lastCommitDate: "2026-07-22"
 quality:
   lint: pass
@@ -41,7 +41,7 @@ canonicalCommands:
   deadcode: unknown
 agentExpectationsVersion: 2
 lastVerifiedCommand: pnpm run ci
-lastVerifiedAt: "2026-07-22T10:52:00-04:00"
+lastVerifiedAt: "2026-07-22T15:27:00-04:00"
 ---
 
 ## Current State
@@ -49,6 +49,11 @@ lastVerifiedAt: "2026-07-22T10:52:00-04:00"
 Terrace now installs default non-overwriting agent integration assets during `terrace init`. Fresh init writes `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, Codex repo skills under `.agents/skills/terrace-*`, Claude project skills under `.claude/skills/terrace-*`, Claude project commands under `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json` to record written, unchanged, and skipped assets. Existing user-owned agent files are preserved and reported as skipped, while repeated init reports unchanged generated assets. The generated command assets now mirror the README command-reference surface with 79 Codex skills and 79 Claude command files, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, `/terrace-ship-check`, `/terrace-execute-phase-complete`, `/terrace-corpus-run`, `/terrace-corpus-report`, `/terrace-adoption-status`, `/terrace-release-preflight`, `/terrace-report`, `/terrace-security-check`, `/terrace-workbench-status`, and `/terrace-workbench-prepare`. The `terrace-autonomous` generated skill now carries a GSD-style autonomous workflow contract with JSON-first command execution, explicit implementation/verification loop guidance, allowed tools metadata, and stop conditions for blockers, human judgment, release readiness, and failed verification.
 
 The packed release surface was revalidated on July 22 after adding the complete runtime dependency closure for `fast-glob` and its bundled consumers. Commit `a6429b9` keeps the published package self-contained; `pnpm run ci` passes typecheck, lint, the full test suite, coverage, and package dry-run.
+
+The full-audit Terrace fold also updates Ajv to 8.20.0 and pins the transitive
+`fast-uri` dependency to patched 3.1.4 through `pnpm-workspace.yaml`. The
+dependency-security gate, secret scan, release dry-run, typecheck, lint, full
+tests, coverage, and package dry-run all pass on the integration branch.
 
 Terrace now also has a repo-local Codex skill artifact under `skills/terrace/`, documenting the `@jakyeamos33/terrace@0.2.0` CLI/core surface, command workflows, public import boundary, safety rules, and release-candidate validation commands for future agent use.
 
@@ -87,6 +92,7 @@ Shadow test branch refs named `codex/terrace-shadow-test` were created in every 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
 ## Recent Progress
+- July 22: Folded the 23-commit Terrace adoption branch into the full-audit integration branch; resolved the high-severity `fast-uri` advisories with the narrow 3.1.4 override and reran the release-quality gates.
 - July 22: Fixed the packed-consumer runtime dependency closure in `a6429b9`; `pnpm run ci` PASS with typecheck, lint, full tests, coverage, and package dry-run.
 - July 21: Recorded `20442c9` in `TYPESCRIPT_7_UPGRADE_AUDIT.md`; no package manifests, lockfile, or tsconfig were changed. The upgrade remains blocked pending a reproducible install/baseline and TS6 compatibility validation.
 - July 19: Added opt-in Quality Runner delivery contracts to Terrace; focused lifecycle coverage passed and the adapter was committed as `408082f`.

@@ -51,8 +51,8 @@
     "ci": "pnpm run typecheck && pnpm run lint && pnpm test && pnpm run test:coverage && pnpm run package:dry-run"
   },
   "dependencies": {
-    "@nodelib/fs.stat": "^2.0.5",
     "@nodelib/fs.scandir": "^2.1.5",
+    "@nodelib/fs.stat": "^2.0.5",
     "@nodelib/fs.walk": "^1.2.8",
     "braces": "^3.0.3",
     "fast-glob": "^3.3.3",
@@ -104,12 +104,12 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "vitest": "4.1.2",
-    "@vitest/coverage-v8": "4.1.2",
-    "ajv": "8.18.0",
-    "ajv-formats": "3.0.1",
     "@types/node": "^24.0.0",
-    "typescript": "^5.0.0"
+    "@vitest/coverage-v8": "4.1.2",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "typescript": "^5.0.0",
+    "vitest": "4.1.2"
   },
   "engines": {
     "node": ">=22.0.0"
