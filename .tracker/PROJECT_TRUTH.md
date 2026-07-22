@@ -6,7 +6,7 @@ healthScore: 100
 statusLabel: tier_one_ready
 nextStep: Keep the local workflow entrypoint and release-readiness guard in regular use before protected work ships.
 blockers: []
-lastUpdated: 2026-07-19
+lastUpdated: 2026-07-21
 tags: [framework, ai-tooling, governance, spec-driven, cli]
 areas: [cli, validation, lifecycle, presets, templates, packaging, ci, docs]
 goals:
@@ -17,7 +17,7 @@ repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
 activeBranch: codex/terrace-adoption-measure
-lastCommitDate: "2026-07-19"
+lastCommitDate: "2026-07-21"
 quality:
   lint: pass
   types: pass
@@ -85,6 +85,7 @@ Shadow test branch refs named `codex/terrace-shadow-test` were created in every 
 The core remains CommonJS at runtime. TypeScript is used for tests/config and typechecks with `moduleResolution: Bundler`.
 
 ## Recent Progress
+- July 21: Recorded `20442c9` in `TYPESCRIPT_7_UPGRADE_AUDIT.md`; no package manifests, lockfile, or tsconfig were changed. The upgrade remains blocked pending a reproducible install/baseline and TS6 compatibility validation.
 - July 19: Added opt-in Quality Runner delivery contracts to Terrace; focused lifecycle coverage passed and the adapter was committed as `408082f`.
 - July 13: Added the source-backed `skills/terrace` Codex skill artifact for the Terrace 0.2.0 CLI/core surface; `pnpm run lint`, `pnpm run secret:scan`, and `pnpm exec terrace --version` passed.
 - July 4: Ran `terrace port gsd --import-roadmap` against Terrace itself, importing 9 executable roadmap phases into `.terrace/state.json`; refreshed the active global `terrace` binary to 0.2.0 via pnpm in the nvm global prefix; `terrace adoption status` now reports `replace_gsd`, 100/100, ready true, with zero blockers.
@@ -108,6 +109,8 @@ The core remains CommonJS at runtime. TypeScript is used for tests/config and ty
 - The npm package trusted-publishing connection must exist for the GitHub repository, `release-publish.yml` workflow, and `npm` environment before the GitHub Release is created.
 
 ## Quality Ladder Notes
+
+- **July 21:** Documentation-only TypeScript 7 audit; no new implementation or release evidence was produced.
 
 - **Lint:** `pnpm lint` PASS, checking 4023 audited text files for CRLF and `.cjs` files for syntax/trailing whitespace
 - **Types:** `pnpm typecheck` PASS
