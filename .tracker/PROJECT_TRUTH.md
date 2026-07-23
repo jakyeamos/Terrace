@@ -4,7 +4,7 @@ projectName: Terrace
 summary: Terrace 0.2.0 is a pnpm-first release candidate with trusted publishing, GSD-compatible phase routing, production workbench commands, and opt-in Quality Runner delivery contracts for planning, preflight, evidence reconciliation, and completion gates.
 healthScore: 100
 statusLabel: tier_one_ready
-nextStep: Keep the local workflow entrypoint and release-readiness guard in regular use before protected work ships.
+nextStep: Create the reviewed v0.2.0 tag and GitHub release after manual npm trusted-publisher confirmation, then verify the npm consumer artifact before main promotion.
 blockers: []
 lastUpdated: 2026-07-22
 tags: [framework, ai-tooling, governance, spec-driven, cli]
@@ -16,7 +16,7 @@ goals:
 repoType: library
 sourceOfTruth: .terrace/state.json
 primaryLanguage: TypeScript
-activeBranch: codex/full-audit-fold-terrace
+activeBranch: dev
 lastCommitDate: "2026-07-22"
 quality:
   lint: pass
