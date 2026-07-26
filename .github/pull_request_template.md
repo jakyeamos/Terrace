@@ -4,6 +4,6 @@
 
 - [ ] `npm run ci`
 
-## Terrace state/truth update
+## Terrace state update (optional)
 
-- [ ] Project truth file updated after implementation
+- [ ] Maintained project notes updated when the implementation changes documented scope
