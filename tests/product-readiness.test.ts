@@ -184,7 +184,6 @@ describe('tier-one product readiness', () => {
   it('records explicit Compass contract metadata', () => {
     const compassPath = path.join(repoRoot, '.project-compass', 'contract.json');
     const compass = JSON.parse(fs.readFileSync(compassPath, 'utf8'));
-
     expect(compass.schema_version).toBe(1);
     expect(compass.project.name).toBe('Terrace');
     expect(compass.source_layers.verified.length).toBeGreaterThan(0);
@@ -196,7 +195,6 @@ describe('tier-one product readiness', () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
     const preCr = JSON.parse(fs.readFileSync(path.join(repoRoot, '.pre-cr.json'), 'utf8'));
     const ci = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'ci.yml'), 'utf8');
-
     expect(pkg.scripts['environment:contract']).toBe('node scripts/check_environment_contract.mjs');
     expect(preCr.qualityCommands).toContain('node scripts/check_environment_contract.mjs');
     expect(preCr.qualityAdapters).toContainEqual({

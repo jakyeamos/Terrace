@@ -1,6 +1,6 @@
 # Contributing
 
-Use a feature branch for non-trivial work. Keep commits scoped to one concern and record implementation and verification in the relevant current documentation or Terrace state artifacts. Do not add the retired `.tracker/PROJECT_TRUTH.md` file.
+Use a feature branch for non-trivial work. Keep commits scoped to one concern and record implementation and verification in the relevant current documentation, routed context, or Terrace state artifact when behavior, commands, boundaries, or release procedures change. Do not add the retired `.tracker/PROJECT_TRUTH.md` file.
 
 Before opening a PR, run:
 
