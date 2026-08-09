@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "commitments": [
+    {"id": "bootstrap-boundary", "kind": "constraint", "statement": "Only .project-compass/ may be changed by this bootstrap; preserve unrelated dirty work and ownership.", "status": "active", "source": {"ref": "conversation:2026-08-02-project-compass-fleet-bootstrap", "note": "User-authorized scope.", "observed_at": "2026-08-02T13:25:04Z"}},
+    {"id": "gated-effects", "kind": "decision", "statement": "Terrace must preserve explicit planning, verification, and release boundaries rather than turning the CLI into an opaque autonomous publisher.", "status": "active", "source": {"ref": "README.md", "note": "Spec-driven workflow and release-gate scope.", "observed_at": "2026-08-02T13:25:04Z"}}
+  ],
+  "reconciliations": [],
+  "updated_at": "2026-08-02T13:25:04Z"
+}
