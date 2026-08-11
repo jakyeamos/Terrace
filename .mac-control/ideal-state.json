@@ -1,0 +1,7 @@
+{
+  "schema": "mac-control-task-manifest/v1",
+  "repository_id": "repo-c0da8029c7bd77a4",
+  "repository_name": "Terrace",
+  "applicability": "not_applicable",
+  "applicability_reason": "No repository-owned macOS application or Mac Control-specific task surface is present; this repository exposes browser, service, library, data, CLI, or test-fixture behavior covered by its direct interface."
+}

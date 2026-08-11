@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "project": {
+    "name": "Terrace",
+    "identity": "A spec-driven workflow CLI for AI-assisted development with explicit context, planning, execution, and release gates.",
+    "audience": "Developers and agent operators who need repeatable, inspectable workflows across repositories.",
+    "core_loop": "Describe a task, route it through project and agent context, inspect the plan and evidence, execute bounded work, verify the result, and apply release checks.",
+    "north_star": "An AI-assisted development task is understandable, repeatable, and auditable from request through verified release readiness.",
+    "not_this": ["A generic project-management dashboard", "An autonomous publisher that bypasses gates", "A workflow that silently overwrites project truth"]
+  },
+  "targets": {
+    "mvp": {"definition": "The CLI can initialize a repository and drive a documented task through context, planning, bounded execution, and release checks with inspectable artifacts."},
+    "complete_product": {"definition": "Terrace provides a stable, cross-repository workflow contract with reliable context selection, execution evidence, recovery, and release gates for the supported developer and agent workflows."}
+  },
+  "pillars": [
+    {"id": "spec-driven-execution", "name": "Spec-driven execution", "outcomes": [{"id": "task-to-evidence", "name": "A task has an explicit workflow and its execution produces evidence that can be reviewed before completion.", "targets": ["mvp", "complete_product"], "maturity": 50, "confidence": "medium", "layers": {"intended": "The operator should know what Terrace will do and why before effects occur.", "planned": "Planning documents define the CLI, agent contracts, and staged v0.2 workflow surface.", "implemented": "The repository contains init, agent, planning, and release-gate commands.", "verified": "The documented command surface is evidence of implementation; cross-repository release behavior was not executed here."}, "evidence": [{"ref": "README.md", "note": "Documents Terrace's purpose and command surface.", "observed_at": "2026-08-02T13:25:04Z"}, {"ref": ".planning/PROJECT.md", "note": "Defines the project direction and workflow constraints.", "observed_at": "2026-08-02T13:25:04Z"}], "blockers": [{"kind": "verification", "summary": "Stable cross-repository behavior and release-gate coverage remain to be proven beyond repository documentation."}]}]},
+    {"id": "recoverable-gates", "name": "Recoverable release gates", "outcomes": [{"id": "bounded-release-readiness", "name": "A workflow can stop on missing evidence or failed checks and make the exact next safe action visible.", "targets": ["complete_product"], "maturity": 25, "confidence": "medium", "layers": {"intended": "Users retain control over effects and can recover from incomplete workflow state.", "planned": "Roadmap and state documents keep release gates and staged delivery explicit.", "implemented": "Gate and release-related surfaces are present in the CLI.", "verified": "No hosted or full release validation was run during this bootstrap."}, "evidence": [{"ref": ".planning/STATE.md", "note": "Records staged product state and remaining delivery work.", "observed_at": "2026-08-02T13:25:04Z"}], "blockers": [{"kind": "sequencing", "summary": "The staged v0.2 surface still needs its full supported workflow and recovery matrix verified."}]}]}
+  ],
+  "source_layers": {"intended": [{"ref": "README.md", "note": "CLI identity and user-facing workflow.", "observed_at": "2026-08-02T13:25:04Z"}], "planned": [{"ref": ".planning/PROJECT.md", "note": "Project direction and constraints.", "observed_at": "2026-08-02T13:25:04Z"}, {"ref": ".planning/ROADMAP.md", "note": "Staged delivery path.", "observed_at": "2026-08-02T13:25:04Z"}], "implemented": [{"ref": "README.md", "note": "Documented commands and current package surface.", "observed_at": "2026-08-02T13:25:04Z"}], "verified": [{"ref": ".planning/STATE.md", "note": "Repository-recorded state; no fresh command execution here.", "observed_at": "2026-08-02T13:25:04Z"}]},
+  "drift": [{"kind": "verification-gap", "summary": "The documented workflow intent is broader than the staged package surface and is not fully verified across repositories.", "status": "open", "observed_at": "2026-08-02T13:25:04Z", "evidence": [{"ref": ".planning/STATE.md", "note": "Records staged delivery and remaining work.", "observed_at": "2026-08-02T13:25:04Z"}]}],
+  "updated_at": "2026-08-02T13:25:04Z"
+}

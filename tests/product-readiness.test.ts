@@ -183,11 +183,15 @@ describe('tier-one product readiness', () => {
     expect(readme).toContain('npm trusted publishing with OIDC');
   });
 
-  it('records explicit truth-file verification metadata', () => {
-    const truth = fs.readFileSync(path.join(repoRoot, '.tracker', 'PROJECT_TRUTH.md'), 'utf8');
+  it('records explicit Compass contract metadata', () => {
+    const compassPath = path.join(repoRoot, '.project-compass', 'contract.json');
+    const compass = JSON.parse(fs.readFileSync(compassPath, 'utf8'));
 
-    expect(truth).toMatch(/^lastVerifiedCommand: .+$/m);
-    expect(truth).toMatch(/^lastVerifiedAt: "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-04:00"$/m);
+    expect(compass.schema_version).toBe(1);
+    expect(compass.project.name).toBe('Terrace');
+    expect(compass.source_layers.verified.length).toBeGreaterThan(0);
+    expect(compass.drift.length).toBeGreaterThan(0);
+    expect(fs.existsSync(path.join(repoRoot, '.tracker', 'PROJECT_TRUTH.md'))).toBe(false);
   });
 
   it('runs the packed CLI and global agent installer from a fresh consumer project', () => {
