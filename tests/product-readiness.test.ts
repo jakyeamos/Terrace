@@ -206,6 +206,10 @@ describe('tier-one product readiness', () => {
     expect(fs.existsSync(path.join(repoRoot, '.quality-runner.toml'))).toBe(true);
   });
 
+  it('keeps the obsolete project truth file out of the repository', () => {
+    expect(fs.existsSync(path.join(repoRoot, '.tracker', 'PROJECT_TRUTH.md'))).toBe(false);
+  });
+
   it('runs the packed CLI and global agent installer from a fresh consumer project', () => {
     const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'terrace-packed-consumer-'));
     const packDir = path.join(tmpRoot, 'pack');
