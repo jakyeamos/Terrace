@@ -183,11 +183,8 @@ describe('tier-one product readiness', () => {
     expect(readme).toContain('npm trusted publishing with OIDC');
   });
 
-  it('records explicit truth-file verification metadata', () => {
-    const truth = fs.readFileSync(path.join(repoRoot, '.tracker', 'PROJECT_TRUTH.md'), 'utf8');
-
-    expect(truth).toMatch(/^lastVerifiedCommand: .+$/m);
-    expect(truth).toMatch(/^lastVerifiedAt: "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-04:00"$/m);
+  it('keeps the obsolete project truth file out of the repository', () => {
+    expect(fs.existsSync(path.join(repoRoot, '.tracker', 'PROJECT_TRUTH.md'))).toBe(false);
   });
 
   it('runs the packed CLI and global agent installer from a fresh consumer project', () => {
