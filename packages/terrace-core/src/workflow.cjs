@@ -4,10 +4,12 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
+const { beginPhaseStageRun, persistStageTransition, recoverStageRun } = require('./stage-state.cjs');
+const { appendEvent } = require('./events.cjs');
 const { phaseEffortDefault, readConfig } = require('./config.cjs');
 const { runAudit } = require('./audit.cjs');
 const { agentAssetStatus } = require('./agents.cjs');
-const { blocker, topBlockers, warning } = require('./guidance.cjs');
+const { blocker, createStopPacket, topBlockers, warning } = require('./guidance.cjs');
 const { runDoctor } = require('./health.cjs');
 const { analyzeRepository, bulletList, listProjectFiles, readSmallText } = require('./repo-analysis.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
@@ -1228,12 +1230,15 @@ function phaseComplete(cwd, phaseId) {
 function resumeWorkflow(cwd) {
   const state = loadState(cwd);
   const handoff = state.handoff || {};
+  const stageRun = recoverStageRun(cwd);
   return {
-    status: handoff.status || state.workflow.status,
+    status: stageRun && stageRun.stop_packet ? 'blocked' : (handoff.status || state.workflow.status),
     next_action: handoff.next_action || null,
     phase: handoff.phase || null,
     blocked_actions: state.blocked_actions || [],
-    sessions: state.sessions || []
+    sessions: state.sessions || [],
+    stop_packet: stageRun ? stageRun.stop_packet : null,
+    stage_run: stageRun
   };
 }
 
@@ -1303,6 +1308,87 @@ function backlogAdd(cwd, title) {
   state.backlog = backlog;
   saveState(cwd, state);
   return { item, items: backlog.items };
+}
+
+function blockerId(item, index) {
+  const source = item.id || item.description || ('blocker-' + String(index + 1));
+  const normalized = String(source).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return normalized || ('blocker-' + String(index + 1));
+}
+
+function blockerList(cwd) {
+  const state = loadState(cwd);
+  return {
+    items: (state.blocked_actions || []).map((item, index) => ({
+      ...item,
+      id: blockerId(item, index)
+    }))
+  };
+}
+
+function blockerResolve(cwd, id, options) {
+  const opts = options || {};
+  if (!id) {
+    throw new Error('Usage: terrace blocker resolve <id> --owner <owner> --evidence <ref>');
+  }
+  if (!opts.owner) {
+    throw new Error('BLOCKER_OWNER_REQUIRED: pass --owner <owner> to identify who verified the correction.');
+  }
+  if (!opts.evidence) {
+    throw new Error('BLOCKER_EVIDENCE_REQUIRED: pass --evidence <ref> to preserve correction evidence.');
+  }
+  const evidencePath = safeResolve(cwd, opts.evidence);
+  if (!fs.existsSync(evidencePath) || !fs.statSync(evidencePath).isFile()) {
+    throw new Error('BLOCKER_EVIDENCE_NOT_FOUND: --evidence must reference an existing repo-local file.');
+  }
+  const state = loadState(cwd);
+  const items = state.blocked_actions || [];
+  const index = items.findIndex((item, itemIndex) => blockerId(item, itemIndex) === id);
+  if (index < 0) {
+    throw new Error('Unknown blocker: ' + id);
+  }
+  if (items[index].blocking === false) {
+    throw new Error('Blocker already resolved: ' + id);
+  }
+  const timestamp = nowIso();
+  const resolvedItem = {
+    ...items[index],
+    id,
+    blocking: false,
+    status: 'resolved',
+    resolution: {
+      owner: opts.owner,
+      evidence_ref: opts.evidence,
+      resolved_at: timestamp
+    }
+  };
+  state.blocked_actions = items.map((item, itemIndex) => itemIndex === index ? resolvedItem : item);
+  if (state.backlog && Array.isArray(state.backlog.items)) {
+    state.backlog.items = state.backlog.items.map((item) => {
+      const sameSource = item.source_ref && item.source_ref === resolvedItem.source_ref;
+      const sameTitle = item.title && item.title === resolvedItem.description;
+      return sameSource && sameTitle ? { ...item, status: 'resolved', resolved_at: timestamp } : item;
+    });
+  }
+  saveState(cwd, state);
+  appendEvent(cwd, {
+    event_type: 'blocker_resolved',
+    command: 'terrace blocker resolve ' + id,
+    blocker_id: id,
+    result: 'resolved',
+    owner: opts.owner,
+    evidence_refs: [opts.evidence],
+    timestamp
+  });
+  const stageRun = recoverStageRun(cwd);
+  return {
+    status: 'resolved',
+    item: resolvedItem,
+    stage_run: stageRun,
+    next_command: stageRun && stageRun.phase_id
+      ? 'terrace execute-phase-complete ' + stageRun.phase_id
+      : 'terrace next'
+  };
 }
 
 function quickList(cwd) {
@@ -2132,45 +2218,70 @@ function autonomousWorkflow(cwd) {
 function phaseCompleteWorkflow(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  beginPhaseStageRun(cwd, phase.id);
   const steps = [];
-  const planned = phasePlan(cwd, phase.id);
-  steps.push({ command: 'terrace phase plan ' + phase.id, result: planned });
-  const execution = phaseExecute(cwd, phase.id);
-  steps.push({ command: 'terrace phase execute ' + phase.id, result: execution });
-  if (!execution.allowed) {
-    return {
-      status: 'blocked',
-      phase_id: phase.id,
-      effort: planned.effort,
-      steps,
-      blockers: execution.blockers || planned.blockers || [],
-      required_action: execution.required_action || 'Resolve blockers before continuing phase completion.',
-      next_command: 'terrace phase execute ' + phase.id
-    };
+  const stageDefinitions = [
+    { id: 'plan', command: 'terrace phase plan ' + phase.id, run: () => phasePlan(cwd, phase.id) },
+    { id: 'execute', command: 'terrace phase execute ' + phase.id, run: () => phaseExecute(cwd, phase.id) },
+    { id: 'validate', command: 'terrace phase validate ' + phase.id, run: () => phaseValidate(cwd, phase.id) },
+    { id: 'review', command: 'terrace phase review ' + phase.id, run: () => phaseReview(cwd, phase.id) },
+    { id: 'complete', command: 'terrace phase complete ' + phase.id, run: () => phaseComplete(cwd, phase.id) }
+  ];
+  let effort = phaseEffortDefault(cwd);
+  for (const definition of stageDefinitions) {
+    const currentRun = recoverStageRun(cwd);
+    const currentStage = currentRun.stages.find((stage) => stage.id === definition.id);
+    if (currentStage.status === 'passed') {
+      steps.push({ command: definition.command, result: { status: 'passed', recovered: true } });
+      continue;
+    }
+    persistStageTransition(cwd, definition.id, 'active', { command: definition.command });
+    let result;
+    try {
+      result = definition.run();
+    } catch (error) {
+      persistStageTransition(cwd, definition.id, 'failed', { command: definition.command });
+      throw error;
+    }
+    steps.push({ command: definition.command, result });
+    effort = result.effort || effort;
+    if (result.allowed === false) {
+      const stopPacket = createStopPacket(result.blockers || [], {
+        phaseId: phase.id,
+        stageId: definition.id,
+        command: definition.command,
+        requiredAction: result.required_action
+      });
+      const stageRun = persistStageTransition(cwd, definition.id, 'blocked', {
+        command: definition.command,
+        evidenceRefs: stopPacket.evidence_refs,
+        stopPacket
+      });
+      return {
+        status: 'blocked',
+        phase_id: phase.id,
+        effort,
+        steps,
+        blockers: result.blockers || [],
+        required_action: result.required_action || 'Resolve blockers before continuing phase completion.',
+        next_command: definition.command,
+        stop_packet: stopPacket,
+        stage_run: stageRun
+      };
+    }
+    persistStageTransition(cwd, definition.id, 'passed', {
+      command: definition.command,
+      evidenceRefs: [result.plan_ref, result.execution_ref, result.validation_ref, result.review_ref, result.summary_ref].filter(Boolean)
+    });
   }
-  const validated = phaseValidate(cwd, phase.id);
-  steps.push({ command: 'terrace phase validate ' + phase.id, result: validated });
-  const reviewed = phaseReview(cwd, phase.id);
-  steps.push({ command: 'terrace phase review ' + phase.id, result: reviewed });
-  const completed = phaseComplete(cwd, phase.id);
-  steps.push({ command: 'terrace phase complete ' + phase.id, result: completed });
-  if (!completed.allowed) {
-    return {
-      status: 'blocked',
-      phase_id: phase.id,
-      effort: planned.effort,
-      steps,
-      blockers: completed.blockers || [],
-      required_action: completed.required_action,
-      next_command: 'terrace phase complete ' + phase.id
-    };
-  }
+  const stageRun = recoverStageRun(cwd);
   return {
     status: 'completed',
     phase_id: phase.id,
-    effort: planned.effort,
+    effort,
     steps,
-    next_command: completed.next_command
+    next_command: steps[steps.length - 1].result.next_command || 'terrace ship check',
+    stage_run: stageRun
   };
 }
 
@@ -2290,6 +2401,8 @@ module.exports = {
   historySummary,
   backlogList,
   backlogAdd,
+  blockerList,
+  blockerResolve,
   quickList,
   quickShow,
   quickPlan,

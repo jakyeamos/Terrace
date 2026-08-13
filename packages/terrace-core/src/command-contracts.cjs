@@ -14,6 +14,18 @@ const WORKFLOW_COMMAND_CONTRACTS = [
     purpose: 'Reconstruct paused workflow context from Terrace sessions and migrated handoff data.'
   },
   {
+    command: 'terrace blocker list',
+    category: 'workflow',
+    json: true,
+    purpose: 'List migrated blocking actions with stable IDs and resolution state.'
+  },
+  {
+    command: 'terrace blocker resolve <id> --owner <owner> --evidence <ref>',
+    category: 'workflow',
+    json: true,
+    purpose: 'Record an evidence-bearing correction for one blocking action before retrying its stage.'
+  },
+  {
     command: 'terrace history',
     category: 'workflow',
     json: true,

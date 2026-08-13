@@ -46,6 +46,8 @@ const {
   historySummary,
   backlogList,
   backlogAdd,
+  blockerList,
+  blockerResolve,
   quickList,
   quickShow,
   quickPlan,
@@ -157,6 +159,8 @@ const HELP_TEXT = [
   '  terrace quick complete <id>  Complete a quick task',
   '  terrace backlog list         List backlog items',
   '  terrace backlog add <title>  Add a backlog item',
+  '  terrace blocker list         List migrated blocking actions and stable IDs',
+  '  terrace blocker resolve <id> --owner <owner> --evidence <ref>',
   '  terrace ship check           Run release readiness checks',
   '  terrace ship prepare         Write PR/release readiness summary',
   '  terrace release-preflight    Run Terrace 0.2.0 release preflight summary',
@@ -1091,6 +1095,22 @@ async function main() {
         return;
       }
       fail('Unknown backlog subcommand: ' + sub + '. Use: list, add', { json });
+      return;
+    }
+    case 'blocker': {
+      const sub = args[1];
+      if (sub === 'list') {
+        output(blockerList(cwd), { json });
+        return;
+      }
+      if (sub === 'resolve') {
+        output(blockerResolve(cwd, args[2], {
+          owner: optionValue(rawArgs, '--owner'),
+          evidence: optionValue(rawArgs, '--evidence')
+        }), { json });
+        return;
+      }
+      fail('Unknown blocker subcommand: ' + sub + '. Use: list, resolve', { json });
       return;
     }
     case 'release-preflight':

@@ -93,7 +93,15 @@ function transitionState(state, toStatus) {
 function saveState(cwd, state) {
   const filePath = statePathFor(cwd);
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  const temporaryPath = filePath + '.tmp-' + process.pid + '-' + Date.now();
+  try {
+    fs.writeFileSync(temporaryPath, JSON.stringify(state, null, 2) + '\n', 'utf8');
+    fs.renameSync(temporaryPath, filePath);
+  } finally {
+    if (fs.existsSync(temporaryPath)) {
+      fs.unlinkSync(temporaryPath);
+    }
+  }
   return filePath;
 }
 

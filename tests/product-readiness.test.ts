@@ -49,6 +49,8 @@ const globalCommandSurface: GlobalCommandSurface[] = [
   { name: 'terrace-planning-refresh', help: 'terrace planning refresh' },
   { name: 'terrace-next', help: 'terrace next' },
   { name: 'terrace-resume', help: 'terrace resume' },
+  { name: 'terrace-blocker-list', help: 'terrace blocker list' },
+  { name: 'terrace-blocker-resolve', help: 'terrace blocker resolve <id> --owner <owner> --evidence <ref>' },
   { name: 'terrace-history', help: 'terrace history' },
   { name: 'terrace-do', help: 'terrace do <intent>' },
   { name: 'terrace-autonomous', help: 'terrace autonomous' },

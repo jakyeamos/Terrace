@@ -133,11 +133,12 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 - `terrace port gsd --import-roadmap` merges missing legacy `.planning` roadmap phases into existing Terrace state without replacing existing phase objects.
 - `terrace port gsd` migrates supported legacy GSD artifacts into Terrace state.
 - `terrace next` reports the next workflow action from state, handoff data, and blockers.
-- `terrace resume` reconstructs paused workflow context from sessions and migrated handoff data.
+- `terrace resume` reconstructs paused workflow context from sessions, migrated handoff data, and the durable phase-stage ledger. If the JSON snapshot is stale after an interruption, Terrace replays stage transitions from `.terrace/events.jsonl`. A blocked stage is returned as top-level `blocked` status with the recovered stop packet.
 - `terrace history` summarizes migrated phases, sessions, decisions, and quick tasks.
 - `terrace do <intent>` routes natural-language agent intent to stable Terrace commands.
 - `terrace autonomous` plans the next phase, prepares execution readiness, and stops at blockers or agent handoff.
-- `terrace execute-phase-complete <id>` runs phase plan, execute, validate, review, and complete in order, stopping at blockers.
+- `terrace execute-phase-complete <id>` runs phase plan, execute, validate, review, and complete in order, stopping at blockers. Each stage is durably recorded as pending, active, passed, failed, or blocked so the workflow can resume without repeating passed stages. A blocked result includes a durable `terrace-stop-packet/v1` with the stopped command, evidence, owner, safe next step, and forbidden bypass.
+- `terrace blocker list` exposes stable IDs for migrated blocking actions. After the named owner performs the correction, `terrace blocker resolve <id> --owner <owner> --evidence <ref>` records attributable evidence and returns the safe phase-resume command; it does not perform external work or waive a gate.
 - `terrace settings effort <fast|standard|thorough>` sets the default phase effort used in planning and execution artifacts.
 - `terrace settings show` prints the current Terrace settings.
 - `terrace commands discover` detects package manager, project scripts, quality-gate command mapping, and dead-code gate readiness.

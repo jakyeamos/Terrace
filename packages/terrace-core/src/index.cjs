@@ -3,6 +3,7 @@
 module.exports = {
   ...require('./state.cjs'),
   ...require('./events.cjs'),
+  ...require('./stage-state.cjs'),
   ...require('./config.cjs'),
   ...require('./quality-runner.cjs'),
   ...require('./package-manager.cjs'),

@@ -11,6 +11,7 @@ function appendEvent(cwd, event) {
   const filePath = eventsPathFor(cwd);
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const payload = {
+    ...event,
     event_id: event.event_id || 'evt_' + Date.now() + '_' + Math.random().toString(16).slice(2),
     timestamp: event.timestamp || new Date().toISOString(),
     command: event.command,

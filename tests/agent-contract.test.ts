@@ -26,6 +26,7 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
 
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace next', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace resume', json: true }));
+    expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace blocker resolve <id> --owner <owner> --evidence <ref>', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace autonomous', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace commands discover', json: true }));
     expect(commands).toContainEqual(expect.objectContaining({ command: 'terrace align <feature>', json: true }));

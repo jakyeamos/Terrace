@@ -86,6 +86,8 @@ const TERRACE_COMMANDS = [
   ['terrace-planning-refresh', 'terrace planning refresh', '', 'Initialize or refresh the repo-local .planning package from Terrace state.'],
   ['terrace-next', 'terrace next', '', 'Find and follow the next Terrace workflow action.'],
   ['terrace-resume', 'terrace resume', '', 'Reconstruct paused Terrace workflow context.'],
+  ['terrace-blocker-list', 'terrace blocker list', '', 'List migrated blocking actions and their stable IDs.'],
+  ['terrace-blocker-resolve', 'terrace blocker resolve $ARGUMENTS', '<id> --owner <owner> --evidence <ref>', 'Record an evidence-bearing correction for one blocking action.'],
   ['terrace-history', 'terrace history', '', 'Summarize migrated phases, sessions, decisions, and quick tasks.'],
   ['terrace-do', 'terrace do "$ARGUMENTS"', '<intent>', 'Route natural-language agent intent to stable Terrace commands.'],
   ['terrace-autonomous', 'terrace autonomous', '', 'Plan the next phase and stop at blockers or agent handoff.'],
@@ -211,6 +213,50 @@ function workflowFromCommand(entry) {
         'Use the answers as the authority. Repository analysis may suggest risks and prompts, but it must never replace user input for interrogation.',
         '',
         'Inspect Terrace blockers, warnings, generated files, and next-command output before continuing. Do not bypass Terrace gates or claim success when the command reports blockers.'
+      ]
+    };
+  }
+  if (name === 'terrace-resume') {
+    return {
+      name,
+      description,
+      argumentHint,
+      body: [
+        '# Terrace Resume',
+        '',
+        'Run `terrace resume`.',
+        '',
+        'Inspect Terrace blockers, warnings, generated files, next-command output, the durable `stage_run` ledger, and its `stop_packet` before continuing. Terrace rebuilds that ledger and stop packet from `.terrace/events.jsonl` when the snapshot is stale. Follow the safe next step and never perform the packet\'s forbidden bypass or claim success when the command reports blocked, failed, or active stages.'
+      ]
+    };
+  }
+  if (name === 'terrace-blocker-resolve') {
+    return {
+      name,
+      description,
+      argumentHint,
+      body: [
+        '# Terrace Blocker Resolve',
+        '',
+        'Run `terrace blocker list --json` and identify the exact blocker ID.',
+        '',
+        'Only after the named owner has completed the safe correction, run `terrace blocker resolve $ARGUMENTS --json` with both `--owner` and a durable `--evidence` reference. This command records the correction; it does not perform external work or waive the blocked gate.',
+        '',
+        'Then follow the returned `next_command`. Never resolve a blocker speculatively, edit Terrace state by hand, or use this command as a bypass.'
+      ]
+    };
+  }
+  if (name === 'terrace-execute-phase-complete') {
+    return {
+      name,
+      description,
+      argumentHint,
+      body: [
+        '# Terrace Execute Phase Complete',
+        '',
+        'Run `terrace execute-phase-complete $ARGUMENTS`.',
+        '',
+        'Inspect Terrace blockers, warnings, generated files, next-command output, the returned `stage_run` ledger, and any `stop_packet` before continuing. The plan, execute, validate, review, and complete stages are durably recorded as pending, active, passed, failed, or blocked and can resume after interruption. Follow the stop packet\'s owner and safe next step; never perform its forbidden bypass or claim success when the command reports blockers.'
       ]
     };
   }

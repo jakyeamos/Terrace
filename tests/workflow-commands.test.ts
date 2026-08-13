@@ -20,6 +20,8 @@ const {
   historySummary,
   backlogList,
   backlogAdd,
+  blockerList,
+  blockerResolve,
   quickList,
   quickShow,
   quickPlan,
@@ -306,6 +308,112 @@ describe('workflow parity core helpers', () => {
       'terrace phase validate phase-13-complete',
       'terrace phase review phase-13-complete',
       'terrace phase complete phase-13-complete'
+    ]);
+    expect(result.stage_run.stages.map((stage: { status: string }) => stage.status)).toEqual([
+      'passed',
+      'passed',
+      'passed',
+      'passed',
+      'passed'
+    ]);
+    expect(resumeWorkflow(tmpDir).stage_run).toEqual(result.stage_run);
+  });
+
+  it('persists a blocked stage and leaves later stages pending', () => {
+    const result = phaseCompleteWorkflow(tmpDir, 'phase-11-notifications');
+
+    expect(result).toMatchObject({
+      status: 'blocked',
+      phase_id: 'phase-11-notifications',
+      next_command: 'terrace phase execute phase-11-notifications',
+      stop_packet: {
+        schema_version: 'terrace-stop-packet/v1',
+        status: 'blocked',
+        stage_id: 'execute',
+        command: 'terrace phase execute phase-11-notifications',
+        evidence_refs: ['.planning/HANDOFF.json'],
+        owner: 'workflow_operator',
+        safe_next_step: 'Resolve blocking handoff actions before execution.',
+        forbidden_bypass: expect.stringContaining('Do not mark the stage passed'),
+        blockers: [expect.objectContaining({
+          code: 'BLOCKED_ACTION',
+          message: 'Apply migration 034_prime_notes.sql',
+          owner: 'workflow_operator',
+          evidence_refs: ['.planning/HANDOFF.json'],
+          forbidden_bypass: expect.stringContaining('Do not mark the stage passed')
+        })]
+      }
+    });
+    expect(result.stage_run.stages.map((stage: { status: string }) => stage.status)).toEqual([
+      'passed',
+      'blocked',
+      'pending',
+      'pending',
+      'pending'
+    ]);
+    expect(resumeWorkflow(tmpDir)).toMatchObject({
+      status: 'blocked',
+      stop_packet: result.stop_packet,
+      stage_run: result.stage_run
+    });
+  });
+
+  it('resolves a blocking action through an evidence-bearing command and resumes only the owning stage', () => {
+    settingsSetEffort(tmpDir, 'thorough');
+    alignFeature(tmpDir, 'phase-11-notifications', { tier: 'medium' });
+    testPlanFeature(tmpDir, 'phase-11-notifications', { tier: 'medium' });
+    observeFeature(tmpDir, 'phase-11-notifications', { tier: 'medium' });
+    validateProdFeature(tmpDir, 'phase-11-notifications', { tier: 'medium' });
+    cleanupFeature(tmpDir, 'phase-11-notifications', { tier: 'medium' });
+    const blocked = phaseCompleteWorkflow(tmpDir, 'phase-11-notifications');
+    const passedPlan = blocked.stage_run.stages.find((stage: { id: string }) => stage.id === 'plan');
+    const blockedExecute = blocked.stage_run.stages.find((stage: { id: string }) => stage.id === 'execute');
+    const item = blockerList(tmpDir).items[0];
+
+    expect(item).toMatchObject({ id: 'apply-migration-034-prime-notes-sql', blocking: true });
+    expect(() => blockerResolve(tmpDir, item.id, { owner: 'database_operator' })).toThrow(/--evidence/);
+    expect(() => blockerResolve(tmpDir, item.id, {
+      owner: 'database_operator',
+      evidence: 'evidence/missing.txt'
+    })).toThrow(/existing repo-local file/);
+    fs.mkdirSync(path.join(tmpDir, 'evidence'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, 'evidence', 'migration-034-applied.txt'), 'Applied by database operator.\n', 'utf8');
+
+    const correction = blockerResolve(tmpDir, item.id, {
+      owner: 'database_operator',
+      evidence: 'evidence/migration-034-applied.txt'
+    });
+    expect(correction).toMatchObject({
+      status: 'resolved',
+      item: {
+        id: item.id,
+        blocking: false,
+        resolution: {
+          owner: 'database_operator',
+          evidence_ref: 'evidence/migration-034-applied.txt'
+        }
+      },
+      next_command: 'terrace execute-phase-complete phase-11-notifications'
+    });
+
+    const resumed = phaseCompleteWorkflow(tmpDir, 'phase-11-notifications');
+    const resumedPlan = resumed.stage_run.stages.find((stage: { id: string }) => stage.id === 'plan');
+    const resumedExecute = resumed.stage_run.stages.find((stage: { id: string }) => stage.id === 'execute');
+
+    expect(resumed.status).toBe('completed');
+    expect(resumedPlan).toEqual(passedPlan);
+    expect(resumedExecute.attempts).toBe(blockedExecute.attempts + 1);
+    expect(resumed.stage_run.stop_packet).toBeNull();
+    expect(resumed.steps[0]).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications',
+      result: { status: 'passed', recovered: true }
+    });
+    expect(resumed.stage_run.stages.map((stage: { status: string }) => stage.status)).toEqual([
+      'passed',
+      'passed',
+      'passed',
+      'passed',
+      'passed'
     ]);
   });
 
