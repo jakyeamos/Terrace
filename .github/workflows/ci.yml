@@ -27,4 +27,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm run ci
+      - run: pnpm run secret:scan
+      - run: pnpm run environment:contract
       - run: pnpm audit --audit-level moderate

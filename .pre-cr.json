@@ -10,6 +10,22 @@
   ],
   "coverageFormat": "auto",
   "threshold": 80,
+  "qualityCommands": [
+    "pnpm run lint",
+    "pnpm run typecheck",
+    "pnpm run test",
+    "pnpm run build",
+    "pnpm run package:dry-run",
+    "pnpm run secret:scan",
+    "node scripts/check_environment_contract.mjs"
+  ],
+  "qualityAdapters": [
+    {
+      "name": "environment-contract",
+      "command": "node scripts/check_environment_contract.mjs",
+      "required": true
+    }
+  ],
   "checks": {
     "coverage": true,
     "security": true,

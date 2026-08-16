@@ -115,6 +115,10 @@ pnpm exec terrace release-preflight --target-version 0.2.0 --json
 `terrace release-preflight` runs the release flow and returns one JSON summary for CI, audit, package, release dry-run, ship-check status, trusted-publishing prerequisites, tag/version alignment, and stale npm-era release instructions.
 `pnpm run ci` includes the packed-consumer smoke test that installs Terrace from the generated tarball and verifies `terrace agents install-global` writes usable `/terrace` and `/terrace-*` global assets into temporary agent directories.
 
+## Environment Contract
+
+Run `pnpm run environment:contract` before opening a PR or changing repository guidance. It validates the routed context index, strict TypeScript settings, canonical quality commands, secret-path protections, the required pre-CR adapter, the CI wiring, and the blocking Quality Runner gate. The check is local and deterministic; it does not publish, deploy, contact a provider, or modify repository state.
+
 ## Command Reference
 
 - `terrace --help` shows the top-level command list.

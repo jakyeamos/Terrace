@@ -10,4 +10,12 @@ coverage/
 .firecrawl/
 .pytest_cache/
 __pycache__/
-.agents/
+.env
+.env.*
+!.env.example
+dist/
+.agents/*
+!.agents/
+!.agents/context/
+!.agents/context/**
+!.agents/change-surface-matrix.json

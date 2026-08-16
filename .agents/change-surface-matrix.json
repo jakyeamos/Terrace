@@ -1,0 +1,42 @@
+{
+  "schema_version": "change-surface-matrix/v1",
+  "subject": {"kind": "repository", "id": "terrace"},
+  "owner": "repository-owner",
+  "last_reviewed": "2026-08-16",
+  "surfaces": [
+    {
+      "id": "matrix-maintenance",
+      "scope": "local",
+      "path": ".agents/change-surface-matrix.json",
+      "owner": "repository-owner",
+      "condition": "A material feature, behavior, command, workflow, integration, security, or quality/release surface changes.",
+      "operations": ["add", "change", "remove"],
+      "validation": [
+        "Update this matrix in the same change with the affected surfaces, documentation, tests, and evidence.",
+        "For an isolated internal change with no surface impact, record a reviewed no-impact reason in the same change record."
+      ],
+      "status": "applicable"
+    },
+    {
+      "id": "environment-contract",
+      "scope": "local",
+      "path": "scripts/check_environment_contract.mjs, .pre-cr.json, .quality-runner.toml, .github/workflows/ci.yml",
+      "owner": "repository-owner",
+      "condition": "Repository guidance, quality commands, secret-path policy, or environment-contract enforcement changes.",
+      "operations": ["add", "change", "remove"],
+      "validation": ["pnpm run environment:contract", "pnpm test -- tests/product-readiness.test.ts"],
+      "status": "applicable"
+    },
+    {
+      "id": "repository-context",
+      "scope": "local",
+      "path": ".agents/context/, AGENTS.md, README.md, docs/CONTRIBUTING.md",
+      "owner": "repository-owner",
+      "condition": "Agent routing, repository commands, completion criteria, or contributor guidance changes.",
+      "operations": ["add", "change", "remove"],
+      "validation": ["pnpm run environment:contract"],
+      "status": "applicable"
+    }
+  ],
+  "unresolved_surfaces": []
+}
