@@ -1,6 +1,7 @@
 ---
 name: terrace-execute-phase
 description: Run the GSD-compatible phase execution alias.
+argument-hint: <phase-id>
 ---
 
 # Terrace Execute Phase

@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { packageManagerFor, scriptCommand, testCommand } = require('./package-manager.cjs');
+const { readManagedJson, withManagedArtifactLock, writeManagedJson } = require('./managed-artifacts.cjs');
 
 function detectCommands(cwd) {
   const packagePath = path.resolve(cwd, 'package.json');
@@ -32,17 +33,12 @@ function configPathFor(cwd) {
 
 function writeConfig(cwd, config) {
   const filePath = configPathFor(cwd);
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(config, null, 2) + '\n', 'utf8');
+  writeManagedJson(cwd, 'config.json', config);
   return filePath;
 }
 
 function readConfig(cwd) {
-  const filePath = configPathFor(cwd);
-  if (!fs.existsSync(filePath)) {
-    return {};
-  }
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  return readManagedJson(cwd, 'config.json', {});
 }
 
 function normalizePhaseEffort(value) {
@@ -69,20 +65,22 @@ function settingsShow(cwd) {
 
 function settingsSetEffort(cwd, effort) {
   const normalized = normalizePhaseEffort(effort);
-  const config = readConfig(cwd);
-  const nextConfig = {
-    ...config,
-    execution_policy: {
-      ...(config.execution_policy || {}),
-      phase_effort_default: normalized
-    }
-  };
-  writeConfig(cwd, nextConfig);
-  return {
-    phase_effort_default: normalized,
-    config_path: '.terrace/config.json',
-    next_command: 'terrace settings show'
-  };
+  return withManagedArtifactLock(cwd, () => {
+    const config = readConfig(cwd);
+    const nextConfig = {
+      ...config,
+      execution_policy: {
+        ...(config.execution_policy || {}),
+        phase_effort_default: normalized
+      }
+    };
+    writeConfig(cwd, nextConfig);
+    return {
+      phase_effort_default: normalized,
+      config_path: '.terrace/config.json',
+      next_command: 'terrace settings show'
+    };
+  });
 }
 
 module.exports = {

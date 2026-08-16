@@ -1,6 +1,7 @@
 ---
 name: terrace-spec-hash
 description: Compute a stable spec hash for a file.
+argument-hint: <path>
 ---
 
 # Terrace Spec Hash

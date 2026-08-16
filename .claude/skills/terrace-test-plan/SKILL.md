@@ -1,6 +1,7 @@
 ---
 name: terrace-test-plan
 description: Write the behavior-first test plan required before implementation.
+argument-hint: <feature>
 ---
 
 # Terrace Test Plan

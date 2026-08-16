@@ -7,7 +7,7 @@
   "workflow": {
     "status": "initialized",
     "mode": "strict",
-    "active_feature": null
+    "active_feature": "gpt56-modernization"
   },
   "roadmap": {
     "phases": [
@@ -149,19 +149,51 @@
     }
   ],
   "report_card": {
-    "updated_at": "2026-04-29T18:53:50.608Z",
+    "updated_at": "2026-07-14T02:06:42.225Z",
     "last_updated_command": "terrace report update",
-    "score": 100,
+    "score": 45,
     "max_score": 100,
-    "status_label": "tier_one_ready",
-    "current_feature": null,
-    "blockers": [],
-    "warnings": [],
+    "status_label": "planning_or_governance_weak",
+    "claim_scope": "feature_readiness",
+    "claim_scope_note": "Score is backed by active or completed Terrace workflow evidence.",
+    "current_feature": {
+      "feature_id": "gpt56-modernization",
+      "tier": "medium",
+      "artifacts": {
+        "alignment": "docs/terrace/features/gpt56-modernization/ALIGNMENT.md",
+        "design": "docs/terrace/features/gpt56-modernization/DESIGN.md",
+        "test_plan": "docs/testing/TEST-PLAN.md",
+        "observability": "docs/terrace/features/gpt56-modernization/OBSERVABILITY.md",
+        "validation": "docs/terrace/features/gpt56-modernization/VALIDATION.md",
+        "cleanup": "docs/terrace/features/gpt56-modernization/CLEANUP.md"
+      }
+    },
+    "blockers": [
+      {
+        "code": "SENIOR_ARTIFACT_MISSING",
+        "message": "Missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md",
+        "artifact": "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
+      }
+    ],
+    "warnings": [
+      {
+        "code": "REPORT_CHECK_INCOMPLETE",
+        "message": "Completed sprint outcomes is incomplete.",
+        "remediation": "Complete at least one phase or quick task through Terrace."
+      },
+      {
+        "code": "REPORT_CHECK_INCOMPLETE",
+        "message": "Documentation status is incomplete.",
+        "remediation": "Run `terrace docu <feature>` when available or write feature documentation."
+      }
+    ],
     "completed_sprint_outcomes": {
       "phases": [],
       "quick_tasks": []
     },
-    "missing_senior_cycle_artifacts": [],
+    "missing_senior_cycle_artifacts": [
+      "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
+    ],
     "quality_ladder_status": {
       "audit": "passing",
       "audit_blockers": 0
@@ -171,31 +203,34 @@
     "debt_status": "healthy",
     "rule_health": "audited",
     "production_readiness": "preflight_missing",
+    "active_waivers": [],
     "checks": [
       {
         "id": "senior_cycle",
         "label": "Senior Cycle artifacts",
-        "passed": true,
+        "passed": false,
         "points": 20,
-        "earned": 20,
+        "earned": 0,
         "evidence": {
-          "active_feature": null,
-          "missing_artifacts": []
+          "active_feature": "gpt56-modernization",
+          "missing_artifacts": [
+            "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
+          ]
         },
-        "remediation": null
+        "remediation": "Run the next senior-cycle command for the active feature."
       },
       {
         "id": "production_preflight",
         "label": "Production preflight",
-        "passed": true,
+        "passed": false,
         "points": 15,
-        "earned": 15,
+        "earned": 0,
         "evidence": {
-          "active_feature": null,
+          "active_feature": "gpt56-modernization",
           "preflight_count": 0,
-          "skipped": true
+          "skipped": false
         },
-        "remediation": null
+        "remediation": "Run `terrace preflight <feature>`."
       },
       {
         "id": "debt_health",
@@ -224,28 +259,28 @@
       {
         "id": "completed_outcomes",
         "label": "Completed sprint outcomes",
-        "passed": true,
+        "passed": false,
         "points": 10,
-        "earned": 10,
+        "earned": 0,
         "evidence": {
           "completed_phases": [],
           "completed_quick_tasks": [],
-          "skipped": true
+          "skipped": false
         },
-        "remediation": null
+        "remediation": "Complete at least one phase or quick task through Terrace."
       },
       {
         "id": "documentation",
         "label": "Documentation status",
-        "passed": true,
+        "passed": false,
         "points": 10,
-        "earned": 10,
+        "earned": 0,
         "evidence": {
-          "active_feature": null,
-          "docs_ref": null,
-          "skipped": true
+          "active_feature": "gpt56-modernization",
+          "docs_ref": "docs/terrace/features/gpt56-modernization/DOCS.md",
+          "skipped": false
         },
-        "remediation": null
+        "remediation": "Run `terrace docu <feature>` when available or write feature documentation."
       },
       {
         "id": "test_suite_strength",
@@ -276,11 +311,13 @@
       }
     ],
     "next_three_actions": [
-      "Run terrace ship check."
+      "Create missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md",
+      "Run terrace preflight gpt56-modernization",
+      "Create feature documentation for gpt56-modernization."
     ],
     "artifact": ".terrace/report-card.json",
     "docs_ref": "docs/terrace/REPORT-CARD.md",
-    "latest_history_ref": "docs/terrace/report-history/2026-04-29T18-53-50-609Z.md"
+    "latest_history_ref": "docs/terrace/report-history/2026-07-14T02-06-42-229Z.md"
   },
   "rule_audits": [
     {
@@ -292,5 +329,25 @@
       "warnings": [],
       "passed": true
     }
-  ]
+  ],
+  "senior_cycle": {
+    "features": {
+      "gpt56-modernization": {
+        "feature_id": "gpt56-modernization",
+        "tier": "medium",
+        "architecture_default": "sustainable",
+        "no_band_aid_rule": true,
+        "artifacts": {
+          "alignment": "docs/terrace/features/gpt56-modernization/ALIGNMENT.md",
+          "design": "docs/terrace/features/gpt56-modernization/DESIGN.md",
+          "test_plan": "docs/testing/TEST-PLAN.md",
+          "observability": "docs/terrace/features/gpt56-modernization/OBSERVABILITY.md",
+          "validation": "docs/terrace/features/gpt56-modernization/VALIDATION.md",
+          "cleanup": "docs/terrace/features/gpt56-modernization/CLEANUP.md"
+        },
+        "updated_at": "2026-07-11T00:19:39.973Z"
+      }
+    },
+    "active_feature": "gpt56-modernization"
+  }
 }

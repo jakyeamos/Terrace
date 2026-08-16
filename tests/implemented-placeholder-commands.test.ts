@@ -7,13 +7,17 @@ import * as path from 'path';
 const NODE_BIN = process.execPath;
 const TERRACE_CLI = path.resolve(process.cwd(), 'src/terrace-tools.cjs');
 const { runSecurityCheck, securityShipCheck } = require('../packages/terrace-core/src/index.cjs') as {
-  runSecurityCheck: (cwd: string) => { status: string; dependency_audit?: { package_manager: string; file: string; lockfile_present: boolean }; findings: Array<{ id: string; file_or_artifact?: string; evidence?: string }>; blocking: Array<{ id: string }>; warnings: Array<{ id: string; file_or_artifact?: string; evidence?: string }> };
-  securityShipCheck: (cwd: string) => { passed: boolean; blocking: Array<{ code?: string }>; warnings: Array<{ code?: string }> };
+  runSecurityCheck: (cwd: string) => { status: string; dependency_audit?: { package_manager: string; file: string; lockfile_present: boolean; status?: string }; evidence?: { schema_version: number; input_fingerprint: string; scope: { complete: boolean } }; findings: Array<{ id: string; file_or_artifact?: string; evidence?: string }>; blocking: Array<{ id: string }>; warnings: Array<{ id: string; file_or_artifact?: string; evidence?: string }> };
+  securityShipCheck: (cwd: string, options?: { now?: number; maxAgeMs?: number }) => { passed: boolean; blocking: Array<{ code?: string }>; warnings: Array<{ code?: string }> };
 };
 
 function runTerrace(tmpDir: string, args: string[]) {
   const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8' });
   return JSON.parse(stdout);
+}
+
+function genericSecretAssignment(name: string): string {
+  return [name, '=', '"12345678901234567890"'].join('');
 }
 
 describe('implemented placeholder command behavior', () => {
@@ -46,7 +50,7 @@ describe('implemented placeholder command behavior', () => {
   });
 
   it('runs security checks and writes Terrace security evidence', () => {
-    fs.writeFileSync(path.join(tmpDir, '.env'), 'API_TOKEN="12345678901234567890"\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.env'), genericSecretAssignment('API_TOKEN') + '\n', 'utf-8');
 
     const result = spawnSync(NODE_BIN, [TERRACE_CLI, 'security', 'check', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
     const parsed = JSON.parse(result.stdout);
@@ -61,21 +65,85 @@ describe('implemented placeholder command behavior', () => {
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'security', 'SECURITY-CHECK.md'))).toBe(true);
   });
 
-  it('evaluates security ship evidence without writing during ship check', () => {
+  it('requires current security evidence without writing during ship check', () => {
     const missing = securityShipCheck(tmpDir);
-    expect(missing.passed).toBe(true);
-    expect(missing.warnings).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_MISSING' }));
+    expect(missing.passed).toBe(false);
+    expect(missing.blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_REQUIRED' }));
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'security', 'latest.json'))).toBe(false);
 
-    fs.writeFileSync(path.join(tmpDir, '.env'), 'API_TOKEN="12345678901234567890"\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'Dockerfile'), 'FROM node:22-alpine\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.dockerignore'), '.env\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.gitignore'), 'node_modules\n', 'utf-8');
     const written = runSecurityCheck(tmpDir);
+    expect(written.status).toBe('passed');
+    expect(written.evidence).toMatchObject({
+      schema_version: 1,
+      input_fingerprint: expect.any(String),
+      scope: { complete: true }
+    });
+    const recordedArtifact = path.join(tmpDir, '.terrace', 'security', 'latest.json');
+    const recordedContents = fs.readFileSync(recordedArtifact, 'utf-8');
+    expect(securityShipCheck(tmpDir).passed).toBe(true);
+    expect(fs.readFileSync(recordedArtifact, 'utf-8')).toBe(recordedContents);
+
+    fs.appendFileSync(path.join(tmpDir, 'Dockerfile'), 'USER node\n', 'utf-8');
+    expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_STALE' }));
+    expect(runSecurityCheck(tmpDir).status).toBe('passed');
+
+    fs.appendFileSync(path.join(tmpDir, '.dockerignore'), 'secrets\n', 'utf-8');
+    expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_STALE' }));
+    expect(runSecurityCheck(tmpDir).status).toBe('passed');
+
+    fs.appendFileSync(path.join(tmpDir, '.gitignore'), 'generated-source.js\n', 'utf-8');
+    expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_STALE' }));
+    expect(runSecurityCheck(tmpDir).status).toBe('passed');
+
+    const artifact = recordedArtifact;
+    const expired = JSON.parse(fs.readFileSync(artifact, 'utf-8'));
+    expired.created_at = new Date(Date.now() - 2000).toISOString();
+    expired.evidence.created_at = expired.created_at;
+    fs.writeFileSync(artifact, JSON.stringify(expired), 'utf-8');
+    expect(securityShipCheck(tmpDir, { maxAgeMs: 1000 }).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_STALE' }));
+    expect(runSecurityCheck(tmpDir).status).toBe('passed');
+
+    fs.writeFileSync(path.join(tmpDir, 'package-lock.json'), JSON.stringify({ lockfileVersion: 3 }) + '\n', 'utf-8');
+    expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_STALE' }));
+    fs.rmSync(path.join(tmpDir, 'package-lock.json'));
+    expect(runSecurityCheck(tmpDir).status).toBe('passed');
+
+    fs.appendFileSync(path.join(tmpDir, 'src', 'index.js'), 'export const changed = true;\n', 'utf-8');
+    expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_STALE' }));
+
+    fs.mkdirSync(path.join(tmpDir, '.terrace', 'security'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.terrace', 'security', 'latest.json'), JSON.stringify({ status: 'passed', blocking: [] }), 'utf-8');
+    expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_LEGACY' }));
+
+    fs.writeFileSync(path.join(tmpDir, '.env'), genericSecretAssignment('API_TOKEN') + '\n', 'utf-8');
+    expect(runSecurityCheck(tmpDir).status).toBe('blocked');
     const blocked = securityShipCheck(tmpDir);
-    expect(written.status).toBe('blocked');
     expect(blocked.passed).toBe(false);
     expect(blocked.blocking.length).toBeGreaterThan(0);
 
     fs.writeFileSync(path.join(tmpDir, '.terrace', 'security', 'latest.json'), '{', 'utf-8');
     expect(securityShipCheck(tmpDir).blocking).toContainEqual(expect.objectContaining({ code: 'SECURITY_CHECK_INVALID' }));
   });
+
+  it('prioritizes runtime source ahead of large documentation inventories', () => {
+    const docsDir = path.join(tmpDir, 'docs', 'fixtures');
+    fs.mkdirSync(docsDir, { recursive: true });
+    for (let index = 0; index < 1005; index += 1) {
+      fs.writeFileSync(path.join(docsDir, 'note-' + String(index).padStart(4, '0') + '.md'), '# Fixture\n', 'utf-8');
+    }
+    fs.writeFileSync(path.join(tmpDir, 'src', 'late-runtime.js'), 'const ' + genericSecretAssignment('api_key') + ';\n', 'utf-8');
+
+    const result = runSecurityCheck(tmpDir);
+
+    expect(result.evidence).toMatchObject({ scope: { complete: true } });
+    expect(result.findings).toContainEqual(expect.objectContaining({
+      code: expect.stringContaining('SECRET_GENERIC_ASSIGNMENT'),
+      file_or_artifact: 'src/late-runtime.js'
+    }));
+  }, 120000);
 
   it('uses pnpm lockfiles for dependency audit evidence', () => {
     const packageJson = JSON.parse(fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf-8'));
@@ -90,6 +158,58 @@ describe('implemented placeholder command behavior', () => {
       file: 'pnpm-lock.yaml',
       lockfile_present: true
     });
+  });
+
+  it('fails closed when dependency audit returns a JSON error payload', () => {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf-8'));
+    packageJson.packageManager = 'pnpm@11.7.0';
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify(packageJson, null, 2), 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, 'pnpm-lock.yaml'), 'lockfileVersion: 9.0\n', 'utf-8');
+    const binDir = path.join(tmpDir, 'fake-bin');
+    fs.mkdirSync(binDir, { recursive: true });
+    const fakePnpm = path.join(binDir, process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm');
+    const fakeProgram = process.platform === 'win32'
+      ? '@echo {"error":"registry unavailable"}\r\n@exit /b 1\r\n'
+      : '#!' + process.execPath + '\nprocess.stdout.write(\'{"error":"registry unavailable"}\\n\'); process.exit(1);\n';
+    fs.writeFileSync(fakePnpm, fakeProgram, 'utf-8');
+    if (process.platform !== 'win32') {
+      fs.chmodSync(fakePnpm, 0o755);
+    }
+    const originalPath = process.env.PATH;
+    process.env.PATH = binDir + path.delimiter + (originalPath || '');
+    const result = (() => {
+      try {
+        return runSecurityCheck(tmpDir);
+      } finally {
+        if (originalPath === undefined) {
+          delete process.env.PATH;
+        } else {
+          process.env.PATH = originalPath;
+        }
+      }
+    })();
+
+    expect(result.status).toBe('blocked');
+    expect(result.dependency_audit).toMatchObject({ status: 'unavailable' });
+    expect(result.blocking).toContainEqual(expect.objectContaining({ code: 'PNPM_AUDIT_UNAVAILABLE' }));
+  });
+
+  it('does not scan or fingerprint source through repository symlinks', () => {
+    const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'terrace-security-outside-'));
+    const outsideFile = path.join(outside, 'secret.js');
+    fs.writeFileSync(outsideFile, 'const ' + genericSecretAssignment('api_key') + ';\n', 'utf-8');
+    const link = path.join(tmpDir, 'src', 'outside-secret.js');
+    try {
+      fs.symlinkSync(outsideFile, link);
+      const result = runSecurityCheck(tmpDir);
+
+      expect(result.findings).not.toContainEqual(expect.objectContaining({
+        code: expect.stringContaining('SECRET_GENERIC_ASSIGNMENT'),
+        file_or_artifact: 'src/outside-secret.js'
+      }));
+    } finally {
+      fs.rmSync(outside, { recursive: true, force: true });
+    }
   });
 
   it('generates static and imported review findings with the stable schema', () => {

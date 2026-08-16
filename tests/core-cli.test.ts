@@ -6,6 +6,7 @@ import * as path from 'path';
 
 const NODE_BIN = process.execPath;
 const TERRACE_CLI = path.resolve(process.cwd(), 'src/terrace-tools.cjs');
+const { loadState, saveState } = require('../packages/terrace-core/src/index.cjs');
 
 function runTerrace(tmpDir: string, args: string[]) {
   const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8' });
@@ -44,6 +45,196 @@ describe('strict core CLI delegation', () => {
 
     expect(result.created).toContain('.terrace/state.json');
     expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.json'))).toBe(true);
+  });
+
+  it('previews natural-language writes with a state-bound token and keeps audit read-only', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    const initialized = loadState(tmpDir);
+    saveState(tmpDir, {
+      ...initialized,
+      roadmap: {
+        ...initialized.roadmap,
+        phases: [{
+          id: 'phase-11-notifications',
+          title: 'Phase 11: Notifications',
+          status: 'migrated',
+          source_ref: '.planning/ROADMAP.md',
+          plans: []
+        }]
+      }
+    });
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const planPath = path.join(tmpDir, 'docs', 'terrace', 'phases', 'phase-11-notifications', 'PLAN.md');
+    const reportPath = path.join(tmpDir, '.terrace', 'report-card.json');
+    const stateBefore = fs.readFileSync(statePath, 'utf-8');
+
+    const preview = runTerrace(tmpDir, ['do', 'plan phase 11', '--json']);
+
+    expect(preview).toMatchObject({
+      intent_id: 'phase_plan',
+      command: 'terrace phase plan phase-11-notifications',
+      effect: 'write',
+      mode: 'plan',
+      requires_apply: true,
+      writes: expect.arrayContaining([
+        '.terrace/state.json',
+        'docs/terrace/phases/phase-11-notifications/PLAN.md'
+      ]),
+      execution: [],
+      apply: expect.objectContaining({
+        argv: ['do', '--apply', expect.any(String)],
+        plan_token: expect.any(String)
+      })
+    });
+    expect(preview.result).toBeUndefined();
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBefore);
+    expect(fs.existsSync(planPath)).toBe(false);
+
+    const planToken = preview.apply.plan_token as string;
+    const applied = runTerrace(tmpDir, ['do', '--apply', planToken, '--json']);
+
+    expect(applied).toMatchObject({
+      intent_id: 'phase_plan',
+      mode: 'applied',
+      requires_apply: false,
+      applied: true,
+      result: { phase_id: 'phase-11-notifications' }
+    });
+    expect(fs.existsSync(planPath)).toBe(true);
+
+    const stalePreview = runTerrace(tmpDir, ['do', 'create quick task stale token fixture', '--json']);
+    const staleToken = stalePreview.apply.plan_token as string;
+    const stateForStalePlan = loadState(tmpDir);
+    saveState(tmpDir, {
+      ...stateForStalePlan,
+      workflow: {
+        ...stateForStalePlan.workflow,
+        active_feature: 'stale-token-fixture'
+      }
+    });
+    const staleApply = runTerraceResult(tmpDir, ['do', '--apply', staleToken, '--json']);
+    expect(staleApply.status).toBe(1);
+    expect(staleApply.json.error).toContain('plan is stale');
+    expect(staleApply.json.details).toMatchObject({
+      code: 'INTENT_PLAN_STALE',
+      next_command: 'terrace do <intent>'
+    });
+
+    const stateBeforeAudit = fs.readFileSync(statePath, 'utf-8');
+    const audit = runTerrace(tmpDir, ['audit', '--json']);
+
+    expect(audit.read_only).toBe(true);
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBeforeAudit);
+    expect(fs.existsSync(reportPath)).toBe(false);
+
+    runTerrace(tmpDir, ['report', 'update', '--json']);
+    const reportDocPath = path.join(tmpDir, 'docs', 'terrace', 'REPORT-CARD.md');
+    const reportHistoryPath = path.join(tmpDir, 'docs', 'terrace', 'report-history');
+    const reportCardBefore = fs.readFileSync(reportPath, 'utf-8');
+    const reportDocBefore = fs.readFileSync(reportDocPath, 'utf-8');
+    const reportHistoryBefore = fs.readdirSync(reportHistoryPath).sort();
+    const stateBeforePersistedAudit = fs.readFileSync(statePath, 'utf-8');
+
+    const persistedAudit = runTerrace(tmpDir, ['audit', '--json']);
+
+    expect(persistedAudit.read_only).toBe(true);
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBeforePersistedAudit);
+    expect(fs.readFileSync(reportPath, 'utf-8')).toBe(reportCardBefore);
+    expect(fs.readFileSync(reportDocPath, 'utf-8')).toBe(reportDocBefore);
+    expect(fs.readdirSync(reportHistoryPath).sort()).toEqual(reportHistoryBefore);
+
+    const misplacedApply = runTerraceResult(tmpDir, ['next', '--apply', '--json']);
+    expect(misplacedApply.status).toBe(1);
+    expect(misplacedApply.json.error).toContain('--apply is only supported');
+
+    const unknownApply = runTerraceResult(tmpDir, ['unknown-command', '--apply', '--json']);
+    const bareApply = runTerraceResult(tmpDir, ['--apply', '--json']);
+    expect(unknownApply.status).toBe(1);
+    expect(unknownApply.json.error).toContain('--apply is only supported');
+    expect(bareApply.status).toBe(1);
+    expect(bareApply.json.error).toContain('--apply is only supported');
+  });
+
+  it('rejects static full and missing ship modes before package scripts execute', () => {
+    const sentinel = path.join(tmpDir, 'cli-ship-sentinel.txt');
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'cli-ship-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+
+    const staticFull = runTerraceResult(tmpDir, ['release-preflight', '--static', '--full', '--json']);
+    expect(staticFull.status).toBe(1);
+    expect(staticFull.json.blockers).toContainEqual(expect.objectContaining({ code: 'RELEASE_STATIC_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const missingMode = runTerraceResult(tmpDir, ['ship', 'check', '--mode', '--json']);
+    expect(missingMode.status).toBe(1);
+    expect(missingMode.json.blockers).toContainEqual(expect.objectContaining({ code: 'SHIP_CHECK_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+  });
+
+  it('requires paired reset flags and exposes backup metadata through both init aliases', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const before = fs.readFileSync(statePath, 'utf-8');
+
+    const rejectedForce = runTerraceResult(tmpDir, ['init', '--force', '--json']);
+    const rejectedYes = runTerraceResult(tmpDir, ['core', 'init', '--yes', '--json']);
+
+    expect(rejectedForce.status).toBe(1);
+    expect(rejectedForce.json.error).toContain('--force --yes');
+    expect(rejectedYes.status).toBe(1);
+    expect(rejectedYes.json.error).toContain('--force --yes');
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(before);
+
+    const reset = runTerrace(tmpDir, ['core', 'init', '--force', '--yes', '--json']);
+
+    expect(reset).toMatchObject({
+      mode: 'reset',
+      reset: expect.objectContaining({
+        backup_path: expect.stringMatching(/^\.terrace\/backups\//)
+      })
+    });
+    expect(fs.readFileSync(path.join(tmpDir, reset.reset.backup_path, 'state.json'), 'utf-8')).toBe(before);
+  });
+
+  it('backs up residual agent manifests through the top-level init alias', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    fs.rmSync(path.join(tmpDir, '.terrace'), { recursive: true, force: true });
+    fs.rmSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true, force: true });
+    const manifestPath = path.join(tmpDir, '.terrace', 'agents', 'manifest.json');
+    const manifestBefore = '{"generated_by":"older Terrace"}\n';
+    fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+    fs.writeFileSync(manifestPath, manifestBefore, 'utf-8');
+
+    const reset = runTerrace(tmpDir, ['init', '--force', '--yes', '--json']);
+
+    expect(reset).toMatchObject({
+      mode: 'reset',
+      reset: expect.objectContaining({
+        backed_up: expect.arrayContaining(['.terrace/agents/manifest.json']),
+        overwritten: expect.arrayContaining(['.terrace/agents/manifest.json'])
+      })
+    });
+    expect(fs.readFileSync(path.join(tmpDir, reset.reset.backup_path, 'agents', 'manifest.json'), 'utf-8')).toBe(manifestBefore);
+  });
+
+  it('repairs missing agent assets without changing core state', () => {
+    runTerrace(tmpDir, ['init', '--json']);
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const eventsPath = path.join(tmpDir, '.terrace', 'events.jsonl');
+    const stateBefore = fs.readFileSync(statePath, 'utf-8');
+    const eventsBefore = fs.readFileSync(eventsPath, 'utf-8');
+    fs.rmSync(path.join(tmpDir, '.agents', 'skills', 'terrace-next'), { recursive: true });
+
+    const result = runTerrace(tmpDir, ['agents', 'repair', '--json']);
+
+    expect(result.assets).toEqual(expect.arrayContaining([
+      expect.objectContaining({ path: '.agents/skills/terrace-next/SKILL.md', status: 'written' })
+    ]));
+    expect(fs.readFileSync(statePath, 'utf-8')).toBe(stateBefore);
+    expect(fs.readFileSync(eventsPath, 'utf-8')).toBe(eventsBefore);
   });
 
   it('explains core rules through the CLI', () => {
@@ -149,10 +340,16 @@ describe('strict core CLI delegation', () => {
       command_alias: 'terrace phase plan phase-11-notifications',
       result: { phase_id: 'phase-11-notifications' }
     });
-    expect(runTerrace(tmpDir, ['do', 'plan phase 11', '--json'])).toMatchObject({
+    const naturalLanguagePlan = runTerrace(tmpDir, ['do', 'plan phase 11', '--json']);
+    expect(naturalLanguagePlan).toMatchObject({
       command: 'terrace phase plan phase-11-notifications',
-      result: { phase_id: 'phase-11-notifications' }
+      mode: 'plan',
+      requires_apply: true,
+      apply: expect.objectContaining({
+        plan_token: expect.any(String)
+      })
     });
+    expect(naturalLanguagePlan.result).toBeUndefined();
     expect(runTerrace(tmpDir, ['do', '/gsd:plan-phase 11', '--json'])).toMatchObject({
       command: 'terrace phase plan phase-11-notifications'
     });
@@ -228,6 +425,11 @@ describe('strict core CLI delegation', () => {
     const prepared = runTerraceResult(tmpDir, ['ship', 'prepare', '--json']);
     expect(prepared.status).toBe(1);
     expect(prepared.json.ship_ref).toBe('docs/terrace/ship/SHIP.md');
+    for (const action of ['plan', 'execute', 'validate', 'review', 'complete']) {
+      expect(runTerrace(tmpDir, [action + '-phase', 'phase-11-notifications', '--json'])).toMatchObject({
+        command_alias: 'terrace phase ' + action + ' phase-11-notifications'
+      });
+    }
   }, 180000);
 
   it('supports migrated quick-task history commands', () => {

@@ -7,8 +7,7 @@ const path = require('path');
 const { agentAssetExpectations } = require('../packages/terrace-core/src/agents.cjs');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
-const CONFIG_PATH = path.join(REPO_ROOT, 'docs', 'terrace', 'corpus', 'config.json');
-const REPORT_DIR = path.join(REPO_ROOT, 'docs', 'terrace', 'corpus');
+const DEFAULT_CONFIG_PATH = path.join(REPO_ROOT, 'scripts', 'terrace-corpus-default-config.json');
 const DEFAULT_TIMEOUT_MS = 90_000;
 const OUTPUT_CAPTURE_LIMIT = 20_000;
 const PROJECT_PRD = [
@@ -95,6 +94,18 @@ function valueAfter(argv, flag) {
   return index === -1 ? null : argv[index + 1] || null;
 }
 
+function corpusConfigPath() {
+  const configured = process.env.TERRACE_CORPUS_CONFIG;
+  return configured ? path.resolve(process.cwd(), configured) : DEFAULT_CONFIG_PATH;
+}
+
+function corpusReportDir() {
+  const configured = process.env.TERRACE_CORPUS_DIR;
+  return configured
+    ? path.resolve(process.cwd(), configured)
+    : path.join(process.cwd(), '.terrace', 'corpus');
+}
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
@@ -168,10 +179,11 @@ function packageTerrace(runRoot) {
 }
 
 function loadConfig() {
-  if (!fs.existsSync(CONFIG_PATH)) {
-    throw new Error('Missing corpus config: ' + CONFIG_PATH);
+  const configPath = corpusConfigPath();
+  if (!fs.existsSync(configPath)) {
+    throw new Error('Missing corpus config: ' + configPath);
   }
-  return readJson(CONFIG_PATH);
+  return readJson(configPath);
 }
 
 function selectedRealRepos(config, opts) {
@@ -698,14 +710,14 @@ function repairMigratedAgentAssets(context, agentAssets) {
   if (context.track !== 'migrated-gsd' || agentAssets.complete) {
     return null;
   }
-  const raw = runProcess(context.terraceBin, ['init', '--json'], {
+  const raw = runProcess(context.terraceBin, ['agents', 'repair', '--json'], {
     cwd: context.worktree,
     timeoutMs: context.timeoutMs,
     npmCache: context.npmCache
   });
   const parsed = parseJson(raw.stdout);
   return {
-    command: 'terrace init --json',
+    command: 'terrace agents repair --json',
     exitCode: raw.exitCode,
     signal: raw.signal,
     timedOut: raw.timedOut,
@@ -739,7 +751,7 @@ function classifyAgentAssetVerification(track, agentAssets) {
       classification: 'expected-blocker',
       skipped: false,
       skipReason: undefined,
-      remediation: 'Run terrace init in the migrated worktree to install missing non-overwriting agent assets.'
+      remediation: 'Run terrace agents repair in the migrated worktree to install missing non-overwriting agent assets.'
     };
   }
   return {
@@ -804,7 +816,8 @@ function countMatching(root, regex) {
 function runEvaluation(config, opts) {
   const runId = new Date().toISOString().replace(/[:.]/g, '-');
   const runRoot = path.join(os.tmpdir(), 'terrace-corpus-eval-' + runId);
-  const evidenceDir = path.join(REPORT_DIR, 'runs', runId);
+  const reportDir = corpusReportDir();
+  const evidenceDir = path.join(reportDir, 'runs', runId);
   fs.mkdirSync(runRoot, { recursive: true });
   fs.mkdirSync(evidenceDir, { recursive: true });
   const tarball = packageTerrace(runRoot);
@@ -834,12 +847,12 @@ function runEvaluation(config, opts) {
     }
   }
 
-  const summary = summarize(records, { runId, evidenceDir });
+  const summary = summarize(records, { runId, evidenceDir, outputRoot: process.cwd() });
   const recordsIndex = compactRecordsIndex(records);
   writeJson(path.join(evidenceDir, 'results.json'), { runId, summary, recordsIndex });
-  writeJson(path.join(REPORT_DIR, 'latest-results.json'), { runId, summary, recordsIndex });
-  fs.writeFileSync(path.join(REPORT_DIR, 'REPORT.md'), renderReport(summary, records, runId), 'utf8');
-  return { runId, records, summary, evidenceDir };
+  writeJson(path.join(reportDir, 'latest-results.json'), { runId, summary, recordsIndex });
+  fs.writeFileSync(path.join(reportDir, 'REPORT.md'), renderReport(summary, records, runId), 'utf8');
+  return { runId, records, summary, evidenceDir, reportDir };
 }
 
 function compactRecordsIndex(records) {
@@ -943,7 +956,7 @@ function summarize(records, meta) {
     .slice(0, 12);
   return {
     runId: meta.runId,
-    evidenceDir: path.relative(REPO_ROOT, meta.evidenceDir),
+    evidenceDir: path.relative(meta.outputRoot || REPO_ROOT, meta.evidenceDir),
     totals: {
       commands: records.length,
       pass: records.filter((record) => record.classification === 'pass').length,
@@ -1071,7 +1084,7 @@ function selfServeFixesFromWatchlist(watchlist) {
       blockerType: blockerTypeFor(group.key),
       repo: example.repo || null,
       track: example.track || null,
-      nextCommand: nextCommandForKey(group.key),
+      nextCommand: nextCommandForKey(group.key, example.excerpt),
       remediation: example.excerpt || 'Review raw evidence and rerun after remediation.'
     };
   });
@@ -1084,19 +1097,29 @@ function blockerTypeFor(key) {
   return 'workflow gate';
 }
 
-function nextCommandForKey(key) {
+function agentAssetRepairNeeded(key, evidence) {
+  if (key === 'agent-asset-verification') return true;
+  if (key !== 'doctor' && key !== 'commands-discover') return false;
+  return /agent[-_ ]?assets?|terrace agents repair|generated terrace agent/i.test(String(evidence || ''));
+}
+
+function nextCommandForKey(key, evidence) {
   if (key === 'prd-import-overwrite-refusal') return 'terrace prd import <feature> --file <file> --force';
   if (/ship/.test(key)) return 'terrace ship check --fast';
   if (key === 'report-ceremony') return 'terrace cleanup <feature>';
   if (key === 'spec-validate') return 'terrace spec validate';
   if (key === 'security-check') return 'terrace security check';
-  if (key === 'agent-asset-verification' || key === 'doctor' || key === 'commands-discover') return 'terrace init';
+  if (agentAssetRepairNeeded(key, evidence)) return 'terrace agents repair';
+  if (key === 'doctor' || key === 'commands-discover') return 'terrace init';
   return 'Review the command output and rerun after remediation.';
 }
 
 function nextCommandFromRecord(record) {
   if (!record) return null;
-  if (record.remediation && /terrace init/.test(record.remediation)) return 'terrace init';
+  const recordEvidence = [record.remediation, record.stdout, record.stderr, JSON.stringify(record.parsed || {})]
+    .filter(Boolean)
+    .join('\n');
+  if (agentAssetRepairNeeded(record.key, recordEvidence)) return 'terrace agents repair';
   const parsed = record.parsed || {};
   if (parsed.next_command) return parsed.next_command;
   if (parsed.result && parsed.result.next_command) return parsed.result.next_command;
@@ -1109,11 +1132,12 @@ function nextCommandFromRecord(record) {
   if (parsed.warnings && parsed.warnings.sample && parsed.warnings.sample[0] && parsed.warnings.sample[0].next_command) {
     return parsed.warnings.sample[0].next_command;
   }
+  if (record.remediation && /terrace init/.test(record.remediation)) return 'terrace init';
   if (record.key === 'prd-import-overwrite-refusal') return 'terrace prd import <feature> --file <file> --force';
   if (/ship/.test(record.key)) return 'terrace ship check --fast';
   if (record.key === 'report-ceremony') return 'terrace cleanup <feature>';
   if (record.key === 'spec-validate') return 'terrace spec validate';
-  return nextCommandForKey(record.key);
+  return nextCommandForKey(record.key, recordEvidence);
 }
 
 function renderReport(summary, records, runId) {
@@ -1239,9 +1263,9 @@ function main() {
   const result = runEvaluation(config, opts);
   process.stdout.write(JSON.stringify({
     runId: result.runId,
-    evidenceDir: path.relative(REPO_ROOT, result.evidenceDir),
+    evidenceDir: path.relative(process.cwd(), result.evidenceDir),
     totals: result.summary.totals,
-    report: path.relative(REPO_ROOT, path.join(REPORT_DIR, 'REPORT.md'))
+    report: path.relative(process.cwd(), path.join(result.reportDir, 'REPORT.md'))
   }, null, 2) + '\n');
 }
 

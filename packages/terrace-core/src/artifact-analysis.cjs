@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { readManagedJson } = require('./managed-artifacts.cjs');
 const { analyzeRepository, readSmallText } = require('./repo-analysis.cjs');
 
 function normalizeImportedFindings(input, mode) {
@@ -59,9 +60,8 @@ function staticReviewFindings(cwd, mode, featureId) {
   const repo = analyzeRepository(cwd);
   const findings = [];
   if (mode === 'security') {
-    const securityPath = path.join(cwd, '.terrace', 'security', 'latest.json');
-    if (fs.existsSync(securityPath)) {
-      const security = JSON.parse(fs.readFileSync(securityPath, 'utf8'));
+    const security = readManagedJson(cwd, 'security/latest.json', null);
+    if (security) {
       for (const item of security.findings || []) {
         findings.push(normalizeFinding(item, mode, 'static-security-check', findings.length));
       }

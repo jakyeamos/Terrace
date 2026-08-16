@@ -1,6 +1,7 @@
 ---
 name: terrace-phase-plan
 description: Write a migrated-context phase plan artifact.
+argument-hint: <phase-id>
 ---
 
 # Terrace Phase Plan

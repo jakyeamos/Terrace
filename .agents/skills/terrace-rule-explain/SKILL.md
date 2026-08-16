@@ -1,6 +1,7 @@
 ---
 name: terrace-rule-explain
 description: Explain a Terrace rule.
+argument-hint: <rule-id>
 ---
 
 # Terrace Rule Explain

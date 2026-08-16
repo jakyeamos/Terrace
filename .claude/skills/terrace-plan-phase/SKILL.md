@@ -1,6 +1,7 @@
 ---
 name: terrace-plan-phase
 description: Run the GSD-compatible phase planning alias.
+argument-hint: <phase-id>
 ---
 
 # Terrace Plan Phase

@@ -1,6 +1,7 @@
 ---
 name: terrace-execute-phase-complete
 description: Run a complete Terrace phase lifecycle from planning through completion.
+argument-hint: <phase-id>
 ---
 
 # Terrace Execute Phase Complete

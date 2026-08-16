@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 
 const TERRACE_CLI = path.resolve(process.cwd(), 'src/terrace-tools.cjs');
 const NODE_BIN = process.execPath;
@@ -78,5 +78,35 @@ describe('--json output mode for all CLI commands (CLI-12)', () => {
     const stdout = execFileSync(NODE_BIN, [TERRACE_CLI, 'phase', 'set', 'intake_recorded', '--json'], { cwd: tmpDir, encoding: 'utf-8' });
     const parsed = JSON.parse(stdout) as { workflow: { status: string } };
     expect(parsed.workflow.status).toBe('intake_recorded');
+  });
+
+  it('terrace phase errors preserve the JSON renderer and nonzero exit', () => {
+    const result = spawnSync(NODE_BIN, [TERRACE_CLI, 'phase', 'show', '--json'], {
+      cwd: tmpDir,
+      encoding: 'utf-8'
+    });
+
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      error: 'Usage: terrace phase show <phase-id>',
+      details: null,
+      next_command: null,
+      remediation: null
+    });
+  });
+
+  it('terrace UI router errors preserve the JSON renderer and nonzero exit', () => {
+    const result = spawnSync(NODE_BIN, [TERRACE_CLI, 'ui', 'unknown', '--json'], {
+      cwd: tmpDir,
+      encoding: 'utf-8'
+    });
+
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      error: 'Unknown ui subcommand: unknown. Use: import-stitch, plan-refresh, diff',
+      details: null,
+      next_command: null,
+      remediation: null
+    });
   });
 });

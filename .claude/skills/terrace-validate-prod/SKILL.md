@@ -1,6 +1,7 @@
 ---
 name: terrace-validate-prod
 description: Write production success signals, monitoring, and rollback conditions.
+argument-hint: <feature>
 ---
 
 # Terrace Validate Prod

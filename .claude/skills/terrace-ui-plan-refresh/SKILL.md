@@ -1,6 +1,7 @@
 ---
 name: terrace-ui-plan-refresh
 description: Plan a design-driven UI refresh.
+argument-hint: <feature>
 ---
 
 # Terrace Ui Plan Refresh

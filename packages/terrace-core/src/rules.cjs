@@ -1,7 +1,6 @@
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
+const { managedArtifactExists, readManagedJson, writeManagedJson } = require('./managed-artifacts.cjs');
 
 const DEFAULT_RULES = {
   'testing-trust': [
@@ -80,20 +79,32 @@ function defaultRuleFiles() {
   return Object.keys(DEFAULT_RULES).map((domain) => '.terrace/rules/' + domain + '.json');
 }
 
-function writeDefaultRules(cwd) {
-  const rulesDir = path.resolve(cwd, '.terrace', 'rules');
-  fs.mkdirSync(rulesDir, { recursive: true });
+function writeRuleFiles(cwd, onlyMissing) {
+  const written = [];
   for (const [domain, rules] of Object.entries(DEFAULT_RULES)) {
-    fs.writeFileSync(path.join(rulesDir, domain + '.json'), JSON.stringify({ schema_version: '1.0', domain, rules }, null, 2) + '\n', 'utf8');
+    const relativePath = 'rules/' + domain + '.json';
+    if (onlyMissing && managedArtifactExists(cwd, relativePath)) {
+      continue;
+    }
+    writeManagedJson(cwd, relativePath, { schema_version: '1.0', domain, rules });
+    written.push('.terrace/' + relativePath);
   }
+  return written;
+}
+
+function writeDefaultRules(cwd) {
+  return writeRuleFiles(cwd, false);
+}
+
+function ensureDefaultRules(cwd) {
+  return writeRuleFiles(cwd, true);
 }
 
 function loadRules(cwd) {
-  const rulesDir = path.resolve(cwd, '.terrace', 'rules');
   const result = {};
   for (const domain of Object.keys(DEFAULT_RULES)) {
-    const filePath = path.join(rulesDir, domain + '.json');
-    result[domain] = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, 'utf8')).rules : [];
+    const ruleFile = readManagedJson(cwd, 'rules/' + domain + '.json', null);
+    result[domain] = ruleFile ? ruleFile.rules : [];
   }
   return result;
 }
@@ -146,6 +157,7 @@ module.exports = {
   DEFAULT_RULES,
   defaultRuleFiles,
   writeDefaultRules,
+  ensureDefaultRules,
   loadRules,
   explainRule,
   checkRules

@@ -1,6 +1,6 @@
 ---
 name: terrace-ship-prepare
-description: Write a release-readiness summary artifact.
+description: Write a release-readiness summary; --fast skips project scripts but still writes the summary.
 ---
 
 # Terrace Ship Prepare

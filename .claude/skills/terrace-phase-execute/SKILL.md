@@ -1,6 +1,7 @@
 ---
 name: terrace-phase-execute
 description: Enter RED-gate execution for a phase after blockers are clear.
+argument-hint: <phase-id>
 ---
 
 # Terrace Phase Execute

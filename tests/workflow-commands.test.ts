@@ -5,6 +5,8 @@ import * as path from 'path';
 import { execFileSync } from 'child_process';
 
 const {
+  loadState,
+  replaceState,
   saveState,
   createDefaultState,
   phaseList,
@@ -28,6 +30,8 @@ const {
   quickExecute,
   quickComplete,
   shipPrepare,
+  listIntentCommands,
+  applyPlainTextIntentPlan,
   routePlainText,
   autonomousWorkflow,
   discoverProjectCommands,
@@ -160,6 +164,39 @@ describe('workflow parity core helpers', () => {
     ].filter(Boolean).join('\n') + '\n', 'utf-8');
   }
 
+  function commitGitSnapshot(cwd = tmpDir): void {
+    if (!fs.existsSync(path.join(cwd, '.git'))) {
+      execFileSync('git', ['init', '-q'], { cwd });
+      execFileSync('git', ['config', 'user.email', 'terrace@example.test'], { cwd });
+      execFileSync('git', ['config', 'user.name', 'Terrace Test'], { cwd });
+    }
+    execFileSync('git', ['add', '--all'], { cwd });
+    const tree = execFileSync('git', ['write-tree'], { cwd, encoding: 'utf8' }).trim();
+    let parent = '';
+    try {
+      parent = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    } catch (error) {
+      parent = '';
+    }
+    const commit = execFileSync('git', ['commit-tree', tree, ...(parent ? ['-p', parent] : []), '-m', 'fixture snapshot'], { cwd, encoding: 'utf8' }).trim();
+    execFileSync('git', ['update-ref', 'HEAD', commit], { cwd });
+  }
+
+  function writeMediumSeniorArtifacts(featureId: string): void {
+    const artifactPaths = [
+      path.join('docs', 'terrace', 'features', featureId, 'ALIGNMENT.md'),
+      path.join('docs', 'testing', 'TEST-PLAN.md'),
+      path.join('docs', 'terrace', 'features', featureId, 'OBSERVABILITY.md'),
+      path.join('docs', 'terrace', 'features', featureId, 'VALIDATION.md'),
+      path.join('docs', 'terrace', 'features', featureId, 'CLEANUP.md')
+    ];
+    for (const artifactPath of artifactPaths) {
+      const fullPath = path.join(tmpDir, artifactPath);
+      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+      fs.writeFileSync(fullPath, '# Fixture\n', 'utf-8');
+    }
+  }
+
   it('lists, shows, resumes, and computes next workflow action from state', () => {
     expect(phaseList(tmpDir).phases).toHaveLength(1);
     expect(phaseShow(tmpDir, 'phase-11-notifications').phase.plans).toHaveLength(1);
@@ -242,7 +279,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: [{ id: '12-01', title: 'Release Plan', status: 'planned', source_ref: '.planning/phases/12/12-01-PLAN.md' }]
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     const planned = phasePlan(tmpDir, 'phase-12-release');
     alignFeature(tmpDir, 'phase-12-release', { tier: 'medium' });
@@ -286,7 +323,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: [{ id: '13-01', title: 'Complete Plan', status: 'planned', source_ref: '.planning/phases/13/13-01-PLAN.md' }]
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     settingsSetEffort(tmpDir, 'thorough');
     alignFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
     testPlanFeature(tmpDir, 'phase-13-complete', { tier: 'medium' });
@@ -539,7 +576,7 @@ describe('workflow parity core helpers', () => {
       source_ref: 'docs/terrace/features/billing-refresh/ALIGNMENT.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     const blocked = phaseExecute(tmpDir, 'billing-refresh');
@@ -567,7 +604,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     const blocked = phaseExecute(tmpDir, 'unregistered-feature');
 
@@ -598,7 +635,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
 
     expect(nextWorkflow(tmpDir)).toMatchObject({
       command: 'terrace align billing-refresh',
@@ -610,6 +647,127 @@ describe('workflow parity core helpers', () => {
     });
   });
 
+  it('keeps a gate-complete active senior feature outside the roadmap as a non-mutating handoff', () => {
+    const state = loadState(tmpDir);
+    state.blocked_actions = [];
+    state.workflow = {
+      ...state.workflow,
+      active_feature: 'gpt56-modernization'
+    };
+    state.senior_cycle = {
+      active_feature: 'gpt56-modernization',
+      features: {
+        'gpt56-modernization': {
+          feature_id: 'gpt56-modernization',
+          tier: 'medium',
+          artifacts: {}
+        }
+      }
+    };
+    replaceState(tmpDir, state);
+    writeMediumSeniorArtifacts('gpt56-modernization');
+
+    const stateFile = path.join(tmpDir, '.terrace', 'state.json');
+    const unrelatedPlan = path.join(tmpDir, 'docs', 'terrace', 'phases', 'phase-11-notifications', 'PLAN.md');
+    const before = fs.readFileSync(stateFile, 'utf8');
+
+    expect(nextWorkflow(tmpDir)).toMatchObject({
+      command: 'terrace workbench status --feature gpt56-modernization',
+      blocked: true,
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_NOT_ROADMAP_PHASE',
+        feature_id: 'gpt56-modernization'
+      })
+    });
+    expect(autonomousWorkflow(tmpDir)).toMatchObject({
+      status: 'blocked',
+      next_command: 'terrace workbench status --feature gpt56-modernization',
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_NOT_ROADMAP_PHASE'
+      })
+    });
+    expect(fs.readFileSync(stateFile, 'utf8')).toBe(before);
+    expect(fs.existsSync(unrelatedPlan)).toBe(false);
+  });
+
+  it('keeps a gate-complete active roadmap phase as a non-mutating handoff', () => {
+    const state = loadState(tmpDir);
+    state.blocked_actions = [];
+    state.workflow = {
+      ...state.workflow,
+      active_feature: 'phase-12-settings'
+    };
+    state.senior_cycle = {
+      active_feature: 'phase-12-settings',
+      features: {
+        'phase-12-settings': {
+          feature_id: 'phase-12-settings',
+          tier: 'medium',
+          artifacts: {}
+        }
+      }
+    };
+    state.roadmap.phases.push({
+      id: 'phase-12-settings',
+      title: 'Phase 12: Settings',
+      status: 'completed',
+      source_ref: '.planning/ROADMAP.md',
+      plans: []
+    });
+    replaceState(tmpDir, state);
+    writeMediumSeniorArtifacts('phase-12-settings');
+
+    const stateFile = path.join(tmpDir, '.terrace', 'state.json');
+    const activePlan = path.join(tmpDir, 'docs', 'terrace', 'phases', 'phase-12-settings', 'PLAN.md');
+    const before = fs.readFileSync(stateFile, 'utf8');
+
+    expect(nextWorkflow(tmpDir)).toMatchObject({
+      command: 'terrace phase show phase-12-settings',
+      blocked: true,
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_REQUIRES_EXPLICIT_PHASE_ACTION',
+        feature_id: 'phase-12-settings'
+      })
+    });
+    expect(autonomousWorkflow(tmpDir)).toMatchObject({
+      status: 'blocked',
+      next_command: 'terrace phase show phase-12-settings',
+      active_feature_handoff: expect.objectContaining({
+        code: 'ACTIVE_FEATURE_REQUIRES_EXPLICIT_PHASE_ACTION'
+      })
+    });
+    expect(fs.readFileSync(stateFile, 'utf8')).toBe(before);
+    expect(fs.existsSync(activePlan)).toBe(false);
+  });
+
+  it('keeps an explicit migration next command ahead of active-feature routing', () => {
+    const state = loadState(tmpDir);
+    state.blocked_actions = [];
+    state.workflow = {
+      ...state.workflow,
+      active_feature: 'gpt56-modernization'
+    };
+    state.senior_cycle = {
+      active_feature: 'gpt56-modernization',
+      features: {
+        'gpt56-modernization': {
+          feature_id: 'gpt56-modernization',
+          tier: 'medium',
+          artifacts: {}
+        }
+      }
+    };
+    state.migration = { next_command: 'terrace port gsd dry-run' };
+    replaceState(tmpDir, state);
+    writeMediumSeniorArtifacts('gpt56-modernization');
+
+    expect(nextWorkflow(tmpDir)).toMatchObject({
+      command: 'terrace port gsd dry-run',
+      blocked: false
+    });
+    expect(nextWorkflow(tmpDir)).not.toHaveProperty('active_feature_handoff');
+  });
+
   it('blocks phase completion until cleanup exists for Tier 2+ work', () => {
     const state = createDefaultState({ projectName: 'workflow-test' });
     state.roadmap.phases = [{
@@ -619,7 +777,7 @@ describe('workflow parity core helpers', () => {
       source_ref: '.planning/ROADMAP.md',
       plans: []
     }];
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     testPlanFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     observeFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
@@ -664,7 +822,7 @@ describe('workflow parity core helpers', () => {
   it('includes senior-cycle ship blockers in ship check results', () => {
     const state = createDefaultState({ projectName: 'workflow-test' });
     state.workflow.active_feature = 'billing-refresh';
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     alignFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
     testPlanFeature(tmpDir, 'billing-refresh', { tier: 'medium' });
 
@@ -672,6 +830,7 @@ describe('workflow parity core helpers', () => {
 
     expect(result.categories).toContainEqual(expect.objectContaining({
       category: 'senior_cycle',
+      command: 'terrace workbench status --feature billing-refresh',
       passed: false,
       blocking: expect.arrayContaining([
         expect.objectContaining({ code: 'OBSERVABILITY_REQUIRED' }),
@@ -697,7 +856,7 @@ describe('workflow parity core helpers', () => {
     expect(result).toMatchObject({
       passed: false,
       ship_ref: 'docs/terrace/ship/SHIP.md',
-      next_command: 'terrace ship check'
+      next_command: 'terrace ship check --full'
     });
     expect(fs.readFileSync(path.join(tmpDir, result.ship_ref), 'utf-8')).toContain('Release Readiness');
   }, 120000);
@@ -710,8 +869,9 @@ describe('workflow parity core helpers', () => {
         'dead-code': 'node -e "process.exit(0)"'
       }
     }, null, 2), 'utf-8');
+    commitGitSnapshot();
     const discovered = discoverProjectCommands(tmpDir);
-    const result = shipCheck(tmpDir);
+    const result = shipCheck(tmpDir, { mode: 'full' });
 
     expect(discovered).toMatchObject({
       package_manager: 'npm',
@@ -757,8 +917,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const configured = shipCheck(tmpDir);
+    const configured = shipCheck(tmpDir, { mode: 'full' });
 
     expect(configured.project_commands.dead_code).toMatchObject({
       configured: true,
@@ -779,8 +940,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const skipped = shipCheck(tmpDir);
+    const skipped = shipCheck(tmpDir, { mode: 'full' });
 
     expect(skipped.project_commands.dead_code).toMatchObject({
       enabled: false,
@@ -809,8 +971,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const missing = shipCheck(tmpDir);
+    const missing = shipCheck(tmpDir, { mode: 'full' });
 
     expect(missing.categories).toContainEqual(expect.objectContaining({
       category: 'dead_code',
@@ -825,8 +988,9 @@ describe('workflow parity core helpers', () => {
         }
       }
     }, null, 2) + '\n', 'utf-8');
+    commitGitSnapshot();
 
-    const failed = shipCheck(tmpDir);
+    const failed = shipCheck(tmpDir, { mode: 'full' });
 
     expect(failed.categories).toContainEqual(expect.objectContaining({
       category: 'dead_code',
@@ -843,6 +1007,7 @@ describe('workflow parity core helpers', () => {
         'dead-code': 'node -e "process.exit(7)"'
       }
     }, null, 2), 'utf-8');
+    commitGitSnapshot();
 
     const result = shipCheck(tmpDir, { mode: 'fast' });
 
@@ -856,6 +1021,132 @@ describe('workflow parity core helpers', () => {
       elapsed_ms: expect.any(Number)
     }));
   });
+
+  it('keeps default and static ship checks read-only until full mode is explicit', () => {
+    const sentinel = path.join(tmpDir, 'ship-check-sentinel.txt');
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'ship-check-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+    commitGitSnapshot();
+
+    expect(shipCheck(tmpDir).mode).toBe('fast');
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    expect(shipCheck(tmpDir, { mode: 'local' }).mode).toBe('local');
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    expect(shipCheck(tmpDir, { mode: 'full' }).mode).toBe('full');
+    expect(fs.existsSync(sentinel)).toBe(true);
+    fs.rmSync(sentinel);
+
+    const staticPreflight = releasePreflight(tmpDir, { runCommands: false });
+    expect(staticPreflight.ship_check.mode).toBe('fast');
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const staticFull = releasePreflight(tmpDir, { runCommands: false, shipMode: 'full' });
+    expect(staticFull.blockers).toContainEqual(expect.objectContaining({ code: 'RELEASE_STATIC_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const invalidPreflight = releasePreflight(tmpDir, { shipMode: 'automatic' });
+    expect(invalidPreflight.blockers).toContainEqual(expect.objectContaining({ code: 'RELEASE_PREFLIGHT_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+
+    const invalid = shipCheck(tmpDir, { mode: 'automatic' });
+    expect(invalid.blockers).toContainEqual(expect.objectContaining({ code: 'SHIP_CHECK_MODE_INVALID' }));
+    expect(fs.existsSync(sentinel)).toBe(false);
+  }, 120000);
+
+  it('uses an explicit full check before ship prepare writes its release summary', () => {
+    const sentinel = path.join(tmpDir, 'ship-prepare-sentinel.txt');
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'ship-prepare-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+    commitGitSnapshot();
+
+    const preview = routePlainText(tmpDir, 'ship prepare');
+    expect(preview).toMatchObject({
+      lock: 'self_managed',
+      execution: expect.arrayContaining([
+        expect.stringContaining('may write arbitrary project files')
+      ])
+    });
+    const prepared = applyPlainTextIntentPlan(tmpDir, preview.apply.plan_token);
+
+    expect(prepared).toMatchObject({
+      mode: 'applied',
+      result: {
+        mode: 'full',
+        ship_ref: 'docs/terrace/ship/SHIP.md'
+      }
+    });
+    expect(fs.existsSync(sentinel)).toBe(true);
+  }, 120000);
+
+  it('detects staged, unstaged, and untracked files in local ship checks', () => {
+    const fixture = (name: string) => {
+      const cwd = path.join(tmpDir, name);
+      fs.mkdirSync(cwd, { recursive: true });
+      saveState(cwd, createDefaultState({ projectName: name }));
+      fs.writeFileSync(path.join(cwd, 'tracked.txt'), 'baseline\n', 'utf-8');
+      execFileSync('git', ['init', '-q'], { cwd });
+      execFileSync('git', ['config', 'user.email', 'terrace@example.test'], { cwd });
+      execFileSync('git', ['config', 'user.name', 'Terrace Test'], { cwd });
+      execFileSync('git', ['add', '.'], { cwd });
+      execFileSync('git', ['commit', '-qm', 'baseline'], { cwd });
+      return cwd;
+    };
+    const dirtyCategory = (cwd: string) => shipCheck(cwd, { mode: 'local' }).categories.find((category: { category: string }) => category.category === 'dirty_tree');
+
+    const unstaged = fixture('unstaged');
+    fs.appendFileSync(path.join(unstaged, 'tracked.txt'), 'changed\n', 'utf-8');
+    expect(dirtyCategory(unstaged)).toMatchObject({ passed: false, blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })] });
+
+    const staged = fixture('staged');
+    fs.writeFileSync(path.join(staged, 'staged.txt'), 'staged\n', 'utf-8');
+    execFileSync('git', ['add', 'staged.txt'], { cwd: staged });
+    expect(dirtyCategory(staged)).toMatchObject({ passed: false, blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })] });
+
+    const untracked = fixture('untracked');
+    fs.writeFileSync(path.join(untracked, 'untracked.txt'), 'untracked\n', 'utf-8');
+    expect(dirtyCategory(untracked)).toMatchObject({ passed: false, blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })] });
+
+    const full = fixture('full-script');
+    const sentinel = path.join(full, 'full-dirty-sentinel.txt');
+    fs.writeFileSync(path.join(full, 'package.json'), JSON.stringify({
+      scripts: {
+        lint: 'node -e "require(\'fs\').writeFileSync(\'full-dirty-sentinel.txt\', \'ran\')"'
+      }
+    }, null, 2), 'utf-8');
+    commitGitSnapshot(full);
+    fs.writeFileSync(path.join(full, 'dirty.txt'), 'dirty\n', 'utf-8');
+    const fullResult = shipCheck(full, { mode: 'full' });
+    expect(fullResult.categories).toContainEqual(expect.objectContaining({
+      category: 'dirty_tree',
+      passed: false,
+      blocking: [expect.objectContaining({ code: 'DIRTY_TREE' })]
+    }));
+    expect(fullResult.categories.map((category: { category: string }) => category.category)).not.toContain('lint');
+    expect(fs.existsSync(sentinel)).toBe(false);
+  }, 120000);
+
+  it('skips release-preflight commands when the checkout is dirty', () => {
+    writeReleasePreflightFixtures('0.2.0');
+    const packageJson = JSON.parse(fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf-8'));
+    packageJson.scripts.ci = 'node -e "require(\'fs\').writeFileSync(\'release-dirty-sentinel.txt\', \'ran\')"';
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), JSON.stringify(packageJson, null, 2), 'utf-8');
+    commitGitSnapshot();
+    fs.writeFileSync(path.join(tmpDir, 'release-dirty.txt'), 'dirty\n', 'utf-8');
+
+    const result = releasePreflight(tmpDir, { targetVersion: '0.2.0', shipMode: 'full' });
+
+    expect(result.blockers).toContainEqual(expect.objectContaining({ code: 'DIRTY_TREE' }));
+    expect(result.flow).toEqual(expect.arrayContaining([expect.objectContaining({ ran: false, skipped: true })]));
+    expect(fs.existsSync(path.join(tmpDir, 'release-dirty-sentinel.txt'))).toBe(false);
+  }, 120000);
 
   it('includes trusted-publishing release guard for the Terrace npm release candidate', () => {
     writeReleasePreflightFixtures('0.2.0');
@@ -998,10 +1289,46 @@ describe('workflow parity core helpers', () => {
     });
   });
 
-  it('routes natural-language intent and slash-shaped compatibility commands for agents', () => {
+  it('plans write-capable natural-language intent before applying it', () => {
+    const intents: Array<{ id: string; command_id: string; effect: string; writes: string[]; execution: string[] }> = listIntentCommands();
+    expect(new Set(intents.map((intent) => intent.id)).size).toBe(intents.length);
+    expect(intents.every((intent) => intent.command_id.length > 0)).toBe(true);
+    expect(intents).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'phase_plan', effect: 'write' }),
+      expect.objectContaining({ id: 'ship_check', effect: 'read' }),
+      expect.objectContaining({ id: 'workbench_prepare', effect: 'write' })
+    ]));
+    expect(intents).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'workbench_prepare',
+        writes: expect.arrayContaining([
+          '.terrace/state.json',
+          '.terrace/report-card.json',
+          '.terrace/workstreams/{feature_id}.json',
+          'docs/terrace/features/{feature_id}/PREFLIGHT.md',
+          'docs/terrace/features/{feature_id}/RUNBOOK.md',
+          'docs/terrace/features/{feature_id}/WORKSTREAMS.md',
+          'docs/terrace/reviews/{feature_id}/release.json',
+          'docs/terrace/reviews/{feature_id}/release.md',
+          'docs/terrace/REPORT-CARD.md',
+          'docs/terrace/report-history/**'
+        ])
+      }),
+      expect.objectContaining({
+        id: 'phase_complete',
+        writes: expect.arrayContaining([
+          '.terrace/report-card.json',
+          'docs/terrace/REPORT-CARD.md',
+          'docs/terrace/report-history/**'
+        ])
+      })
+    ]));
+
     process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.0.0';
     expect(routePlainText(tmpDir, 'how far is Terrace from replacing GSD')).toMatchObject({
       command: 'terrace adoption status',
+      mode: 'read',
+      read_only: true,
       result: {
         replacement: 'gsd',
         checks: expect.arrayContaining([
@@ -1010,41 +1337,98 @@ describe('workflow parity core helpers', () => {
       }
     });
     delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
-    expect(routePlainText(tmpDir, 'plan phase 11')).toMatchObject({
+    const stateBeforePreview = fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8');
+    const phasePreview = routePlainText(tmpDir, 'plan phase 11');
+    expect(phasePreview).toMatchObject({
+      intent_id: 'phase_plan',
       command: 'terrace phase plan phase-11-notifications',
+      command_id: 'phase.plan',
+      argv: ['phase', 'plan', 'phase-11-notifications'],
+      mode: 'plan',
+      requires_apply: true,
+      writes: expect.arrayContaining([
+        '.terrace/state.json',
+        'docs/terrace/phases/phase-11-notifications/PLAN.md'
+      ]),
+      apply: expect.objectContaining({
+        argv: ['do', '--apply', expect.any(String)]
+      })
+    });
+    expect(phasePreview.result).toBeUndefined();
+    expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(stateBeforePreview);
+    expect(routePlainText(tmpDir, 'plan phase 11', { apply: true })).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'plan',
+      requires_apply: true
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, phasePreview.apply.plan_token)).toMatchObject({
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'applied',
+      applied: true,
       result: { phase_id: 'phase-11-notifications' }
     });
     expect(routePlainText(tmpDir, '/gsd:plan-phase 11')).toMatchObject({
-      command: 'terrace phase plan phase-11-notifications'
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'plan',
+      requires_apply: true
     });
     expect(routePlainText(tmpDir, '/execute-phase-complete 11')).toMatchObject({
       command: 'terrace execute-phase-complete phase-11-notifications',
-      result: {
-        status: 'blocked',
-        phase_id: 'phase-11-notifications'
-      }
+      mode: 'plan',
+      requires_apply: true
     });
     expect(routePlainText(tmpDir, '/goal plan phase 11')).toMatchObject({
-      command: 'terrace phase plan phase-11-notifications'
+      command: 'terrace phase plan phase-11-notifications',
+      mode: 'plan',
+      requires_apply: true,
+      apply: expect.objectContaining({
+        argv: ['do', '--apply', expect.any(String)]
+      })
     });
     expect(routePlainText(tmpDir, 'run the next phase')).toMatchObject({
-      command: 'terrace autonomous'
+      command: 'terrace autonomous',
+      mode: 'plan',
+      requires_apply: true
     });
     expect(routePlainText(tmpDir, 'show quick tasks')).toMatchObject({
-      command: 'terrace quick list'
+      command: 'terrace quick list',
+      mode: 'read',
+      read_only: true
     });
-    expect(routePlainText(tmpDir, 'create quick task refresh beta copy')).toMatchObject({
+    const quickPreview = routePlainText(tmpDir, 'create quick task refresh beta copy');
+    expect(quickPreview).toMatchObject({
       command: 'terrace quick plan refresh beta copy',
+      command_id: 'quick.plan',
+      argv: ['quick', 'plan', 'refresh beta copy'],
+      mode: 'plan',
+      requires_apply: true
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, quickPreview.apply.plan_token)).toMatchObject({
+      command: 'terrace quick plan refresh beta copy',
+      mode: 'applied',
       result: { item: expect.objectContaining({ title: 'refresh beta copy' }) }
     });
-    expect(routePlainText(tmpDir, 'ship prepare')).toMatchObject({
+    const shipPreview = routePlainText(tmpDir, 'ship prepare');
+    expect(shipPreview).toMatchObject({
       command: 'terrace ship prepare',
+      mode: 'plan',
+      requires_apply: true,
+      writes: ['docs/terrace/ship/SHIP.md'],
+      execution: expect.arrayContaining([
+        expect.stringContaining('Runs the full ship check')
+      ])
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, shipPreview.apply.plan_token)).toMatchObject({
+      command: 'terrace ship prepare',
+      mode: 'applied',
       result: { ship_ref: 'docs/terrace/ship/SHIP.md' }
     });
     expect(routePlainText(tmpDir, 'ship this')).toMatchObject({
-      command: 'terrace ship check'
+      command: 'terrace ship check',
+      mode: 'read',
+      read_only: true
     });
-    const activeState = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8'));
+    const activeState = loadState(tmpDir);
     saveState(tmpDir, {
       ...activeState,
       workflow: {
@@ -1062,8 +1446,17 @@ describe('workflow parity core helpers', () => {
         }
       }
     });
-    expect(routePlainText(tmpDir, 'make this feature ship-ready')).toMatchObject({
+    const workbenchPreview = routePlainText(tmpDir, 'make this feature ship-ready');
+    expect(workbenchPreview).toMatchObject({
       command: 'terrace workbench prepare billing-refresh',
+      command_id: 'workbench.prepare',
+      argv: ['workbench', 'prepare', 'billing-refresh'],
+      mode: 'plan',
+      requires_apply: true
+    });
+    expect(applyPlainTextIntentPlan(tmpDir, workbenchPreview.apply.plan_token)).toMatchObject({
+      command: 'terrace workbench prepare billing-refresh',
+      mode: 'applied',
       result: {
         mode: 'prepare',
         feature_id: 'billing-refresh',
@@ -1074,7 +1467,9 @@ describe('workflow parity core helpers', () => {
       }
     });
     expect(routePlainText(tmpDir, 'show me history')).toMatchObject({
-      command: 'terrace history'
+      command: 'terrace history',
+      mode: 'read',
+      read_only: true
     });
     expect(() => routePlainText(tmpDir, 'make the app better somehow')).toThrow(/Unsupported plain-text Terrace command/);
   });
@@ -1129,11 +1524,11 @@ describe('workflow parity core helpers', () => {
           fixes: ['version_alignment']
         }),
         expect.objectContaining({
-          command: 'terrace init',
+          command: 'terrace agents repair',
           fixes: ['agent_assets']
         })
       ]),
-      next_commands: expect.arrayContaining(['terrace commands discover', 'terrace --version', 'terrace init'])
+      next_commands: expect.arrayContaining(['terrace commands discover', 'terrace --version', 'terrace agents repair'])
     });
     expect(status.checks).toContainEqual(expect.objectContaining({
       name: 'report_claim_scope',
@@ -1143,10 +1538,54 @@ describe('workflow parity core helpers', () => {
     expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(before);
   });
 
+  it('uses the loaded package version without invoking an ambient Terrace executable', () => {
+    const binDir = path.join(tmpDir, 'ambient-bin');
+    const sentinel = path.join(tmpDir, 'ambient-terrace-invoked.txt');
+    const fakeTerrace = path.join(binDir, 'terrace');
+    const previousPath = process.env.PATH;
+    const previousVersion = process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+    fs.mkdirSync(binDir, { recursive: true });
+    fs.writeFileSync(fakeTerrace, [
+      '#!/usr/bin/env node',
+      'require("node:fs").writeFileSync(' + JSON.stringify(sentinel) + ', "invoked\\n");',
+      'process.stdout.write("999.0.0\\n");'
+    ].join('\n'), 'utf8');
+    fs.chmodSync(fakeTerrace, 0o755);
+    delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+    process.env.PATH = binDir + path.delimiter + (previousPath || '');
+
+    try {
+      const status = adoptionStatus(tmpDir);
+      const version = status.checks.find((check: { name: string }) => check.name === 'version_alignment');
+      expect(version).toMatchObject({
+        passed: null,
+        evidence: expect.objectContaining({
+          local_version: expect.any(String),
+          runtime_version: expect.any(String),
+          installed_version: null,
+          verification: 'not_independently_verified'
+        })
+      });
+      expect(status.unverified_checks).toContainEqual(version);
+      expect(fs.existsSync(sentinel)).toBe(false);
+    } finally {
+      if (previousPath === undefined) {
+        delete process.env.PATH;
+      } else {
+        process.env.PATH = previousPath;
+      }
+      if (previousVersion === undefined) {
+        delete process.env.TERRACE_ADOPTION_INSTALLED_VERSION;
+      } else {
+        process.env.TERRACE_ADOPTION_INSTALLED_VERSION = previousVersion;
+      }
+    }
+  });
+
   it('separates legacy planning phases from executable Terrace state phases', () => {
     process.env.TERRACE_ADOPTION_INSTALLED_VERSION = '0.2.0';
     const state = createDefaultState({ projectName: 'workflow-test' });
-    saveState(tmpDir, state);
+    replaceState(tmpDir, state);
     fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
     fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), [
       '# Roadmap',
@@ -1210,11 +1649,13 @@ describe('workflow parity core helpers', () => {
     expect(output).toContain('Answer: No. Keep GSD available');
     expect(output).toContain('Mode: keep_gsd');
     expect(output).toContain('Evidence:');
+    expect(output).toContain('\n\nEvidence:');
+    expect(output).not.toContain('\n\n\nEvidence:');
     expect(output).toContain('Workflow continuity: yes');
     expect(output).toContain('Next commands:');
     expect(output).toContain('terrace commands discover');
     expect(output).toContain('terrace --version');
-    expect(output).toContain('terrace init');
+    expect(output).toContain('terrace agents repair');
   });
 
   it('reports failed ship checks as structured categories', () => {
@@ -1234,15 +1675,7 @@ describe('workflow parity core helpers', () => {
       'waivers',
       'documentation',
       'test_eval',
-      'rule_audit',
-      'typecheck',
-      'lint',
-      'test',
-      'coverage',
-      'package',
-      'build',
-      'dead_code',
-      'dirty_tree'
+      'rule_audit'
     ]);
     expect(result.blockers.length).toBeGreaterThan(0);
   }, 120000);

@@ -37,11 +37,11 @@ pnpm exec terrace report
 pnpm exec terrace ship check --json
 ```
 
-`terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs release-readiness checks and exits nonzero when a blocking gate fails.
+`terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs the default read-only release-readiness gates and exits nonzero when a blocking gate fails.
 
 ## What Terrace Creates
 
-`terrace init` writes only repo-local governance state and docs scaffolding:
+`terrace init` writes only missing repo-local governance state and docs scaffolding. Re-running it preserves existing state, configuration, preset registry, rules, and event history byte-for-byte while repairing missing core or agent assets.
 
 - `.terrace/state.json`
 - `.terrace/config.json`
@@ -60,17 +60,29 @@ pnpm exec terrace ship check --json
 
 Report artifacts are explicit: `terrace report` is read-only, while `terrace report update` writes `.terrace/report-card.json`, `docs/terrace/REPORT-CARD.md`, and report history.
 
+## State Safety
+
+Terrace keeps its workflow state at `.terrace/state.json`. Current installations write schema `1.1` with a monotonic `state_revision`. Existing schema `1.0` state is accepted, validated, and promoted in memory without changing its bytes; the next successful Terrace mutation persists the canonical `1.1` form.
+
+State mutations use an exclusive `.terrace/state.lock`, validate the complete canonical schema, sync a temporary file and its parent directory where the platform supports it, then atomically replace state. Stale-lock recovery is itself serialized through a temporary recovery claim, so a concurrent writer cannot delete a replacement lock; an interrupted recovery claim fails closed for inspection. A concurrent or stale mutation returns structured guidance instead of silently overwriting newer work. If a state file is damaged, restore a valid backup or use `terrace init --force --yes` only when a deliberate managed-state reset is appropriate.
+
+## Managed Artifact Safety
+
+The primary mutable Terrace-owned files under `.terrace/` use the managed-artifact boundary. It rejects path traversal, symlinked parents or files, special filesystem objects, malformed JSON/JSONL, and unexpected replacement of a parent directory while a write is in progress. Writes are serialized by `.terrace/locks/managed-artifacts.lock`, atomically replace a synced temporary file, and fail closed if an active writer or interrupted stale-lock recovery cannot be proven safe.
+
+Preset installation journals its coupled policy and registry update under `.terrace/transactions/`, so an interrupted install is either completed or rolled back before the next managed mutation. Configuration, rule packs, policy, event history, generated manifests, session records, security evidence, migration reports, and lifecycle JSON use this same boundary. `terrace doctor` reports unsafe managed paths instead of treating them as healthy files.
+
 ## Agent Integration
 
-`terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance.
+`terrace init` makes a repository ready for Codex and Claude Code by default. It writes repo-local agent guidance only when the target file is missing, and preserves existing user or team guidance. Use `terrace agents repair` when only generated repo-local agent assets are missing; it never changes workflow state.
 
 - Codex reads `AGENTS.md` and gets repo skills under `.agents/skills/` for the README command-reference surface, including `/terrace-next`, `/terrace-align`, `/terrace-phase-plan`, `/terrace-quick-plan`, and `/terrace-ship-check`.
 - Claude Code reads `CLAUDE.md` and gets project skills plus project commands under `.claude/skills/` and `.claude/commands/` for the same command-reference surface.
 - `.terrace/agents/manifest.json` records which assets were written, skipped, or unchanged during the latest init run.
 
-If `AGENTS.md`, `CLAUDE.md`, or a matching Codex skill, Claude skill, or Claude command already exists, Terrace does not overwrite it. Merge the generated guidance manually if your project already has custom agent instructions.
+If `AGENTS.md`, `CLAUDE.md`, or a matching Codex skill, Claude skill, or Claude command already exists, Terrace does not overwrite it. `terrace doctor` reports generated agent assets that differ from the current template; merge those updates manually so Terrace does not overwrite user-owned guidance.
 
-For global local discovery, `terrace agents install-global` writes Codex skills under `~/.agents/skills/`, Claude Code skills under `~/.claude/skills/`, Claude Code slash commands under `~/.claude/commands/`, and manifests under each tool directory when absent. It preserves existing global skills and commands and reports them as skipped. The `/terrace` entry routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next` when no arguments are provided.
+For global local discovery, `terrace agents install-global` writes Codex skills under `~/.agents/skills/`, Claude Code skills under `~/.claude/skills/`, Claude Code slash commands under `~/.claude/commands/`, and manifests under each tool directory when absent. It preserves existing global skills and commands and reports them as skipped. The `/terrace` entry routes natural-language intent through `terrace do "$ARGUMENTS"` and falls back to `terrace next` when no arguments are provided. A write-capable route returns a state-bound plan token first; inspect its command, writes, and execution scope, then run its returned `apply.argv` only when that mutation is authorized.
 
 ## PRD Intake
 
@@ -111,8 +123,8 @@ pnpm exec terrace ship check --json
 pnpm exec terrace release-preflight --target-version 0.2.0 --json
 ```
 
-`terrace ship check` is read-only. Use `terrace ship prepare` when you want Terrace to write a release-readiness summary under `docs/terrace/ship/`.
-`terrace release-preflight` runs the release flow and returns one JSON summary for CI, audit, package, release dry-run, ship-check status, trusted-publishing prerequisites, tag/version alignment, and stale npm-era release instructions.
+`terrace ship check` defaults to a read-only fast mode and never runs project package scripts. Use `--local` to add a complete Git status check or `--full` only when you explicitly intend to run discovered quality and dead-code scripts; full execution is skipped until staged, unstaged, and untracked files are resolved. Those project scripts sit outside Terrace’s artifact boundary and may write project files. `terrace ship prepare` deliberately writes a release-readiness summary under `docs/terrace/ship/` after a full check by default; pass `--fast` to use a non-executing fast check before it writes the snapshot.
+`terrace release-preflight` runs the release flow and returns one JSON summary for CI, audit, package, release dry-run, ship-check status, trusted-publishing prerequisites, tag/version alignment, and stale npm-era release instructions. `--static` keeps its ship-check portion read-only.
 `pnpm run ci` includes the packed-consumer smoke test that installs Terrace from the generated tarball and verifies `terrace agents install-global` writes usable `/terrace` and `/terrace-*` global assets into temporary agent directories.
 
 ## Environment Contract
@@ -121,62 +133,94 @@ Run `pnpm run environment:contract` before opening a PR or changing repository g
 
 ## Command Reference
 
-- `terrace --help` shows the top-level command list.
-- `terrace --version` prints the package version.
-- `terrace init` initializes Terrace state and installs non-overwriting agent bootstrap files (`AGENTS.md`, `CLAUDE.md`, `.agents/skills/terrace-*`, `.claude/skills/terrace-*`, `.claude/commands/terrace-*`, and `.terrace/agents/manifest.json`) when they are absent.
-- `terrace agents install-global` installs non-overwriting global Codex and Claude Code assets, including `/terrace` and the full `/terrace-*` command-reference surface.
-- `terrace new-project <name> --prd <file>` or `--paste-prd` initializes Terrace from a source PRD and writes project artifacts.
-- `terrace prd import <feature> --file <file>` or `--paste` imports a feature PRD into an existing Terrace project.
-- `terrace doctor` checks installation health.
-- `terrace spec validate` validates governance artifacts.
-- `terrace spec hash --file <path>` computes a stable spec hash.
-- `terrace audit` checks artifacts and protected baselines.
-- `terrace ci check [files...]` runs audit and protected-change enforcement.
-- `terrace adoption status` answers “Can Terrace replace GSD for me yet?” with a direct verdict, `replace_gsd` / `pilot_with_gsd_fallback` / `keep_gsd` mode, workflow evidence, blocking checks, and concrete next commands.
-- `terrace port gsd --dry-run` inventories legacy GSD artifacts.
-- `terrace port gsd --import-roadmap` merges missing legacy `.planning` roadmap phases into existing Terrace state without replacing existing phase objects.
-- `terrace port gsd` migrates supported legacy GSD artifacts into Terrace state.
-- `terrace next` reports the next workflow action from state, handoff data, and blockers.
-- `terrace resume` reconstructs paused workflow context from sessions, migrated handoff data, and the durable phase-stage ledger. If the JSON snapshot is stale after an interruption, Terrace replays stage transitions from `.terrace/events.jsonl`. A blocked stage is returned as top-level `blocked` status with the recovered stop packet.
-- `terrace history` summarizes migrated phases, sessions, decisions, and quick tasks.
-- `terrace do <intent>` routes natural-language agent intent to stable Terrace commands.
-- `terrace autonomous` plans the next phase, prepares execution readiness, and stops at blockers or agent handoff.
-- `terrace execute-phase-complete <id>` runs phase plan, execute, validate, review, and complete in order, stopping at blockers. Each stage is durably recorded as pending, active, passed, failed, or blocked so the workflow can resume without repeating passed stages. A blocked result includes a durable `terrace-stop-packet/v1` with the stopped command, evidence, owner, safe next step, and forbidden bypass.
-- `terrace blocker list` exposes stable IDs for migrated blocking actions. After the named owner performs the correction, `terrace blocker resolve <id> --owner <owner> --evidence <ref>` records attributable evidence and returns the safe phase-resume command; it does not perform external work or waive a gate.
-- `terrace settings effort <fast|standard|thorough>` sets the default phase effort used in planning and execution artifacts.
-- `terrace settings show` prints the current Terrace settings.
-- `terrace commands discover` detects package manager, project scripts, quality-gate command mapping, and dead-code gate readiness.
-- `terrace align <feature>` writes `docs/terrace/features/<feature>/ALIGNMENT.md` with customer, problem, success metrics, risks, rollout, observability, validation, and cleanup intent.
-- `terrace interrogate <feature>` captures user-driven edge-case, assumption-challenge, and failure-mode interrogation; agent skills ask the questions inline before writing the artifact.
-- `terrace map-codebase` writes codebase map, architecture, risks, testing, and observability context under `docs/terrace/codebase/`.
-- `terrace design <feature>` records architecture decisions, tradeoffs, maintainability, and the no band-aid rule.
-- `terrace test-plan <feature>` writes the behavior-first `docs/testing/TEST-PLAN.md` required before implementation.
-- `terrace observe <feature>` writes feature observability and post-launch debugging intent.
-- `terrace validate-prod <feature>` writes production success signals, monitoring, and rollback conditions.
-- `terrace cleanup <feature>` writes the cleanup contract for flags, temporary code, and docs.
-- `terrace ui import-stitch <feature>`, `terrace ui plan-refresh <feature>`, and `terrace ui diff <feature>` support design-driven greenfield and brownfield UI workflows.
-- `terrace phase list` lists canonical roadmap phases.
-- `terrace phase show <id>` shows one roadmap phase and its migrated plans.
-- `terrace phase plan <id>` writes `docs/terrace/phases/<id>/PLAN.md`, pulling migrated source plans, likely files, related quick tasks, blockers, and discovered project commands into the phase plan.
-- `terrace phase execute <id>` writes `docs/terrace/phases/<id>/EXECUTION.md`, enters RED-gate readiness after blockers are clear, and reports an execution queue.
-- `terrace phase validate <id>` writes `docs/terrace/phases/<id>/VALIDATION.md`.
-- `terrace phase review <id>` writes `docs/terrace/phases/<id>/REVIEW.md`.
-- `terrace phase complete <id>` writes `docs/terrace/phases/<id>/SUMMARY.md` and marks the phase complete.
-- `terrace quick list` lists migrated GSD quick-task history.
-- `terrace quick show <id>` shows one migrated quick task.
-- `terrace quick plan <title>` creates a stateful quick-task plan under `docs/terrace/quick/<id>/`.
-- `terrace quick execute <id>` enters RED-gate execution for a quick task after a behavior-first test plan exists.
-- `terrace quick complete <id>` writes a quick-task summary and marks it complete after verification evidence exists.
-- `terrace backlog list` lists backlog items.
-- `terrace backlog add <title>` appends a backlog item.
-- `terrace ship check` runs release-readiness checks, discovers available project scripts, enforces active Senior Cycle ship gates, treats missing optional scripts as warnings, runs the dead-code gate when a script is discovered or configured, and exits nonzero when an available quality gate fails.
-- `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` from release-readiness results.
-- `terrace release-preflight [--target-version <version>] [--static]` summarizes the Terrace 0.2.0 release flow, trusted-publishing prerequisites, tag/version mismatches, and stale npm-era release artifacts as JSON.
-- `terrace workbench status [--feature <id>]` reads feature release evidence, missing senior-cycle gates, preflight, docs, AI review, workstreams, debt, security, test eval, and report-card claim scope.
-- `terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]` writes production workbench artifacts from preflight, runbook docs, release AI review, workstreams, and optional handoff primitives.
-- `terrace plan-phase <id>`, `terrace execute-phase <id>`, `terrace validate-phase <id>`, `terrace review-phase <id>`, and `terrace complete-phase <id>` are GSD-compatible aliases.
-- `terrace rule list` and `terrace rule explain <id>` inspect rule packs.
-- `terrace preset list` and `terrace preset install <id>` manage presets.
+This generated index is checked against Terrace’s command catalog. Use `terrace --help` for the same current surface at the terminal.
+
+<!-- terrace-command-catalog:start -->
+- `terrace init` — Initialize or safely repair Terrace state in this repo.
+- `terrace agents repair` — Repair missing repo-local Terrace agent assets.
+- `terrace agents install-global` — Install Terrace Codex skills into ~/.agents.
+- `terrace new-project <name> --prd <file>|--paste-prd` — Initialize Terrace from a source PRD.
+- `terrace prd import <feature> --file <file>|--paste` — Import a feature PRD into an existing Terrace project.
+- `terrace doctor` — Diagnose Terrace installation health.
+- `terrace spec validate` — Validate governance artifacts.
+- `terrace spec hash --file <path>` — Compute a stable spec hash.
+- `terrace audit` — Run governance audit checks.
+- `terrace ci check [files...]` — Run audit plus protected-change checks.
+- `terrace security check` — Run deterministic local security checks.
+- `terrace corpus run` — Run the local Terrace corpus evaluator.
+- `terrace corpus report` — Show the latest corpus report summary.
+- `terrace adoption status` — Report GSD replacement readiness.
+- `terrace port gsd [--dry-run|--compare|--verify-parity|--import-roadmap]` — Migrate or inventory legacy GSD artifacts.
+- `terrace planning refresh` — Initialize or refresh .planning from Terrace state.
+- `terrace next` — Show the next workflow action.
+- `terrace resume` — Reconstruct paused workflow context.
+- `terrace blocker list` — List migrated blocking actions and stable IDs.
+- `terrace blocker resolve <id> --owner <owner> --evidence <ref>` — Record an evidence-bearing blocker correction.
+- `terrace history` — Summarize migrated operational history.
+- `terrace do <intent> | --apply <plan-token>` — Preview a route or apply its state-bound plan token.
+- `terrace autonomous` — Plan next phase and stop at blocker or handoff.
+- `terrace execute-phase-complete <id>` — Plan, execute, validate, review, and complete one phase.
+- `terrace settings show` — Show Terrace settings.
+- `terrace settings effort <fast|standard|thorough>` — Set the default phase-planning effort.
+- `terrace commands discover` — Discover project quality scripts.
+- `terrace align <feature>` — Write senior-cycle alignment artifact.
+- `terrace interrogate <feature>` — Capture user-driven edge-case and failure-mode interrogation.
+- `terrace map-codebase` — Write codebase context artifacts.
+- `terrace design <feature>` — Write architecture decision artifact.
+- `terrace test-plan <feature>` — Write behavior-first test strategy.
+- `terrace observe <feature>` — Write observability plan.
+- `terrace validate-prod <feature>` — Write production validation plan.
+- `terrace cleanup <feature>` — Write cleanup contract.
+- `terrace ui import-stitch <feature>` — Capture Stitch design import.
+- `terrace ui plan-refresh <feature>` — Plan UI refresh work.
+- `terrace ui diff <feature>` — Write UI source/target diff.
+- `terrace workstreams plan <feature>` — Plan feature workstreams for production delivery.
+- `terrace design-source import <source> <feature> <ref>` — Import design-source context for a feature.
+- `terrace design-source diff <source> <feature> <ref>` — Compare imported design-source context for a feature.
+- `terrace phase list` — List roadmap phases.
+- `terrace phase show <id>` — Show a roadmap phase.
+- `terrace phase plan <id>` — Generate a phase plan artifact.
+- `terrace phase execute <id>` — Enter RED-gate execution for a phase.
+- `terrace phase validate <id>` — Generate validation artifact.
+- `terrace phase review <id>` — Generate review artifact.
+- `terrace phase complete <id>` — Complete a phase with summary artifact.
+- `terrace plan-phase <id>` — GSD-compatible alias for phase plan.
+- `terrace execute-phase <id>` — GSD-compatible alias for phase execute.
+- `terrace validate-phase <id>` — GSD-compatible alias for phase validate.
+- `terrace review-phase <id>` — GSD-compatible alias for phase review.
+- `terrace complete-phase <id>` — GSD-compatible alias for phase complete.
+- `terrace quick list` — List migrated quick-task history.
+- `terrace quick show <id>` — Show one migrated quick task.
+- `terrace quick plan <title>` — Create a stateful quick-task plan.
+- `terrace quick execute <id>` — Enter RED-gate execution for a quick task.
+- `terrace quick complete <id>` — Complete a quick task.
+- `terrace backlog list` — List backlog items.
+- `terrace backlog add <title>` — Add a backlog item.
+- `terrace ship check [--fast|--local|--full]` — Run release readiness checks.
+- `terrace ship prepare [--fast|--local|--full]` — Write PR/release readiness summary.
+- `terrace release-preflight [--static] [--fast|--local|--full] [--target-version <version>]` — Run Terrace 0.2.0 release preflight summary.
+- `terrace report [update|open|history|ceremony]` — Read or update report-card evidence.
+- `terrace handoff create [--feature <id>] [--for codex|claude|generic]` — Create an agent or session handoff pack.
+- `terrace debt add|list|audit|resolve` — Manage production debt entries and release gates.
+- `terrace preflight <feature>` — Write production failure preflight.
+- `terrace docu <feature>` — Write production documentation draft.
+- `terrace test eval` — Evaluate test-suite trust.
+- `terrace review ai --mode <mode>` — Run an AI release-review evidence pass.
+- `terrace waive <gate>` — Record a reviewed temporary waiver.
+- `terrace workbench status [--feature <id>]` — Read production workbench readiness.
+- `terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]` — Prepare production workbench evidence.
+- `terrace rule add <domain> <rule-id>` — Add a rule to the project rule pack.
+- `terrace rule audit` — Audit installed rule packs and evidence.
+- `terrace rule list` — List installed rule packs.
+- `terrace rule explain <id>` — Explain a rule.
+- `terrace backfill` — Write standards backfill spec.
+- `terrace preset list` — List installed presets.
+- `terrace preset install <id>` — Install a preset.
+
+Global options: `--help`, `--version`, `--json`, and `--apply`.
+<!-- terrace-command-catalog:end -->
+
+Operational guarantees stay intentionally narrative rather than another command inventory: `terrace audit` is read-only and `terrace report update` is the explicit report writer; every write-capable natural-language route returns a state-bound apply token with its known write scope; `terrace ship check` is read-only by default and only `--full` runs discovered project scripts after a clean Git snapshot; `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` after its chosen check mode. `terrace init --force --yes` retains managed backups and rolls back failed resets, while `terrace agents repair` adds only missing generated assets without changing workflow state.
 
 ## GSD Migration
 
@@ -188,6 +232,8 @@ Migrated state includes roadmap phases and plans, decisions, sessions, handoff c
 
 Use `terrace adoption status` after migration, corpus runs, or agent asset changes when the practical question is whether Terrace can replace GSD yet. The command is read-only and leads with a verdict, score, recommended mode, real workflow evidence, blockers, and next commands such as `terrace commands discover`, `terrace corpus run`, `terrace port gsd --import-roadmap`, `terrace init`, or `terrace report update`.
 
+Corpus evaluation keeps generated evidence in `.terrace/corpus/` in the target project, never in the installed package. The shipped default exercises synthetic fixtures; maintainers can set `TERRACE_CORPUS_CONFIG` to a private configuration for named shadow repositories and `TERRACE_CORPUS_DIR` to choose a different evidence directory.
+
 ## Workflow Example
 
 1. Capture intent in `docs/prd/PRD.md`.
@@ -197,7 +243,7 @@ Use `terrace adoption status` after migration, corpus runs, or agent asset chang
 5. Run `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, and `terrace phase complete <id>` to preserve execution history.
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
 
-Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, `terrace do "make this feature ship-ready"`, or `terrace do "ship prepare"` when they have natural-language intent instead of a structured command. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
+Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, `terrace do "make this feature ship-ready"`, or `terrace do "ship prepare"` to resolve natural-language intent instead of a structured command. Any write-capable route returns its command, parameters, writes, execution scope, and state-bound `apply` object without writing; inspect that plan, then run the returned `apply.argv` exactly when the mutation is intended. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
 
 ## Senior Cycle
 
@@ -270,6 +316,11 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 ## Troubleshooting
 
 - `Missing .terrace/state.json`: run `terrace init` from the repo root.
+- `STATE_REVISION_CONFLICT` or `STATE_WRITE_LOCKED`: wait for the active Terrace mutation to finish, reload state, and retry. Terrace reclaims a lock only when its recorded PID is confirmed absent; if the message names `.terrace/state.lock.recovery`, inspect that interrupted recovery claim before any manual intervention.
+- `MANAGED_ARTIFACT_PATH_UNSAFE`, `MANAGED_ARTIFACT_WRITE_LOCKED`, or `MANAGED_ARTIFACT_TRANSACTION_RECOVERY_REQUIRED`: replace the unsafe filesystem object or inspect the named lock/transaction journal; Terrace will not follow a managed symlink, overwrite a live writer, or discard interrupted preset state.
+- `STATE_SCHEMA_INVALID` or `STATE_JSON_INVALID`: restore a valid `.terrace/state.json` backup, or use `terrace init --force --yes` only for an intentional managed-state reset.
+- `terrace init` needs to restart an existing workflow: use `terrace init --force --yes` only when you intend to reset managed Terrace state; restore files from the reported `.terrace/backups/` path if needed.
+- Repo-local `/terrace-*` assets are incomplete: run `terrace agents repair`.
 - `/terrace` or `/terrace-*` is missing in another local repo: run `terrace agents install-global`, then reload the Codex or Claude Code session.
 - `Protected file changed without DECISION-LOG.md`: add a spec-linked decision before committing.
 - `terrace port gsd` refuses to overwrite state: run `terrace port gsd --import-roadmap` when only missing executable phase targets need to be merged; use `--force` only after preserving existing `.terrace/state.json`.
@@ -277,7 +328,7 @@ When a dead-code script is configured but missing or failing, `terrace ship chec
 - `terrace ship check` exits nonzero: inspect the failed category and run the listed command directly for detailed output.
 - `terrace ship check` reports `QUALITY_SCRIPT_MISSING`: add the suggested package script if that gate should be enforced for this project.
 - `terrace ship check` reports `DEAD_CODE_SCRIPT_MISSING`: add a package script with `pnpm pkg set scripts["dead-code"]="knip"` or configure/skip `ship_gates.dead_code` in `.terrace/config.json`.
-- `terrace do <intent>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
+- `terrace do <intent> | --apply <plan-token>` cannot route an instruction: use an explicit command from `terrace --help` or include a clear phase number, quick-task request, resume/next/history request, or ship request.
 - Typecheck errors from package dependencies usually mean the repo is not using the supported `Bundler` module resolution settings in `tsconfig.json`.
 
 ## Development

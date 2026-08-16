@@ -1,6 +1,7 @@
 ---
 name: terrace-phase-show
 description: Show one roadmap phase and its migrated plans.
+argument-hint: <phase-id>
 ---
 
 # Terrace Phase Show

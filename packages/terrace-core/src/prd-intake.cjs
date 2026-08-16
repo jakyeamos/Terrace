@@ -7,6 +7,7 @@ const { appendEvent } = require('./events.cjs');
 const { guidanceError } = require('./guidance.cjs');
 const { initCore } = require('./init.cjs');
 const { loadState, saveState } = require('./state.cjs');
+const { managedArtifactExists, preflightProjectArtifacts, writeProjectText } = require('./managed-artifacts.cjs');
 
 function normalizeIntakeId(value, label) {
   const id = String(value || '').trim().toLowerCase().replace(/[^a-z0-9_.-]+/g, '-').replace(/^-+|-+$/g, '');
@@ -38,9 +39,8 @@ function safeResolve(cwd, relativeFilePath) {
 }
 
 function assertWritable(cwd, relativeFilePaths, force) {
-  if (force) {
-    return;
-  }
+  preflightProjectArtifacts(cwd, relativeFilePaths);
+  if (force) return;
   for (const relativeFilePath of relativeFilePaths) {
     if (fs.existsSync(safeResolve(cwd, relativeFilePath))) {
       const match = relativeFilePath.match(/^docs\/terrace\/features\/([^/]+)\/PRD\.md$/);
@@ -61,9 +61,7 @@ function assertWritable(cwd, relativeFilePaths, force) {
 }
 
 function writeText(cwd, relativeFilePath, content) {
-  const fullPath = safeResolve(cwd, relativeFilePath);
-  fs.mkdirSync(path.dirname(fullPath), { recursive: true });
-  fs.writeFileSync(fullPath, content, 'utf8');
+  writeProjectText(cwd, relativeFilePath, content);
   return relativeFilePath;
 }
 
@@ -286,7 +284,7 @@ function newProjectFromPrd(cwd, options) {
   const opts = options || {};
   const projectId = normalizeIntakeId(opts.name, 'new-project <name>');
   const prdText = normalizePrdText(opts.prdText);
-  const stateExists = fs.existsSync(path.resolve(cwd, '.terrace', 'state.json'));
+  const stateExists = managedArtifactExists(cwd, 'state.json');
   const initialized = stateExists ? { created: [] } : initCore(cwd, { projectName: opts.name });
   const importedAt = new Date().toISOString();
   const prdHash = hashText(prdText);

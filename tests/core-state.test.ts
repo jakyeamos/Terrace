@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -9,15 +9,35 @@ const {
   transitionState,
   loadState,
   saveState,
-  appendEvent,
-  readEvents,
-  createStageRun,
-  transitionStageRun,
-  beginPhaseStageRun,
-  persistStageTransition,
-  replayStageRun,
-  recoverStageRun
+  replaceState
 } = require('../packages/terrace-core/src/index.cjs');
+
+function expectStateError(action: () => void, code: string): void {
+  let thrown: { details?: { code?: string } } | null = null;
+  try {
+    action();
+  } catch (error) {
+    thrown = error as { details?: { code?: string } };
+  }
+  expect(thrown).not.toBeNull();
+  expect(thrown?.details?.code).toBe(code);
+}
+
+function legacyStrictCoreState(): Record<string, unknown> {
+  return {
+    schema_version: '1.0',
+    project: { name: 'legacy-demo', created_at: '2026-04-28T00:00:00.000Z' },
+    workflow: { status: 'initialized', mode: 'strict', active_feature: null },
+    roadmap: { phases: [] },
+    active_slice: null,
+    red_gate: { status: 'not_started', evidence: [] },
+    green_gate: { status: 'not_started', evidence: [] },
+    protected_tests: [],
+    decisions: [],
+    sessions: [],
+    preserved_extension: { source: 'legacy-user-data' }
+  };
+}
 
 describe('terrace-core state machine', () => {
   let tmpDir: string;
@@ -32,7 +52,8 @@ describe('terrace-core state machine', () => {
 
   it('creates a JSON-led default state with required top-level fields', () => {
     const state = createDefaultState({ projectName: 'demo' });
-    expect(state.schema_version).toBe('1.0');
+    expect(state.schema_version).toBe('1.1');
+    expect(state.state_revision).toBe(0);
     expect(state.project.name).toBe('demo');
     expect(state.workflow.status).toBe('initialized');
     expect(state).toHaveProperty('roadmap');
@@ -64,157 +85,326 @@ describe('terrace-core state machine', () => {
     saveState(tmpDir, state);
     const loaded = loadState(tmpDir);
     expect(loaded.project.name).toBe('demo');
-    expect(fs.readdirSync(path.join(tmpDir, '.terrace')).filter((name) => name.includes('.tmp-'))).toEqual([]);
+    expect(loaded.state_revision).toBe(0);
   });
 
-  it('enforces ordered stage transitions and supports failed-stage retry', () => {
-    const run = createStageRun({
-      runId: 'phase:demo:1',
-      phaseId: 'demo',
-      stageIds: ['plan', 'execute'],
-      timestamp: '2026-08-12T12:00:00.000Z'
+  it('persists a frozen input without reporting a post-commit failure', () => {
+    const frozen = Object.freeze(createDefaultState({ projectName: 'frozen-demo' }));
+
+    expect(() => saveState(tmpDir, frozen)).not.toThrow();
+    expect(loadState(tmpDir)).toMatchObject({
+      project: { name: 'frozen-demo' },
+      state_revision: 0
     });
-
-    expect(() => transitionStageRun(run, 'execute', 'active')).toThrow('Stage locked');
-    const planActive = transitionStageRun(run, 'plan', 'active', { timestamp: '2026-08-12T12:00:01.000Z' });
-    const planFailed = transitionStageRun(planActive, 'plan', 'failed', { timestamp: '2026-08-12T12:00:02.000Z' });
-    const planRetried = transitionStageRun(planFailed, 'plan', 'active', { timestamp: '2026-08-12T12:00:03.000Z' });
-
-    expect(planRetried.stages[0]).toMatchObject({ status: 'active', attempts: 2 });
   });
 
-  it('retains a stop packet while blocked and clears it only on a legal retry', () => {
-    const run = createStageRun({ runId: 'phase:demo:stop', phaseId: 'demo', stageIds: ['plan', 'execute'] });
-    const active = transitionStageRun(run, 'plan', 'active');
-    const blocked = transitionStageRun(active, 'plan', 'blocked', {
-      stopPacket: { schema_version: 'terrace-stop-packet/v1', command: 'terrace phase plan demo' }
-    });
+  it('reads a historical 1.0 state without writing, then persists it as canonical 1.1 on the next mutation', () => {
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    const legacyText = JSON.stringify(legacyStrictCoreState(), null, 2) + '\n';
+    fs.writeFileSync(statePath, legacyText, 'utf8');
 
-    expect(blocked.stop_packet).toMatchObject({ schema_version: 'terrace-stop-packet/v1' });
-    expect(() => transitionStageRun(blocked, 'execute', 'active')).toThrow('Stage locked');
-    expect(transitionStageRun(blocked, 'plan', 'active').stop_packet).toBeNull();
-  });
+    const loaded = loadState(tmpDir);
+    expect(loaded).toMatchObject({
+      schema_version: '1.1',
+      state_revision: 0,
+      migration: null,
+      handoff: null,
+      backlog: { items: [] },
+      blocked_actions: [],
+      quick_tasks: [],
+      preserved_extension: { source: 'legacy-user-data' }
+    });
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(legacyText);
 
-  it('recovers a stale stage snapshot by replaying the append-only event log', () => {
-    saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
-    beginPhaseStageRun(tmpDir, 'phase-demo', {
-      runId: 'phase:demo:replay',
-      timestamp: '2026-08-12T12:00:00.000Z'
-    });
-    persistStageTransition(tmpDir, 'plan', 'active', {
-      command: 'terrace phase plan phase-demo',
-      timestamp: '2026-08-12T12:00:01.000Z'
-    });
-    persistStageTransition(tmpDir, 'plan', 'passed', {
-      command: 'terrace phase plan phase-demo',
-      timestamp: '2026-08-12T12:00:02.000Z',
-      evidenceRefs: ['docs/terrace/phases/phase-demo/PLAN.md']
-    });
-    const staleState = loadState(tmpDir);
-    const staleRun = staleState.workflow.stage_run;
-    persistStageTransition(tmpDir, 'execute', 'active', {
-      command: 'terrace phase execute phase-demo',
-      timestamp: '2026-08-12T12:00:03.000Z'
-    });
-    const blockedRun = persistStageTransition(tmpDir, 'execute', 'blocked', {
-      command: 'terrace phase execute phase-demo',
-      timestamp: '2026-08-12T12:00:04.000Z',
-      evidenceRefs: ['.planning/HANDOFF.json'],
-      stopPacket: {
-        schema_version: 'terrace-stop-packet/v1',
-        command: 'terrace phase execute phase-demo',
-        owner: 'workflow_operator'
-      }
-    });
     saveState(tmpDir, {
-      ...loadState(tmpDir),
-      workflow: { ...loadState(tmpDir).workflow, stage_run: staleRun }
+      ...loaded,
+      decisions: [{ id: 'migrated-decision', title: 'Persist canonical state' }]
     });
 
-    expect(loadState(tmpDir).workflow.stage_run.revision).toBe(2);
-    expect(replayStageRun(readEvents(tmpDir), blockedRun.run_id)).toEqual(blockedRun);
-    expect(recoverStageRun(tmpDir)).toEqual(blockedRun);
-    expect(recoverStageRun(tmpDir).stop_packet).toEqual(expect.objectContaining({
-      schema_version: 'terrace-stop-packet/v1',
-      command: 'terrace phase execute phase-demo'
-    }));
-    expect(loadState(tmpDir).workflow.stage_run.stages.map((stage: { status: string }) => stage.status)).toEqual([
-      'passed',
-      'blocked',
-      'pending',
-      'pending',
-      'pending'
-    ]);
+    expect(JSON.parse(fs.readFileSync(statePath, 'utf8'))).toMatchObject({
+      schema_version: '1.1',
+      state_revision: 1,
+      decisions: [{ id: 'migrated-decision', title: 'Persist canonical state' }],
+      preserved_extension: { source: 'legacy-user-data' }
+    });
   });
 
-  it('repairs a manually forged passing snapshot from the authoritative event history', () => {
+  it('rejects malformed state JSON without changing the persisted bytes', () => {
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    const invalidText = '{not valid JSON\n';
+    fs.writeFileSync(statePath, invalidText, 'utf8');
+
+    expectStateError(() => loadState(tmpDir), 'STATE_JSON_INVALID');
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(invalidText);
+  });
+
+  it('rejects invalid canonical state and unsupported future versions without fallback', () => {
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    const invalidState = createDefaultState({ projectName: 'demo' });
+    invalidState.workflow.status = 'not-a-real-status';
+    const invalidText = JSON.stringify(invalidState, null, 2) + '\n';
+    fs.writeFileSync(statePath, invalidText, 'utf8');
+
+    expectStateError(() => loadState(tmpDir), 'STATE_SCHEMA_INVALID');
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(invalidText);
+
+    const futureState = createDefaultState({ projectName: 'demo' });
+    futureState.schema_version = '2.0';
+    const futureText = JSON.stringify(futureState, null, 2) + '\n';
+    fs.writeFileSync(statePath, futureText, 'utf8');
+
+    expectStateError(() => loadState(tmpDir), 'STATE_VERSION_UNSUPPORTED');
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(futureText);
+  });
+
+  it('rejects a stale read-modify-write copy and preserves the first writer state', () => {
     saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
-    beginPhaseStageRun(tmpDir, 'phase-demo', {
-      runId: 'phase:demo:forged-snapshot',
-      timestamp: '2026-08-12T12:00:00.000Z'
+    const first = loadState(tmpDir);
+    const stale = loadState(tmpDir);
+
+    saveState(tmpDir, {
+      ...first,
+      decisions: [{ id: 'first-writer', title: 'First writer wins' }]
     });
-    persistStageTransition(tmpDir, 'plan', 'active', {
-      command: 'terrace phase plan phase-demo',
-      timestamp: '2026-08-12T12:00:01.000Z'
-    });
-    const blockedRun = persistStageTransition(tmpDir, 'plan', 'blocked', {
-      command: 'terrace phase plan phase-demo',
-      timestamp: '2026-08-12T12:00:02.000Z',
-      stopPacket: {
-        schema_version: 'terrace-stop-packet/v1',
-        command: 'terrace phase plan phase-demo',
-        owner: 'workflow_operator'
+    const firstWriterText = fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8');
+
+    expectStateError(() => saveState(tmpDir, {
+      ...stale,
+      decisions: [{ id: 'stale-writer', title: 'This write must not win' }]
+    }), 'STATE_REVISION_CONFLICT');
+
+    expect(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf8')).toBe(firstWriterText);
+    expect(loadState(tmpDir).decisions).toEqual([{ id: 'first-writer', title: 'First writer wins' }]);
+  });
+
+  it('refuses to replace a state file that changes after the write snapshot is loaded', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'original' }));
+    const candidate = loadState(tmpDir);
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const replacement = createDefaultState({ projectName: 'replacement' });
+    const mutableFs = require('fs') as typeof fs;
+    const originalOpenSync = mutableFs.openSync;
+    let swapped = false;
+    const swapDuringTemporaryWrite = vi.spyOn(mutableFs, 'openSync').mockImplementation(((filePath, flags, mode) => {
+      const descriptor = originalOpenSync(filePath, flags, mode);
+      if (!swapped && typeof filePath === 'string' && path.basename(filePath).startsWith('.state.json.') && (Number(flags) & fs.constants.O_EXCL) !== 0) {
+        swapped = true;
+        fs.renameSync(statePath, path.join(tmpDir, '.terrace', 'state-before-swap.json'));
+        fs.writeFileSync(statePath, JSON.stringify(replacement, null, 2) + '\n', 'utf8');
       }
+      return descriptor;
+    }) as typeof fs.openSync);
+
+    try {
+      expectStateError(() => saveState(tmpDir, {
+        ...candidate,
+        decisions: [{ id: 'must-not-overwrite-replacement', title: 'Fail closed' }]
+      }), 'STATE_PATH_UNSAFE');
+    } finally {
+      swapDuringTemporaryWrite.mockRestore();
+    }
+
+    expect(swapped).toBe(true);
+    expect(loadState(tmpDir).project.name).toBe('replacement');
+  });
+
+  it('fails closed when another process owns the state lock', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const lockPath = path.join(tmpDir, '.terrace', 'state.lock');
+    const before = fs.readFileSync(statePath, 'utf8');
+    const lockText = JSON.stringify({ pid: process.pid, created_at: '2026-07-13T00:00:00.000Z' }) + '\n';
+    fs.writeFileSync(lockPath, lockText, 'utf8');
+
+    const loaded = loadState(tmpDir);
+    expectStateError(() => saveState(tmpDir, loaded), 'STATE_WRITE_LOCKED');
+
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(before);
+    expect(fs.readFileSync(lockPath, 'utf8')).toBe(lockText);
+  });
+
+  it('reclaims a lock only when its recorded process is confirmed dead', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
+    const lockPath = path.join(tmpDir, '.terrace', 'state.lock');
+    const recoveryPath = path.join(tmpDir, '.terrace', 'state.lock.recovery');
+    fs.writeFileSync(lockPath, JSON.stringify({ pid: 4312, created_at: '2026-07-13T00:00:00.000Z' }) + '\n', 'utf8');
+    const processKill = vi.spyOn(process, 'kill').mockImplementation(() => {
+      const error = Object.assign(new Error('no such process'), { code: 'ESRCH' });
+      throw error;
     });
+
+    try {
+      const state = loadState(tmpDir);
+      saveState(tmpDir, {
+        ...state,
+        decisions: [{ id: 'reclaimed-lock', title: 'Recovered safely' }]
+      });
+    } finally {
+      processKill.mockRestore();
+    }
+
+    expect(loadState(tmpDir).decisions).toEqual([{ id: 'reclaimed-lock', title: 'Recovered safely' }]);
+    expect(fs.existsSync(lockPath)).toBe(false);
+    expect(fs.existsSync(recoveryPath)).toBe(false);
+  });
+
+  it('cleans both state lock markers when recovery handoff cleanup fails', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
+    const lockPath = path.join(tmpDir, '.terrace', 'state.lock');
+    const recoveryPath = path.join(tmpDir, '.terrace', 'state.lock.recovery');
+    fs.writeFileSync(lockPath, JSON.stringify({ pid: 4312, created_at: '2026-07-13T00:00:00.000Z' }) + '\n', 'utf8');
     const state = loadState(tmpDir);
-    saveState(tmpDir, {
-      ...state,
-      workflow: {
-        ...state.workflow,
-        stage_run: {
-          ...blockedRun,
-          stop_packet: null,
-          stages: blockedRun.stages.map((stage: { id: string }) => ({
-            ...stage,
-            status: 'passed',
-            attempts: Math.max(stage.id === 'plan' ? 1 : 0, 1),
-            completed_at: '2026-08-12T12:00:03.000Z'
-          }))
-        }
-      }
+    const mutableFs = require('fs') as typeof fs;
+    const originalUnlinkSync = mutableFs.unlinkSync;
+    const processKill = vi.spyOn(process, 'kill').mockImplementation(() => {
+      const error = Object.assign(new Error('no such process'), { code: 'ESRCH' });
+      throw error;
     });
+    let failedRecoveryCleanup = false;
+    const recoveryCleanupFailure = vi.spyOn(mutableFs, 'unlinkSync').mockImplementation(((filePath) => {
+      if (!failedRecoveryCleanup && filePath === 'state.lock.recovery') {
+        failedRecoveryCleanup = true;
+        throw new Error('simulated state recovery cleanup failure');
+      }
+      return originalUnlinkSync(filePath);
+    }) as typeof fs.unlinkSync);
 
-    expect(loadState(tmpDir).workflow.stage_run.stages.every((stage: { status: string }) => stage.status === 'passed')).toBe(true);
-    expect(recoverStageRun(tmpDir)).toEqual(blockedRun);
-    expect(loadState(tmpDir).workflow.stage_run.stages.map((stage: { status: string }) => stage.status)).toEqual([
-      'blocked',
-      'pending',
-      'pending',
-      'pending',
-      'pending'
-    ]);
+    try {
+      expect(() => saveState(tmpDir, {
+        ...state,
+        decisions: [{ id: 'recovery-cleanup', title: 'Must not leak locks' }]
+      })).toThrow('simulated state recovery cleanup failure');
+    } finally {
+      recoveryCleanupFailure.mockRestore();
+      processKill.mockRestore();
+    }
+
+    expect(failedRecoveryCleanup).toBe(true);
+    expect(fs.existsSync(lockPath)).toBe(false);
+    expect(fs.existsSync(recoveryPath)).toBe(false);
   });
 
-  it('rejects an injected terminal event that skips required predecessor gates', () => {
+  it('fails closed while another process owns the stale-lock recovery claim', () => {
     saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
-    const run = beginPhaseStageRun(tmpDir, 'phase-demo', {
-      runId: 'phase:demo:skipped-gates',
-      timestamp: '2026-08-12T12:00:00.000Z'
-    });
-    appendEvent(tmpDir, {
-      event_type: 'stage_transition',
-      command: 'manual event edit',
-      run_id: run.run_id,
-      phase_id: run.phase_id,
-      revision: 1,
-      stage_id: 'complete',
-      from_status: 'pending',
-      to_status: 'passed',
-      result: 'passed',
-      timestamp: '2026-08-12T12:00:01.000Z'
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const recoveryPath = path.join(tmpDir, '.terrace', 'state.lock.recovery');
+    const before = fs.readFileSync(statePath, 'utf8');
+    const recoveryText = JSON.stringify({ pid: process.pid, created_at: '2026-07-13T00:00:00.000Z' }) + '\n';
+    fs.writeFileSync(recoveryPath, recoveryText, 'utf8');
+
+    expectStateError(() => saveState(tmpDir, loadState(tmpDir)), 'STATE_WRITE_LOCKED');
+
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(before);
+    expect(fs.readFileSync(recoveryPath, 'utf8')).toBe(recoveryText);
+  });
+
+  it('keeps the last valid state and removes its temporary file when atomic rename fails', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'demo' }));
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    const before = fs.readFileSync(statePath, 'utf8');
+    const loaded = loadState(tmpDir);
+    const mutableFs = require('fs') as typeof fs;
+    const renameFailure = vi.spyOn(mutableFs, 'renameSync').mockImplementationOnce(() => {
+      throw new Error('simulated atomic rename failure');
     });
 
-    expect(() => recoverStageRun(tmpDir)).toThrow('Illegal stage transition: complete pending -> passed');
-    expect(loadState(tmpDir).workflow.stage_run.stages.every((stage: { status: string }) => stage.status === 'pending')).toBe(true);
+    try {
+      expect(() => saveState(tmpDir, {
+        ...loaded,
+        decisions: [{ id: 'rename-failure', title: 'Keep old bytes' }]
+      })).toThrow('simulated atomic rename failure');
+    } finally {
+      renameFailure.mockRestore();
+    }
+
+    expect(fs.readFileSync(statePath, 'utf8')).toBe(before);
+    expect(loadState(tmpDir).decisions).toEqual([]);
+    expect(fs.readdirSync(path.dirname(statePath)).filter((entry) => entry.startsWith('.state.json.'))).toEqual([]);
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.lock'))).toBe(false);
+  });
+
+  it('keeps a state write pinned when .terrace is replaced after its temporary file is opened', () => {
+    saveState(tmpDir, createDefaultState({ projectName: 'pinned-state' }));
+    const terracePath = path.join(tmpDir, '.terrace');
+    const pinnedPath = path.join(tmpDir, '.terrace-pinned');
+    const outsidePath = path.join(tmpDir, 'outside-terrace');
+    const before = fs.readFileSync(path.join(terracePath, 'state.json'), 'utf8');
+    const sentinel = '{"outside":true}\n';
+    const previousDirectory = process.cwd();
+    const loaded = loadState(tmpDir);
+    const mutableFs = require('fs') as typeof fs;
+    const originalOpenSync = mutableFs.openSync;
+    let swapped = false;
+    const swapDuringOpen = vi.spyOn(mutableFs, 'openSync').mockImplementation(((filePath, flags, mode) => {
+      if (!swapped
+        && typeof filePath === 'string'
+        && filePath.startsWith('.state.json.')
+        && filePath.endsWith('.tmp')
+        && (Number(flags) & fs.constants.O_CREAT) !== 0) {
+        swapped = true;
+        fs.renameSync(terracePath, pinnedPath);
+        fs.mkdirSync(outsidePath, { recursive: true });
+        fs.writeFileSync(path.join(outsidePath, 'state.json'), sentinel, 'utf8');
+        fs.symlinkSync(outsidePath, terracePath);
+      }
+      return originalOpenSync(filePath, flags, mode);
+    }) as typeof fs.openSync);
+
+    try {
+      expectStateError(() => saveState(tmpDir, {
+        ...loaded,
+        decisions: [{ id: 'pinned-write', title: 'Must not escape' }]
+      }), 'STATE_PATH_UNSAFE');
+    } finally {
+      swapDuringOpen.mockRestore();
+    }
+
+    expect(swapped).toBe(true);
+    expect(process.cwd()).toBe(previousDirectory);
+    expect(fs.readFileSync(path.join(outsidePath, 'state.json'), 'utf8')).toBe(sentinel);
+    expect(fs.readFileSync(path.join(pinnedPath, 'state.json'), 'utf8')).toBe(before);
+    expect(fs.readdirSync(pinnedPath).filter((entry) => entry.startsWith('.state.json.'))).toEqual([]);
+  });
+
+  it('refuses symlinked Terrace state paths without touching the external target', () => {
+    const externalPath = path.join(tmpDir, 'external-state.json');
+    const sentinel = '{"outside":true}\n';
+    fs.writeFileSync(externalPath, sentinel, 'utf8');
+    const terraceDir = path.join(tmpDir, '.terrace');
+    fs.mkdirSync(terraceDir, { recursive: true });
+    fs.symlinkSync(externalPath, path.join(terraceDir, 'state.json'));
+
+    expectStateError(() => loadState(tmpDir), 'STATE_PATH_UNSAFE');
+    expectStateError(() => saveState(tmpDir, createDefaultState({ projectName: 'demo' })), 'STATE_PATH_UNSAFE');
+
+    expect(fs.readFileSync(externalPath, 'utf8')).toBe(sentinel);
+  });
+
+  it('refuses a symlinked .terrace directory before creating or replacing state', () => {
+    const externalDirectory = path.join(tmpDir, 'external-terrace');
+    fs.mkdirSync(externalDirectory, { recursive: true });
+    fs.symlinkSync(externalDirectory, path.join(tmpDir, '.terrace'));
+
+    expectStateError(() => saveState(tmpDir, createDefaultState({ projectName: 'demo' })), 'STATE_PATH_UNSAFE');
+
+    expect(fs.readdirSync(externalDirectory)).toEqual([]);
+  });
+
+  it('uses explicit replacement to recover an invalid state without accepting an untracked overwrite', () => {
+    const statePath = path.join(tmpDir, '.terrace', 'state.json');
+    fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    fs.writeFileSync(statePath, '{invalid state\n', 'utf8');
+
+    expectStateError(() => saveState(tmpDir, createDefaultState({ projectName: 'demo' })), 'STATE_JSON_INVALID');
+    replaceState(tmpDir, createDefaultState({ projectName: 'demo' }));
+
+    expect(loadState(tmpDir)).toMatchObject({
+      schema_version: '1.1',
+      state_revision: 1,
+      project: { name: 'demo' }
+    });
   });
 });

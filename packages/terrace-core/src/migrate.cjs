@@ -1,7 +1,7 @@
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
+const { preflightProjectArtifacts, readProjectText, resolveProjectArtifact, withManagedArtifactLock, writeProjectText } = require('./managed-artifacts.cjs');
 
 const MIGRATED_ARTIFACTS = [
   'docs/prd/PRD.md',
@@ -22,26 +22,30 @@ function addSchemaVersion(content, version) {
 
 function migrateArtifacts(cwd, version) {
   const targetVersion = version || '1.0';
-  const changed = [];
-  const skipped = [];
+  const outputPaths = new Map(MIGRATED_ARTIFACTS.map((relativePath) => [relativePath, path.resolve(cwd, relativePath)]));
+  return withManagedArtifactLock(cwd, () => {
+    preflightProjectArtifacts(cwd, MIGRATED_ARTIFACTS);
+    const changed = [];
+    const skipped = [];
 
-  for (const relPath of MIGRATED_ARTIFACTS) {
-    const filePath = path.resolve(cwd, relPath);
-    if (!fs.existsSync(filePath)) {
-      skipped.push({ file: filePath, reason: 'missing' });
-      continue;
+    for (const relPath of MIGRATED_ARTIFACTS) {
+      const artifact = resolveProjectArtifact(cwd, relPath, { createParents: false });
+      if (!artifact.fileStat) {
+        skipped.push({ file: outputPaths.get(relPath), reason: 'missing' });
+        continue;
+      }
+      const before = readProjectText(cwd, relPath);
+      const after = addSchemaVersion(before, targetVersion);
+      if (before === after) {
+        skipped.push({ file: outputPaths.get(relPath), reason: 'already_current' });
+        continue;
+      }
+      writeProjectText(cwd, relPath, after);
+      changed.push({ file: outputPaths.get(relPath), from: 'unversioned', to: targetVersion });
     }
-    const before = fs.readFileSync(filePath, 'utf8');
-    const after = addSchemaVersion(before, targetVersion);
-    if (before === after) {
-      skipped.push({ file: filePath, reason: 'already_current' });
-      continue;
-    }
-    fs.writeFileSync(filePath, after, 'utf8');
-    changed.push({ file: filePath, from: 'unversioned', to: targetVersion });
-  }
 
-  return { changed, skipped };
+    return { changed, skipped };
+  });
 }
 
 module.exports = {

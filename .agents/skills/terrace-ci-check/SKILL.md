@@ -1,6 +1,7 @@
 ---
 name: terrace-ci-check
 description: Run audit plus protected-change enforcement.
+argument-hint: [files...]
 ---
 
 # Terrace Ci Check

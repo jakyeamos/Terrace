@@ -1,6 +1,7 @@
 ---
 name: terrace-review-phase
 description: Run the GSD-compatible phase review alias.
+argument-hint: <phase-id>
 ---
 
 # Terrace Review Phase

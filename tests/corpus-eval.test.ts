@@ -19,6 +19,8 @@ describe('terrace corpus evaluation helpers', () => {
     const assets = templateAssets();
 
     expect(agentAssetExpectations()).toEqual({
+      codexInstructions: assets.filter((asset: { type: string }) => asset.type === 'codex-instructions').length,
+      claudeInstructions: assets.filter((asset: { type: string }) => asset.type === 'claude-instructions').length,
       codexSkills: assets.filter((asset: { type: string }) => asset.type === 'codex-skill').length,
       claudeSkills: assets.filter((asset: { type: string }) => asset.type === 'claude-skill').length,
       claudeCommands: assets.filter((asset: { type: string }) => asset.type === 'claude-command').length
@@ -43,7 +45,7 @@ describe('terrace corpus evaluation helpers', () => {
     })).toMatchObject({
       classification: 'expected-blocker',
       skipped: false,
-      remediation: 'Run terrace init in the migrated worktree to install missing non-overwriting agent assets.'
+      remediation: 'Run terrace agents repair in the migrated worktree to install missing non-overwriting agent assets.'
     });
   });
 
@@ -73,7 +75,7 @@ describe('terrace corpus evaluation helpers', () => {
       });
 
       expect(repair).toMatchObject({
-        command: 'terrace init --json',
+        command: 'terrace agents repair --json',
         exitCode: 0,
         jsonValid: true
       });
@@ -94,6 +96,40 @@ describe('terrace corpus evaluation helpers', () => {
       classification: 'product-weakness',
       skipped: false
     });
+  });
+
+  it('reports state-preserving agent repair for agent-asset blockers', () => {
+    const records = ['agent-asset-verification', 'doctor', 'commands-discover'].map((key) => ({
+      repo: 'demo',
+      repoType: 'node',
+      track: 'migrated-gsd',
+      key,
+      category: 'agent-integration',
+      classification: 'expected-blocker',
+      skipped: false,
+      remediation: 'Run terrace init to repair partial agent assets.',
+      score: { total: 72 }
+    }));
+    const summary = summarize(records, { runId: 'agent-repair-run', evidenceDir: process.cwd() });
+    const report = renderReport(summary, records, 'agent-repair-run');
+
+    expect(summary.topSelfServeFixes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        command: 'agent-asset-verification',
+        nextCommand: 'terrace agents repair'
+      }),
+      expect.objectContaining({
+        command: 'doctor',
+        nextCommand: 'terrace agents repair'
+      }),
+      expect.objectContaining({
+        command: 'commands-discover',
+        nextCommand: 'terrace agents repair'
+      })
+    ]));
+    expect(report).toContain('| agent-asset-verification | 1 | missing evidence | demo | migrated-gsd | terrace agents repair |');
+    expect(report).toContain('| doctor | 1 | workflow gate | demo | migrated-gsd | terrace agents repair |');
+    expect(report).toContain('| commands-discover | 1 | workflow gate | demo | migrated-gsd | terrace agents repair |');
   });
 
   it('renders product weaknesses separately from expected blockers', () => {

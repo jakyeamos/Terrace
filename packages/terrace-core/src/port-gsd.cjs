@@ -2,8 +2,9 @@
 
 const fs = require('fs');
 const path = require('path');
-const { createDefaultState, loadState, saveState } = require('./state.cjs');
+const { createDefaultState, loadState, replaceState, saveState } = require('./state.cjs');
 const { installAgentBootstrap } = require('./agents.cjs');
+const { managedArtifactExists, preflightProjectArtifacts, resolveProjectArtifact, withManagedArtifactLock, writeManagedJson, writeProjectText, writeProjectTextIfMissing } = require('./managed-artifacts.cjs');
 
 const COMMAND_STRATEGIES = {
   improved: ['gsd-new-project', 'gsd-discuss-phase', 'gsd-plan-phase', 'gsd-execute-phase', 'gsd-quick'],
@@ -462,16 +463,51 @@ function buildMarkdownArchive(source, content) {
 }
 
 function writeIfAllowed(cwd, relTarget, content, force, writes, skipped, artifact) {
-  const targetPath = path.resolve(cwd, relTarget);
-  if (fs.existsSync(targetPath) && !force) {
+  const target = resolveProjectArtifact(cwd, relTarget, { createParents: false });
+  if (target.fileStat && !force) {
     skipped.push(skippedArtifact(artifact, 'target_exists', relTarget));
     return false;
   }
 
-  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-  fs.writeFileSync(targetPath, content, 'utf8');
+  if (!force && !writeProjectTextIfMissing(cwd, relTarget, content)) {
+    skipped.push(skippedArtifact(artifact, 'target_exists', relTarget));
+    return false;
+  }
+  if (force) {
+    writeProjectText(cwd, relTarget, content);
+  }
   writes.push(relTarget);
   return true;
+}
+
+function portGsdOutputPaths(artifacts) {
+  const targets = new Set(Object.values(SUPPORTED_ARTIFACTS));
+  for (const artifact of artifacts) {
+    const phase = artifact.match(/^\.planning\/phases\/([^/]+)\/([^/]+)$/);
+    if (phase) {
+      const phaseDir = phase[1];
+      const fileName = phase[2];
+      if (/(?:^|-)UAT\.md$|(?:^|-)HUMAN-UAT\.md$|(?:^|-)VALIDATION\.md$|(?:^|-)VERIFICATION\.md$|(?:^|-)REVIEWS\.md$|(?:^|-)UI-REVIEW\.md$/i.test(fileName)) {
+        targets.add('docs/testing/gsd/' + phaseDir + '/' + fileName);
+      } else if (/-PLAN\.md$|-SUMMARY\.md$|(?:^|-)CONTEXT\.md$|(?:^|-)DISCUSSION-LOG\.md$|(?:^|-)RESEARCH\.md$|(?:^|-)UI-SPEC\.md$/i.test(fileName)) {
+        targets.add('docs/terrace-migration/phases/' + phaseDir + '/' + fileName);
+      }
+      continue;
+    }
+    if (artifact === '.planning/quick/.continue-here.md') {
+      targets.add('docs/terrace-migration/quick/.continue-here.md');
+      continue;
+    }
+    const quick = artifact.match(/^\.planning\/quick\/([^/]+)\/([^/]+)$/);
+    if (quick && /-(?:PLAN|SUMMARY)\.md$/i.test(quick[2])) {
+      targets.add('docs/terrace-migration/quick/' + quick[1] + '/' + quick[2]);
+      continue;
+    }
+    if (artifact.startsWith('.planning/debug/') || artifact.startsWith('.planning/milestones/')) {
+      targets.add('docs/terrace-migration/' + artifact.replace(/^\.planning\//, ''));
+    }
+  }
+  return [...targets];
 }
 
 function portGsdDryRun(cwd) {
@@ -892,19 +928,19 @@ function portGsdImportRoadmap(cwd) {
   };
 }
 
-function portGsd(cwd, options) {
+function portGsdUnlocked(cwd, options) {
   const opts = options || {};
   const artifacts = portGsdDryRun(cwd).artifacts;
-  const statePath = path.resolve(cwd, '.terrace', 'state.json');
+  preflightProjectArtifacts(cwd, portGsdOutputPaths(artifacts));
   const writes = [];
   const converted = [];
   const skipped = [];
 
-  if (fs.existsSync(statePath) && !opts.force) {
+  if (managedArtifactExists(cwd, 'state.json') && !opts.force) {
     throw new Error('.terrace/state.json already exists. Re-run with --force to overwrite migration state.');
   }
 
-  const state = createDefaultState({ projectName: path.basename(cwd) });
+  let state = createDefaultState({ projectName: path.basename(cwd) });
   state.workflow.status = 'intake_recorded';
   state.roadmap.phases = extractRoadmapPhases(cwd);
   state.migration = {
@@ -965,7 +1001,12 @@ function portGsd(cwd, options) {
   }
 
   state.migration.converted = converted;
-  saveState(cwd, state);
+  if (opts.force) {
+    replaceState(cwd, state);
+  } else {
+    saveState(cwd, state);
+  }
+  state = loadState(cwd);
   writes.unshift('.terrace/state.json');
   const nextCommand = nextCommandForState(state);
   state.migration.next_command = nextCommand;
@@ -1013,11 +1054,13 @@ function portGsd(cwd, options) {
     ],
     validation_commands: ['terrace doctor', 'terrace audit']
   };
-  const reportPath = path.resolve(cwd, '.terrace', 'migration', 'gsd-port-report.json');
-  fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n', 'utf8');
+  writeManagedJson(cwd, 'migration/gsd-port-report.json', report);
 
   return report;
+}
+
+function portGsd(cwd, options) {
+  return withManagedArtifactLock(cwd, () => portGsdUnlocked(cwd, options));
 }
 
 module.exports = {

@@ -13,63 +13,15 @@ importers:
 
   .:
     dependencies:
-      '@nodelib/fs.scandir':
-        specifier: ^2.1.5
-        version: 2.1.5
-      '@nodelib/fs.stat':
-        specifier: ^2.0.5
-        version: 2.0.5
-      '@nodelib/fs.walk':
-        specifier: ^1.2.8
-        version: 1.2.8
-      braces:
-        specifier: ^3.0.3
-        version: 3.0.3
+      ajv:
+        specifier: 8.20.0
+        version: 8.20.0
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
-      fastq:
-        specifier: ^1.20.1
-        version: 1.20.1
-      fill-range:
-        specifier: ^7.1.1
-        version: 7.1.1
-      glob-parent:
-        specifier: ^5.1.2
-        version: 5.1.2
       ignore:
         specifier: ^7.0.5
         version: 7.0.5
-      is-extglob:
-        specifier: ^2.1.1
-        version: 2.1.1
-      is-glob:
-        specifier: ^4.0.3
-        version: 4.0.3
-      is-number:
-        specifier: ^7.0.0
-        version: 7.0.0
-      merge2:
-        specifier: ^1.4.1
-        version: 1.4.1
-      micromatch:
-        specifier: ^4.0.8
-        version: 4.0.8
-      picomatch:
-        specifier: ^2.3.2
-        version: 2.3.2
-      queue-microtask:
-        specifier: ^1.2.3
-        version: 1.2.3
-      reusify:
-        specifier: ^1.1.0
-        version: 1.1.0
-      run-parallel:
-        specifier: ^1.2.0
-        version: 1.2.0
-      to-regex-range:
-        specifier: ^5.0.1
-        version: 5.0.1
       yaml:
         specifier: ^2.8.3
         version: 2.9.0
@@ -80,9 +32,6 @@ importers:
       '@vitest/coverage-v8':
         specifier: 4.1.2
         version: 4.1.2(vitest@4.1.2(@types/node@24.13.2)(vite@8.1.0(@types/node@24.13.2)(yaml@2.9.0)))
-      ajv:
-        specifier: 8.20.0
-        version: 8.20.0
       ajv-formats:
         specifier: 3.0.1
         version: 3.0.1(ajv@8.20.0)

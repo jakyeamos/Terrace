@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { blocker } = require('./guidance.cjs');
 const { parseFrontmatter } = require('./json.cjs');
+const { readManagedJson } = require('./managed-artifacts.cjs');
 
 const REQUIRED_SECTIONS = {
   'PRD.md': ['problem', 'actors', 'desired_outcomes', 'non_goals', 'constraints', 'success_criteria', 'open_questions'],
@@ -95,9 +96,8 @@ function validateArtifacts(cwd, config) {
   }
 
   try {
-    const statePath = path.resolve(cwd, '.terrace', 'state.json');
-    if (fs.existsSync(statePath)) {
-      const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+    const state = readManagedJson(cwd, 'state.json', null);
+    if (state) {
       const sessions = state.sessions || [];
       const lastSession = sessions.length > 0 ? sessions[sessions.length - 1].started_at : null;
       if (lastSession) {
@@ -108,7 +108,7 @@ function validateArtifacts(cwd, config) {
             result.warnings.push({
               code: 'STALE_SESSION',
               message: 'last_session is older than 30 days',
-              file: statePath
+              file: '.terrace/state.json'
             });
           }
         }

@@ -1,6 +1,7 @@
 ---
 name: terrace-phase-validate
 description: Write a phase validation artifact.
+argument-hint: <phase-id>
 ---
 
 # Terrace Phase Validate

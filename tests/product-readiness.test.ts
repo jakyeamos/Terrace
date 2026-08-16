@@ -16,6 +16,14 @@ function terraceExec(terraceBin: string, args: string[], options: { cwd: string;
   return execFileSync(terraceBin, args, { ...options, shell: windowsShell });
 }
 
+function packedPaths(): string[] {
+  const output = pnpmExec(['pack', '--dry-run', '--json', '--config.node-linker=hoisted'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+  return (JSON.parse(output) as { files: Array<{ path: string }> }).files.map((file) => file.path);
+}
+
 type GlobalCommandSurface = {
   name: string;
   help?: string;
@@ -27,104 +35,26 @@ type AgentAsset = {
   status: string;
 };
 
-const globalCommandSurface: GlobalCommandSurface[] = [
-  { name: 'terrace-help' },
-  { name: 'terrace-version' },
-  { name: 'terrace-init', help: 'terrace init' },
-  { name: 'terrace-agents-install-global', help: 'terrace agents install-global' },
-  { name: 'terrace-new-project', help: 'terrace new-project <name> --prd <file>|--paste-prd' },
-  { name: 'terrace-prd-import', help: 'terrace prd import <feature> --file <file>|--paste' },
-  { name: 'terrace-doctor', help: 'terrace doctor' },
-  { name: 'terrace-spec-validate', help: 'terrace spec validate' },
-  { name: 'terrace-spec-hash', help: 'terrace spec hash --file <path>' },
-  { name: 'terrace-audit', help: 'terrace audit' },
-  { name: 'terrace-ci-check', help: 'terrace ci check [files...]' },
-  { name: 'terrace-security-check', help: 'terrace security check' },
-  { name: 'terrace-corpus-run', help: 'terrace corpus run' },
-  { name: 'terrace-corpus-report', help: 'terrace corpus report' },
-  { name: 'terrace-adoption-status', help: 'terrace adoption status' },
-  { name: 'terrace-port-gsd-dry-run', help: 'terrace port gsd [--dry-run|--compare|--verify-parity|--import-roadmap]' },
-  { name: 'terrace-port-gsd-import-roadmap', help: 'terrace port gsd [--dry-run|--compare|--verify-parity|--import-roadmap]' },
-  { name: 'terrace-port-gsd', help: 'terrace port gsd [--dry-run|--compare|--verify-parity|--import-roadmap]' },
-  { name: 'terrace-planning-refresh', help: 'terrace planning refresh' },
-  { name: 'terrace-next', help: 'terrace next' },
-  { name: 'terrace-resume', help: 'terrace resume' },
-  { name: 'terrace-blocker-list', help: 'terrace blocker list' },
-  { name: 'terrace-blocker-resolve', help: 'terrace blocker resolve <id> --owner <owner> --evidence <ref>' },
-  { name: 'terrace-history', help: 'terrace history' },
-  { name: 'terrace-do', help: 'terrace do <intent>' },
-  { name: 'terrace-autonomous', help: 'terrace autonomous' },
-  { name: 'terrace-execute-phase-complete', help: 'terrace execute-phase-complete <id>' },
-  { name: 'terrace-settings-show', help: 'terrace settings show' },
-  { name: 'terrace-settings-effort', help: 'terrace settings effort <fast|standard|thorough>' },
-  { name: 'terrace-commands-discover', help: 'terrace commands discover' },
-  { name: 'terrace-align', help: 'terrace align <feature>' },
-  { name: 'terrace-interrogate', help: 'terrace interrogate <feature>' },
-  { name: 'terrace-map-codebase', help: 'terrace map-codebase' },
-  { name: 'terrace-design', help: 'terrace design <feature>' },
-  { name: 'terrace-test-plan', help: 'terrace test-plan <feature>' },
-  { name: 'terrace-observe', help: 'terrace observe <feature>' },
-  { name: 'terrace-validate-prod', help: 'terrace validate-prod <feature>' },
-  { name: 'terrace-cleanup', help: 'terrace cleanup <feature>' },
-  { name: 'terrace-ui-import-stitch', help: 'terrace ui import-stitch <feature>' },
-  { name: 'terrace-ui-plan-refresh', help: 'terrace ui plan-refresh <feature>' },
-  { name: 'terrace-ui-diff', help: 'terrace ui diff <feature>' },
-  { name: 'terrace-phase-list', help: 'terrace phase list' },
-  { name: 'terrace-phase-show', help: 'terrace phase show <id>' },
-  { name: 'terrace-phase-plan', help: 'terrace phase plan <id>' },
-  { name: 'terrace-phase-execute', help: 'terrace phase execute <id>' },
-  { name: 'terrace-phase-validate', help: 'terrace phase validate <id>' },
-  { name: 'terrace-phase-review', help: 'terrace phase review <id>' },
-  { name: 'terrace-phase-complete', help: 'terrace phase complete <id>' },
-  { name: 'terrace-quick-list', help: 'terrace quick list' },
-  { name: 'terrace-quick-show', help: 'terrace quick show <id>' },
-  { name: 'terrace-quick-plan', help: 'terrace quick plan <title>' },
-  { name: 'terrace-quick-execute', help: 'terrace quick execute <id>' },
-  { name: 'terrace-quick-complete', help: 'terrace quick complete <id>' },
-  { name: 'terrace-backlog-list', help: 'terrace backlog list' },
-  { name: 'terrace-backlog-add', help: 'terrace backlog add <title>' },
-  { name: 'terrace-ship-check', help: 'terrace ship check' },
-  { name: 'terrace-ship-prepare', help: 'terrace ship prepare' },
-  { name: 'terrace-release-preflight', help: 'terrace release-preflight' },
-  { name: 'terrace-report', help: 'terrace report [update|open|history|ceremony]' },
-  { name: 'terrace-handoff-create', help: 'terrace handoff create [--feature <id>] [--for codex|claude|generic]' },
-  { name: 'terrace-debt', help: 'terrace debt add|list|audit|resolve' },
-  { name: 'terrace-preflight', help: 'terrace preflight <feature>' },
-  { name: 'terrace-docu', help: 'terrace docu <feature>' },
-  { name: 'terrace-test-eval', help: 'terrace test eval' },
-  { name: 'terrace-review-ai', help: 'terrace review ai --mode <mode>' },
-  { name: 'terrace-rule-add', help: 'terrace rule add <domain> <rule-id>' },
-  { name: 'terrace-rule-audit', help: 'terrace rule audit' },
-  { name: 'terrace-waive', help: 'terrace waive <gate>' },
-  { name: 'terrace-backfill', help: 'terrace backfill' },
-  { name: 'terrace-workstreams-plan', help: 'terrace workstreams plan <feature>' },
-  { name: 'terrace-workbench-status', help: 'terrace workbench status [--feature <id>]' },
-  { name: 'terrace-workbench-prepare', help: 'terrace workbench prepare <feature> [--tier small|medium|large] [--for codex|claude|generic]' },
-  { name: 'terrace-design-source-import', help: 'terrace design-source import <source> <feature> <ref>' },
-  { name: 'terrace-plan-phase', help: 'terrace plan-phase <id>' },
-  { name: 'terrace-execute-phase', help: 'terrace execute-phase <id>' },
-  { name: 'terrace-validate-phase', help: 'terrace validate-phase <id>' },
-  { name: 'terrace-review-phase', help: 'terrace review-phase <id>' },
-  { name: 'terrace-complete-phase', help: 'terrace complete-phase <id>' },
-  { name: 'terrace-rule-list', help: 'terrace rule list' },
-  { name: 'terrace-rule-explain', help: 'terrace rule explain <id>' },
-  { name: 'terrace-preset-list', help: 'terrace preset list' },
-  { name: 'terrace-preset-install', help: 'terrace preset install <id>' }
-];
+const { listProductReadinessSurface, renderReadmeCommandIndex } = require('../packages/terrace-core/src/index.cjs') as {
+  listProductReadinessSurface: () => GlobalCommandSurface[];
+  renderReadmeCommandIndex: () => string;
+};
+
+const globalCommandSurface = listProductReadinessSurface();
 
 describe('tier-one product readiness', () => {
   it('exposes registry metadata for a publishable CLI package', () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
     expect(pkg.bin).toEqual({ terrace: 'src/terrace-tools.cjs' });
+    expect(pkg.main).toBe('packages/terrace-core/src/index.cjs');
     expect(pkg.files).toEqual([
       'src/',
       'scripts/',
       'packages/terrace-core/',
       'README.md',
       'LICENSE',
-      'CHANGELOG.md',
-      'docs/'
+      'CHANGELOG.md'
     ]);
     expect(pkg.license).toBe('MIT');
     expect(pkg.author.name).toBe('Jakye Amos');
@@ -133,6 +63,21 @@ describe('tier-one product readiness', () => {
     expect(pkg.publishConfig).toMatchObject({ access: 'public', provenance: true });
     expect(pkg.repository.type).toBe('git');
     expect(pkg.exports['.']).toBe('./packages/terrace-core/src/index.cjs');
+  });
+
+  it('keeps the legacy main entry import-safe', () => {
+    const script = [
+      'const library = require(' + JSON.stringify(repoRoot) + ');',
+      'const cliPath = require.resolve(' + JSON.stringify(cliPath) + ');',
+      'process.stdout.write(JSON.stringify({ init_core: typeof library.initCore, cli_loaded: Boolean(require.cache[cliPath]) }));'
+    ].join('\n');
+    const result = spawnSync(process.execPath, ['-e', script], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
+
+    expect(result.status, result.stderr).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({ init_core: 'function', cli_loaded: false });
   });
 
   it('documents install, quickstart, command reference, workflow examples, and troubleshooting', () => {
@@ -144,6 +89,19 @@ describe('tier-one product readiness', () => {
     expect(readme).toContain('terrace report` is read-only');
     expect(readme).toContain('pnpm audit --audit-level moderate');
     expect(readme).toContain('pnpm run release:dry-run');
+    expect(readme).toContain('terrace init --force --yes');
+  });
+
+  it('keeps the README command index generated from the catalog', () => {
+    const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+    const startMarker = '<!-- terrace-command-catalog:start -->';
+    const endMarker = '<!-- terrace-command-catalog:end -->';
+    const start = readme.indexOf(startMarker);
+    const end = readme.indexOf(endMarker);
+
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(end).toBeGreaterThan(start);
+    expect(readme.slice(start, end + endMarker.length)).toBe(renderReadmeCommandIndex());
   });
 
   it('prints top-level CLI help and version without requiring a Terrace state file', () => {
@@ -165,6 +123,25 @@ describe('tier-one product readiness', () => {
     expect(pkg.files).not.toContain('.planning');
     expect(pkg.files).not.toContain('.tracker');
     expect(pkg.files).not.toContain('tests');
+  });
+
+  it('contains only runtime assets in the publish payload', () => {
+    const paths = packedPaths();
+    const corpusConfig = fs.readFileSync(path.join(repoRoot, 'scripts', 'terrace-corpus-default-config.json'), 'utf8');
+
+    expect(paths).toEqual(expect.arrayContaining([
+      'src/terrace-tools.cjs',
+      'scripts/terrace-corpus-eval.cjs',
+      'scripts/terrace-corpus-default-config.json',
+      'packages/terrace-core/src/index.cjs'
+    ]));
+    expect(paths.length).toBeGreaterThan(0);
+    expect(paths.length).toBeLessThan(160);
+    expect(paths.some((file) => file.startsWith('docs/'))).toBe(false);
+    expect(paths.some((file) => file.startsWith('docs/terrace/corpus/'))).toBe(false);
+    expect(paths.some((file) => file.startsWith('.agents/') || file.startsWith('.claude/'))).toBe(false);
+    expect(JSON.parse(corpusConfig)).toMatchObject({ realRepos: [] });
+    expect(corpusConfig).not.toMatch(/\/Users\/|\/private\/|docs\/terrace\/corpus/);
   });
 
   it('publishes releases through GitHub trusted publishing instead of npm tokens', () => {
@@ -239,6 +216,7 @@ describe('tier-one product readiness', () => {
       const terraceBin = path.join(consumerDir, 'node_modules', '.bin', 'terrace');
       const help = terraceExec(terraceBin, ['--help'], { cwd: consumerDir, encoding: 'utf8' });
       const version = terraceExec(terraceBin, ['--version'], { cwd: consumerDir, encoding: 'utf8' }).trim();
+      const corpusPlan = JSON.parse(terraceExec(terraceBin, ['corpus', 'run', '--dry-run-plan', '--sample', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const globalInstall = JSON.parse(terraceExec(terraceBin, ['agents', 'install-global', '--json'], {
         cwd: consumerDir,
         encoding: 'utf8',
@@ -249,17 +227,30 @@ describe('tier-one product readiness', () => {
         }
       }));
       const init = JSON.parse(terraceExec(terraceBin, ['init', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      const statePath = path.join(consumerDir, '.terrace', 'state.json');
+      const eventsPath = path.join(consumerDir, '.terrace', 'events.jsonl');
+      const stateBeforeRepeat = fs.readFileSync(statePath, 'utf8');
+      const eventsBeforeRepeat = fs.readFileSync(eventsPath, 'utf8');
+      const repeatedInit = JSON.parse(terraceExec(terraceBin, ['init', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      fs.rmSync(path.join(consumerDir, '.agents', 'skills', 'terrace-next'), { recursive: true });
+      const agentRepair = JSON.parse(terraceExec(terraceBin, ['agents', 'repair', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
+      expect(fs.readFileSync(statePath, 'utf8')).toBe(stateBeforeRepeat);
+      expect(fs.readFileSync(eventsPath, 'utf8')).toBe(eventsBeforeRepeat);
       const terraceRoute = JSON.parse(terraceExec(terraceBin, ['do', 'what next', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const terraceNext = JSON.parse(terraceExec(terraceBin, ['next', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const doctor = JSON.parse(terraceExec(terraceBin, ['doctor', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const audit = JSON.parse(terraceExec(terraceBin, ['audit', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
-      const report = JSON.parse(terraceExec(terraceBin, ['report', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const reportPath = path.join(consumerDir, '.terrace', 'report-card.json');
+      expect(fs.existsSync(reportPath)).toBe(false);
+      const report = JSON.parse(terraceExec(terraceBin, ['report', 'update', '--json'], { cwd: consumerDir, encoding: 'utf8' }));
       const reportMtime = fs.statSync(reportPath).mtimeMs;
       const ship = spawnSync(terraceBin, ['ship', 'check', '--json'], { cwd: consumerDir, encoding: 'utf8', shell: windowsShell });
 
       expect(help).toContain('Usage: terrace <command>');
       expect(version).toBe(JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version);
+      expect(corpusPlan.plan).toEqual(expect.any(Array));
+      expect(corpusPlan.plan.length).toBeGreaterThan(0);
+      expect(fs.statSync(tarballPath).size).toBeLessThan(300_000);
       expect(globalInstall).toMatchObject({
         enabled: true,
         global_agents_dir: globalAgentsDir,
@@ -322,12 +313,18 @@ describe('tier-one product readiness', () => {
       expect(codexTerraceEntrypoint).toContain('terrace next');
       expect(codexTerraceNext).toContain('Run `terrace next`.');
       expect(claudeTerraceEntrypoint).toContain('description: Route Terrace workflow intent through the local Terrace CLI.');
+      expect(claudeTerraceEntrypoint).toContain('argument-hint: <intent> | --apply <plan-token>');
       expect(claudeTerraceEntrypoint).toContain('terrace do "$ARGUMENTS"');
       expect(init.created).toContain('.terrace/state.json');
+      expect(repeatedInit).toMatchObject({ mode: 'already_initialized', created: [] });
+      expect(agentRepair.assets).toEqual(expect.arrayContaining([
+        expect.objectContaining({ path: '.agents/skills/terrace-next/SKILL.md', status: 'written' })
+      ]));
       expect(terraceRoute.command).toBe('terrace next');
       expect(terraceRoute.result.command).toBe(terraceNext.command);
       expect(doctor.healthy).toBe(true);
       expect(audit.healthy).toBe(true);
+      expect(audit.read_only).toBe(true);
       expect(report.artifact).toBe('.terrace/report-card.json');
       expect(JSON.parse(ship.stdout).categories.map((category: { category: string }) => category.category)).toContain('tier_one_report');
       expect(ship.stdout).not.toContain(repoRoot);

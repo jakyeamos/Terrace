@@ -1,6 +1,7 @@
 ---
 name: terrace-quick-complete
 description: Complete a quick task after verification evidence exists.
+argument-hint: <quick-task-id>
 ---
 
 # Terrace Quick Complete

@@ -1,6 +1,7 @@
 ---
 name: terrace-ui-import-stitch
 description: Capture a Stitch design import for UI work.
+argument-hint: <feature>
 ---
 
 # Terrace Ui Import Stitch

@@ -1,5 +1,5 @@
 ---
-description: Run read-only release readiness checks.
+description: Run read-only release readiness checks; use --full only to execute project scripts.
 ---
 
 # Terrace Ship Check

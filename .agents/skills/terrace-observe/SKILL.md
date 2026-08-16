@@ -1,6 +1,7 @@
 ---
 name: terrace-observe
 description: Write feature observability and post-launch debugging intent.
+argument-hint: <feature>
 ---
 
 # Terrace Observe

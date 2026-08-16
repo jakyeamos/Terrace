@@ -6,6 +6,40 @@ import addFormats from 'ajv-formats';
 
 const SCHEMAS_DIR = path.resolve(process.cwd(), 'packages/terrace-core/schemas');
 
+function canonicalState(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    schema_version: '1.1',
+    state_revision: 0,
+    project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
+    workflow: { status: 'initialized', mode: 'strict', active_feature: null },
+    roadmap: { phases: [] },
+    active_slice: null,
+    red_gate: {},
+    green_gate: {},
+    protected_tests: [],
+    decisions: [],
+    sessions: [],
+    migration: { source: 'gsd', converted: [] },
+    handoff: null,
+    handoffs: [],
+    workstreams: {},
+    design_sources: {},
+    preflights: {},
+    ai_reviews: [],
+    debt: [],
+    documentation: {},
+    test_evaluations: [],
+    rule_audits: [],
+    waivers: [],
+    backfills: [],
+    report_card: {},
+    backlog: { items: [] },
+    blocked_actions: [],
+    quick_tasks: [],
+    ...overrides
+  };
+}
+
 describe('JSON Schema: state.schema.json', () => {
   let schema: Record<string, unknown>;
   let ajv: Ajv;
@@ -22,27 +56,12 @@ describe('JSON Schema: state.schema.json', () => {
 
   it('schema requires strict-core top-level state fields', () => {
     const required = (schema as { required?: string[] }).required ?? [];
-    expect(required).toEqual(expect.arrayContaining(['workflow', 'roadmap', 'active_slice', 'red_gate', 'green_gate', 'protected_tests']));
+    expect(required).toEqual(expect.arrayContaining(['state_revision', 'workflow', 'roadmap', 'active_slice', 'red_gate', 'green_gate', 'protected_tests']));
   });
 
   it('validates a correct strict-core state object', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({
-      schema_version: '1.0',
-      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
-      workflow: { status: 'initialized', mode: 'strict', active_feature: null },
-      roadmap: { phases: [] },
-      active_slice: null,
-      red_gate: {},
-      green_gate: {},
-      protected_tests: [],
-      decisions: [],
-      sessions: [],
-      migration: { source: 'gsd', converted: [] },
-      handoff: null,
-      backlog: { items: [] },
-      blocked_actions: []
-    });
+    const valid = validate(canonicalState());
     expect(valid).toBe(true);
   });
 
@@ -60,78 +79,29 @@ describe('JSON Schema: state.schema.json', () => {
 
   it('rejects invalid workflow mode value', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({
-      schema_version: '1.0',
-      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
-      workflow: { status: 'initialized', mode: 'invalid-mode', active_feature: null },
-      roadmap: { phases: [] },
-      active_slice: null,
-      red_gate: {},
-      green_gate: {},
-      protected_tests: [],
-      decisions: [],
-      sessions: [],
-      backlog: { items: [] },
-      blocked_actions: []
-    });
+    const valid = validate(canonicalState({
+      workflow: { status: 'initialized', mode: 'invalid-mode', active_feature: null }
+    }));
     expect(valid).toBe(false);
   });
 
   it('rejects unknown workflow status value', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({
-      schema_version: '1.0',
-      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
-      workflow: { status: 'nonexistent-status', mode: 'strict', active_feature: null },
-      roadmap: { phases: [] },
-      active_slice: null,
-      red_gate: {},
-      green_gate: {},
-      protected_tests: [],
-      decisions: [],
-      sessions: [],
-      backlog: { items: [] },
-      blocked_actions: []
-    });
+    const valid = validate(canonicalState({
+      workflow: { status: 'nonexistent-status', mode: 'strict', active_feature: null }
+    }));
     expect(valid).toBe(false);
   });
 
   it('accepts null for active_slice and active_feature', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({
-      schema_version: '1.0',
-      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
-      workflow: { status: 'initialized', mode: 'strict', active_feature: null },
-      roadmap: { phases: [] },
-      active_slice: null,
-      red_gate: {},
-      green_gate: {},
-      protected_tests: [],
-      decisions: [],
-      sessions: [],
-      backlog: { items: [] },
-      blocked_actions: []
-    });
+    const valid = validate(canonicalState());
     expect(valid).toBe(true);
   });
 
   it('allows additional properties (future extensibility for Phase 2+)', () => {
     const validate = ajv.compile(schema);
-    const valid = validate({
-      schema_version: '1.0',
-      project: { name: 'test', created_at: '2026-04-28T00:00:00.000Z' },
-      workflow: { status: 'initialized', mode: 'strict', active_feature: null },
-      roadmap: { phases: [] },
-      active_slice: null,
-      red_gate: {},
-      green_gate: {},
-      protected_tests: [],
-      decisions: [],
-      sessions: [],
-      backlog: { items: [] },
-      blocked_actions: [],
-      extra_field: 'value'
-    });
+    const valid = validate(canonicalState({ extra_field: 'value' }));
     expect(valid).toBe(true);
   });
 });

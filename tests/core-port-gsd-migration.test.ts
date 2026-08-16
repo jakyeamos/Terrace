@@ -78,6 +78,23 @@ describe('terrace port gsd migration', () => {
     expect(() => portGsd(tmpDir, { force: false })).toThrow(/already exists/);
   });
 
+  it('refuses a symlinked migration output parent before it writes Terrace state', () => {
+    const outside = path.join(tmpDir, 'outside-docs');
+    fs.mkdirSync(outside, { recursive: true });
+    fs.symlinkSync(outside, path.join(tmpDir, 'docs'));
+
+    let thrown: { details?: { code?: string } } | null = null;
+    try {
+      portGsd(tmpDir, { force: false });
+    } catch (error) {
+      thrown = error as { details?: { code?: string } };
+    }
+
+    expect(thrown?.details?.code).toBe('MANAGED_ARTIFACT_PATH_UNSAFE');
+    expect(fs.existsSync(path.join(tmpDir, '.terrace', 'state.json'))).toBe(false);
+    expect(fs.readdirSync(outside)).toEqual([]);
+  });
+
   it('does not treat roadmap subsection headings as phases', () => {
     fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), [
       '# Terrace Roadmap',
@@ -132,6 +149,7 @@ describe('terrace port gsd migration', () => {
           plans: [{ id: 'custom-plan', title: 'Keep me' }]
         }]
       },
+      active_slice: null,
       red_gate: { status: 'not_started', evidence: [] },
       green_gate: { status: 'not_started', evidence: [] },
       protected_tests: [],

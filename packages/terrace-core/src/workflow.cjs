@@ -1,40 +1,40 @@
 'use strict';
 
-const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { loadState, saveState } = require('./state.cjs');
 const { beginPhaseStageRun, persistStageTransition, recoverStageRun } = require('./stage-state.cjs');
 const { appendEvent } = require('./events.cjs');
-const { phaseEffortDefault, readConfig } = require('./config.cjs');
-const { runAudit } = require('./audit.cjs');
-const { agentAssetStatus } = require('./agents.cjs');
-const { blocker, createStopPacket, topBlockers, warning } = require('./guidance.cjs');
-const { runDoctor } = require('./health.cjs');
-const { analyzeRepository, bulletList, listProjectFiles, readSmallText } = require('./repo-analysis.cjs');
-const { securityShipCheck } = require('./security-check.cjs');
-const { requireInterrogationAnswers, answerLines } = require('./interrogation.cjs');
-const { packageManagerFor, runCommandFor, setScriptCommand, packageDryRunCommand } = require('./package-manager.cjs');
+const { phaseEffortDefault } = require('./config.cjs');
+const { blocker, createStopPacket, guidanceError } = require('./guidance.cjs');
+const { discoverProjectCommands } = require('./project-command-discovery.cjs');
 const {
-  buildPhaseExecutionQueue,
-  featureRef,
-  normalizeFeatureId,
-  normalizeTier,
-  seniorArtifactRefs,
-  seniorRequirements,
-  seniorCycleGateStatus
-} = require('./workflow-helpers.cjs');
+  createReleasePreflight,
+  terracePackageReleaseTarget,
+  trustedPublishingShipCheck
+} = require('./release-preflight.cjs');
+const { createShipReadiness } = require('./ship-readiness.cjs');
+const { buildPhaseExecutionQueue } = require('./workflow-helpers.cjs');
 const {
-  reportUpdate,
-  reportShipCheck,
-  preflightShipCheck,
-  debtShipCheck,
-  documentationShipCheck,
-  testEvalShipCheck,
-  aiReviewShipCheck,
-  ruleAuditShipCheck,
-  waiverShipCheck
-} = require('./lifecycle.cjs');
+  seniorCycleStatus,
+  seniorFeatureForState,
+  activeSeniorFeature,
+  seniorCycleShipCheck,
+  alignFeature,
+  interrogateFeature,
+  mapCodebase,
+  designFeature,
+  testPlanFeature,
+  observeFeature,
+  validateProdFeature,
+  cleanupFeature,
+  uiImportStitch,
+  uiPlanRefresh,
+  uiDiff
+} = require('./senior-cycle.cjs');
+const { withManagedArtifactLock, writeProjectText } = require('./managed-artifacts.cjs');
+const { reportUpdate } = require('./reporting.cjs');
+const { resolveIntentCommand } = require('./intent-catalog.cjs');
 const {
   prepareQualityRunner,
   preflightQualityRunner,
@@ -55,21 +55,9 @@ function safeResolve(cwd, relativeFilePath) {
   return resolved;
 }
 
-function ensureDirFor(cwd, relativeFilePath) {
-  fs.mkdirSync(path.dirname(safeResolve(cwd, relativeFilePath)), { recursive: true });
-}
-
 function writeMarkdown(cwd, relativeFilePath, lines) {
-  ensureDirFor(cwd, relativeFilePath);
-  fs.writeFileSync(safeResolve(cwd, relativeFilePath), lines.join('\n') + '\n', 'utf8');
+  writeProjectText(cwd, relativeFilePath, lines.join('\n') + '\n');
   return relativeFilePath;
-}
-
-function readJsonFile(filePath) {
-  if (!fs.existsSync(filePath)) {
-    return null;
-  }
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
 function readTextIfExists(cwd, relativeFilePath) {
@@ -341,185 +329,16 @@ function findPhaseByText(state, text) {
   }) || null;
 }
 
-function deadCodeGateConfig(cwd) {
-  const config = readConfig(cwd);
-  const gate = config.ship_gates && config.ship_gates.dead_code && typeof config.ship_gates.dead_code === 'object'
-    ? config.ship_gates.dead_code
-    : {};
-  const configuredScripts = Array.isArray(gate.scripts)
-    ? gate.scripts.filter((script) => typeof script === 'string' && script.trim()).map((script) => script.trim())
-    : typeof gate.script === 'string' && gate.script.trim()
-      ? [gate.script.trim()]
-      : [];
-  return {
-    enabled: gate.enabled !== false,
-    reason: typeof gate.reason === 'string' ? gate.reason : null,
-    configured: configuredScripts.length > 0,
-    scripts: configuredScripts.length > 0 ? configuredScripts : ['dead-code', 'deadcode', 'knip', 'unused', 'unused:check', 'depcheck']
-  };
-}
+const { dirtyTreeCheck, shipCheck, shipPrepare } = createShipReadiness({
+  seniorCycleShipCheck,
+  terracePackageReleaseTarget,
+  trustedPublishingShipCheck
+});
 
-function discoverDeadCodeGate(cwd, scripts, packageManager) {
-  const config = deadCodeGateConfig(cwd);
-  const foundScript = config.enabled
-    ? config.scripts.find((script) => Object.prototype.hasOwnProperty.call(scripts, script)) || null
-    : null;
-  return {
-    enabled: config.enabled,
-    configured: config.configured,
-    skipped: !config.enabled,
-    reason: config.reason,
-    scripts: config.scripts,
-    script: foundScript || config.scripts[0] || null,
-    exists: Boolean(foundScript),
-    command: foundScript ? runCommandFor(packageManager, foundScript).join(' ') : null
-  };
-}
-
-function discoverProjectCommands(cwd) {
-  const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
-  const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
-  const packageManager = packageManagerFor(cwd);
-  const desired = [
-    { category: 'typecheck', script: 'typecheck', required: false, suggested: 'tsc --noEmit' },
-    { category: 'lint', script: 'lint', required: true, suggested: 'eslint .' },
-    { category: 'test', script: 'test', required: false, suggested: 'vitest run or project test equivalent' },
-    { category: 'coverage', script: 'test:coverage', required: false, suggested: 'vitest run --coverage or project equivalent' },
-    { category: 'package', script: 'package:dry-run', required: false, suggested: packageDryRunCommand(packageManager) },
-    { category: 'build', script: 'build', required: false, suggested: 'framework build command' }
-  ];
-  const checks = desired.map((item) => {
-    const exists = Object.prototype.hasOwnProperty.call(scripts, item.script);
-    return {
-      ...item,
-      exists,
-      command: exists ? runCommandFor(packageManager, item.script).join(' ') : null
-    };
-  });
-  const agentAssets = agentAssetStatus(cwd);
-  return {
-    package_manager: packageManager,
-    scripts,
-    checks,
-    dead_code: discoverDeadCodeGate(cwd, scripts, packageManager),
-    agent_assets: agentAssets,
-    warnings: agentAssets.partial ? [warning({
-      code: 'PARTIAL_AGENT_ASSETS',
-      message: 'Generated Terrace agent assets are partially installed.',
-      why_blocked: 'Codex or Claude may only discover a subset of Terrace commands until missing generated assets are installed.',
-      next_command: 'terrace init',
-      remediation: 'Run `terrace init`; it installs missing generated agent assets without overwriting user-owned files.'
-    })] : []
-  };
-}
-
-function artifactExists(cwd, relativeFilePath) {
-  return fs.existsSync(path.resolve(cwd, relativeFilePath));
-}
-
-function recordSeniorArtifact(cwd, featureId, tier, artifactKey, artifactRef) {
-  const state = loadState(cwd);
-  const seniorCycle = state.senior_cycle || { features: {} };
-  const features = seniorCycle.features || {};
-  const current = features[featureId] || { feature_id: featureId };
-  const artifacts = current.artifacts || {};
-  const nextState = {
-    ...state,
-    workflow: {
-      ...state.workflow,
-      active_feature: featureId
-    },
-    senior_cycle: {
-      ...seniorCycle,
-      active_feature: featureId,
-      features: {
-        ...features,
-        [featureId]: {
-          ...current,
-          feature_id: featureId,
-          tier,
-          architecture_default: 'sustainable',
-          no_band_aid_rule: true,
-          artifacts: {
-            ...artifacts,
-            [artifactKey]: artifactRef
-          },
-          updated_at: nowIso()
-        }
-      }
-    }
-  };
-  saveState(cwd, nextState);
-}
-
-function seniorCycleStatus(cwd, feature, tier) {
-  const featureId = normalizeFeatureId(feature);
-  const normalizedTier = normalizeTier(tier);
-  const requirements = seniorRequirements(featureId, normalizedTier);
-  const existingArtifacts = requirements.all.filter((artifact) => artifactExists(cwd, artifact));
-  return seniorCycleGateStatus({ feature: featureId, tier: normalizedTier, existingArtifacts });
-}
-
-function seniorFeatureForState(state, featureId, fallbackTier) {
-  const seniorCycle = state.senior_cycle || {};
-  const features = seniorCycle.features || {};
-  const current = features[featureId] || {};
-  return {
-    feature_id: featureId,
-    tier: current.tier || fallbackTier || 'medium',
-    opted_in: Boolean(features[featureId])
-  };
-}
-
-function activeSeniorFeature(state) {
-  const seniorCycle = state.senior_cycle || {};
-  const activeFeature = seniorCycle.active_feature || (state.workflow && state.workflow.active_feature);
-  if (!activeFeature) {
-    return null;
-  }
-  return seniorFeatureForState(state, activeFeature, 'medium');
-}
-
-function seniorCycleShipCheck(cwd) {
-  try {
-    const state = loadState(cwd);
-    const feature = activeSeniorFeature(state);
-    if (!feature) {
-      return {
-        category: 'senior_cycle',
-        command: 'terrace senior-cycle status',
-        passed: true,
-        skipped: true,
-        blocking: [],
-        warnings: []
-      };
-    }
-    const status = seniorCycleStatus(cwd, feature.feature_id, feature.tier);
-    const blocking = status.allowed.ship ? [] : status.blockers.filter((blocker) => {
-      return blocker.code === 'OBSERVABILITY_REQUIRED' || blocker.code === 'VALIDATION_REQUIRED';
-    });
-    return {
-      category: 'senior_cycle',
-      command: 'terrace senior-cycle status ' + feature.feature_id,
-      passed: blocking.length === 0,
-      senior_cycle: status,
-      blocking,
-      warnings: []
-    };
-  } catch (error) {
-    return {
-      category: 'senior_cycle',
-      command: 'terrace senior-cycle status',
-      passed: false,
-      blocking: [{
-        code: 'SENIOR_CYCLE_UNAVAILABLE',
-        message: error && error.message ? error.message : String(error),
-        remediation: 'Run terrace init before checking senior-cycle readiness.'
-      }],
-      warnings: []
-    };
-  }
-}
+const releasePreflight = createReleasePreflight({
+  dirtyTreeCheck,
+  shipCheck
+});
 
 function verificationBlocker(artifact) {
   return blocker({
@@ -530,360 +349,6 @@ function verificationBlocker(artifact) {
     next_command: 'terrace quick complete <quick-task-id>',
     remediation: 'Write verification evidence before completing this quick task.'
   });
-}
-
-function alignFeature(cwd, feature, options) {
-  const featureId = normalizeFeatureId(feature);
-  const tier = normalizeTier(options && options.tier);
-  const artifact = seniorArtifactRefs(featureId).alignment;
-  const repo = analyzeRepository(cwd);
-  const changed = repo.changed_files.slice(0, 10);
-  const riskFiles = repo.files.filter((file) => /(auth|billing|payment|migration|schema|api|route|cache|env)/i.test(file)).slice(0, 10);
-  writeMarkdown(cwd, artifact, [
-    '# Alignment: ' + featureId,
-    '',
-    '## Customer',
-    '- Primary users and operators of ' + featureId + '.',
-    '',
-    '## Problem',
-    '- Repository evidence indicates this feature touches ' + (changed.length > 0 ? changed.join(', ') : 'the current project surface') + '.',
-    '',
-    '## Success Metrics',
-    '- `terrace ship check` passes.',
-    '- User-visible paths and changed tests pass verification.',
-    '',
-    '## Non-goals',
-    '- Do not expand beyond files and artifacts linked to ' + featureId + ' without a new alignment update.',
-    '',
-    '## Edge Cases',
-    '- Invalid input, permission denial, partial deploy, stale cache, and rollback behavior.',
-    '',
-    '## Risks',
-    ...(riskFiles.length > 0 ? riskFiles.map((file) => '- Review risk-bearing file: ' + file) : ['- No risk-bearing files detected from current repository names.']),
-    '',
-    '## Feature Flag Decision',
-    '- Decision: required for risky rollout, optional only when the blast radius is clearly small.',
-    '- If risk-bearing files are modified, use a flag or documented rollout guard.',
-    '',
-    '## Observability Plan',
-    '- Use detected observability files or add feature-specific logs before release.',
-    '',
-    '## Validation Plan',
-    '- Run tests, security check, review, preflight, and post-deploy signal checks.',
-    '',
-    '## Cleanup Plan',
-    '- Track temporary flags, rollout code, docs drift, and cleanup ownership in `terrace cleanup ' + featureId + '`.',
-    '',
-    '## No Band-Aid Rule',
-    '- Default to sustainable architecture. Do not choose a quick fix unless it explicitly preserves future development and expansion.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, tier, 'alignment', artifact);
-  return { feature_id: featureId, tier, artifact, next_command: tier === 'large' ? 'terrace interrogate ' + featureId : 'terrace test-plan ' + featureId };
-}
-
-function interrogateFeature(cwd, feature, options) {
-  const featureId = normalizeFeatureId(feature);
-  const tier = normalizeTier(options && options.tier);
-  const artifact = seniorArtifactRefs(featureId).interrogation;
-  const repo = analyzeRepository(cwd);
-  const interrogation = requireInterrogationAnswers(featureId, 'init', repo, options);
-  writeMarkdown(cwd, artifact, [
-    '# Interrogation: ' + featureId,
-    '',
-    '## User Answers',
-    ...answerLines(interrogation.userAnswers).map((line) => line.length > 0 ? line : ''),
-    '',
-    '## Questions Asked',
-    ...interrogation.questions.map((question) => '- ' + question),
-    '',
-    '## Assumptions To Challenge',
-    '- Customer behavior must match changed routes/components: ' + (repo.route_hints.concat(repo.component_hints).slice(0, 8).join(', ') || 'no UI files detected'),
-    '- Data shape must match migrations/schema files: ' + (repo.migrations.slice(0, 8).join(', ') || 'no migrations detected'),
-    '',
-    '## How Does This Fail?',
-    '- Permission checks can reject valid users or allow invalid access.',
-    '- API/client calls can time out, retry incorrectly, or show stale state.',
-    '- Migrations and cache changes can make rollback unsafe.',
-    '',
-    '## Edge Case Inventory',
-    '- Empty input, malformed input, unauthorized user, expired session, slow dependency, duplicate submit, rollback after deploy.',
-    '',
-    '## Pessimistic Review',
-    '- The highest maintenance risk is hidden coupling across shared files, schemas, auth, billing, or route exports.',
-    '',
-    '## Exit Criteria',
-    '- Failure modes are explicit enough to test or consciously defer.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, tier, 'interrogation', artifact);
-  return { feature_id: featureId, tier, artifact, next_command: 'terrace design ' + featureId };
-}
-
-function mapCodebase(cwd) {
-  const discovered = discoverProjectCommands(cwd);
-  const repo = analyzeRepository(cwd);
-  const refs = seniorArtifactRefs('codebase');
-  const artifacts = [
-    refs.codebase_map,
-    refs.codebase_architecture,
-    refs.codebase_risks,
-    refs.codebase_testing,
-    refs.codebase_observability
-  ];
-  writeMarkdown(cwd, refs.codebase_map, [
-    '# Codebase Map',
-    '',
-    '## Purpose',
-    '- Identify the major source areas, ownership boundaries, and likely change paths before feature work.',
-    '',
-    '## Source Areas',
-    ...bulletList(Object.entries(repo.lanes).filter((entry) => entry[1].length > 0).map((entry) => entry[0] + ': ' + entry[1].slice(0, 6).join(', ')), 'No source areas detected.'),
-    '',
-    '## Commands',
-    ...discovered.checks.map((check) => '- ' + check.category + ': ' + (check.exists ? check.command : 'missing'))
-  ]);
-  writeMarkdown(cwd, refs.codebase_architecture, [
-    '# Codebase Architecture',
-    '',
-    '## Current Architecture',
-    '- Runtime files: ' + repo.source_files.slice(0, 12).join(', '),
-    '- Package scripts: ' + Object.keys(repo.scripts).join(', '),
-    '- Internal imports sampled: ' + repo.imports.filter((item) => item.source.startsWith('.')).slice(0, 10).map((item) => item.file + ' -> ' + item.source).join('; '),
-    '',
-    '## Maintainability Constraints',
-    '- No Band-Aid Rule: default to sustainable architecture and avoid shortcuts that block future expansion.'
-  ]);
-  writeMarkdown(cwd, refs.codebase_risks, [
-    '# Codebase Risks',
-    '',
-    '## Known Risks',
-    ...bulletList(repo.files.filter((file) => /(auth|billing|payment|migration|schema|api|route|cache|env|workflow)/i.test(file)).slice(0, 20), 'No filename-based risk hotspots detected.')
-  ]);
-  writeMarkdown(cwd, refs.codebase_testing, [
-    '# Codebase Testing',
-    '',
-    '## Test Strategy',
-    '- Test files detected: ' + String(repo.test_files.length),
-    ...bulletList(repo.test_files.slice(0, 20), 'No test files detected.')
-  ]);
-  writeMarkdown(cwd, refs.codebase_observability, [
-    '# Codebase Observability',
-    '',
-    '## Debugging Surface',
-    ...bulletList(repo.files.filter((file) => /(observability|telemetry|logger|logging|metrics|trace|sentry|datadog)/i.test(file)).slice(0, 20), 'No observability/debugging files detected.')
-  ]);
-  return { artifacts, next_command: 'terrace design <feature>' };
-}
-
-function designFeature(cwd, feature, options) {
-  const featureId = normalizeFeatureId(feature);
-  const tier = normalizeTier(options && options.tier);
-  const artifact = seniorArtifactRefs(featureId).design;
-  const repo = analyzeRepository(cwd);
-  writeMarkdown(cwd, artifact, [
-    '# Design: ' + featureId,
-    '',
-    '## Architecture Decision',
-    '- Implement within detected project boundaries: ' + Object.keys(repo.scripts).join(', '),
-    '- Keep changes close to related source files: ' + (repo.changed_files.slice(0, 8).join(', ') || repo.source_files.slice(0, 8).join(', ')),
-    '',
-    '## Tradeoffs',
-    '- Prefer local changes over broad framework rewrites because Terrace found focused source and artifact boundaries.',
-    '',
-    '## Maintainability',
-    '- Preserve package scripts, public exports, and shared schema/auth boundaries unless explicitly reviewed.',
-    '',
-    '## No Band-Aid Rule',
-    '- A quick fix is not acceptable unless it leaves a clear path to the long-term design and documents the cleanup contract.',
-    '',
-    '## Exit Criteria',
-    '- The implementation path is clear enough to test first and maintain after release.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, tier, 'design', artifact);
-  return { feature_id: featureId, tier, artifact, next_command: 'terrace test-plan ' + featureId };
-}
-
-function testPlanFeature(cwd, feature, options) {
-  const featureId = normalizeFeatureId(feature);
-  const tier = normalizeTier(options && options.tier);
-  const artifact = seniorArtifactRefs(featureId).test_plan;
-  const repo = analyzeRepository(cwd);
-  writeMarkdown(cwd, artifact, [
-    '# Test Plan',
-    '',
-    '## Feature',
-    '- ' + featureId,
-    '',
-    '## What Is Tested',
-    '- Behavior around changed files: ' + (repo.changed_files.slice(0, 8).join(', ') || 'feature implementation files once identified'),
-    '- Existing test files: ' + (repo.test_files.slice(0, 8).join(', ') || 'none detected'),
-    '',
-    '## What Is NOT Tested',
-    '- External services are covered by contract or fixture behavior unless integration evidence is added.',
-    '',
-    '## Failure Scenarios',
-    '- Unauthorized access, invalid input, dependency failure, rollback-sensitive data change, and stale UI state.',
-    '',
-    '## Critical Paths',
-    ...bulletList(repo.route_hints.slice(0, 10), 'No route files detected; identify critical paths from feature scope.'),
-    '',
-    '## TDD Gate',
-    '- RED evidence must exist before implementation is treated as allowed.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, tier, 'test_plan', artifact);
-  return { feature_id: featureId, tier, artifact, next_command: 'terrace observe ' + featureId };
-}
-
-function observeFeature(cwd, feature, options) {
-  const featureId = normalizeFeatureId(feature);
-  const tier = normalizeTier(options && options.tier);
-  const artifact = seniorArtifactRefs(featureId).observability;
-  const repo = analyzeRepository(cwd);
-  const observability = repo.files.filter((file) => /(observability|telemetry|logger|logging|metrics|trace|sentry|datadog)/i.test(file)).slice(0, 12);
-  writeMarkdown(cwd, artifact, [
-    '# Observability: ' + featureId,
-    '',
-    '## Logs',
-    '- Use structured logs around feature entry, failure, and rollback paths.',
-    ...bulletList(observability, 'No logging files detected.'),
-    '',
-    '## Metrics',
-    '- Track success rate, error rate, latency, retry count, and rollback trigger count.',
-    '',
-    '## Traces',
-    '- Trace API/server boundaries and propagate request or operation correlation IDs.',
-    '',
-    '## User Analytics',
-    '- Track user-visible completion, abandonment, and error recovery signals.',
-    '',
-    '## Debugging Path',
-    '- Start with release logs, then inspect changed route/API files and preflight evidence.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, tier, 'observability', artifact);
-  return { feature_id: featureId, tier, artifact, next_command: 'terrace validate-prod ' + featureId };
-}
-
-function validateProdFeature(cwd, feature, options) {
-  const featureId = normalizeFeatureId(feature);
-  const tier = normalizeTier(options && options.tier);
-  const artifact = seniorArtifactRefs(featureId).validation;
-  const repo = analyzeRepository(cwd);
-  writeMarkdown(cwd, artifact, [
-    '# Production Validation: ' + featureId,
-    '',
-    '## Success Signals',
-    '- Tests and `terrace ship check` pass.',
-    '- Runtime signals show stable success rate for changed entrypoints.',
-    '',
-    '## Monitoring Plan',
-    '- Review logs and metrics for files/routes: ' + (repo.route_hints.slice(0, 8).join(', ') || repo.source_files.slice(0, 8).join(', ')),
-    '',
-    '## Rollback Conditions',
-    '- Roll back on elevated error rate, failed migration behavior, auth failures, or user-visible data loss.',
-    '',
-    '## Owner',
-    '- Release owner assigned by the active workstream or PR owner.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, tier, 'validation', artifact);
-  return { feature_id: featureId, tier, artifact, next_command: 'terrace cleanup ' + featureId };
-}
-
-function cleanupFeature(cwd, feature, options) {
-  const featureId = normalizeFeatureId(feature);
-  const tier = normalizeTier(options && options.tier);
-  const artifact = seniorArtifactRefs(featureId).cleanup;
-  const repo = analyzeRepository(cwd);
-  writeMarkdown(cwd, artifact, [
-    '# Cleanup: ' + featureId,
-    '',
-    '## Flags To Remove',
-    '- Remove feature flags after rollout signals are stable and rollback window closes.',
-    '',
-    '## Temporary Code To Refactor',
-    '- Inspect changed files for temporary rollout code: ' + (repo.changed_files.slice(0, 8).join(', ') || 'no git diff files detected'),
-    '',
-    '## Documentation Updates',
-    '- Update feature docs, release notes, and runbook artifacts generated by Terrace.',
-    '',
-    '## Completion Gate',
-    '- Cleanup is complete when temporary rollout code, stale flags, and outdated docs are removed or intentionally tracked.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, tier, 'cleanup', artifact);
-  return { feature_id: featureId, tier, artifact, next_command: 'terrace ship check' };
-}
-
-function uiImportStitch(cwd, feature) {
-  const featureId = normalizeFeatureId(feature);
-  const artifact = featureRef(featureId) + '/UI-STITCH.md';
-  const repo = analyzeRepository(cwd);
-  writeMarkdown(cwd, artifact, [
-    '# Stitch Import: ' + featureId,
-    '',
-    '## Purpose',
-    '- Capture imported Stitch design intent before UI implementation.',
-    '',
-    '## Source',
-    '- Stitch source reference must be provided in the design-source import command for final evidence.',
-    '',
-    '## Greenfield Build Notes',
-    ...bulletList(repo.route_hints.concat(repo.component_hints), 'No existing UI files detected; create routes/components from the imported design.'),
-    '',
-    '## Brownfield Constraints',
-    '- Preserve existing route and component conventions from detected UI files.',
-    '',
-    '## No Band-Aid Rule',
-    '- UI implementation must fit the app architecture and remain maintainable after the design import.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, 'medium', 'ui_stitch', artifact);
-  return { feature_id: featureId, artifact, next_command: 'terrace ui plan-refresh ' + featureId };
-}
-
-function uiPlanRefresh(cwd, feature) {
-  const featureId = normalizeFeatureId(feature);
-  const artifact = featureRef(featureId) + '/UI-REFRESH.md';
-  const repo = analyzeRepository(cwd);
-  writeMarkdown(cwd, artifact, [
-    '# UI Refresh: ' + featureId,
-    '',
-    '## Brownfield Refresh Plan',
-    ...bulletList(repo.route_hints.concat(repo.component_hints), 'No current screens/components detected.'),
-    '',
-    '## Greenfield Plan',
-    '- Create routes/components only where no detected UI surface already fits the feature.',
-    '',
-    '## Interaction States',
-    '- Cover loading, empty, error, success, disabled, and responsive states.',
-    '',
-    '## Test Strategy',
-    '- Add UI behavior tests and screenshot/browser verification for changed routes.',
-    '',
-    '## Architecture Fit',
-    '- Keep components reusable and consistent with detected component directories.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, 'medium', 'ui_refresh', artifact);
-  return { feature_id: featureId, artifact, next_command: 'terrace ui diff ' + featureId };
-}
-
-function uiDiff(cwd, feature) {
-  const featureId = normalizeFeatureId(feature);
-  const artifact = featureRef(featureId) + '/UI-DIFF.md';
-  const repo = analyzeRepository(cwd);
-  writeMarkdown(cwd, artifact, [
-    '# UI Diff: ' + featureId,
-    '',
-    '## Source vs Target',
-    '- Compare imported target against current files: ' + (repo.route_hints.concat(repo.component_hints).slice(0, 10).join(', ') || 'no UI files detected'),
-    '',
-    '## Reuse Plan',
-    '- Reuse detected component files before adding parallel UI structures.',
-    '',
-    '## Risk Notes',
-    '- Verify accessibility, responsive behavior, layout stability, and design ambiguity before ship.',
-    '',
-    '## Verification',
-    '- Capture mobile and desktop screenshots plus interaction checks for changed routes.'
-  ]);
-  recordSeniorArtifact(cwd, featureId, 'medium', 'ui_diff', artifact);
-  return { feature_id: featureId, artifact, next_command: 'terrace test-plan ' + featureId };
 }
 
 function phaseList(cwd) {
@@ -1245,6 +710,7 @@ function resumeWorkflow(cwd) {
 function nextWorkflow(cwd) {
   const state = loadState(cwd);
   const blockers = (state.blocked_actions || []).filter((item) => item.blocking);
+  const migrationCommand = state.migration && state.migration.next_command;
   const seniorFeature = activeSeniorFeature(state);
   if (seniorFeature) {
     const seniorGate = seniorCycleStatus(cwd, seniorFeature.feature_id, seniorFeature.tier);
@@ -1257,9 +723,37 @@ function nextWorkflow(cwd) {
         senior_cycle: seniorGate
       };
     }
+    if (!migrationCommand && seniorFeature.opted_in) {
+      const activePhase = phasesFromState(state).find((phase) => phase.id === seniorFeature.feature_id);
+      const nextCommand = activePhase
+        ? 'terrace phase show ' + activePhase.id
+        : 'terrace workbench status --feature ' + seniorFeature.feature_id;
+      const activeFeatureHandoff = blocker({
+        code: activePhase ? 'ACTIVE_FEATURE_REQUIRES_EXPLICIT_PHASE_ACTION' : 'ACTIVE_FEATURE_NOT_ROADMAP_PHASE',
+        feature_id: seniorFeature.feature_id,
+        message: activePhase
+          ? 'The active senior-cycle feature is a roadmap phase and requires an explicit phase action.'
+          : 'The active senior-cycle feature is not a roadmap phase, so automatic phase execution is unavailable.',
+        why_blocked: activePhase
+          ? 'Automatically replanning the active phase could overwrite its lifecycle state or artifacts.'
+          : 'Selecting the first roadmap phase would replace the active feature and could write unrelated planning artifacts.',
+        next_command: nextCommand,
+        remediation: activePhase
+          ? 'Review the active phase, then use an explicit phase command when a mutation is intended.'
+          : 'Use the feature workbench or explicitly select a roadmap phase before running autonomous phase execution.'
+      });
+      return {
+        command: nextCommand,
+        blocked: true,
+        blockers: [...blockers, activeFeatureHandoff],
+        next_action: state.handoff && state.handoff.next_action ? state.handoff.next_action : null,
+        senior_cycle: seniorGate,
+        active_feature_handoff: activeFeatureHandoff
+      };
+    }
   }
-  const nextCommand = state.migration && state.migration.next_command
-    ? state.migration.next_command
+  const nextCommand = migrationCommand
+    ? migrationCommand
     : inferNextCommand(state);
   return {
     command: nextCommand,
@@ -1489,7 +983,7 @@ function quickComplete(cwd, itemId) {
   const state = loadState(cwd);
   const item = findQuickTask(state, itemId);
   const verificationRef = item.verification_ref || quickTaskRef(itemId) + '/VERIFICATION.md';
-  if (!artifactExists(cwd, verificationRef)) {
+  if (!fs.existsSync(path.resolve(cwd, verificationRef))) {
     return {
       allowed: false,
       item_id: itemId,
@@ -1556,634 +1050,6 @@ function historySummary(cwd) {
   };
 }
 
-function staticCheck(result, category, command) {
-  return {
-    category,
-    command,
-    passed: result.blocking.length === 0,
-    blocking: result.blocking || [],
-    warnings: result.warnings || []
-  };
-}
-
-function migrationReadinessCheck(cwd) {
-  try {
-    const state = loadState(cwd);
-    const readiness = state.migration && state.migration.readiness ? state.migration.readiness : null;
-    const blockers = (state.blocked_actions || []).filter((item) => item.blocking).map((item) => blocker({
-      code: 'MIGRATION_BLOCKED_ACTION',
-      message: item.description,
-      why_blocked: 'Migrated GSD state recorded a human action as blocking release readiness.',
-      next_command: 'terrace next',
-      remediation: 'Resolve or clear the migrated blocked action.'
-    }));
-    return {
-      category: 'migration_readiness',
-      command: 'terrace migration readiness',
-      passed: blockers.length === 0,
-      readiness,
-      blocking: blockers,
-      warnings: []
-    };
-  } catch (error) {
-    return {
-      category: 'migration_readiness',
-      command: 'terrace migration readiness',
-      passed: false,
-      blocking: [blocker({
-        code: 'MIGRATION_READINESS_UNAVAILABLE',
-        message: error && error.message ? error.message : String(error),
-        why_blocked: 'Terrace cannot inspect migration readiness until the repo has Terrace state.',
-        next_command: 'terrace init',
-        remediation: 'Run terrace init or terrace port gsd before checking migration readiness.'
-      })],
-      warnings: []
-    };
-  }
-}
-
-function commandCheck(cwd, command, category, options) {
-  const opts = options || {};
-  try {
-    if (process.platform === 'win32' && command[0] === 'npm') {
-      execFileSync(command.join(' '), { cwd, stdio: 'ignore', shell: true });
-    } else {
-      execFileSync(command[0], command.slice(1), { cwd, stdio: 'ignore' });
-    }
-    return { category, command: command.join(' '), passed: true, blocking: [] };
-  } catch (error) {
-    return {
-      category,
-      command: command.join(' '),
-      passed: false,
-      blocking: [blocker({
-        code: opts.failure_code || 'QUALITY_GATE_FAILED',
-        message: opts.failure_message || command.join(' ') + ' failed.',
-        why_blocked: opts.why_blocked || 'Release readiness requires the project quality gate to pass.',
-        next_command: command.join(' '),
-        remediation: opts.remediation || 'Run the command locally and fix the reported failures.'
-      })]
-    };
-  }
-}
-
-function missingScriptCheck(discovered, check) {
-  return {
-    category: check.category,
-    command: check.script ? runCommandFor(discovered.package_manager, check.script).join(' ') : null,
-    passed: true,
-    skipped: true,
-    blocking: [],
-    warnings: [warning({
-      code: 'QUALITY_SCRIPT_MISSING',
-      message: 'No package script was found for ' + check.category + '.',
-      why_blocked: 'Terrace could not enforce this optional quality signal because the script is missing.',
-      next_command: setScriptCommand(discovered.package_manager, check.script, check.suggested),
-      remediation: 'Add a `' + check.script + '` script such as `' + check.suggested + '` if this gate should be enforced.'
-    })]
-  };
-}
-
-function scriptCheck(cwd, discovered, check) {
-  if (!check.exists) {
-    return missingScriptCheck(discovered, check);
-  }
-  return commandCheck(cwd, runCommandFor(discovered.package_manager, check.script), check.category);
-}
-
-function deadCodeCheck(cwd, discovered) {
-  const check = discovered.dead_code;
-  if (!check.enabled) {
-    return {
-      category: 'dead_code',
-      command: null,
-      passed: true,
-      skipped: true,
-      blocking: [],
-      warnings: [warning({
-        code: 'DEAD_CODE_GATE_SKIPPED',
-        message: 'Dead-code readiness gate is intentionally skipped.',
-        why_blocked: 'Terrace did not enforce the dead-code signal because this repo disabled it in .terrace/config.json.',
-        next_command: 'terrace ship check --full',
-        remediation: 'Remove `ship_gates.dead_code.enabled: false` when the repo has a dead-code script to enforce.',
-        reason: check.reason
-      })]
-    };
-  }
-  if (!check.exists) {
-    const item = {
-      code: 'DEAD_CODE_SCRIPT_MISSING',
-      message: check.configured
-        ? 'Configured dead-code package script was not found: ' + check.script + '.'
-        : 'No package script was found for the dead-code readiness gate.',
-      why_blocked: check.configured
-        ? 'Terrace cannot enforce the configured dead-code gate until the package script exists.'
-        : 'Terrace could not enforce this optional dead-code signal because the script is missing.',
-      next_command: setScriptCommand(discovered.package_manager, check.script, 'knip or project dead-code command'),
-      remediation: check.configured
-        ? 'Add the configured `' + check.script + '` package script or update `ship_gates.dead_code.scripts` in `.terrace/config.json`.'
-        : 'Add a package script such as `dead-code`, `knip`, or configure `ship_gates.dead_code.scripts`; set `ship_gates.dead_code.enabled` to false with a reason to skip intentionally.',
-      scripts: check.scripts
-    };
-    return {
-      category: 'dead_code',
-      command: null,
-      passed: !check.configured,
-      skipped: !check.configured,
-      blocking: check.configured ? [blocker(item)] : [],
-      warnings: check.configured ? [] : [warning(item)]
-    };
-  }
-  return commandCheck(cwd, runCommandFor(discovered.package_manager, check.script), 'dead_code', {
-    failure_code: 'DEAD_CODE_GATE_FAILED',
-    failure_message: 'Dead-code readiness script failed: ' + check.command + '.',
-    why_blocked: 'Release readiness requires the configured dead-code gate to pass.',
-    remediation: 'Run the dead-code script locally and remove, justify, or configure the reported unused code.'
-  });
-}
-
-function timedCategory(factory) {
-  const started = Date.now();
-  const category = factory();
-  const elapsed = Date.now() - started;
-  return {
-    category: {
-      ...category,
-      elapsed_ms: elapsed
-    },
-    timing: {
-      category: category.category,
-      elapsed_ms: elapsed
-    }
-  };
-}
-
-function shipCheck(cwd, options) {
-  const opts = options || {};
-  const mode = ['fast', 'local', 'full'].includes(opts.mode) ? opts.mode : 'full';
-  const discovered = discoverProjectCommands(cwd);
-  const factories = [
-    () => staticCheck(runDoctor(cwd), 'doctor', 'terrace doctor'),
-    () => staticCheck(runAudit(cwd), 'audit', 'terrace audit'),
-    () => securityShipCheck(cwd),
-    () => reportShipCheck(cwd),
-    () => migrationReadinessCheck(cwd),
-    () => seniorCycleShipCheck(cwd),
-    ...(opts.includeTrustedPublishing !== false && terracePackageReleaseTarget(cwd) ? [() => trustedPublishingShipCheck(cwd)] : []),
-    () => preflightShipCheck(cwd),
-    () => aiReviewShipCheck(cwd),
-    () => debtShipCheck(cwd),
-    () => waiverShipCheck(cwd),
-    () => documentationShipCheck(cwd),
-    () => testEvalShipCheck(cwd),
-    () => ruleAuditShipCheck(cwd)
-  ];
-  if (mode === 'full') {
-    for (const check of discovered.checks) {
-      factories.push(() => scriptCheck(cwd, discovered, check));
-    }
-    factories.push(() => deadCodeCheck(cwd, discovered));
-  }
-  if (mode === 'local' || mode === 'full') {
-    factories.push(() => commandCheck(cwd, ['git', 'diff', '--quiet'], 'dirty_tree'));
-  }
-  const timed = factories.map((factory) => timedCategory(factory));
-  const categories = timed.map((item) => item.category);
-  const timings = timed.map((item) => item.timing);
-  const blockers = categories.flatMap((category) => category.blocking || []);
-  const warnings = categories.flatMap((category) => category.warnings || []);
-  return {
-    mode,
-    passed: blockers.length === 0,
-    project_commands: discovered,
-    categories,
-    timings,
-    blockers,
-    warnings,
-    top_blockers: topBlockers(blockers, 3),
-    next_command: blockers.length > 0 ? (blockers[0].next_command || 'terrace ship check --fast') : 'terrace ship prepare',
-    recheck_command: 'terrace ship check --fast'
-  };
-}
-
-function packageVersion(cwd) {
-  const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
-  return typeof packageJson.version === 'string' ? packageJson.version : null;
-}
-
-function releaseArtifactFiles(cwd) {
-  return listProjectFiles(cwd, { limit: 10000 }).filter((file) => {
-    const normalized = file.replace(/\\/g, '/');
-    return normalized === 'README.md' ||
-      normalized === 'CHANGELOG.md' ||
-      normalized === 'docs/RELEASE.md' ||
-      normalized === 'package.json' ||
-      normalized === 'scripts/package-dry-run.cjs' ||
-      /^\.github\/workflows\/[^/]+\.ya?ml$/.test(normalized);
-  });
-}
-
-const STALE_NPM_RELEASE_PATTERNS = [
-  { code: 'NPM_TOKEN_REFERENCE', pattern: /\bNPM_TOKEN\b/ },
-  { code: 'NODE_AUTH_TOKEN_REFERENCE', pattern: /\bNODE_AUTH_TOKEN\b/ },
-  { code: 'NPM_LOGIN_INSTRUCTION', pattern: /\bnpm\s+(?:login|adduser|whoami)\b/i },
-  { code: 'NPM_PUBLISH_INSTRUCTION', pattern: /\b(?:run|execute|use|call)\s+`?npm\s+publish\b/i },
-  { code: 'NPM_AUTH_TOKEN_CONFIG', pattern: /\/\/registry\.npmjs\.org\/:_authToken/i },
-  { code: 'PNPM_WHOAMI_INSTRUCTION', pattern: /\bpnpm\s+whoami\b/i }
-];
-
-function staleReleaseArtifactFindings(cwd) {
-  const findings = [];
-  for (const file of releaseArtifactFiles(cwd)) {
-    const text = readSmallText(cwd, file, 250000);
-    if (!text) {
-      continue;
-    }
-    const lines = text.split(/\r?\n/);
-    lines.forEach((line, index) => {
-      for (const item of STALE_NPM_RELEASE_PATTERNS) {
-        if (item.pattern.test(line)) {
-          findings.push({
-            code: item.code,
-            file,
-            line: index + 1,
-            evidence: line.trim().slice(0, 180)
-          });
-        }
-      }
-    });
-  }
-  return findings;
-}
-
-function currentReleaseTags(cwd) {
-  try {
-    const output = execFileSync('git', ['tag', '--points-at', 'HEAD'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    return output.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-  } catch (error) {
-    return [];
-  }
-}
-
-function gitCommitRef(cwd, ref) {
-  try {
-    return execFileSync('git', ['rev-parse', '--verify', ref], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-  } catch (error) {
-    return null;
-  }
-}
-
-function releaseVersionTagCheck(cwd, targetVersion) {
-  const version = packageVersion(cwd);
-  const expectedTag = targetVersion ? 'v' + targetVersion : version ? 'v' + version : null;
-  const currentTags = currentReleaseTags(cwd);
-  const semverTagsAtHead = currentTags.filter((tag) => /^v\d+\.\d+\.\d+(?:[-+].+)?$/.test(tag));
-  const headCommit = gitCommitRef(cwd, 'HEAD');
-  const expectedTagTarget = expectedTag ? gitCommitRef(cwd, 'refs/tags/' + expectedTag) : null;
-  const mismatches = [];
-  const warnings = [];
-  if (!version) {
-    mismatches.push({
-      code: 'PACKAGE_VERSION_MISSING',
-      message: 'package.json does not declare a release version.'
-    });
-  }
-  if (targetVersion && version && version !== targetVersion) {
-    mismatches.push({
-      code: 'TARGET_VERSION_MISMATCH',
-      message: 'Requested release version ' + targetVersion + ' does not match package.json version ' + version + '.',
-      package_version: version,
-      target_version: targetVersion
-    });
-  }
-  if (expectedTag && semverTagsAtHead.length > 0 && !semverTagsAtHead.includes(expectedTag)) {
-    mismatches.push({
-      code: 'HEAD_TAG_VERSION_MISMATCH',
-      message: 'HEAD is tagged for ' + semverTagsAtHead.join(', ') + ' instead of ' + expectedTag + '.',
-      expected_tag: expectedTag,
-      tags_at_head: semverTagsAtHead
-    });
-  }
-  if (expectedTag && expectedTagTarget && headCommit && expectedTagTarget !== headCommit) {
-    mismatches.push({
-      code: 'RELEASE_TAG_NOT_AT_HEAD',
-      message: 'Expected release tag exists but does not point at HEAD: ' + expectedTag + '.',
-      expected_tag: expectedTag,
-      tag_target: expectedTagTarget,
-      head: headCommit
-    });
-  }
-  if (expectedTag && !expectedTagTarget) {
-    warnings.push(warning({
-      code: 'RELEASE_TAG_NOT_FOUND',
-      message: 'Expected release tag does not exist yet: ' + expectedTag + '.',
-      why_blocked: 'The release can be preflighted before tagging, but publish should happen from the reviewed version tag.',
-      next_command: 'git tag ' + expectedTag,
-      remediation: 'Create the reviewed release tag after version and changelog review.'
-    }));
-  }
-  return {
-    package_version: version,
-    target_version: targetVersion || version,
-    expected_tag: expectedTag,
-    tags_at_head: currentTags,
-    tag_exists: Boolean(expectedTagTarget),
-    tag_target: expectedTagTarget,
-    passed: mismatches.length === 0,
-    mismatches,
-    warnings,
-    blocking: mismatches.map((item) => blocker({
-      code: item.code,
-      message: item.message,
-      why_blocked: 'Release publishing requires package version and git tag intent to agree.',
-      next_command: 'terrace release-preflight --target-version ' + (targetVersion || version || '<version>') + ' --json',
-      remediation: 'Align package.json, the reviewed target version, and any release tag at HEAD before publishing.',
-      expected_tag: item.expected_tag,
-      tags_at_head: item.tags_at_head,
-      tag_target: item.tag_target,
-      head: item.head
-    }))
-  };
-}
-
-function containsAll(text, values) {
-  return values.every((value) => text.includes(value));
-}
-
-function trustedPublishingCheck(cwd) {
-  const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
-  const workflow = readSmallText(cwd, '.github/workflows/release-publish.yml', 250000) || '';
-  const releaseDocs = readSmallText(cwd, 'docs/RELEASE.md', 250000) || '';
-  const packageName = typeof packageJson.name === 'string' ? packageJson.name : null;
-  const version = typeof packageJson.version === 'string' ? packageJson.version : null;
-  const releaseTarget = packageName && version ? packageName + '@' + version : packageName || null;
-  const manualPrerequisites = [
-    'npm package trusted publishing is configured for @jakyeamos33/terrace and the GitHub repository before publishing v0.2.0.',
-    'GitHub environment `npm` has the intended reviewer protection before publish jobs can run.',
-    'The GitHub Release is created for the reviewed v0.2.0 tag.'
-  ];
-  const requirements = [
-    {
-      code: 'PUBLISH_CONFIG_PUBLIC',
-      passed: packageJson.publishConfig && packageJson.publishConfig.access === 'public',
-      evidence: 'package.json#publishConfig.access'
-    },
-    {
-      code: 'PUBLISH_CONFIG_PROVENANCE',
-      passed: packageJson.publishConfig && packageJson.publishConfig.provenance === true,
-      evidence: 'package.json#publishConfig.provenance'
-    },
-    {
-      code: 'RELEASE_WORKFLOW_PRESENT',
-      passed: Boolean(workflow),
-      evidence: '.github/workflows/release-publish.yml'
-    },
-    {
-      code: 'OIDC_PERMISSION',
-      passed: /id-token:\s*write/.test(workflow),
-      evidence: 'release-publish.yml permissions'
-    },
-    {
-      code: 'NPM_ENVIRONMENT',
-      passed: /environment:\s*npm/.test(workflow),
-      evidence: 'release-publish.yml environment'
-    },
-    {
-      code: 'PROVENANCE_PUBLISH_COMMAND',
-      passed: workflow.includes('pnpm publish --access public --provenance --no-git-checks --config.node-linker=hoisted'),
-      evidence: 'release-publish.yml publish step'
-    },
-    {
-      code: 'TOKENLESS_PUBLISH',
-      passed: !/\b(?:NPM_TOKEN|NODE_AUTH_TOKEN)\b/.test(workflow),
-      evidence: 'release-publish.yml token scan'
-    },
-    {
-      code: 'TRUSTED_PUBLISHING_DOCS',
-      passed: /npm trusted publishing/i.test(releaseDocs) && /OIDC/i.test(releaseDocs),
-      evidence: 'docs/RELEASE.md'
-    }
-  ];
-  const missing = requirements.filter((item) => !item.passed);
-  return {
-    package_name: packageName,
-    package_version: version,
-    release_target: releaseTarget,
-    passed: missing.length === 0,
-    requirements,
-    manual_prerequisites: manualPrerequisites,
-    blocking: missing.map((item) => blocker({
-      code: item.code,
-      message: 'Trusted-publishing prerequisite is missing: ' + item.code + '.',
-      why_blocked: 'Terrace releases must publish through GitHub OIDC trusted publishing without local npm auth tokens.',
-      next_command: 'terrace release-preflight --json',
-      remediation: 'Update package metadata, release workflow, or release docs so trusted publishing is explicit and tokenless.',
-      evidence: item.evidence
-    })),
-    warnings: [warning({
-      code: 'TRUSTED_PUBLISHING_MANUAL_REVIEW',
-      message: 'npm trusted-publishing package settings and GitHub environment reviewers cannot be verified from repo files.',
-      why_blocked: 'Local preflight can verify repo-owned prerequisites only.',
-      next_command: 'terrace release-preflight --json',
-      remediation: 'Confirm npm trusted publishing and GitHub environment reviewer settings in their admin UIs before publishing.',
-      manual_prerequisites: manualPrerequisites
-    })]
-  };
-}
-
-function terracePackageReleaseTarget(cwd) {
-  const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
-  return packageJson.name === '@jakyeamos33/terrace' && packageJson.version === '0.2.0';
-}
-
-function trustedPublishingShipCheck(cwd) {
-  const result = trustedPublishingCheck(cwd);
-  return {
-    category: 'trusted_publishing',
-    command: 'terrace release-preflight --json',
-    passed: result.passed,
-    package_name: result.package_name,
-    package_version: result.package_version,
-    release_target: result.release_target,
-    requirements: result.requirements,
-    manual_confirmation_required: result.manual_prerequisites.length > 0,
-    manual_prerequisites: result.manual_prerequisites,
-    blocking: result.blocking,
-    warnings: result.warnings
-  };
-}
-
-function releaseFlowChecks(cwd) {
-  const packageJson = readJsonFile(path.resolve(cwd, 'package.json')) || {};
-  const scripts = packageJson.scripts && typeof packageJson.scripts === 'object' ? packageJson.scripts : {};
-  const ciWorkflow = readSmallText(cwd, '.github/workflows/ci.yml', 250000) || '';
-  const dryRunWorkflow = readSmallText(cwd, '.github/workflows/release-dry-run.yml', 250000) || '';
-  const publishWorkflow = readSmallText(cwd, '.github/workflows/release-publish.yml', 250000) || '';
-  const releaseDocs = readSmallText(cwd, 'docs/RELEASE.md', 250000) || '';
-  return [
-    {
-      name: 'ci',
-      command: 'pnpm run ci',
-      present: typeof scripts.ci === 'string' && containsAll(ciWorkflow + dryRunWorkflow + publishWorkflow + releaseDocs, ['pnpm run ci'])
-    },
-    {
-      name: 'dependency_audit',
-      command: 'pnpm audit --audit-level moderate',
-      present: containsAll(ciWorkflow + dryRunWorkflow + publishWorkflow + releaseDocs, ['pnpm audit --audit-level moderate'])
-    },
-    {
-      name: 'package',
-      command: 'pnpm package',
-      present: typeof scripts.package === 'string' && typeof scripts['package:dry-run'] === 'string' && releaseDocs.includes('pnpm package')
-    },
-    {
-      name: 'release_dry_run',
-      command: 'pnpm run release:dry-run',
-      present: typeof scripts['release:dry-run'] === 'string' && containsAll(dryRunWorkflow + publishWorkflow + releaseDocs, ['pnpm run release:dry-run'])
-    },
-    {
-      name: 'ship_check',
-      command: 'terrace ship check --json',
-      present: releaseDocs.includes('ship check --json')
-    }
-  ];
-}
-
-function releaseFlowCommandResult(cwd, item, runCommands) {
-  if (!item.present) {
-    return {
-      ...item,
-      ran: false,
-      passed: false,
-      blocking: [blocker({
-        code: 'RELEASE_FLOW_STEP_MISSING',
-        message: 'Release flow step is not documented or configured: ' + item.name + '.',
-        why_blocked: 'Terrace 0.2.0 release preflight requires CI, audit, package, release dry-run, and ship-check flow coverage.',
-        next_command: 'terrace release-preflight --json',
-        remediation: 'Restore the package script, workflow step, or release checklist entry for `' + item.command + '`.'
-      })]
-    };
-  }
-  if (!runCommands) {
-    return { ...item, ran: false, passed: true, blocking: [] };
-  }
-  if (item.name === 'ship_check') {
-    return { ...item, ran: 'in_process', passed: true, blocking: [] };
-  }
-  const parts = item.command.split(/\s+/);
-  try {
-    execFileSync(parts[0], parts.slice(1), { cwd, stdio: 'ignore' });
-    return { ...item, ran: true, passed: true, blocking: [] };
-  } catch (error) {
-    return {
-      ...item,
-      ran: true,
-      passed: false,
-      blocking: [blocker({
-        code: 'RELEASE_FLOW_STEP_FAILED',
-        message: item.command + ' failed.',
-        why_blocked: 'Terrace cannot mark the release preflight ready while a release flow command fails.',
-        next_command: item.command,
-        remediation: 'Run the failing command locally and fix the reported issue before publishing.'
-      })]
-    };
-  }
-}
-
-function staleReleaseArtifactsCheck(cwd) {
-  const findings = staleReleaseArtifactFindings(cwd);
-  return {
-    passed: findings.length === 0,
-    findings,
-    blocking: findings.map((finding) => blocker({
-      code: 'STALE_NPM_RELEASE_INSTRUCTION',
-      message: finding.file + ':' + finding.line + ' still references old npm-era release instructions.',
-      why_blocked: 'Release artifacts must describe trusted publishing and pnpm-based release flow, not token-era npm publishing.',
-      next_command: 'terrace release-preflight --json',
-      remediation: 'Replace npm-token, npm-login, or direct npm-publish instructions with the trusted-publishing flow.',
-      finding
-    }))
-  };
-}
-
-function releasePreflight(cwd, options) {
-  const opts = options || {};
-  const targetVersion = typeof opts.targetVersion === 'string' && opts.targetVersion.trim() ? opts.targetVersion.trim() : packageVersion(cwd);
-  const runCommands = opts.runCommands !== false;
-  const flow = releaseFlowChecks(cwd).map((item) => releaseFlowCommandResult(cwd, item, runCommands));
-  const ship = shipCheck(cwd, { mode: opts.shipMode || 'full', includeTrustedPublishing: false });
-  const trustedPublishing = trustedPublishingCheck(cwd);
-  const tagVersion = releaseVersionTagCheck(cwd, targetVersion);
-  const staleArtifacts = staleReleaseArtifactsCheck(cwd);
-  const flowBlockers = flow.flatMap((item) => item.blocking || []);
-  const blockers = [
-    ...flowBlockers,
-    ...ship.blockers,
-    ...trustedPublishing.blocking,
-    ...tagVersion.blocking,
-    ...staleArtifacts.blocking
-  ];
-  const warnings = [
-    ...ship.warnings,
-    ...trustedPublishing.warnings,
-    ...tagVersion.warnings
-  ];
-  return {
-    command: 'terrace release-preflight',
-    release: targetVersion,
-    passed: blockers.length === 0,
-    flow,
-    ship_check: {
-      mode: ship.mode,
-      passed: ship.passed,
-      blocker_count: ship.blockers.length,
-      warning_count: ship.warnings.length,
-      categories: ship.categories.map((category) => ({
-        category: category.category,
-        passed: category.passed,
-        skipped: Boolean(category.skipped),
-        command: category.command || null
-      }))
-    },
-    trusted_publishing: trustedPublishing,
-    tag_version: tagVersion,
-    stale_release_artifacts: staleArtifacts,
-    blockers,
-    warnings,
-    top_blockers: topBlockers(blockers, 5),
-    next_command: blockers.length > 0 ? (blockers[0].next_command || 'terrace release-preflight --json') : 'git tag ' + tagVersion.expected_tag,
-    recheck_command: 'terrace release-preflight --json'
-  };
-}
-
-function shipPrepare(cwd) {
-  const result = shipCheck(cwd);
-  const shipRef = 'docs/terrace/ship/SHIP.md';
-  writeMarkdown(cwd, shipRef, [
-    '# Release Readiness',
-    '',
-    '## Status',
-    '- Passed: ' + String(result.passed),
-    '- Blocking issue count: ' + String(result.blockers.length),
-    '- Warning count: ' + String(result.warnings.length),
-    '',
-    '## Categories',
-    ...result.categories.map((category) => '- ' + category.category + ': ' + (category.passed ? 'passed' : 'failed') + ' (`' + category.command + '`)'),
-    '',
-    '## Blockers',
-    ...(result.blockers.length > 0 ? result.blockers.map((item) => '- ' + item.code + ': ' + item.message + (item.next_command ? ' Next: `' + item.next_command + '`.' : '')) : ['- None.']),
-    '',
-    '## Next Command',
-    '- terrace ship check'
-  ]);
-  return {
-    ...result,
-    ship_ref: shipRef,
-    next_command: 'terrace ship check',
-    recheck_command: 'terrace ship check --fast'
-  };
-}
-
 function phaseIdFromCommand(command) {
   const match = String(command || '').match(/terrace\s+phase\s+(?:show|plan|execute|validate|review|complete)\s+([^\s]+)/);
   return match ? match[1] : null;
@@ -2191,6 +1057,16 @@ function phaseIdFromCommand(command) {
 
 function autonomousWorkflow(cwd) {
   const next = nextWorkflow(cwd);
+  if (next.active_feature_handoff) {
+    return {
+      status: 'blocked',
+      next,
+      blockers: next.blockers,
+      active_feature_handoff: next.active_feature_handoff,
+      required_action: next.active_feature_handoff.remediation,
+      next_command: next.command
+    };
+  }
   const state = loadState(cwd);
   const seniorPhase = next.senior_cycle
     ? phasesFromState(state).find((phase) => phase.id === next.senior_cycle.feature_id)
@@ -2285,7 +1161,91 @@ function phaseCompleteWorkflow(cwd, phaseId) {
   };
 }
 
-function routePlainText(cwd, text) {
+function encodePlainTextIntentPlan(plan) {
+  return Buffer.from(JSON.stringify({
+    version: 1,
+    input: plan.input,
+    intent_id: plan.intent_id,
+    parameters: plan.parameters,
+    state_revision: plan.state_revision
+  }), 'utf8').toString('base64url');
+}
+
+function decodePlainTextIntentPlan(token) {
+  if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{1,16384}$/.test(token)) {
+    throw guidanceError('Terrace needs a plan token returned by `terrace do <intent>` before it can apply a natural-language write.', {
+      code: 'INTENT_PLAN_TOKEN_INVALID',
+      next_command: 'terrace do <intent>',
+      remediation: 'Preview the intended natural-language route again and pass its returned plan token to `terrace do --apply <plan-token>`.'
+    });
+  }
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
+  } catch {
+    throw guidanceError('Terrace could not read the natural-language plan token.', {
+      code: 'INTENT_PLAN_TOKEN_INVALID',
+      next_command: 'terrace do <intent>',
+      remediation: 'Preview the intended natural-language route again and use the returned plan token unchanged.'
+    });
+  }
+  if (!payload || payload.version !== 1 || typeof payload.input !== 'string' || typeof payload.intent_id !== 'string'
+    || !payload.parameters || typeof payload.parameters !== 'object' || Array.isArray(payload.parameters)
+    || !Number.isInteger(payload.state_revision) || payload.state_revision < 0) {
+    throw guidanceError('Terrace received an invalid natural-language plan token.', {
+      code: 'INTENT_PLAN_TOKEN_INVALID',
+      next_command: 'terrace do <intent>',
+      remediation: 'Preview the intended natural-language route again and use the returned plan token unchanged.'
+    });
+  }
+  const intent = resolveIntentCommand(payload.intent_id, payload.parameters);
+  if (intent.effect !== 'write') {
+    throw guidanceError('Only write-capable natural-language plans can be applied.', {
+      code: 'INTENT_PLAN_NOT_WRITABLE',
+      next_command: 'terrace do <intent>',
+      remediation: 'Run the read-only command directly, or preview a write-capable route before applying it.'
+    });
+  }
+  return payload;
+}
+
+function buildPlainTextIntentPlan(input, intentId, parameters, stateRevision) {
+  const params = { ...(parameters || {}) };
+  const intent = resolveIntentCommand(intentId, params);
+  const plan = {
+    input,
+    intent_id: intent.id,
+    command_id: intent.command_id,
+    argv: intent.argv,
+    command: intent.command,
+    effect: intent.effect,
+    parameters: params,
+    state_revision: stateRevision,
+    writes: intent.writes,
+    execution: intent.execution,
+    lock: intent.lock
+  };
+  if (intent.effect === 'write') {
+    const token = encodePlainTextIntentPlan(plan);
+    return {
+      ...plan,
+      mode: 'plan',
+      requires_apply: true,
+      apply: {
+        plan_token: token,
+        argv: ['do', '--apply', token],
+        command: 'terrace do --apply ' + token
+      }
+    };
+  }
+  return {
+    ...plan,
+    mode: 'read',
+    read_only: true
+  };
+}
+
+function planPlainTextIntent(cwd, text) {
   const input = String(text || '').trim();
   if (!input) {
     throw new Error('Usage: terrace do <intent>');
@@ -2293,13 +1253,12 @@ function routePlainText(cwd, text) {
   const lowered = input.toLowerCase();
   const state = loadState(cwd);
   const phase = findPhaseByText(state, input);
+  const plannedIntent = (intentId, parameters) => buildPlainTextIntentPlan(input, intentId, parameters, state.state_revision);
 
   if (/\b(gsd\s+replacement|replace\s+gsd|replacing\s+gsd|workflow\s+parity|adoption\s+status|terrace\s+ready|is\s+terrace\s+ready)\b/.test(lowered)) {
-    const { adoptionStatus } = require('./adoption.cjs');
-    return { input, command: 'terrace adoption status', result: adoptionStatus(cwd) };
+    return plannedIntent('adoption_status');
   }
   if (/\b(production\s+workbench|ship-ready|ship\s+ready|handoff\s+this\s+feature|make\s+this\s+feature\s+ship-ready)\b/.test(lowered)) {
-    const { workbenchStatus, workbenchPrepare } = require('./workbench.cjs');
     const featureId = state.senior_cycle && state.senior_cycle.active_feature
       ? state.senior_cycle.active_feature
       : state.workflow && state.workflow.active_feature
@@ -2308,66 +1267,74 @@ function routePlainText(cwd, text) {
     const wantsPrepare = /\b(prepare|make|handoff)\b/.test(lowered);
     if (wantsPrepare && featureId) {
       const target = /\bhandoff\b/.test(lowered) ? 'generic' : null;
-      return { input, command: 'terrace workbench prepare ' + featureId, result: workbenchPrepare(cwd, { feature: featureId, for: target }) };
+      return plannedIntent('workbench_prepare', {
+        feature_id: featureId,
+        target
+      });
     }
-    return { input, command: 'terrace workbench status' + (featureId ? ' --feature ' + featureId : ''), result: workbenchStatus(cwd, { feature: featureId }) };
+    return plannedIntent('workbench_status', {
+      feature_id: featureId
+    });
   }
   if (/\/(?:terrace:)?execute-phase-complete\s+/i.test(input) && phase) {
-    return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
+    return plannedIntent('phase_complete_workflow', { phase_id: phase.id });
   }
   if (/\/(?:terrace:)?goal\b/i.test(input)) {
     const goal = input.replace(/^.*?\/(?:terrace:)?goal\b\s*/i, '').trim();
     if (goal) {
-      return routePlainText(cwd, goal);
+      const nestedPlan = planPlainTextIntent(cwd, goal);
+      return nestedPlan.effect === 'write'
+        ? buildPlainTextIntentPlan(input, nestedPlan.intent_id, nestedPlan.parameters, nestedPlan.state_revision)
+        : { ...nestedPlan, input };
     }
   }
   if (/\/gsd:plan-phase\s+/i.test(input) && phase) {
-    return { input, command: 'terrace phase plan ' + phase.id, result: phasePlan(cwd, phase.id) };
+    return plannedIntent('phase_plan', { phase_id: phase.id });
   }
   if (/\/gsd:execute-phase\s+/i.test(input) && phase) {
-    return { input, command: 'terrace phase execute ' + phase.id, result: phaseExecute(cwd, phase.id) };
+    return plannedIntent('phase_execute', { phase_id: phase.id });
   }
   if (/\/gsd:quick\b/i.test(input)) {
     const title = input.replace(/^.*?\/gsd:quick\b\s*/i, '').trim();
     if (title) {
-      return { input, command: 'terrace quick plan ' + title, result: quickPlan(cwd, title) };
+      return plannedIntent('quick_plan', { title });
     }
   }
   if (/\/gsd:ship\b/i.test(input)) {
-    return { input, command: 'terrace ship prepare', result: shipPrepare(cwd) };
+    return plannedIntent('ship_prepare');
   }
   if (/\b(run|execute|start)\s+the\s+next\s+phase\b/.test(lowered) || /\bautonomous\b/.test(lowered)) {
-    return { input, command: 'terrace autonomous', result: autonomousWorkflow(cwd) };
+    return plannedIntent('autonomous');
   }
   if (phase && /\b(end[-\s]?to[-\s]?end|complete\s+workflow|full\s+phase|execute\s+phase\s+complete|phase\s+complete\s+workflow)\b/.test(lowered)) {
-    return { input, command: 'terrace execute-phase-complete ' + phase.id, result: phaseCompleteWorkflow(cwd, phase.id) };
+    return plannedIntent('phase_complete_workflow', { phase_id: phase.id });
   }
   if (/\b(next|what next|continue)\b/.test(lowered)) {
-    return { input, command: 'terrace next', result: nextWorkflow(cwd) };
+    return plannedIntent('next');
   }
   if (/\bresume\b/.test(lowered)) {
-    return { input, command: 'terrace resume', result: resumeWorkflow(cwd) };
+    return plannedIntent('resume');
   }
   if (/\bhistory\b/.test(lowered)) {
-    return { input, command: 'terrace history', result: historySummary(cwd) };
+    return plannedIntent('history');
   }
   if (phase && /\b(plan|planning|\/gsd:plan-phase)\b/.test(lowered)) {
-    return { input, command: 'terrace phase plan ' + phase.id, result: phasePlan(cwd, phase.id) };
+    return plannedIntent('phase_plan', { phase_id: phase.id });
   }
   if (phase && /\b(execute|executing|\/gsd:execute-phase)\b/.test(lowered)) {
-    return { input, command: 'terrace phase execute ' + phase.id, result: phaseExecute(cwd, phase.id) };
+    return plannedIntent('phase_execute', { phase_id: phase.id });
   }
   if (phase && /\b(validate|validation|\/gsd:validate-phase)\b/.test(lowered)) {
-    return { input, command: 'terrace phase validate ' + phase.id, result: phaseValidate(cwd, phase.id) };
+    return plannedIntent('phase_validate', { phase_id: phase.id });
   }
   if (phase && /\b(review|\/gsd:review)\b/.test(lowered)) {
-    return { input, command: 'terrace phase review ' + phase.id, result: phaseReview(cwd, phase.id) };
+    return plannedIntent('phase_review', { phase_id: phase.id });
   }
   if (phase && /\b(complete|finish|done)\b/.test(lowered)) {
-    return { input, command: 'terrace phase complete ' + phase.id, result: phaseComplete(cwd, phase.id) };
+    return plannedIntent('phase_complete', { phase_id: phase.id });
   }
   if (/\bquick\b/.test(lowered) && /\b(list|show)\b/.test(lowered)) {
-    return { input, command: 'terrace quick list', result: quickList(cwd) };
+    return plannedIntent('quick_list');
   }
   if (/\bquick\b/.test(lowered)) {
     const title = input
@@ -2375,16 +1342,99 @@ function routePlainText(cwd, text) {
       .replace(/^(plan|create|add|execute|run|fix)\s+/i, '')
       .trim();
     if (title) {
-      return { input, command: 'terrace quick plan ' + title, result: quickPlan(cwd, title) };
+      return plannedIntent('quick_plan', { title });
     }
   }
   if (/\bship\b/.test(lowered) && /\b(prepare|pr|release)\b/.test(lowered)) {
-    return { input, command: 'terrace ship prepare', result: shipPrepare(cwd) };
+    return plannedIntent('ship_prepare');
   }
   if (/\bship\b/.test(lowered)) {
-    return { input, command: 'terrace ship check', result: shipCheck(cwd) };
+    return plannedIntent('ship_check');
   }
   throw new Error('Unsupported plain-text Terrace command: ' + input);
+}
+
+function executePlainTextIntent(cwd, plan) {
+  const parameters = plan.parameters || {};
+  switch (plan.intent_id) {
+    case 'adoption_status': {
+      const { adoptionStatus } = require('./adoption.cjs');
+      return adoptionStatus(cwd);
+    }
+    case 'workbench_status': {
+      const { workbenchStatus } = require('./workbench.cjs');
+      return workbenchStatus(cwd, { feature: parameters.feature_id });
+    }
+    case 'workbench_prepare': {
+      const { workbenchPrepare } = require('./workbench.cjs');
+      return workbenchPrepare(cwd, { feature: parameters.feature_id, for: parameters.target });
+    }
+    case 'phase_complete_workflow':
+      return phaseCompleteWorkflow(cwd, parameters.phase_id);
+    case 'phase_plan':
+      return phasePlan(cwd, parameters.phase_id);
+    case 'phase_execute':
+      return phaseExecute(cwd, parameters.phase_id);
+    case 'phase_validate':
+      return phaseValidate(cwd, parameters.phase_id);
+    case 'phase_review':
+      return phaseReview(cwd, parameters.phase_id);
+    case 'phase_complete':
+      return phaseComplete(cwd, parameters.phase_id);
+    case 'quick_plan':
+      return quickPlan(cwd, parameters.title);
+    case 'quick_list':
+      return quickList(cwd);
+    case 'ship_prepare':
+      return shipPrepare(cwd);
+    case 'ship_check':
+      return shipCheck(cwd);
+    case 'autonomous':
+      return autonomousWorkflow(cwd);
+    case 'next':
+      return nextWorkflow(cwd);
+    case 'resume':
+      return resumeWorkflow(cwd);
+    case 'history':
+      return historySummary(cwd);
+    default:
+      throw new Error('Unsupported plain-text Terrace intent: ' + plan.intent_id);
+  }
+}
+
+function applyPlainTextIntentPlan(cwd, token) {
+  const payload = decodePlainTextIntentPlan(token);
+  const intent = resolveIntentCommand(payload.intent_id, payload.parameters);
+  const apply = () => {
+    const state = loadState(cwd);
+    if (state.state_revision !== payload.state_revision) {
+      throw guidanceError('The natural-language plan is stale because Terrace state changed after it was previewed.', {
+        code: 'INTENT_PLAN_STALE',
+        next_command: 'terrace do <intent>',
+        remediation: 'Preview the route again, review its updated write scope, and apply the new plan token.'
+      });
+    }
+    const plan = buildPlainTextIntentPlan(payload.input, payload.intent_id, payload.parameters, state.state_revision);
+    const result = executePlainTextIntent(cwd, plan);
+    const { apply, ...appliedPlan } = plan;
+    return {
+      ...appliedPlan,
+      mode: 'applied',
+      requires_apply: false,
+      applied: true,
+      result
+    };
+  };
+  return intent.lock === 'managed' ? withManagedArtifactLock(cwd, apply) : apply();
+}
+
+function routePlainText(cwd, text) {
+  const plan = planPlainTextIntent(cwd, text);
+  if (plan.effect === 'write') {
+    return plan;
+  }
+  const result = executePlainTextIntent(cwd, plan);
+  return { ...plan, result };
 }
 
 module.exports = {
@@ -2409,6 +1459,8 @@ module.exports = {
   quickExecute,
   quickComplete,
   shipPrepare,
+  planPlainTextIntent,
+  applyPlainTextIntentPlan,
   routePlainText,
   autonomousWorkflow,
   discoverProjectCommands,

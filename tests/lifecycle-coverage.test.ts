@@ -9,6 +9,7 @@ const {
   loadState,
   reportRead,
   reportUpdate,
+  reportShipCheck,
   reportOpen,
   reportCeremony,
   documentationShipCheck,
@@ -60,6 +61,18 @@ describe('production lifecycle edge coverage', () => {
     expect(updated.report_card.last_updated_command).toBe('test command');
     expect(updated.history_ref).toMatch(/^docs\/terrace\/report-history\/.+\.md$/);
     expect(reportOpen(tmpDir)).toMatchObject({ exists: true, artifact: 'docs/terrace/REPORT-CARD.md' });
+  });
+
+  it('builds the ship report gate from current state without trusting or rewriting persisted report cards', () => {
+    const artifact = path.join(tmpDir, '.terrace', 'report-card.json');
+    const persisted = JSON.stringify({ score: 100, status_label: 'baseline_ready' }, null, 2) + '\n';
+    fs.writeFileSync(artifact, persisted, 'utf8');
+
+    const result = reportShipCheck(tmpDir);
+
+    expect(result.report_card).toMatchObject({ source: 'fresh' });
+    expect(result.report_card.score).not.toBe(100);
+    expect(fs.readFileSync(artifact, 'utf8')).toBe(persisted);
   });
 
   it('does not penalize feature-scoped report checks when there is no active feature', () => {

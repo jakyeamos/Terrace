@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { spawnSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -15,8 +15,8 @@ const {
   securityShipCheck
 } = require('../packages/terrace-core/src/index.cjs');
 
-function runTerrace(tmpDir: string, args: string[]) {
-  const result = spawnSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8' });
+function runTerrace(tmpDir: string, args: string[], env?: NodeJS.ProcessEnv) {
+  const result = spawnSync(NODE_BIN, [TERRACE_CLI, ...args], { cwd: tmpDir, encoding: 'utf-8', env: { ...process.env, ...env } });
   return {
     status: result.status,
     stdout: result.stdout,
@@ -28,6 +28,16 @@ function runTerrace(tmpDir: string, args: string[]) {
 function writeJson(filePath: string, value: unknown): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + '\n', 'utf-8');
+}
+
+function createGitSnapshot(cwd: string): void {
+  execFileSync('git', ['init', '-q'], { cwd });
+  execFileSync('git', ['config', 'user.email', 'terrace@example.test'], { cwd });
+  execFileSync('git', ['config', 'user.name', 'Terrace Test'], { cwd });
+  execFileSync('git', ['add', '--all'], { cwd });
+  const tree = execFileSync('git', ['write-tree'], { cwd, encoding: 'utf8' }).trim();
+  const commit = execFileSync('git', ['commit-tree', tree, '-m', 'fixture snapshot'], { cwd, encoding: 'utf8' }).trim();
+  execFileSync('git', ['update-ref', 'HEAD', commit], { cwd });
 }
 
 describe('expected blocker ergonomics', () => {
@@ -124,6 +134,7 @@ describe('expected blocker ergonomics', () => {
         lint: 'node -e "process.exit(0)"'
       }
     }, null, 2), 'utf-8');
+    createGitSnapshot(tmpDir);
 
     const result = runTerrace(tmpDir, ['ship', 'check', '--full']);
 
@@ -158,13 +169,13 @@ describe('expected blocker ergonomics', () => {
   it('distinguishes missing security evidence from blocked security findings', () => {
     initCore(tmpDir, { projectName: 'Security UX' });
 
-    expect(securityShipCheck(tmpDir).warnings[0]).toMatchObject({
-      code: 'SECURITY_CHECK_MISSING',
+    expect(securityShipCheck(tmpDir).blocking[0]).toMatchObject({
+      code: 'SECURITY_CHECK_REQUIRED',
       next_command: 'terrace security check',
       why_blocked: expect.stringContaining('security evidence')
     });
 
-    fs.writeFileSync(path.join(tmpDir, '.env'), 'api_key="12345678901234567890"\n', 'utf-8');
+    fs.writeFileSync(path.join(tmpDir, '.env'), ['api', '_key=', '"12345678901234567890"', '\n'].join(''), 'utf-8');
     const check = runSecurityCheck(tmpDir);
     expect(check.status).toBe('blocked');
     expect(check.blocking[0]).toMatchObject({
@@ -196,11 +207,11 @@ describe('expected blocker ergonomics', () => {
 
     expect(runDoctor(tmpDir).warnings).toContainEqual(expect.objectContaining({
       code: 'PARTIAL_AGENT_ASSETS',
-      next_command: 'terrace init'
+      next_command: 'terrace agents repair'
     }));
     expect(discoverProjectCommands(tmpDir).warnings).toContainEqual(expect.objectContaining({
       code: 'PARTIAL_AGENT_ASSETS',
-      next_command: 'terrace init'
+      next_command: 'terrace agents repair'
     }));
   });
 
@@ -209,12 +220,38 @@ describe('expected blocker ergonomics', () => {
     expect(dryRun.status).toBe(0);
     expect(dryRun.json.plan).toEqual(expect.any(Array));
 
+    writeJson(path.join(tmpDir, '.terrace', 'corpus', 'latest-results.json'), {
+      runId: 'consumer-corpus-run',
+      summary: {
+        totals: { commands: 1, pass: 1, expectedBlockers: 0, productWeaknesses: 0 }
+      }
+    });
+
     const report = runTerrace(tmpDir, ['corpus', 'report', '--json']);
     expect(report.status).toBe(0);
     expect(report.json).toMatchObject({
       runId: expect.any(String),
       totals: expect.objectContaining({ commands: expect.any(Number) }),
-      report: expect.stringContaining('docs/terrace/corpus/REPORT.md')
+      report: expect.stringContaining('.terrace/corpus/REPORT.md')
     });
+  });
+
+  it('reads configured corpus evidence before current and legacy locations', () => {
+    writeJson(path.join(tmpDir, 'docs', 'terrace', 'corpus', 'latest-results.json'), {
+      runId: 'legacy-corpus-run',
+      summary: { totals: { commands: 1, pass: 1, expectedBlockers: 0, productWeaknesses: 0 } }
+    });
+    writeJson(path.join(tmpDir, 'custom-corpus', 'latest-results.json'), {
+      runId: 'configured-corpus-run',
+      summary: { totals: { commands: 2, pass: 2, expectedBlockers: 0, productWeaknesses: 0 } }
+    });
+
+    const configured = runTerrace(tmpDir, ['corpus', 'report', '--json'], { TERRACE_CORPUS_DIR: 'custom-corpus' });
+    const legacy = runTerrace(tmpDir, ['corpus', 'report', '--json'], { TERRACE_CORPUS_DIR: '' });
+
+    expect(configured.status).toBe(0);
+    expect(configured.json).toMatchObject({ runId: 'configured-corpus-run', report: 'custom-corpus/REPORT.md' });
+    expect(legacy.status).toBe(0);
+    expect(legacy.json).toMatchObject({ runId: 'legacy-corpus-run', report: 'docs/terrace/corpus/REPORT.md' });
   });
 });

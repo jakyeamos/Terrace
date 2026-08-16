@@ -1,6 +1,7 @@
 ---
 name: terrace-preset-install
 description: Install a Terrace preset.
+argument-hint: <preset-id>
 ---
 
 # Terrace Preset Install

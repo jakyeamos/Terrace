@@ -9,10 +9,11 @@ const {
   reviewAi,
   workstreamsPlan,
   createHandoff,
-  reportRead,
   testEvalShipCheck
 } = require('./lifecycle.cjs');
+const { reportRead } = require('./reporting.cjs');
 const { securityShipCheck } = require('./security-check.cjs');
+const { evaluateDebt } = require('./debt-assessment.cjs');
 
 function normalizeFeatureId(feature) {
   const id = String(feature || '').trim().toLowerCase().replace(/[^a-z0-9_.-]+/g, '-').replace(/^-+|-+$/g, '');
@@ -63,28 +64,17 @@ function latestForFeature(entries, featureId) {
 }
 
 function debtStatus(state, featureId) {
-  const entries = (Array.isArray(state.debt) ? state.debt : []).filter((entry) => {
-    return entry.feature_id === featureId && entry.status !== 'resolved';
-  });
-  const blockers = [];
-  const warnings = [];
-  for (const entry of entries) {
-    if (!entry.owner) {
-      blockers.push({ code: 'DEBT_OWNER_REQUIRED', id: entry.id, message: 'Debt entry has no owner: ' + entry.id });
-    }
-    if (!entry.expiry_condition && !entry.cleanup_trigger) {
-      blockers.push({ code: 'DEBT_EXPIRY_REQUIRED', id: entry.id, message: 'Debt entry has no expiry condition or cleanup trigger: ' + entry.id });
-    }
-    if (!entry.allowed_to_ship) {
-      warnings.push({ code: 'DEBT_NOT_ALLOWED_TO_SHIP', id: entry.id, message: 'Debt is open and not marked as allowed to ship: ' + entry.id });
-    }
-  }
+  const assessment = evaluateDebt(state.debt, { featureId });
   return {
-    open_count: entries.length,
-    entries,
-    blockers,
-    warnings,
-    passed: blockers.length === 0
+    open_count: assessment.open_count,
+    entries: assessment.entries,
+    blockers: assessment.blockers.map((blocker) => ({
+      code: blocker.code,
+      id: blocker.id,
+      message: blocker.message
+    })),
+    warnings: assessment.warnings,
+    passed: assessment.passed
   };
 }
 

@@ -8,8 +8,14 @@ const path = require('path');
 const YAML = require('yaml');
 
 const TEXT_EXTENSIONS = new Set([
-  '.cjs', '.css', '.env', '.html', '.js', '.jsx', '.json', '.md', '.mjs',
-  '.prisma', '.scss', '.sql', '.ts', '.tsx', '.txt', '.yaml', '.yml'
+  '.c', '.cc', '.cjs', '.cpp', '.cs', '.css', '.env', '.go', '.h', '.hpp',
+  '.html', '.java', '.js', '.jsx', '.json', '.kt', '.kts', '.md', '.mjs',
+  '.php', '.prisma', '.py', '.rb', '.rs', '.scss', '.sh', '.sql', '.swift',
+  '.toml', '.ts', '.tsx', '.txt', '.xml', '.yaml', '.yml'
+]);
+const TEXT_BASENAMES = new Set([
+  '.dockerignore', '.gitignore', '.npmrc', '.pnpmfile.cjs', '.yarnrc', '.yarnrc.yml', 'brewfile', 'containerfile',
+  'dockerfile', 'gemfile', 'makefile', 'procfile', 'rakefile'
 ]);
 
 function safeReadJson(filePath, fallback) {
@@ -56,9 +62,16 @@ function listProjectFiles(cwd, options) {
     absolute: false,
     dot: true,
     onlyFiles: true,
-    unique: true
-  }).filter((file) => !matcher.ignores(file.replace(/\\/g, '/')));
-  return files.sort().slice(0, opts.limit || 5000);
+    unique: true,
+    followSymbolicLinks: false
+  }).map((file) => file.replace(/\\/g, '/')).filter((file) => !matcher.ignores(file));
+  const filtered = typeof opts.filter === 'function' ? files.filter(opts.filter) : files;
+  if (typeof opts.compare === 'function') {
+    filtered.sort(opts.compare);
+  } else {
+    filtered.sort();
+  }
+  return filtered.slice(0, opts.limit || 5000);
 }
 
 function currentChangedFiles(cwd) {
@@ -70,19 +83,38 @@ function currentChangedFiles(cwd) {
   }
 }
 
+function isTextFile(file) {
+  const base = path.basename(file);
+  return TEXT_EXTENSIONS.has(path.extname(file).toLowerCase()) || base.startsWith('.env') || TEXT_BASENAMES.has(base.toLowerCase());
+}
+
 function readSmallText(cwd, file, maxBytes) {
   const resolved = path.resolve(cwd, file);
   const root = path.resolve(cwd);
   if (resolved !== root && !resolved.startsWith(root + path.sep)) {
     return null;
   }
-  if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
+  if (!fs.existsSync(resolved)) {
     return null;
   }
-  if (!TEXT_EXTENSIONS.has(path.extname(file)) && !path.basename(file).startsWith('.env')) {
+  const stat = fs.lstatSync(resolved);
+  if (!stat.isFile() || stat.isSymbolicLink()) {
     return null;
   }
-  const stat = fs.statSync(resolved);
+  if (!isTextFile(file)) {
+    return null;
+  }
+  let realRoot;
+  let realResolved;
+  try {
+    realRoot = fs.realpathSync(root);
+    realResolved = fs.realpathSync(resolved);
+  } catch (error) {
+    return null;
+  }
+  if (realResolved !== realRoot && !realResolved.startsWith(realRoot + path.sep)) {
+    return null;
+  }
   if (stat.size > (maxBytes || 200000)) {
     return null;
   }
@@ -210,6 +242,7 @@ module.exports = {
   classifyFile,
   currentChangedFiles,
   groupFilesByLane,
+  isTextFile,
   listProjectFiles,
   readSmallText
 };

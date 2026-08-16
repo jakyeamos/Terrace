@@ -91,6 +91,22 @@ describe('terrace planning refresh', () => {
     expect(fs.readFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), 'utf-8')).toContain('## Phase 1: Planning Parity');
   });
 
+  it('refuses a symlinked planning parent before writing generated planning artifacts', () => {
+    const outside = path.join(tmpDir, 'outside-planning');
+    fs.mkdirSync(outside, { recursive: true });
+    fs.symlinkSync(outside, path.join(tmpDir, '.planning'));
+
+    let thrown: { details?: { code?: string } } | null = null;
+    try {
+      refreshPlanningPackage(tmpDir);
+    } catch (error) {
+      thrown = error as { details?: { code?: string } };
+    }
+
+    expect(thrown?.details?.code).toBe('MANAGED_ARTIFACT_PATH_UNSAFE');
+    expect(fs.readdirSync(outside)).toEqual([]);
+  });
+
   it('supports the Phase 1 planning-parity workflow through deterministic CLI JSON', () => {
     const first = runTerrace(tmpDir, ['planning', 'refresh', '--json']);
     const second = runTerrace(tmpDir, ['planning', 'refresh', '--json']);
