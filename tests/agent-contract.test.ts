@@ -73,6 +73,17 @@ describe('agent contract and steering loader (AGNT-01, AGNT-02, AGNT-03, AGNT-07
     }
   });
 
+  it('terrace-resume generated command preserves blocker ownership', () => {
+    const { templateAssets } = require('../packages/terrace-core/src/agents.cjs') as { templateAssets: () => Array<{ path: string; content: string }> };
+    const assetPath = '.claude/commands/terrace-resume.md';
+    const asset = templateAssets().find((item) => item.path === assetPath);
+
+    expect(asset?.content).toContain('An active workspace');
+    expect(asset?.content).toContain('lock is not authority to delete the lock, retry, or invent a next command');
+    expect(asset?.content).toContain('surface a next command when Terrace supplied one');
+    expect(fs.readFileSync(path.resolve(process.cwd(), assetPath), 'utf-8')).toBe(asset?.content);
+  });
+
   it('keeps source-owned generated assets distinct from consumer bootstrap templates', () => {
     const {
       repoGeneratedAssetStatus,
