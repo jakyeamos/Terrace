@@ -9,7 +9,7 @@
   "status": "passed",
   "artifact": ".terrace/security/latest.json",
   "markdown": "docs/terrace/security/SECURITY-CHECK.md",
-  "created_at": "2026-07-26T20:34:24.528Z",
+  "created_at": "2026-08-16T14:29:48.211Z",
   "dependency_audit": {
     "package_manager": "pnpm",
     "file": "pnpm-lock.yaml",
@@ -20,9 +20,99 @@
       "--json"
     ],
     "display": "pnpm audit --prod",
-    "lockfile_present": true
+    "lockfile_present": true,
+    "status": "complete"
   },
-  "findings": [],
+  "evidence": {
+    "schema_version": 1,
+    "kind": "terrace.security-check",
+    "scanner_version": "1",
+    "created_at": "2026-08-16T14:29:48.211Z",
+    "input_fingerprint": "382db00744c6d7158ff628da9edea422a3d6e326ed0d53c67824c1826aded756",
+    "scope": {
+      "candidate_file_count": 383,
+      "scanned_file_count": 383,
+      "truncated": false,
+      "unreadable_files": [],
+      "complete": true
+    },
+    "dependency_audit": {
+      "file": "pnpm-lock.yaml",
+      "lockfile_present": true,
+      "status": "complete"
+    }
+  },
+  "findings": [
+    {
+      "id": "sensitive-logging-0",
+      "code": "SENSITIVE_LOGGING_0",
+      "mode": "security",
+      "severity": "medium",
+      "classification": "warning",
+      "file_or_artifact": "scripts/secret-scan.mjs",
+      "file": "scripts/secret-scan.mjs",
+      "claim": "Logging code appears to include sensitive authentication fields.",
+      "message": "Logging code appears to include sensitive authentication fields.",
+      "evidence": "A logging call references token, secret, password, authorization, or cookie.",
+      "recommended_fix": "Redact sensitive values before logging and add a regression test for redaction.",
+      "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+      "next_command": "terrace security check",
+      "remediation": "Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.",
+      "source": "terrace security check"
+    },
+    {
+      "id": "react-html-injection-1",
+      "code": "REACT_HTML_INJECTION_1",
+      "mode": "security",
+      "severity": "medium",
+      "classification": "warning",
+      "file_or_artifact": "tests/expected-blocker-ergonomics.test.ts",
+      "file": "tests/expected-blocker-ergonomics.test.ts",
+      "claim": "React raw HTML rendering requires sanitization evidence.",
+      "message": "React raw HTML rendering requires sanitization evidence.",
+      "evidence": "dangerouslySetInnerHTML appears in tests/expected-blocker-ergonomics.test.ts.",
+      "recommended_fix": "Document sanitization or replace raw HTML rendering with safe structured rendering.",
+      "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+      "next_command": "terrace security check",
+      "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+      "source": "terrace security check"
+    }
+  ],
   "blocking": [],
-  "warnings": []
+  "warnings": [
+    {
+      "id": "sensitive-logging-0",
+      "code": "SENSITIVE_LOGGING_0",
+      "mode": "security",
+      "severity": "medium",
+      "classification": "warning",
+      "file_or_artifact": "scripts/secret-scan.mjs",
+      "file": "scripts/secret-scan.mjs",
+      "claim": "Logging code appears to include sensitive authentication fields.",
+      "message": "Logging code appears to include sensitive authentication fields.",
+      "evidence": "A logging call references token, secret, password, authorization, or cookie.",
+      "recommended_fix": "Redact sensitive values before logging and add a regression test for redaction.",
+      "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+      "next_command": "terrace security check",
+      "remediation": "Redact sensitive values before logging and add a regression test for redaction. Then rerun `terrace security check`.",
+      "source": "terrace security check"
+    },
+    {
+      "id": "react-html-injection-1",
+      "code": "REACT_HTML_INJECTION_1",
+      "mode": "security",
+      "severity": "medium",
+      "classification": "warning",
+      "file_or_artifact": "tests/expected-blocker-ergonomics.test.ts",
+      "file": "tests/expected-blocker-ergonomics.test.ts",
+      "claim": "React raw HTML rendering requires sanitization evidence.",
+      "message": "React raw HTML rendering requires sanitization evidence.",
+      "evidence": "dangerouslySetInnerHTML appears in tests/expected-blocker-ergonomics.test.ts.",
+      "recommended_fix": "Document sanitization or replace raw HTML rendering with safe structured rendering.",
+      "why_blocked": "Security findings should be reviewed before release even when they are not blocking.",
+      "next_command": "terrace security check",
+      "remediation": "Document sanitization or replace raw HTML rendering with safe structured rendering. Then rerun `terrace security check`.",
+      "source": "terrace security check"
+    }
+  ]
 }
