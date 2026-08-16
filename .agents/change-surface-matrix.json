@@ -46,6 +46,19 @@
       "operations": ["add", "change", "remove"],
       "validation": ["pnpm install --frozen-lockfile", "pnpm audit --audit-level moderate", "pnpm run ci"],
       "status": "applicable"
+    },
+    {
+      "id": "production-evidence-authoring",
+      "scope": "local",
+      "path": "packages/terrace-core/src/lifecycle.cjs, README.md, docs/terrace/features/, tests/agent-production-lifecycle.test.ts, tests/agent-production-lifecycle-full.test.ts",
+      "owner": "repository-owner",
+      "condition": "Preflight or documentation generation changes its applicability detection, evidence wording, rollback contract, or persisted metadata.",
+      "operations": ["change"],
+      "validation": [
+        "pnpm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts",
+        "Generate evidence for a CLI-only fixture and verify absent hosted-service surfaces are stated as not detected rather than invented."
+      ],
+      "status": "applicable"
     }
   ],
   "unresolved_surfaces": []

@@ -46,6 +46,19 @@ describe('agent production lifecycle full command surface', () => {
       artifact: 'docs/testing/TEST-EVAL.md'
     });
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'billing-refresh', 'RUNBOOK.md'))).toBe(true);
+    const docsText = fs.readFileSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'billing-refresh', 'RUNBOOK.md'), 'utf-8');
+    expect(docsText).toContain('Command/service entrypoint candidates:');
+    expect(docsText).not.toContain('API/backend files detected:');
+    expect(docsText).not.toContain('reverting the deployment');
+    fs.appendFileSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'billing-refresh', 'RUNBOOK.md'), '\n- Missing or stale evidence must block release claims.\n', 'utf-8');
+    const review = runTerrace(tmpDir, ['review', 'ai', '--mode', 'architecture', '--feature', 'billing-refresh', '--json']);
+    expect(review.findings).toContainEqual(expect.objectContaining({ id: 'review-no-blockers' }));
+    expect(review.findings).not.toContainEqual(expect.objectContaining({ id: expect.stringMatching(/^artifact-evidence-/) }));
+    runTerrace(tmpDir, ['review', 'ai', '--mode', 'architecture', '--feature', 'billing-refresh', '--json']);
+    const state = JSON.parse(fs.readFileSync(path.join(tmpDir, '.terrace', 'state.json'), 'utf-8'));
+    expect(state.ai_reviews.filter((item: { feature_id: string; mode: string }) => (
+      item.feature_id === 'billing-refresh' && item.mode === 'architecture'
+    ))).toHaveLength(1);
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'testing', 'TEST-EVAL.md'))).toBe(true);
   });
 

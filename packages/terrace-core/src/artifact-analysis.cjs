@@ -25,6 +25,16 @@ function normalizeFinding(item, mode, source, index) {
   };
 }
 
+function unresolvedEvidenceMarkers(text) {
+  return String(text || '').split(/\r?\n/).filter((line) => {
+    const value = line.trim();
+    return /\[(?:TODO|MISSING|UNRESOLVED)\]/i.test(value) ||
+      /^[-*]\s*TODO(?:\s|:|$)/i.test(value) ||
+      /^[-*]\s*(?:missing|unresolved)\s*:/i.test(value) ||
+      /\bstatus\s*:\s*unresolved\b/i.test(value);
+  });
+}
+
 function artifactTodoFindings(cwd, featureId, mode) {
   const base = path.join('docs', 'terrace', 'features', featureId);
   if (!fs.existsSync(path.join(cwd, base))) {
@@ -42,13 +52,14 @@ function artifactTodoFindings(cwd, featureId, mode) {
   for (const file of files) {
     const rel = path.join(base, file);
     const text = readSmallText(cwd, rel, 100000) || '';
-    if (/\bTODO\b|unresolved evidence|missing/i.test(text)) {
+    const markers = unresolvedEvidenceMarkers(text);
+    if (markers.length > 0) {
       findings.push(normalizeFinding({
         id: 'artifact-evidence-' + findings.length,
         severity: 'medium',
         file_or_artifact: rel,
         claim: 'Feature artifact still contains unresolved evidence markers.',
-        evidence: rel + ' includes TODO, missing, or unresolved evidence language.',
+        evidence: rel + ' includes ' + String(markers.length) + ' explicit TODO, missing, or unresolved marker' + (markers.length === 1 ? '.' : 's.'),
         recommended_fix: 'Replace unresolved markers with concrete evidence, owner, or documented exemption.'
       }, mode, 'static', findings.length));
     }
@@ -113,5 +124,6 @@ function staticReviewFindings(cwd, mode, featureId) {
 module.exports = {
   normalizeImportedFindings,
   normalizeFinding,
+  unresolvedEvidenceMarkers,
   staticReviewFindings
 };

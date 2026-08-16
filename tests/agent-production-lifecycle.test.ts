@@ -57,6 +57,11 @@ describe('agent production lifecycle phase 1 commands', () => {
     expect(handoff.target).toBe('codex');
     expect(handoff.artifacts.markdown).toMatch(/^docs\/terrace\/handoffs\/.+-billing-refresh\.md$/);
     expect(fs.existsSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'billing-refresh', 'PREFLIGHT.md'))).toBe(true);
+    const preflightText = fs.readFileSync(path.join(tmpDir, 'docs', 'terrace', 'features', 'billing-refresh', 'PREFLIGHT.md'), 'utf-8');
+    expect(preflightText).toContain('no hosted network surface detected');
+    expect(preflightText).toContain('no authorization surface detected');
+    expect(preflightText).not.toContain('review auth and role checks in server/API entrypoints');
+    expect(preflightText).not.toContain('revert deploy');
     expect(fs.existsSync(path.join(tmpDir, handoff.artifacts.markdown))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, handoff.artifacts.json))).toBe(true);
   }, 120000);

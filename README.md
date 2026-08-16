@@ -222,6 +222,14 @@ Global options: `--help`, `--version`, `--json`, and `--apply`.
 
 Operational guarantees stay intentionally narrative rather than another command inventory: `terrace audit` is read-only and `terrace report update` is the explicit report writer; every write-capable natural-language route returns a state-bound apply token with its known write scope; `terrace ship check` is read-only by default and only `--full` runs discovered project scripts after a clean Git snapshot; `terrace ship prepare` writes `docs/terrace/ship/SHIP.md` after its chosen check mode. `terrace init --force --yes` retains managed backups and rolls back failed resets, while `terrace agents repair` adds only missing generated assets without changing workflow state.
 
+`terrace preflight` and `terrace docu` author evidence from detected repository
+surfaces. When hosted networking, authorization, environment, migration, or
+observability surfaces are absent, the artifact records that absence or an
+applicability decision; it does not invent a server, deployment, role model, or
+data migration. Their rollback language always starts with reverting the
+reviewed integration or release, then names product-specific recovery only when
+the repository supplies evidence that it applies.
+
 ## GSD Migration
 
 `terrace port gsd` preserves the source `.planning/` tree, installs non-overwriting repo-local Terrace agent assets, and writes converted Terrace artifacts under `.terrace/`, `docs/prd/`, `docs/spec/`, `docs/terrace-migration/`, and `docs/testing/gsd/`. The migration report is written to `.terrace/migration/gsd-port-report.json` and includes `converted`, `skipped`, `writes`, `agents`, `blockers`, `warnings`, `readiness`, `next_command`, `review_checklist`, and `validation_commands`.

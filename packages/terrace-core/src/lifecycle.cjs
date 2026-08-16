@@ -436,7 +436,9 @@ function preflightFeature(cwd, feature, options) {
   const repo = analyzeRepository(cwd);
   const envFiles = repo.files.filter((file) => path.basename(file).startsWith('.env')).slice(0, 8);
   const migrationFiles = repo.migrations.slice(0, 8);
-  const networkFiles = repo.source_files.filter((file) => /(api|client|fetch|request|route|server)/i.test(file)).slice(0, 8);
+  const networkFiles = repo.source_files.filter((file) => /(^|\/)(api|server|controllers?|clients?)(\/|\.|-)|\b(fetch|https?|request)\b/i.test(file)).slice(0, 8);
+  const authFiles = repo.source_files.filter((file) => /(^|\/)(auth|permissions?|roles?)(\/|\.|-)/i.test(file)).slice(0, 8);
+  const commandFiles = repo.source_files.filter((file) => /(cli|command|router|handler|entry)/i.test(file)).slice(0, 8);
   const observabilityFiles = repo.files.filter((file) => /(observability|telemetry|logger|logging|metrics|trace|sentry|datadog)/i.test(file)).slice(0, 8);
   const entry = {
     feature_id: featureId,
@@ -444,15 +446,14 @@ function preflightFeature(cwd, feature, options) {
     artifact,
     created_at: nowIso(),
     checks: [
-      'bad input',
-      'permission errors',
-      'slow network',
-      'stale cache',
-      'partial deploy',
-      'missing environment variables',
-      'failed migrations',
-      'third-party outages',
-      'rate limits',
+      'input boundaries',
+      'filesystem and process permissions',
+      'state concurrency and recovery',
+      'command execution boundaries',
+      'package dependency closure',
+      'environment configuration when detected',
+      'data migration when detected',
+      'external integration when detected',
       'rollback path',
       'observability gaps'
     ],
@@ -460,6 +461,8 @@ function preflightFeature(cwd, feature, options) {
       env_files: envFiles,
       migrations: migrationFiles,
       network_files: networkFiles,
+      auth_files: authFiles,
+      command_files: commandFiles,
       observability_files: observabilityFiles
     }
   };
@@ -470,24 +473,24 @@ function preflightFeature(cwd, feature, options) {
     '- ' + mode,
     '',
     '## Failure Checks',
-    '- bad input: validate request boundaries in ' + (networkFiles[0] || 'the primary input handling path once identified') + '.',
-    '- permission errors: review auth and role checks in ' + (networkFiles.find((file) => /auth|permission|role/i.test(file)) || 'server/API entrypoints') + '.',
-    '- slow network: verify timeout, retry, and loading behavior for API-facing paths.',
-    '- stale cache: confirm cache invalidation for changed data and route refresh behavior.',
-    '- partial deploy: check schema and runtime compatibility for ' + (migrationFiles[0] || 'deploy-time data changes') + '.',
-    '- missing environment variables: required env evidence from ' + (envFiles[0] || 'package/deployment configuration') + '.',
-    '- failed migrations: migration surface ' + (migrationFiles.length > 0 ? migrationFiles.join(', ') : 'not detected') + '.',
-    '- third-party outages: dependency surface from package.json and integration imports.',
-    '- rate limits: inspect API/client paths for retry and throttle behavior.',
-    '- rollback path: revert deploy plus disable feature entrypoints if runtime evidence fails.',
+    '- input boundaries: validate malformed, empty, duplicate, and unsupported input in ' + (commandFiles[0] || networkFiles[0] || 'the primary input handling path once identified') + '.',
+    '- filesystem and process permissions: verify denied reads, writes, and child-process execution at the repository boundary.',
+    '- state concurrency and recovery: verify interrupted and conflicting writes do not corrupt persisted state.',
+    '- command execution boundaries: confirm inspection paths do not conceal mutation or target-project execution.',
+    '- package dependency closure: install the packed artifact in a fresh consumer and run its public entrypoint.',
+    '- environment configuration: ' + (envFiles.length > 0 ? 'review detected files ' + envFiles.join(', ') : 'no environment files detected; do not invent required variables') + '.',
+    '- data migration: ' + (migrationFiles.length > 0 ? 'review applicability of detected migration-like files ' + migrationFiles.join(', ') : 'no migration-like files detected') + '.',
+    '- authorization: ' + (authFiles.length > 0 ? 'review detected authorization files ' + authFiles.join(', ') : 'no authorization surface detected') + '.',
+    '- external integration: ' + (networkFiles.length > 0 ? 'verify timeout, retry, and failure behavior in ' + networkFiles.join(', ') : 'no hosted network surface detected') + '.',
+    '- rollback path: revert the reviewed integration or release without rewriting history; use product-specific recovery only when applicable.',
     '- observability gaps: ' + (observabilityFiles.length > 0 ? observabilityFiles.join(', ') : 'no observability files detected') + '.',
     '',
     '## Rollback Path',
-    '- Roll back the deployment and revert any migration only after validating data compatibility.',
+    '- Revert the reviewed integration or release and validate compatibility before applying any product-specific data recovery.',
     '- Release owner must define threshold before ship when this file is used as release evidence.',
     '',
     '## Observability Gaps',
-    ...(observabilityFiles.length > 0 ? observabilityFiles.map((file) => '- Review ' + file + ' for feature-specific signals.') : ['- No observability files were detected; add logs or metrics before high-risk release.']),
+    ...(observabilityFiles.length > 0 ? observabilityFiles.map((file) => '- Review ' + file + ' for feature-specific signals.') : ['- No observability files were detected. Record an applicability decision before making telemetry claims.']),
     '',
     '## Ship Decision',
     '- Preflight is complete when every failure mode has evidence, an owner, or a documented exemption.'
@@ -534,6 +537,7 @@ function docuFeature(cwd, feature, options) {
   const evidenceRefs = featureEvidence(cwd, featureId);
   const changed = repo.changed_files.slice(0, 12);
   const reviewRefs = (readJsonIfExists(cwd, '.terrace/state.json', {}).ai_reviews || []).filter((review) => review.feature_id === featureId).map((review) => review.markdown || review.artifact);
+  const entrypointFiles = repo.source_files.filter((file) => /(api|server|route|controller|cli|command|handler|entry)/i.test(file)).slice(0, 8);
   writeMarkdown(cwd, artifact, [
     '# Documentation: ' + featureId,
     '',
@@ -552,11 +556,11 @@ function docuFeature(cwd, feature, options) {
     '',
     '## Rollout And Rollback',
     '- Roll out after `terrace ship check` passes or documented blockers are resolved.',
-    '- Roll back by reverting the deployment and following the feature preflight rollback section.',
+    '- Roll back by reverting the reviewed integration or release and following the feature preflight recovery section.',
     '',
     '## User-Visible Changes',
     '- UI routes/components detected: ' + (repo.route_hints.concat(repo.component_hints).slice(0, 8).join(', ') || 'none detected'),
-    '- API/backend files detected: ' + (repo.source_files.filter((file) => /(api|server|route|controller)/i.test(file)).slice(0, 8).join(', ') || 'none detected'),
+    '- Command/service entrypoint candidates: ' + (entrypointFiles.join(', ') || 'none detected'),
     '',
     '## Evidence Links',
     '- Alignment: ' + featureRef(featureId) + '/ALIGNMENT.md',
@@ -806,9 +810,12 @@ function reviewAi(cwd, options) {
       ...findings.map((finding) => '- ' + finding.id + ': ' + finding.recommended_fix)
     ]);
     const state = loadState(cwd);
+    const priorReviews = aiReviewEntries(state).filter((review) => !(
+      review.feature_id === featureId && review.mode === mode
+    ));
     saveState(cwd, {
       ...state,
-      ai_reviews: [...aiReviewEntries(state), entry]
+      ai_reviews: [...priorReviews, entry]
     });
     reportUpdate(cwd, { command: 'terrace review ai --mode ' + mode });
     return entry;
