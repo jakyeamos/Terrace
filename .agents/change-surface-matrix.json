@@ -36,6 +36,16 @@
       "operations": ["add", "change", "remove"],
       "validation": ["pnpm run environment:contract"],
       "status": "applicable"
+    },
+    {
+      "id": "dependency-security",
+      "scope": "local",
+      "path": "pnpm-workspace.yaml, pnpm-lock.yaml",
+      "owner": "repository-owner",
+      "condition": "Dependency overrides or the resolved dependency graph change.",
+      "operations": ["add", "change", "remove"],
+      "validation": ["pnpm install --frozen-lockfile", "pnpm audit --audit-level moderate", "pnpm run ci"],
+      "status": "applicable"
     }
   ],
   "unresolved_surfaces": []
