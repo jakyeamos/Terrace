@@ -1,5 +1,578 @@
 {
-  "schema_version": "1.0",
+  "migration": null,
+  "handoff": null,
+  "handoffs": [],
+  "workstreams": {},
+  "design_sources": {},
+  "preflights": {
+    "gpt56-modernization": {
+      "feature_id": "gpt56-modernization",
+      "mode": "pre-ship",
+      "artifact": "docs/terrace/features/gpt56-modernization/PREFLIGHT.md",
+      "created_at": "2026-08-16T14:31:09.183Z",
+      "checks": [
+        "input boundaries",
+        "filesystem and process permissions",
+        "state concurrency and recovery",
+        "command execution boundaries",
+        "package dependency closure",
+        "environment configuration when detected",
+        "data migration when detected",
+        "external integration when detected",
+        "rollback path",
+        "observability gaps"
+      ],
+      "evidence": {
+        "env_files": [],
+        "migrations": [
+          "tests/core-port-gsd-migration.test.ts"
+        ],
+        "network_files": [],
+        "auth_files": [],
+        "command_files": [
+          "src/legacy-cli-router.cjs",
+          "src/phase-cli-router.cjs",
+          "src/release-readiness-cli-router.cjs",
+          "src/report-cli-router.cjs",
+          "src/senior-cycle-cli-router.cjs"
+        ],
+        "observability_files": [
+          "docs/terrace/codebase/OBSERVABILITY.md",
+          "docs/terrace/features/gpt56-modernization/OBSERVABILITY.md"
+        ]
+      }
+    }
+  },
+  "ai_reviews": [
+    {
+      "feature_id": "gpt56-modernization",
+      "mode": "architecture",
+      "artifact": "docs/terrace/reviews/gpt56-modernization/architecture.json",
+      "markdown": "docs/terrace/reviews/gpt56-modernization/architecture.md",
+      "created_at": "2026-08-16T14:50:55.163Z",
+      "source": "static",
+      "imported_from": null,
+      "findings": [
+        {
+          "id": "review-no-blockers",
+          "mode": "architecture",
+          "severity": "info",
+          "classification": "warning",
+          "file_or_artifact": "repository",
+          "claim": "Deterministic review found no blocking issues for this mode.",
+          "evidence": "Repository and Terrace artifacts were scanned with local heuristics.",
+          "recommended_fix": "Keep review artifact with the release evidence.",
+          "source": "static"
+        }
+      ]
+    }
+  ],
+  "debt": [],
+  "documentation": {
+    "gpt56-modernization": {
+      "feature_id": "gpt56-modernization",
+      "type": "handoff",
+      "artifact": "docs/terrace/features/gpt56-modernization/DOCS.md",
+      "created_at": "2026-08-16T14:31:09.563Z",
+      "polish_adapter": "none"
+    }
+  },
+  "test_evaluations": [
+    {
+      "id": "2026-04-29T18-53-01-912Z",
+      "feature_id": null,
+      "artifact": "docs/testing/TEST-EVAL.md",
+      "changed_only": false,
+      "created_at": "2026-04-29T18:53:01.912Z",
+      "trust_score": 100,
+      "blockers": [],
+      "recommendations": [],
+      "test_files": [
+        "tests/agent-contract.test.ts",
+        "tests/agent-production-lifecycle-full.test.ts",
+        "tests/agent-production-lifecycle.test.ts",
+        "tests/amos-saas-gsd-smoke.test.ts",
+        "tests/core-cli.test.ts",
+        "tests/core-gates.test.ts",
+        "tests/core-init.test.ts",
+        "tests/core-legacy-extraction.test.ts",
+        "tests/core-port-gsd-migration.test.ts",
+        "tests/core-port-gsd.test.ts",
+        "tests/core-roadmap.test.ts",
+        "tests/core-rules.test.ts",
+        "tests/core-state.test.ts",
+        "tests/doctor.test.ts",
+        "tests/fragment-index.test.ts",
+        "tests/fragment-loader.test.ts",
+        "tests/implemented-placeholder-commands.test.ts",
+        "tests/init.test.ts",
+        "tests/json-mode.test.ts",
+        "tests/lifecycle-coverage.test.ts",
+        "tests/lifecycle.test.ts",
+        "tests/preset.test.ts",
+        "tests/product-readiness.test.ts",
+        "tests/roadmap-phase3-6.test.ts",
+        "tests/schemas.test.ts",
+        "tests/spec-hash.test.ts",
+        "tests/templates.test.ts",
+        "tests/validate.test.ts",
+        "tests/workflow-commands.test.ts",
+        "tests/workflow-intake.test.ts",
+        "tests/workflow-interrogation.test.ts",
+        "tests/workflow-spec-compiler.test.ts",
+        "tests/workflow-test-architect.test.ts"
+      ],
+      "duplicate_test_basenames": [],
+      "snapshot_files": []
+    },
+    {
+      "id": "2026-08-16T14-34-00-883Z",
+      "feature_id": null,
+      "artifact": "docs/testing/TEST-EVAL.md",
+      "changed_only": false,
+      "created_at": "2026-08-16T14:34:00.884Z",
+      "trust_score": 100,
+      "blockers": [],
+      "recommendations": [],
+      "test_files": [
+        "tests/agent-contract.test.ts",
+        "tests/agent-production-lifecycle-full.test.ts",
+        "tests/agent-production-lifecycle.test.ts",
+        "tests/amos-saas-gsd-smoke.test.ts",
+        "tests/command-catalog.test.ts",
+        "tests/command-parser.test.ts",
+        "tests/core-cli.test.ts",
+        "tests/core-gates.test.ts",
+        "tests/core-init.test.ts",
+        "tests/core-legacy-extraction.test.ts",
+        "tests/core-port-gsd-migration.test.ts",
+        "tests/core-port-gsd.test.ts",
+        "tests/core-roadmap.test.ts",
+        "tests/core-rules.test.ts",
+        "tests/core-state.test.ts",
+        "tests/corpus-eval.test.ts",
+        "tests/debt-assessment.test.ts",
+        "tests/doctor.test.ts",
+        "tests/durable-stage-state.test.ts",
+        "tests/expected-blocker-ergonomics.test.ts",
+        "tests/export-merge.test.ts",
+        "tests/fragment-index.test.ts",
+        "tests/fragment-loader.test.ts",
+        "tests/implemented-placeholder-commands.test.ts",
+        "tests/init.test.ts",
+        "tests/json-mode.test.ts",
+        "tests/legacy-cli-router.test.ts",
+        "tests/lifecycle-coverage.test.ts",
+        "tests/lifecycle.test.ts",
+        "tests/lint-script.test.ts",
+        "tests/managed-artifacts.test.ts",
+        "tests/phase-cli-router.test.ts",
+        "tests/planning-refresh.test.ts",
+        "tests/prd-intake.test.ts",
+        "tests/preset.test.ts",
+        "tests/product-readiness.test.ts",
+        "tests/project-command-discovery.test.ts",
+        "tests/quality-runner-contract.test.ts",
+        "tests/release-preflight.test.ts",
+        "tests/release-readiness-cli-router.test.ts",
+        "tests/report-cli-router.test.ts",
+        "tests/reporting.test.ts",
+        "tests/roadmap-phase3-6.test.ts",
+        "tests/schemas.test.ts",
+        "tests/senior-cycle-cli-router.test.ts",
+        "tests/senior-cycle.test.ts",
+        "tests/ship-readiness.test.ts",
+        "tests/spec-hash.test.ts",
+        "tests/templates.test.ts",
+        "tests/validate.test.ts",
+        "tests/vitest-runner.test.ts",
+        "tests/workflow-commands.test.ts",
+        "tests/workflow-helpers.test.ts",
+        "tests/workflow-intake.test.ts",
+        "tests/workflow-interrogation.test.ts",
+        "tests/workflow-spec-compiler.test.ts",
+        "tests/workflow-test-architect.test.ts"
+      ],
+      "duplicate_test_basenames": [],
+      "snapshot_files": []
+    },
+    {
+      "id": "2026-08-16T14-46-14-491Z",
+      "feature_id": null,
+      "artifact": "docs/testing/TEST-EVAL.md",
+      "changed_only": false,
+      "created_at": "2026-08-16T14:46:14.492Z",
+      "trust_score": 100,
+      "blockers": [],
+      "recommendations": [],
+      "test_files": [
+        "tests/agent-contract.test.ts",
+        "tests/agent-production-lifecycle-full.test.ts",
+        "tests/agent-production-lifecycle.test.ts",
+        "tests/amos-saas-gsd-smoke.test.ts",
+        "tests/command-catalog.test.ts",
+        "tests/command-parser.test.ts",
+        "tests/core-cli.test.ts",
+        "tests/core-gates.test.ts",
+        "tests/core-init.test.ts",
+        "tests/core-legacy-extraction.test.ts",
+        "tests/core-port-gsd-migration.test.ts",
+        "tests/core-port-gsd.test.ts",
+        "tests/core-roadmap.test.ts",
+        "tests/core-rules.test.ts",
+        "tests/core-state.test.ts",
+        "tests/corpus-eval.test.ts",
+        "tests/debt-assessment.test.ts",
+        "tests/doctor.test.ts",
+        "tests/durable-stage-state.test.ts",
+        "tests/expected-blocker-ergonomics.test.ts",
+        "tests/export-merge.test.ts",
+        "tests/fragment-index.test.ts",
+        "tests/fragment-loader.test.ts",
+        "tests/implemented-placeholder-commands.test.ts",
+        "tests/init.test.ts",
+        "tests/json-mode.test.ts",
+        "tests/legacy-cli-router.test.ts",
+        "tests/lifecycle-coverage.test.ts",
+        "tests/lifecycle.test.ts",
+        "tests/lint-script.test.ts",
+        "tests/managed-artifacts.test.ts",
+        "tests/phase-cli-router.test.ts",
+        "tests/planning-refresh.test.ts",
+        "tests/prd-intake.test.ts",
+        "tests/preset.test.ts",
+        "tests/product-readiness.test.ts",
+        "tests/project-command-discovery.test.ts",
+        "tests/quality-runner-contract.test.ts",
+        "tests/release-preflight.test.ts",
+        "tests/release-readiness-cli-router.test.ts",
+        "tests/report-cli-router.test.ts",
+        "tests/reporting.test.ts",
+        "tests/roadmap-phase3-6.test.ts",
+        "tests/schemas.test.ts",
+        "tests/senior-cycle-cli-router.test.ts",
+        "tests/senior-cycle.test.ts",
+        "tests/ship-readiness.test.ts",
+        "tests/spec-hash.test.ts",
+        "tests/templates.test.ts",
+        "tests/validate.test.ts",
+        "tests/vitest-runner.test.ts",
+        "tests/workflow-commands.test.ts",
+        "tests/workflow-helpers.test.ts",
+        "tests/workflow-intake.test.ts",
+        "tests/workflow-interrogation.test.ts",
+        "tests/workflow-spec-compiler.test.ts",
+        "tests/workflow-test-architect.test.ts"
+      ],
+      "duplicate_test_basenames": [],
+      "snapshot_files": []
+    },
+    {
+      "id": "2026-08-16T14-50-55-404Z",
+      "feature_id": "gpt56-modernization",
+      "artifact": "docs/testing/TEST-EVAL.md",
+      "changed_only": true,
+      "created_at": "2026-08-16T14:50:55.405Z",
+      "trust_score": 100,
+      "blockers": [],
+      "recommendations": [],
+      "test_files": [
+        "tests/agent-contract.test.ts",
+        "tests/agent-production-lifecycle-full.test.ts",
+        "tests/agent-production-lifecycle.test.ts",
+        "tests/amos-saas-gsd-smoke.test.ts",
+        "tests/command-catalog.test.ts",
+        "tests/command-parser.test.ts",
+        "tests/core-cli.test.ts",
+        "tests/core-gates.test.ts",
+        "tests/core-init.test.ts",
+        "tests/core-legacy-extraction.test.ts",
+        "tests/core-port-gsd-migration.test.ts",
+        "tests/core-port-gsd.test.ts",
+        "tests/core-roadmap.test.ts",
+        "tests/core-rules.test.ts",
+        "tests/core-state.test.ts",
+        "tests/corpus-eval.test.ts",
+        "tests/debt-assessment.test.ts",
+        "tests/doctor.test.ts",
+        "tests/durable-stage-state.test.ts",
+        "tests/expected-blocker-ergonomics.test.ts",
+        "tests/export-merge.test.ts",
+        "tests/fragment-index.test.ts",
+        "tests/fragment-loader.test.ts",
+        "tests/implemented-placeholder-commands.test.ts",
+        "tests/init.test.ts",
+        "tests/json-mode.test.ts",
+        "tests/legacy-cli-router.test.ts",
+        "tests/lifecycle-coverage.test.ts",
+        "tests/lifecycle.test.ts",
+        "tests/lint-script.test.ts",
+        "tests/managed-artifacts.test.ts",
+        "tests/phase-cli-router.test.ts",
+        "tests/planning-refresh.test.ts",
+        "tests/prd-intake.test.ts",
+        "tests/preset.test.ts",
+        "tests/product-readiness.test.ts",
+        "tests/project-command-discovery.test.ts",
+        "tests/quality-runner-contract.test.ts",
+        "tests/release-preflight.test.ts",
+        "tests/release-readiness-cli-router.test.ts",
+        "tests/report-cli-router.test.ts",
+        "tests/reporting.test.ts",
+        "tests/roadmap-phase3-6.test.ts",
+        "tests/schemas.test.ts",
+        "tests/senior-cycle-cli-router.test.ts",
+        "tests/senior-cycle.test.ts",
+        "tests/ship-readiness.test.ts",
+        "tests/spec-hash.test.ts",
+        "tests/templates.test.ts",
+        "tests/validate.test.ts",
+        "tests/vitest-runner.test.ts",
+        "tests/workflow-commands.test.ts",
+        "tests/workflow-helpers.test.ts",
+        "tests/workflow-intake.test.ts",
+        "tests/workflow-interrogation.test.ts",
+        "tests/workflow-spec-compiler.test.ts",
+        "tests/workflow-test-architect.test.ts"
+      ],
+      "duplicate_test_basenames": [],
+      "snapshot_files": []
+    }
+  ],
+  "rule_audits": [
+    {
+      "id": "2026-04-29T18-53-35-157Z",
+      "artifact": "docs/terrace/rules/RULE-AUDIT.md",
+      "created_at": "2026-04-29T18:53:35.158Z",
+      "rule_count": 5,
+      "blockers": [],
+      "warnings": [],
+      "passed": true
+    },
+    {
+      "id": "2026-08-16T14-34-06-462Z",
+      "artifact": "docs/terrace/rules/RULE-AUDIT.md",
+      "created_at": "2026-08-16T14:34:06.463Z",
+      "rule_count": 5,
+      "maturity_counts": {
+        "draft": 0,
+        "observing": 0,
+        "warning": 3,
+        "blocking": 2,
+        "unknown": 0
+      },
+      "weak_metadata": [],
+      "blockers": [],
+      "warnings": [],
+      "passed": true
+    },
+    {
+      "id": "2026-08-16T14-46-14-746Z",
+      "artifact": "docs/terrace/rules/RULE-AUDIT.md",
+      "created_at": "2026-08-16T14:46:14.746Z",
+      "rule_count": 5,
+      "maturity_counts": {
+        "draft": 0,
+        "observing": 0,
+        "warning": 3,
+        "blocking": 2,
+        "unknown": 0
+      },
+      "weak_metadata": [],
+      "blockers": [],
+      "warnings": [],
+      "passed": true
+    },
+    {
+      "id": "2026-08-16T14-50-55-658Z",
+      "artifact": "docs/terrace/rules/RULE-AUDIT.md",
+      "created_at": "2026-08-16T14:50:55.659Z",
+      "rule_count": 5,
+      "maturity_counts": {
+        "draft": 0,
+        "observing": 0,
+        "warning": 3,
+        "blocking": 2,
+        "unknown": 0
+      },
+      "weak_metadata": [],
+      "blockers": [],
+      "warnings": [],
+      "passed": true
+    }
+  ],
+  "waivers": [],
+  "backfills": [],
+  "report_card": {
+    "updated_at": "2026-08-16T14:51:21.818Z",
+    "last_updated_command": "terrace report update",
+    "score": 70,
+    "max_score": 100,
+    "status_label": "usable_not_tier_one",
+    "claim_scope": "feature_readiness",
+    "claim_scope_note": "Score is backed by active or completed Terrace workflow evidence.",
+    "current_feature": {
+      "feature_id": "gpt56-modernization",
+      "tier": "medium",
+      "artifacts": {
+        "alignment": "docs/terrace/features/gpt56-modernization/ALIGNMENT.md",
+        "design": "docs/terrace/features/gpt56-modernization/DESIGN.md",
+        "test_plan": "docs/testing/TEST-PLAN.md",
+        "observability": "docs/terrace/features/gpt56-modernization/OBSERVABILITY.md",
+        "validation": "docs/terrace/features/gpt56-modernization/VALIDATION.md",
+        "cleanup": "docs/terrace/features/gpt56-modernization/CLEANUP.md"
+      }
+    },
+    "blockers": [
+      {
+        "code": "SENIOR_ARTIFACT_MISSING",
+        "message": "Missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md",
+        "artifact": "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
+      }
+    ],
+    "warnings": [
+      {
+        "code": "REPORT_CHECK_INCOMPLETE",
+        "message": "Completed sprint outcomes is incomplete.",
+        "remediation": "Complete at least one phase or quick task through Terrace."
+      }
+    ],
+    "completed_sprint_outcomes": {
+      "phases": [],
+      "quick_tasks": []
+    },
+    "missing_senior_cycle_artifacts": [
+      "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
+    ],
+    "quality_ladder_status": {
+      "audit": "passing",
+      "audit_blockers": 0
+    },
+    "documentation_status": "present",
+    "test_suite_strength_status": "evaluated",
+    "debt_status": "healthy",
+    "rule_health": "audited",
+    "production_readiness": "preflight_present",
+    "active_waivers": [],
+    "checks": [
+      {
+        "id": "senior_cycle",
+        "label": "Senior Cycle artifacts",
+        "passed": false,
+        "points": 20,
+        "earned": 0,
+        "evidence": {
+          "active_feature": "gpt56-modernization",
+          "missing_artifacts": [
+            "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
+          ]
+        },
+        "remediation": "Run the next senior-cycle command for the active feature."
+      },
+      {
+        "id": "production_preflight",
+        "label": "Production preflight",
+        "passed": true,
+        "points": 15,
+        "earned": 15,
+        "evidence": {
+          "active_feature": "gpt56-modernization",
+          "preflight_count": 1,
+          "skipped": false
+        },
+        "remediation": null
+      },
+      {
+        "id": "debt_health",
+        "label": "Debt health",
+        "passed": true,
+        "points": 15,
+        "earned": 15,
+        "evidence": {
+          "open_debt_count": 0,
+          "blockers": []
+        },
+        "remediation": null
+      },
+      {
+        "id": "governance_audit",
+        "label": "Governance audit",
+        "passed": true,
+        "points": 15,
+        "earned": 15,
+        "evidence": {
+          "blocking_count": 0,
+          "warning_count": 0
+        },
+        "remediation": null
+      },
+      {
+        "id": "completed_outcomes",
+        "label": "Completed sprint outcomes",
+        "passed": false,
+        "points": 10,
+        "earned": 0,
+        "evidence": {
+          "completed_phases": [],
+          "completed_quick_tasks": [],
+          "skipped": false
+        },
+        "remediation": "Complete at least one phase or quick task through Terrace."
+      },
+      {
+        "id": "documentation",
+        "label": "Documentation status",
+        "passed": true,
+        "points": 10,
+        "earned": 10,
+        "evidence": {
+          "active_feature": "gpt56-modernization",
+          "docs_ref": "docs/terrace/features/gpt56-modernization/DOCS.md",
+          "skipped": false
+        },
+        "remediation": null
+      },
+      {
+        "id": "test_suite_strength",
+        "label": "Test-suite strength",
+        "passed": true,
+        "points": 10,
+        "earned": 10,
+        "evidence": {
+          "test_eval_ref": "docs/testing/TEST-EVAL.md",
+          "exists": true,
+          "scripts": {
+            "test": true,
+            "coverage": true
+          }
+        },
+        "remediation": null
+      },
+      {
+        "id": "rule_health",
+        "label": "Rule health",
+        "passed": true,
+        "points": 5,
+        "earned": 5,
+        "evidence": {
+          "rule_audit_count": 4
+        },
+        "remediation": null
+      }
+    ],
+    "next_three_actions": [
+      "Create missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md"
+    ],
+    "artifact": ".terrace/report-card.json",
+    "docs_ref": "docs/terrace/REPORT-CARD.md",
+    "latest_history_ref": "docs/terrace/report-history/2026-08-16T14-51-21-818Z.md"
+  },
+  "backlog": {
+    "items": []
+  },
+  "blocked_actions": [],
+  "quick_tasks": [],
+  "schema_version": "1.1",
   "project": {
     "name": "Terrace",
     "created_at": "2026-04-28T23:10:07.559Z"
@@ -99,237 +672,6 @@
     }
   ],
   "sessions": [],
-  "test_evaluations": [
-    {
-      "id": "2026-04-29T18-53-01-912Z",
-      "feature_id": null,
-      "artifact": "docs/testing/TEST-EVAL.md",
-      "changed_only": false,
-      "created_at": "2026-04-29T18:53:01.912Z",
-      "trust_score": 100,
-      "blockers": [],
-      "recommendations": [],
-      "test_files": [
-        "tests/agent-contract.test.ts",
-        "tests/agent-production-lifecycle-full.test.ts",
-        "tests/agent-production-lifecycle.test.ts",
-        "tests/amos-saas-gsd-smoke.test.ts",
-        "tests/core-cli.test.ts",
-        "tests/core-gates.test.ts",
-        "tests/core-init.test.ts",
-        "tests/core-legacy-extraction.test.ts",
-        "tests/core-port-gsd-migration.test.ts",
-        "tests/core-port-gsd.test.ts",
-        "tests/core-roadmap.test.ts",
-        "tests/core-rules.test.ts",
-        "tests/core-state.test.ts",
-        "tests/doctor.test.ts",
-        "tests/fragment-index.test.ts",
-        "tests/fragment-loader.test.ts",
-        "tests/implemented-placeholder-commands.test.ts",
-        "tests/init.test.ts",
-        "tests/json-mode.test.ts",
-        "tests/lifecycle-coverage.test.ts",
-        "tests/lifecycle.test.ts",
-        "tests/preset.test.ts",
-        "tests/product-readiness.test.ts",
-        "tests/roadmap-phase3-6.test.ts",
-        "tests/schemas.test.ts",
-        "tests/spec-hash.test.ts",
-        "tests/templates.test.ts",
-        "tests/validate.test.ts",
-        "tests/workflow-commands.test.ts",
-        "tests/workflow-intake.test.ts",
-        "tests/workflow-interrogation.test.ts",
-        "tests/workflow-spec-compiler.test.ts",
-        "tests/workflow-test-architect.test.ts"
-      ],
-      "duplicate_test_basenames": [],
-      "snapshot_files": []
-    }
-  ],
-  "report_card": {
-    "updated_at": "2026-07-14T02:06:42.225Z",
-    "last_updated_command": "terrace report update",
-    "score": 45,
-    "max_score": 100,
-    "status_label": "planning_or_governance_weak",
-    "claim_scope": "feature_readiness",
-    "claim_scope_note": "Score is backed by active or completed Terrace workflow evidence.",
-    "current_feature": {
-      "feature_id": "gpt56-modernization",
-      "tier": "medium",
-      "artifacts": {
-        "alignment": "docs/terrace/features/gpt56-modernization/ALIGNMENT.md",
-        "design": "docs/terrace/features/gpt56-modernization/DESIGN.md",
-        "test_plan": "docs/testing/TEST-PLAN.md",
-        "observability": "docs/terrace/features/gpt56-modernization/OBSERVABILITY.md",
-        "validation": "docs/terrace/features/gpt56-modernization/VALIDATION.md",
-        "cleanup": "docs/terrace/features/gpt56-modernization/CLEANUP.md"
-      }
-    },
-    "blockers": [
-      {
-        "code": "SENIOR_ARTIFACT_MISSING",
-        "message": "Missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md",
-        "artifact": "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
-      }
-    ],
-    "warnings": [
-      {
-        "code": "REPORT_CHECK_INCOMPLETE",
-        "message": "Completed sprint outcomes is incomplete.",
-        "remediation": "Complete at least one phase or quick task through Terrace."
-      },
-      {
-        "code": "REPORT_CHECK_INCOMPLETE",
-        "message": "Documentation status is incomplete.",
-        "remediation": "Run `terrace docu <feature>` when available or write feature documentation."
-      }
-    ],
-    "completed_sprint_outcomes": {
-      "phases": [],
-      "quick_tasks": []
-    },
-    "missing_senior_cycle_artifacts": [
-      "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
-    ],
-    "quality_ladder_status": {
-      "audit": "passing",
-      "audit_blockers": 0
-    },
-    "documentation_status": "missing",
-    "test_suite_strength_status": "evaluated",
-    "debt_status": "healthy",
-    "rule_health": "audited",
-    "production_readiness": "preflight_missing",
-    "active_waivers": [],
-    "checks": [
-      {
-        "id": "senior_cycle",
-        "label": "Senior Cycle artifacts",
-        "passed": false,
-        "points": 20,
-        "earned": 0,
-        "evidence": {
-          "active_feature": "gpt56-modernization",
-          "missing_artifacts": [
-            "docs/terrace/features/gpt56-modernization/INTERROGATION.md"
-          ]
-        },
-        "remediation": "Run the next senior-cycle command for the active feature."
-      },
-      {
-        "id": "production_preflight",
-        "label": "Production preflight",
-        "passed": false,
-        "points": 15,
-        "earned": 0,
-        "evidence": {
-          "active_feature": "gpt56-modernization",
-          "preflight_count": 0,
-          "skipped": false
-        },
-        "remediation": "Run `terrace preflight <feature>`."
-      },
-      {
-        "id": "debt_health",
-        "label": "Debt health",
-        "passed": true,
-        "points": 15,
-        "earned": 15,
-        "evidence": {
-          "open_debt_count": 0,
-          "blockers": []
-        },
-        "remediation": null
-      },
-      {
-        "id": "governance_audit",
-        "label": "Governance audit",
-        "passed": true,
-        "points": 15,
-        "earned": 15,
-        "evidence": {
-          "blocking_count": 0,
-          "warning_count": 0
-        },
-        "remediation": null
-      },
-      {
-        "id": "completed_outcomes",
-        "label": "Completed sprint outcomes",
-        "passed": false,
-        "points": 10,
-        "earned": 0,
-        "evidence": {
-          "completed_phases": [],
-          "completed_quick_tasks": [],
-          "skipped": false
-        },
-        "remediation": "Complete at least one phase or quick task through Terrace."
-      },
-      {
-        "id": "documentation",
-        "label": "Documentation status",
-        "passed": false,
-        "points": 10,
-        "earned": 0,
-        "evidence": {
-          "active_feature": "gpt56-modernization",
-          "docs_ref": "docs/terrace/features/gpt56-modernization/DOCS.md",
-          "skipped": false
-        },
-        "remediation": "Run `terrace docu <feature>` when available or write feature documentation."
-      },
-      {
-        "id": "test_suite_strength",
-        "label": "Test-suite strength",
-        "passed": true,
-        "points": 10,
-        "earned": 10,
-        "evidence": {
-          "test_eval_ref": "docs/testing/TEST-EVAL.md",
-          "exists": true,
-          "scripts": {
-            "test": true,
-            "coverage": true
-          }
-        },
-        "remediation": null
-      },
-      {
-        "id": "rule_health",
-        "label": "Rule health",
-        "passed": true,
-        "points": 5,
-        "earned": 5,
-        "evidence": {
-          "rule_audit_count": 1
-        },
-        "remediation": null
-      }
-    ],
-    "next_three_actions": [
-      "Create missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md",
-      "Run terrace preflight gpt56-modernization",
-      "Create feature documentation for gpt56-modernization."
-    ],
-    "artifact": ".terrace/report-card.json",
-    "docs_ref": "docs/terrace/REPORT-CARD.md",
-    "latest_history_ref": "docs/terrace/report-history/2026-07-14T02-06-42-229Z.md"
-  },
-  "rule_audits": [
-    {
-      "id": "2026-04-29T18-53-35-157Z",
-      "artifact": "docs/terrace/rules/RULE-AUDIT.md",
-      "created_at": "2026-04-29T18:53:35.158Z",
-      "rule_count": 5,
-      "blockers": [],
-      "warnings": [],
-      "passed": true
-    }
-  ],
   "senior_cycle": {
     "features": {
       "gpt56-modernization": {
@@ -349,5 +691,6 @@
       }
     },
     "active_feature": "gpt56-modernization"
-  }
+  },
+  "state_revision": 25
 }

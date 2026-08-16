@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-07-14T02:06:42.225Z",
+  "updated_at": "2026-08-16T14:51:21.818Z",
   "last_updated_command": "terrace report update",
-  "score": 45,
+  "score": 70,
   "max_score": 100,
-  "status_label": "planning_or_governance_weak",
+  "status_label": "usable_not_tier_one",
   "claim_scope": "feature_readiness",
   "claim_scope_note": "Score is backed by active or completed Terrace workflow evidence.",
   "current_feature": {
@@ -30,11 +30,6 @@
       "code": "REPORT_CHECK_INCOMPLETE",
       "message": "Completed sprint outcomes is incomplete.",
       "remediation": "Complete at least one phase or quick task through Terrace."
-    },
-    {
-      "code": "REPORT_CHECK_INCOMPLETE",
-      "message": "Documentation status is incomplete.",
-      "remediation": "Run `terrace docu <feature>` when available or write feature documentation."
     }
   ],
   "completed_sprint_outcomes": {
@@ -48,11 +43,11 @@
     "audit": "passing",
     "audit_blockers": 0
   },
-  "documentation_status": "missing",
+  "documentation_status": "present",
   "test_suite_strength_status": "evaluated",
   "debt_status": "healthy",
   "rule_health": "audited",
-  "production_readiness": "preflight_missing",
+  "production_readiness": "preflight_present",
   "active_waivers": [],
   "checks": [
     {
@@ -72,15 +67,15 @@
     {
       "id": "production_preflight",
       "label": "Production preflight",
-      "passed": false,
+      "passed": true,
       "points": 15,
-      "earned": 0,
+      "earned": 15,
       "evidence": {
         "active_feature": "gpt56-modernization",
-        "preflight_count": 0,
+        "preflight_count": 1,
         "skipped": false
       },
-      "remediation": "Run `terrace preflight <feature>`."
+      "remediation": null
     },
     {
       "id": "debt_health",
@@ -122,15 +117,15 @@
     {
       "id": "documentation",
       "label": "Documentation status",
-      "passed": false,
+      "passed": true,
       "points": 10,
-      "earned": 0,
+      "earned": 10,
       "evidence": {
         "active_feature": "gpt56-modernization",
         "docs_ref": "docs/terrace/features/gpt56-modernization/DOCS.md",
         "skipped": false
       },
-      "remediation": "Run `terrace docu <feature>` when available or write feature documentation."
+      "remediation": null
     },
     {
       "id": "test_suite_strength",
@@ -155,14 +150,12 @@
       "points": 5,
       "earned": 5,
       "evidence": {
-        "rule_audit_count": 1
+        "rule_audit_count": 4
       },
       "remediation": null
     }
   ],
   "next_three_actions": [
-    "Create missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md",
-    "Run terrace preflight gpt56-modernization",
-    "Create feature documentation for gpt56-modernization."
+    "Create missing senior-cycle artifact: docs/terrace/features/gpt56-modernization/INTERROGATION.md"
   ]
 }

@@ -1,8 +1,8 @@
 # Test Suite Evaluation
 
 ## Scope
-- Feature: repository
-- Changed only: false
+- Feature: gpt56-modernization
+- Changed only: true
 
 ## Trust Score
 - 100
@@ -14,7 +14,7 @@
 - None.
 
 ## Inventory
-- Test files: 33
+- Test files: 57
 - Snapshot files: 0
 - Duplicate basenames: 0
 

@@ -9,7 +9,7 @@
   "status": "passed",
   "artifact": ".terrace/security/latest.json",
   "markdown": "docs/terrace/security/SECURITY-CHECK.md",
-  "created_at": "2026-08-16T14:29:48.211Z",
+  "created_at": "2026-08-16T14:51:12.364Z",
   "dependency_audit": {
     "package_manager": "pnpm",
     "file": "pnpm-lock.yaml",
@@ -27,8 +27,8 @@
     "schema_version": 1,
     "kind": "terrace.security-check",
     "scanner_version": "1",
-    "created_at": "2026-08-16T14:29:48.211Z",
-    "input_fingerprint": "382db00744c6d7158ff628da9edea422a3d6e326ed0d53c67824c1826aded756",
+    "created_at": "2026-08-16T14:51:12.364Z",
+    "input_fingerprint": "e82f463be91942adddb474b01ff19b0f6b06daeaa391d3e8685f670f5870e7d7",
     "scope": {
       "candidate_file_count": 383,
       "scanned_file_count": 383,

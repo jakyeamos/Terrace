@@ -1,0 +1,22 @@
+{
+  "feature_id": "gpt56-modernization",
+  "mode": "architecture",
+  "artifact": "docs/terrace/reviews/gpt56-modernization/architecture.json",
+  "markdown": "docs/terrace/reviews/gpt56-modernization/architecture.md",
+  "created_at": "2026-08-16T14:50:55.163Z",
+  "source": "static",
+  "imported_from": null,
+  "findings": [
+    {
+      "id": "review-no-blockers",
+      "mode": "architecture",
+      "severity": "info",
+      "classification": "warning",
+      "file_or_artifact": "repository",
+      "claim": "Deterministic review found no blocking issues for this mode.",
+      "evidence": "Repository and Terrace artifacts were scanned with local heuristics.",
+      "recommended_fix": "Keep review artifact with the release evidence.",
+      "source": "static"
+    }
+  ]
+}
