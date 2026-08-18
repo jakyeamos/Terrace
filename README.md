@@ -6,38 +6,34 @@ Terrace is a strict-core workflow CLI for spec-driven, test-governed AI-assisted
 
 Terrace requires Node.js 22 or newer.
 
-The published npm package is `@jakyeamos33/terrace`; npm `latest` is currently `0.1.1`. This repository is prepared at `0.2.0`, so treat `0.2.0` commands as release-candidate verification until that version is published.
+The registry currently publishes `@jakyeamos33/terrace@0.1.1` as `latest`. This checkout is prepared at `0.2.0`, which is a release candidate and is not published yet.
 
 ```sh
 pnpm add -D @jakyeamos33/terrace
 ```
 
-Run it with `pnpm exec terrace` after installation or with `pnpm dlx @jakyeamos33/terrace` for one-off use.
-If you want `terrace` available globally, install it globally:
+Run the installed package with `pnpm exec terrace`. For a one-off run of the current registry version, use:
+
+```sh
+pnpm dlx @jakyeamos33/terrace
+```
+
+To install the registry version globally:
 
 ```sh
 pnpm add --global @jakyeamos33/terrace
 ```
 
-To make Terrace slash commands and skills available in Codex and Claude Code across local repos, install the global agent assets:
-
-```sh
-terrace agents install-global
-```
-
 ## Quickstart
 
-Run Terrace from the root of an existing repository:
+From the root of an existing repository:
 
 ```sh
 pnpm exec terrace init
-pnpm exec terrace doctor
-pnpm exec terrace audit
-pnpm exec terrace report
-pnpm exec terrace ship check --json
+pnpm exec terrace next
 ```
 
-`terrace doctor` confirms the local installation is usable. `terrace audit` checks Terrace-owned governance state. `terrace report` prints the current Tier One readiness card without writing files. `terrace ship check --json` runs the default read-only release-readiness gates and exits nonzero when a blocking gate fails.
+Use `pnpm exec terrace doctor` to check installation health and `pnpm exec terrace ship check --json` for the default read-only readiness check.
 
 ## What Terrace Creates
 
@@ -133,7 +129,7 @@ Run `pnpm run environment:contract` before opening a PR or changing repository g
 
 ## Command Reference
 
-This generated index is checked against Terrace’s command catalog. Use `terrace --help` for the same current surface at the terminal.
+This generated index is checked against Terrace’s command catalog. Use `terrace --help` for the curated workflow and `terrace --help --json` for the complete machine-readable surface.
 
 <!-- terrace-command-catalog:start -->
 - `terrace init` — Initialize or safely repair Terrace state in this repo.
@@ -216,6 +212,9 @@ This generated index is checked against Terrace’s command catalog. Use `terrac
 - `terrace backfill` — Write standards backfill spec.
 - `terrace preset list` — List installed presets.
 - `terrace preset install <id>` — Install a preset.
+- `terrace core init` — Compatibility alias for terrace init.
+- `terrace quick <roadmap-item-id>` — Compatibility form for roadmap quick execution.
+- `terrace roadmap execute <roadmap-item-id>` — Compatibility form for roadmap execution.
 
 Global options: `--help`, `--version`, `--json`, and `--apply`.
 <!-- terrace-command-catalog:end -->

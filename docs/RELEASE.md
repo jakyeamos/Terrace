@@ -1,5 +1,7 @@
 # Release Checklist
 
+Current distribution status: `package.json` is `0.2.0`, while the npm registry reports `0.1.1` as `latest`. The `0.2.0` package is not published by this checklist or by local verification. Confirm the live registry state with `pnpm view @jakyeamos33/terrace version versions dist-tags --json` before giving users an install command for the candidate.
+
 1. Confirm npm trusted publishing is configured for `@jakyeamos33/terrace` with the GitHub repository, `release-publish.yml` workflow, and `npm` environment.
 2. Confirm the GitHub `npm` environment requires the intended reviewer before publish jobs can run.
 3. Confirm `package.json` and `CHANGELOG.md` match the reviewed release version and scope.
@@ -10,7 +12,9 @@
 8. Run `pnpm run release:dry-run`.
 9. Run `node src/terrace-tools.cjs ship check --json`, confirm the default read-only check does not dirty the working tree, and confirm the `trusted_publishing` category reports repo-owned prerequisites as passed while listing the manual npm/GitHub admin confirmations for `@jakyeamos33/terrace@0.2.0`. Use `--full` only when intentionally executing discovered project scripts.
 10. Run `node src/terrace-tools.cjs release-preflight --target-version 0.2.0 --json` and confirm the JSON summary has no blockers.
-11. Tag the release after review with `git tag v<version>`.
-12. Publish by creating a GitHub Release for that tag. The Release Publish workflow uses GitHub OIDC trusted publishing and must not require local registry auth secrets.
+11. Tag the reviewed candidate with `git tag v0.2.0` only after the release owner approves the version, changelog, and preflight output.
+12. Create a GitHub Release for `v0.2.0`. The Release Publish workflow uses GitHub OIDC trusted publishing and must not require local registry auth secrets; no local `pnpm publish` is required.
+
+Publication blocker for this checkout: `v0.2.0` has not been tagged or published, and npm/GitHub trusted-publishing admin settings require owner confirmation. The exact next command after that approval is `git tag v0.2.0`; creating the GitHub Release then starts the tokenless publish workflow.
 
 Rollback: deprecate the npm version with a clear replacement message, then ship a patch release.
