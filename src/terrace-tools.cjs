@@ -35,7 +35,8 @@ const {
   reportOpen,
   reportHistory,
   reportCeremony,
-  renderCliHelp
+  renderCliHelp,
+  renderCliHelpJson
 } = require('../packages/terrace-core/src/index.cjs');
 const { resolveCommandDispatch } = require('../packages/terrace-core/src/command-parser.cjs');
 const { createPhaseCliRouter } = require('./phase-cli-router.cjs');
@@ -342,11 +343,15 @@ async function main() {
   const args = stripFlags(rawArgs, ['--json', '--force', '--yes', '--dry-run', '--apply', '--help', '-h', '--version', '-v']);
 
   if (version) {
-    output(packageJson.version, { json });
+    output(json ? {
+      command: 'terrace',
+      package: packageJson.name,
+      version: packageJson.version
+    } : packageJson.version, { json });
     return;
   }
-  if (help || rawArgs.length === 0) {
-    output(HELP_TEXT, { json: false });
+  if (help || (args.length === 0 && !apply)) {
+    output(json ? renderCliHelpJson() : HELP_TEXT, { json });
     return;
   }
 
