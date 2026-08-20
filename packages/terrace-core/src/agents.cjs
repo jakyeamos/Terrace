@@ -32,6 +32,7 @@ const AGENTS_MD = lines([
   '- Route natural-language workflow requests through `terrace do "<intent>"`; inspect the returned plan, then run its returned `apply.argv` only to authorize a write-capable route.',
   '- Use `terrace quick plan`, `terrace quick execute`, and `terrace quick complete` for small scoped work.',
   '- Use `terrace phase plan`, `terrace phase execute`, `terrace phase validate`, `terrace phase review`, and `terrace phase complete` for roadmap phase work.',
+  '- Use `terrace phase execute <id> --parallel` only when every plan has explicit owned files and dependencies; inspect, merge, and clean up through `terrace parallel`.',
   '- Use `terrace execute-phase-complete <id>` only when the user wants a full phase lifecycle and Terrace gates allow it.',
   '- Set phase depth with `terrace settings effort <fast|standard|thorough>`.',
   '- Run `terrace ship check` before treating protected work as ready to ship.',

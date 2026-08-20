@@ -92,6 +92,28 @@ function findPhase(state, phaseId) {
   return phase;
 }
 
+
+function parallelRunGateForPhase(state, phaseId) {
+  const runs = Array.isArray(state.parallel_runs) ? state.parallel_runs : [];
+  const run = runs
+    .filter((candidate) => candidate.phase_id === phaseId)
+    .sort((left, right) => String(right.created_at).localeCompare(String(left.created_at)))[0];
+  if (!run || run.status === 'cleaned' || run.status === 'merged') {
+    return null;
+  }
+  return blocker({
+    code: run.status === 'failed' ? 'PARALLEL_RUN_FAILED' : 'PARALLEL_MERGE_REQUIRED',
+    message: run.status === 'failed'
+      ? 'Parallel run ' + run.id + ' failed and must be cleaned up before phase workflow can continue.'
+      : 'Parallel run ' + run.id + ' must be recovered and merged before phase workflow can continue.',
+    why_blocked: 'The canonical state and roadmap writer cannot advance while isolated plan work is incomplete.',
+    next_command: run.status === 'failed' ? 'terrace parallel cleanup ' + run.id : 'terrace parallel status ' + run.id,
+    remediation: run.status === 'failed'
+      ? 'Inspect the preserved worker branch, clean up the run, then use the sequential phase path.'
+      : 'Commit each worker SUMMARY.md, recover interrupted worktrees, and run the deterministic merge command.'
+  });
+}
+
 function phaseRef(phase) {
   return 'docs/terrace/phases/' + phase.id;
 }
@@ -527,6 +549,15 @@ function phaseExecute(cwd, phaseId) {
 function phaseValidate(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  const parallelGate = parallelRunGateForPhase(state, phase.id);
+  if (parallelGate) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      blockers: [parallelGate],
+      required_action: parallelGate.message
+    };
+  }
   const discovered = discoverProjectCommands(cwd);
   const commands = discovered.checks.filter((check) => check.exists).map((check) => check.command);
   const qualityRunnerReconciliation = reconcileQualityRunner(cwd, phase);
@@ -584,6 +615,15 @@ function phaseValidate(cwd, phaseId) {
 function phaseReview(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  const parallelGate = parallelRunGateForPhase(state, phase.id);
+  if (parallelGate) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      blockers: [parallelGate],
+      required_action: parallelGate.message
+    };
+  }
   const qualityRunner = phase.quality_runner;
   if (qualityRunner && qualityRunner.enabled === true && (!qualityRunner.reconciliation || qualityRunner.reconciliation.status !== 'reconciled')) {
     return {
@@ -628,6 +668,15 @@ function phaseReview(cwd, phaseId) {
 function phaseComplete(cwd, phaseId) {
   const state = loadState(cwd);
   const phase = findPhase(state, phaseId);
+  const parallelGate = parallelRunGateForPhase(state, phase.id);
+  if (parallelGate) {
+    return {
+      allowed: false,
+      phase_id: phase.id,
+      blockers: [parallelGate],
+      required_action: parallelGate.message
+    };
+  }
   const qualityRunner = phase.quality_runner;
   if (qualityRunner && qualityRunner.enabled === true && (!qualityRunner.reconciliation || qualityRunner.reconciliation.status !== 'reconciled')) {
     return {

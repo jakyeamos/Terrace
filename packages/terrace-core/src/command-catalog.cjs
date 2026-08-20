@@ -88,6 +88,13 @@ const ADVANCED_HELP_COMMAND_IDS = new Set([
   'design-source.import',
   'design-source.diff',
   'phase.list',
+  'parallel.plan',
+  'parallel.start',
+  'parallel.status',
+  'parallel.resume',
+  'parallel.merge',
+  'parallel.fail',
+  'parallel.cleanup',
   'phase.show',
   'quick.list',
   'quick.show',
@@ -168,6 +175,13 @@ const COMMAND_DISPATCH_BY_ID = Object.freeze({
   'phase.show': D('phase', F(['phase', 'show'])),
   'phase.plan': D('phase', F(['phase', 'plan'])),
   'phase.execute': D('phase', F(['phase', 'execute'])),
+  'parallel.plan': D('phase', F(['parallel', 'plan'])),
+  'parallel.start': D('phase', F(['parallel', 'start'])),
+  'parallel.status': D('phase', F(['parallel', 'status'])),
+  'parallel.resume': D('phase', F(['parallel', 'resume'])),
+  'parallel.merge': D('phase', F(['parallel', 'merge'])),
+  'parallel.fail': D('phase', F(['parallel', 'fail'])),
+  'parallel.cleanup': D('phase', F(['parallel', 'cleanup'])),
   'phase.validate': D('phase', F(['phase', 'validate'])),
   'phase.review': D('phase', F(['phase', 'review'])),
   'phase.complete': D('phase', F(['phase', 'complete'])),
@@ -512,10 +526,44 @@ const COMMAND_CATALOG = Object.freeze([
   command('phase.execute', ['phase', 'execute', '<id>'], {
     effect: 'write',
     route: ['phase', 'execute', P('phase_id')],
-    help: H('terrace phase execute <id>', 'Enter RED-gate execution for a phase'),
-    agent: A('terrace-phase-execute', 'terrace phase execute $ARGUMENTS', '<phase-id>', 'Enter RED-gate execution for a phase after blockers are clear.')
+    help: H('terrace phase execute <id> [--parallel]', 'Enter RED-gate execution for a phase'),
+    agent: A('terrace-phase-execute', 'terrace phase execute $ARGUMENTS', '<phase-id> [--parallel]', 'Enter RED-gate execution for a phase after blockers are clear; use --parallel only for explicit non-overlapping plan ownership.')
   }),
-  command('phase.validate', ['phase', 'validate', '<id>'], {
+  command('parallel.plan', ['parallel', 'plan', '<id>'], {
+    effect: 'read',
+    help: H('terrace parallel plan <id>', 'Preview safe parallel plan waves and file ownership'),
+    agent: A('terrace-parallel-plan', 'terrace parallel plan $ARGUMENTS', '<phase-id>', 'Preview explicit plan dependencies, waves, owned files, and single-writer blockers.')
+  }),
+  command('parallel.start', ['parallel', 'start', '<id>'], {
+    effect: 'write',
+    help: H('terrace parallel start <id>', 'Start isolated worktrees for a phase'),
+    agent: A('terrace-parallel-start', 'terrace parallel start $ARGUMENTS', '<phase-id>', 'Create isolated worktrees for the ready plan wave after Terrace gates pass.')
+  }),
+  command('parallel.status', ['parallel', 'status', '<id>'], {
+    effect: 'read',
+    help: H('terrace parallel status <id>', 'Inspect parallel worker evidence'),
+    agent: A('terrace-parallel-status', 'terrace parallel status $ARGUMENTS', '<phase-id|run-id>', 'Inspect worker worktrees, committed changes, ownership, and SUMMARY.md readiness.')
+  }),
+  command('parallel.resume', ['parallel', 'resume', '<id>'], {
+    effect: 'write',
+    help: H('terrace parallel resume <id>', 'Recover an interrupted parallel run'),
+    agent: A('terrace-parallel-resume', 'terrace parallel resume $ARGUMENTS', '<phase-id|run-id>', 'Recover an interrupted isolated execution run.')
+  }),
+  command('parallel.merge', ['parallel', 'merge', '<id>'], {
+    effect: 'write',
+    help: H('terrace parallel merge <id>', 'Merge verified parallel worker commits'),
+    agent: A('terrace-parallel-merge', 'terrace parallel merge $ARGUMENTS', '<phase-id|run-id>', 'Merge verified worker commits in deterministic wave and plan-id order.')
+  }),
+  command('parallel.fail', ['parallel', 'fail', '<id>', '<plan-id>'], {
+    effect: 'write',
+    help: H('terrace parallel fail <id> <plan-id>', 'Record a failed parallel worker plan'),
+    agent: A('terrace-parallel-fail', 'terrace parallel fail $ARGUMENTS', '<phase-id|run-id> <plan-id> --reason <text>', 'Record a failed worker plan while preserving its branch for recovery or review.')
+  }),
+  command('parallel.cleanup', ['parallel', 'cleanup', '<id>'], {
+    effect: 'write',
+    help: H('terrace parallel cleanup <id>', 'Clean up an isolated parallel run'),
+    agent: A('terrace-parallel-cleanup', 'terrace parallel cleanup $ARGUMENTS', '<phase-id|run-id>', 'Remove isolated worktrees without deleting unmerged branches unless --force is explicit.')
+  }),  command('phase.validate', ['phase', 'validate', '<id>'], {
     effect: 'write',
     route: ['phase', 'validate', P('phase_id')],
     help: H('terrace phase validate <id>', 'Generate validation artifact'),
@@ -773,6 +821,13 @@ const CONTRACTS = Object.freeze([
   ['phase.show', 'terrace phase show <id>', 'roadmap', 'Show one canonical Terrace roadmap phase and its migrated plans.'],
   ['phase.plan', 'terrace phase plan <id>', 'roadmap', 'Generate a phase plan artifact and prepare one roadmap phase as the active slice.'],
   ['phase.execute', 'terrace phase execute <id>', 'roadmap', 'Enter RED-gate execution for one phase after blockers are clear.'],
+  ['parallel.plan', 'terrace parallel plan <id>', 'parallel-execution', 'Preview explicit plan dependencies, waves, owned files, and single-writer blockers before creating worktrees.'],
+  ['parallel.start', 'terrace parallel start <id>', 'parallel-execution', 'Create one isolated branch/worktree for each ready plan wave after Terrace gates pass.'],
+  ['parallel.status', 'terrace parallel status <id>', 'parallel-execution', 'Inspect worker worktrees, committed changes, ownership, and SUMMARY.md readiness.'],
+  ['parallel.resume', 'terrace parallel resume <id>', 'parallel-execution', 'Recover an interrupted run by reconciling recorded branches and worktree paths.'],
+  ['parallel.merge', 'terrace parallel merge <id>', 'parallel-execution', 'Merge verified worker commits in deterministic wave and plan-id order.'],
+  ['parallel.fail', 'terrace parallel fail <id> <plan-id>', 'parallel-execution', 'Record a failed worker plan while preserving its branch for recovery or review.'],
+  ['parallel.cleanup', 'terrace parallel cleanup <id>', 'parallel-execution', 'Remove isolated worktrees without deleting unmerged branches unless --force is explicit.'],
   ['phase.validate', 'terrace phase validate <id>', 'roadmap', 'Generate validation instructions and move a phase to review readiness.'],
   ['phase.review', 'terrace phase review <id>', 'roadmap', 'Generate review checklist output for a phase.'],
   ['phase.complete', 'terrace phase complete <id>', 'roadmap', 'Complete a phase and write a summary artifact.'],

@@ -69,6 +69,7 @@ function createDefaultState(options) {
     roadmap: {
       phases: []
     },
+    parallel_runs: [],
     active_slice: null,
     red_gate: {
       status: 'not_started',

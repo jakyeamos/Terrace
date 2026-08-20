@@ -1,7 +1,7 @@
 ---
 name: terrace-phase-execute
-description: Enter RED-gate execution for a phase after blockers are clear.
-argument-hint: <phase-id>
+description: Enter RED-gate execution for a phase after blockers are clear; use --parallel only for explicit non-overlapping plan ownership.
+argument-hint: <phase-id> [--parallel]
 ---
 
 # Terrace Phase Execute

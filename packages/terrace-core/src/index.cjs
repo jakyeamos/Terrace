@@ -26,6 +26,7 @@ module.exports = mergeModuleExports([
   ['workflow-helpers', require('./workflow-helpers.cjs')],
   ['intent-catalog', require('./intent-catalog.cjs')],
   ['workflow', require('./workflow.cjs')],
+  ['parallel-execution', require('./parallel-execution.cjs')],
   ['reporting', require('./reporting.cjs')],
   ['lifecycle', require('./lifecycle.cjs')],
   ['workbench', require('./workbench.cjs')],

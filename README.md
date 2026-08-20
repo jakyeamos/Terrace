@@ -176,7 +176,14 @@ This generated index is checked against Terrace’s command catalog. Use `terrac
 - `terrace phase list` — List roadmap phases.
 - `terrace phase show <id>` — Show a roadmap phase.
 - `terrace phase plan <id>` — Generate a phase plan artifact.
-- `terrace phase execute <id>` — Enter RED-gate execution for a phase.
+- `terrace phase execute <id> [--parallel]` — Enter RED-gate execution for a phase.
+- `terrace parallel plan <id>` — Preview safe parallel plan waves and file ownership.
+- `terrace parallel start <id>` — Start isolated worktrees for a phase.
+- `terrace parallel status <id>` — Inspect parallel worker evidence.
+- `terrace parallel resume <id>` — Recover an interrupted parallel run.
+- `terrace parallel merge <id>` — Merge verified parallel worker commits.
+- `terrace parallel fail <id> <plan-id>` — Record a failed parallel worker plan.
+- `terrace parallel cleanup <id>` — Clean up an isolated parallel run.
 - `terrace phase validate <id>` — Generate validation artifact.
 - `terrace phase review <id>` — Generate review artifact.
 - `terrace phase complete <id>` — Complete a phase with summary artifact.
@@ -249,6 +256,8 @@ Corpus evaluation keeps generated evidence in `.terrace/corpus/` in the target p
 4. Use Terrace gates to require RED evidence before implementation and GREEN evidence before protection.
 5. Run `terrace phase plan <id>`, `terrace phase execute <id>`, `terrace phase validate <id>`, `terrace phase review <id>`, and `terrace phase complete <id>` to preserve execution history.
 6. Run `terrace audit`, `terrace ci check`, and `terrace ship prepare` before committing protected changes.
+
+When every phase plan declares explicit, non-overlapping file ownership, `terrace phase execute <id> --parallel` can create isolated worktrees for a ready wave. Inspect with `terrace parallel status`, merge verified workers with `terrace parallel merge`, and use `terrace parallel resume`, `terrace parallel fail`, or `terrace parallel cleanup` for recovery. The sequential phase path remains the fallback when ownership or evidence gates are not satisfied.
 
 Agents can use `terrace do "plan phase 11"`, `terrace do "run phase 11 end to end"`, `terrace do "run the next phase"`, `terrace do "create quick task fix login redirect"`, `terrace do "make this feature ship-ready"`, or `terrace do "ship prepare"` to resolve natural-language intent instead of a structured command. Any write-capable route returns its command, parameters, writes, execution scope, and state-bound `apply` object without writing; inspect that plan, then run the returned `apply.argv` exactly when the mutation is intended. For the full phase lifecycle, prefer the explicit command: `terrace execute-phase-complete 11`.
 

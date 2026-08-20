@@ -27,6 +27,13 @@ function createPhaseCliRouter(dependencies) {
     phaseReview,
     phaseComplete,
     phaseCompleteWorkflow,
+    parallelPlan,
+    parallelStart,
+    parallelStatus,
+    parallelResume,
+    parallelMerge,
+    parallelFail,
+    parallelCleanup,
     loadState,
     saveState,
     transitionState
@@ -54,6 +61,7 @@ function createPhaseCliRouter(dependencies) {
 
   function route(input) {
     const { command_id: commandId, family_id: familyId, args, cwd } = input;
+    const rawArgs = Array.isArray(input.raw_args) ? input.raw_args : (Array.isArray(args) ? args : []);
     if (familyId === 'phase') {
       return phaseFamilyError(args);
     }
@@ -62,6 +70,12 @@ function createPhaseCliRouter(dependencies) {
       const phaseId = args[1];
       if (!phaseId) {
         return error('Usage: terrace ' + action + '-phase <phase-id>');
+      }
+      if (action === 'execute' && rawArgs.includes('--parallel')) {
+        return result({
+          command_alias: 'terrace phase execute ' + phaseId + ' --parallel',
+          result: parallelStart(cwd, phaseId)
+        });
       }
       return result({
         command_alias: 'terrace phase ' + action + ' ' + phaseId,
@@ -73,7 +87,26 @@ function createPhaseCliRouter(dependencies) {
       if (!phaseId) {
         return error('Usage: terrace execute-phase-complete <phase-id>');
       }
-      return result(phaseCompleteWorkflow(cwd, phaseId));
+      return result(rawArgs.includes('--parallel')
+        ? parallelStart(cwd, phaseId)
+        : phaseCompleteWorkflow(cwd, phaseId));
+    }
+    if (commandId === 'parallel.plan' || commandId === 'parallel.start' || commandId === 'parallel.status' || commandId === 'parallel.resume' || commandId === 'parallel.merge' || commandId === 'parallel.fail' || commandId === 'parallel.cleanup') {
+      const target = args[2];
+      if (!target) {
+        return error('Usage: terrace parallel plan|start|status|resume|merge|cleanup <phase-id>');
+      }
+      if (commandId === 'parallel.plan') return result(parallelPlan(cwd, target));
+      if (commandId === 'parallel.start') return result(parallelStart(cwd, target));
+      if (commandId === 'parallel.status') return result(parallelStatus(cwd, target));
+      if (commandId === 'parallel.resume') return result(parallelResume(cwd, target));
+      if (commandId === 'parallel.merge') return result(parallelMerge(cwd, target));
+      if (commandId === 'parallel.cleanup') return result(parallelCleanup(cwd, target, { force: rawArgs.includes('--force') }));
+      const planId = args[3];
+      if (!planId) return error('Usage: terrace parallel fail <phase-id> <plan-id> --reason <text>');
+      const reasonIndex = rawArgs.indexOf('--reason');
+      const reason = reasonIndex === -1 ? null : rawArgs[reasonIndex + 1] || null;
+      return result(parallelFail(cwd, target, planId, reason));
     }
     if (commandId === 'phase.list') {
       return result(phaseList(cwd));
@@ -83,6 +116,9 @@ function createPhaseCliRouter(dependencies) {
       const phaseId = args[2];
       if (!phaseId) {
         return error('Usage: terrace phase ' + action + ' <phase-id>');
+      }
+      if (action === 'execute' && rawArgs.includes('--parallel')) {
+        return result(parallelStart(cwd, phaseId));
       }
       return result(handlers[action](cwd, phaseId));
     }

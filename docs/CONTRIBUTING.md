@@ -1,6 +1,6 @@
 # Contributing
 
-Use a feature branch for non-trivial work. Keep commits scoped to one concern and update the routed context or relevant evidence artifact when behavior, commands, boundaries, or release procedures change.
+Use a feature branch for non-trivial work. Keep commits scoped to one concern and record implementation and verification in the relevant current documentation or Terrace state artifacts. Do not add the retired `.tracker/PROJECT_TRUTH.md` file.
 
 Before opening a PR, run:
 
