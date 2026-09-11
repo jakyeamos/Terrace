@@ -357,3 +357,7 @@ pnpm run ci
 
 The publish allowlist is controlled by `package.json#files`; local planning, tests, and agent settings are not shipped. Release publishing uses public package access and npm provenance through `publishConfig` plus the GitHub Release workflow.
 The GitHub Release workflow publishes through npm trusted publishing with OIDC, so release execution does not depend on local registry auth secrets.
+
+## Development source association
+
+Repository source ownership and bounded fixture links are recorded in [.project-compass/development.json](https://github.com/jakyeamos/terrace/blob/dev/.project-compass/development.json), with behavior gaps in [.project-compass/behaviors.json](https://github.com/jakyeamos/terrace/blob/dev/.project-compass/behaviors.json). These repository-only files retain the canonical workflow and required gates; local fixtures do not certify installed providers, published releases, concurrent state integrity, managed transactions or real project adoption.

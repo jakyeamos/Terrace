@@ -1,6 +1,9 @@
 {
   "schema_version": "change-surface-matrix/v1",
-  "subject": {"kind": "repository", "id": "terrace"},
+  "subject": {
+    "kind": "repository",
+    "id": "terrace"
+  },
   "owner": "repository-owner",
   "last_reviewed": "2026-08-16",
   "surfaces": [
@@ -10,7 +13,11 @@
       "path": ".agents/change-surface-matrix.json",
       "owner": "repository-owner",
       "condition": "A material feature, behavior, command, workflow, integration, security, or quality/release surface changes.",
-      "operations": ["add", "change", "remove"],
+      "operations": [
+        "add",
+        "change",
+        "remove"
+      ],
       "validation": [
         "Update this matrix in the same change with the affected surfaces, documentation, tests, and evidence.",
         "For an isolated internal change with no surface impact, record a reviewed no-impact reason in the same change record."
@@ -23,8 +30,15 @@
       "path": "scripts/check_environment_contract.mjs, .pre-cr.json, .quality-runner.toml, .github/workflows/ci.yml",
       "owner": "repository-owner",
       "condition": "Repository guidance, quality commands, secret-path policy, or environment-contract enforcement changes.",
-      "operations": ["add", "change", "remove"],
-      "validation": ["pnpm run environment:contract", "pnpm test -- tests/product-readiness.test.ts"],
+      "operations": [
+        "add",
+        "change",
+        "remove"
+      ],
+      "validation": [
+        "pnpm run environment:contract",
+        "pnpm test -- tests/product-readiness.test.ts"
+      ],
       "status": "applicable"
     },
     {
@@ -33,8 +47,14 @@
       "path": ".agents/context/, AGENTS.md, README.md, docs/CONTRIBUTING.md",
       "owner": "repository-owner",
       "condition": "Agent routing, repository commands, completion criteria, or contributor guidance changes.",
-      "operations": ["add", "change", "remove"],
-      "validation": ["pnpm run environment:contract"],
+      "operations": [
+        "add",
+        "change",
+        "remove"
+      ],
+      "validation": [
+        "pnpm run environment:contract"
+      ],
       "status": "applicable"
     },
     {
@@ -43,8 +63,16 @@
       "path": "pnpm-workspace.yaml, pnpm-lock.yaml",
       "owner": "repository-owner",
       "condition": "Dependency overrides or the resolved dependency graph change.",
-      "operations": ["add", "change", "remove"],
-      "validation": ["pnpm install --frozen-lockfile", "pnpm audit --audit-level moderate", "pnpm run ci"],
+      "operations": [
+        "add",
+        "change",
+        "remove"
+      ],
+      "validation": [
+        "pnpm install --frozen-lockfile",
+        "pnpm audit --audit-level moderate",
+        "pnpm run ci"
+      ],
       "status": "applicable"
     },
     {
@@ -53,10 +81,29 @@
       "path": "packages/terrace-core/src/lifecycle.cjs, README.md, docs/terrace/features/, tests/agent-production-lifecycle.test.ts, tests/agent-production-lifecycle-full.test.ts",
       "owner": "repository-owner",
       "condition": "Preflight or documentation generation changes its applicability detection, evidence wording, rollback contract, or persisted metadata.",
-      "operations": ["change"],
+      "operations": [
+        "change"
+      ],
       "validation": [
         "pnpm test -- tests/agent-production-lifecycle.test.ts tests/agent-production-lifecycle-full.test.ts",
         "Generate evidence for a CLI-only fixture and verify absent hosted-service surfaces are stated as not detected rather than invented."
+      ],
+      "status": "applicable"
+    },
+    {
+      "id": "project-compass-source-association",
+      "scope": "local",
+      "path": ".project-compass/development.json, .project-compass/behaviors.json, README.md",
+      "owner": "repository-owner",
+      "condition": "The current source association, semantic oracle or mapped behavior changes.",
+      "operations": [
+        "add",
+        "change",
+        "remove"
+      ],
+      "validation": [
+        "Run affected Compass proofs and exact-diff completion.",
+        "Preserve pnpm run ci, environment:contract, mandatory QR and security dependency audit; keep unbound outcomes visible."
       ],
       "status": "applicable"
     }
