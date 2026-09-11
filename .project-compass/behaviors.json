@@ -1,0 +1,35 @@
+{
+  "schema": "compass-behavior-inventory/v1",
+  "behaviors": [
+    {
+      "id": "local-governance",
+      "title": "Initialize nonoverwriting local state and inspect protected baselines",
+      "spec_ref": "README.md",
+      "authority": "accepted"
+    },
+    {
+      "id": "preserved-gsd-migration",
+      "title": "Convert supported GSD artifacts while retaining originals and exposing skips",
+      "spec_ref": "README.md",
+      "authority": "accepted"
+    },
+    {
+      "id": "gated-phase-lifecycle",
+      "title": "Keep phase execution, review and completion blocked on missing evidence",
+      "spec_ref": "README.md",
+      "authority": "accepted"
+    },
+    {
+      "id": "release-adoption-evidence",
+      "title": "Report release and replacement readiness from bounded explicit evidence",
+      "spec_ref": "README.md",
+      "authority": "accepted"
+    },
+    {
+      "id": "agent-command-projections",
+      "title": "Expose command and fragment contracts across provider projections",
+      "spec_ref": "README.md",
+      "authority": "accepted"
+    }
+  ]
+}

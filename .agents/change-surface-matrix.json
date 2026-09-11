@@ -1,0 +1,29 @@
+{
+  "schema_version": "change-surface-matrix/v1",
+  "subject": {
+    "kind": "repository",
+    "id": "Terrace"
+  },
+  "owner": "repository-owner",
+  "last_reviewed": "2026-09-11",
+  "surfaces": [
+    {
+      "id": "compass-source-association",
+      "scope": "local",
+      "path": "README.md; .agents/change-surface-matrix.json; .project-compass/development.json; .project-compass/behaviors.json",
+      "owner": "repository-owner",
+      "condition": "Existing intent, ownership or behavior-proof associations change.",
+      "operations": [
+        "add",
+        "change",
+        "remove"
+      ],
+      "validation": [
+        "Review preserved migration and gate contracts; run canonical pnpm run ci plus affected Compass proofs. If enrolled in Quality Runner, retain its authoritative release check. Distinguish candidate source from installed provider and published release evidence."
+      ],
+      "status": "applicable",
+      "reviewed_impact": "Metadata only; no workflow invocation, migration, GSD retirement, provider installation or package publication."
+    }
+  ],
+  "unresolved_surfaces": []
+}
